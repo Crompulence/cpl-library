@@ -8,36 +8,35 @@
           __\///\\\__________\/\\\_____________\/\\\_____________  
            ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_ 
             _______\/////////__\///______________\///////////////__
+
+
+                          www.cpl-library.org
+
 ~~~ 
+
+CPL Library is a communications and topology management system for
+coupling any continuum fluid dynamics (CFD) solver to any molecular dynamics
+(MD) code written in either C, C++ or Fortran. A demonstration of CPL Library's
+capability is included in the "demo" folder. Inside the demo, "dummy" MD and
+CFD programs are coupled via CPL Library and exchange data on a virtual
+topology. The user is encouraged to examine the source code of these programs,
+which are an easy-to-understand example of how to couple other programs with
+CPL Library.
+
 
 
 Contents
 ========
     
-    1. About
-    2. Pre-requisites for compilation
-    3. Install 
+    1. Pre-requisites for compilation
+    2. Install 
         a) Compiling the library
         b) Compiling and running the demo programs
-    4. License
+    3. License
 
 
 
-1. About
-========
-
-CPL Library is a communications and topology management system for
-coupling any continuum fluid dynamics (CFD) solver to any molecular dynamics
-(MD) code. A demonstration of CPL Library's capability is included in the
-"demo" folder. Inside the demo, "dummy" MD and CFD programs are coupled via CPL
-Library and exchange data on a virtual topology. The user is encouraged to
-examine the source code of these programs, which are an easy-to-understand
-example of how to couple other programs with CPL Library.
-
-
-
-
-2. Pre-requisites for compilation
+1. Pre-requisites for compilation
 =================================
 
 - A C++14 compiler 
@@ -49,7 +48,7 @@ MPICH, which are both free and open-source.
 
 
 
-3. Install
+2. Install
 ==========
 
 
@@ -85,7 +84,7 @@ MPICH, which are both free and open-source.
     This is a placeholder
 
 
-4. License
+3. License
 ==========
 
 CPL Library is released under the GNU GPL v3 license. Details are found in
