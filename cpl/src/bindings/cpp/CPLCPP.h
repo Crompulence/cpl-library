@@ -48,7 +48,6 @@ Author(s)
 #ifndef CPLCPP_H_INCLUDED
 #define CPLCPP_H_INCLUDED
 #include <string>
-#include <iostream>
 #include "CPLC.h"
 
 // CPL namespace for C++ bindings
