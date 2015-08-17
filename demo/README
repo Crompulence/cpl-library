@@ -1,4 +1,76 @@
-This is a placeholder
+~~~
+        ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________        
+         _____/\\\////////__\/\\\/////////\\\_\/\\\_____________       
+          ___/\\\/___________\/\\\_______\/\\\_\/\\\_____________      
+           __/\\\_____________\/\\\\\\\\\\\\\/__\/\\\_____________     
+            _\/\\\_____________\/\\\/////////____\/\\\_____________    
+             _\//\\\____________\/\\\_____________\/\\\_____________   
+              __\///\\\__________\/\\\_____________\/\\\_____________  
+               ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_ 
+                _______\/////////__\///______________\///////////////__
 
-cfd - Fortran
-md - C++
+
+                              www.cpl-library.org
+~~~ 
+
+The contents of this demo folder provide a rudimentary framework for performing
+coupled simulations with CPL Library. The user is provided here with example 
+codes written in both C++ and Fortran, as well as an example execution script.
+Please see the end of this file for a description of all contents of this
+directory.
+
+
+
+Compilation
+===========
+
+To compile the example programs, use make:
+
+    $  make 
+
+This should compile, by default, the C++ MD and Fortran CFD demo applications.
+The executable files are placed inside their respective sub-folders within the
+directory named "run". To choose a configuration compiled from demo
+applications written in different languages, call
+
+    $  make [MDlanguage]-[CFDlanguage] 
+
+where [MDlanguage] and [CFDlanguage] are replaced by either "cpp" or "fortran",
+i.e. any of the following combinations: 
+
+    cpp-cpp                       
+    cpp-fortran
+    fortran-cpp
+    fortran-fortran 
+
+
+
+Executing a coupled simulation
+==============================
+
+To run the two applications together in a coupled simulation, change
+directory to the "run" folder, and execute the run script:
+
+    $  cd run
+    $  ./run.sh
+
+
+
+Directory contents
+==================
+
+    makefile    - Self-explanatory
+
+    cfd/        - CFD application source code directory 
+    cfd/cfd.cpp - CFD application written in C++
+    cfd/cfd.f90 - CFD application written in Fortran
+
+    md/         - MD application source code directory 
+    md/md.cpp   - MD application written in C++
+    md/md.f90   - MD application written in Fortran
+
+    run/        - Run directory
+    run/md/     - MD executable and output directory
+    run/cfd/    - CFD executable and output directory
+    run/cpl/    - Directory for CPL Library input/output 
+    run/run.sh  - Example execution script 
