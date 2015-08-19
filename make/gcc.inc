@@ -1,11 +1,19 @@
 
-# Fortran and C++ compilers
+# Fortran/C++ compilers and linker
 F90 = mpif90
 CPP = mpic++
+LINK = gcc
 
-# Base flags
+# Base flags for Fortran/C++/Linker
 FFLAGS = -fno-underscoring
 CFLAGS = -std=c++14
+LFLAGS =
+
+# Compiler's flag for specifying where to place compiled Fortran modules
+FMODKEY = -J
+
+# Linker's flag indicating that objects are to be linked into a shared lib
+LSHAREDLIB = -shared
 
 # Build type, optimised or debug
 ifndef BUILD

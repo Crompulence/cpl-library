@@ -61,10 +61,8 @@ allobjfiles = $(coreobjfiles) $(fbindobjfile) $(cbindobjfile) \
               $(cppbindobjfiles) $(utilsobjfiles)
 
 # Define flags and compilers/linkers specific to this makefile
-FFLAGS += -J$(includedir) -fPIC
+FFLAGS += $(FMODKEY)$(includedir) -fPIC
 CFLAGS += -fPIC
-LINK = gcc
-LFLAGS = -shared
 
 #                         Targets
 
@@ -114,7 +112,7 @@ $(utilsobjfiles): $(objdir)/%.o : $(utilsdir)/%.cpp
 
 # Link static lib to dynamic (shared) library
 link: $(objdir) $(libobjfiles) $(utilsobjfiles)
-	$(LINK) $(LFLAGS) -o $(lib) $(allobjfiles)
+	$(LINK) $(LFLAGS) $(LSHAREDLIB) -o $(lib) $(allobjfiles)
 
 # Clean
 clean:
