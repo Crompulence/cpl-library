@@ -60,15 +60,16 @@ Author(s)
 */
 #ifndef CPL_USHERBASE_H_INCLUDED
 #define CPL_USHERBASE_H_INCLUDED
+
 #include<utility>
 #include "CPL_usherExceptions.h"
 #include "CPL_vector3D.h"
 
-// Handy data-type used to return force and potential energy at the same time
 
 namespace CPL
 {
 
+    // Handy data-type used to return force and potential energy together 
     typedef std::pair<Vector3D, double> VectorScalarPair;
 
     // Usher base class, docs to come TODO (d.trevelyan@imperial.ac.uk)
