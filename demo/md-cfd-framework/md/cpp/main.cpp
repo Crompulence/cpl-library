@@ -1,12 +1,19 @@
-#include "mpi.h"
-#include "CPL.h"
+#include "socket.h"
 
 int main (int argc, char** argv)
 {
-    MPI_Init (&argc, &argv);
+    Socket socket (argc, argv);
     
-    MPI_Comm realmComm;
-    CPL::create_comm (CPL::md_realm, realmComm);
+    socket.InitialiseMD (/* your simulation's topology data here */);    
 
-    MPI_Finalize();
+    for (int iter = 0; iter < socket.nsteps(); iter += socket.timestep_ratio())
+    {
+        socket.Pack (/* simulation data parameters */);
+        socket.Receive();
+        socket.Send();
+        socket.Unpack (/* simulation data parameters */);
+
+        // Continue simulation for socket.timestep_ratio 
+    }
+     
 }

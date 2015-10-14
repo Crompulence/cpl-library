@@ -1,6 +1,6 @@
 
 # Get compilers and base flags from platform include file 
-MAKEINCPATH= ../make
+MAKEINCPATH= ../../make
 include $(MAKEINCPATH)/platform.inc
 F_LIBS = -lgfortran -lmpifort
 C_LIBS = -lc -lstdc++
@@ -11,8 +11,8 @@ CFDEXE = run/cfd/cfdProgram
 
 # Include header/module and library/linker flags
 PWD = $(shell pwd)
-CPL_INCDIR = $(PWD)/../cpl/include
-CPL_LIBDIR = $(PWD)/../cpl/lib
+CPL_INCDIR = $(PWD)/../../cpl/include
+CPL_LIBDIR = $(PWD)/../../cpl/lib
 CPL_INC = -I$(CPL_INCDIR)
 CPL_LIB = -L$(CPL_LIBDIR) -Wl,-rpath=$(CPL_LIBDIR) -lcpl 
 CPL_FLAGS = $(CPL_INC) $(CPL_LIB)
