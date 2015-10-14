@@ -1,0 +1,9 @@
+Topology_test contains a standalone code that is designed to perform the
+communications and mapping setup of the coupler, before performing gather,
+scatter, send and recv processes with dummy arrays. 
+
+The python script "singlerun.py" reads the input file "TOPOL.in", and makes
+ a system call to mpiexec with the appropriate number of processors. 
+
+"topology_test.py" is in development and is designed to allow easy parametric
+studies of inputs to the coupler.
