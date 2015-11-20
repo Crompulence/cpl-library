@@ -402,7 +402,7 @@ contains
 
         r_md_f = map_cfd2md_global(r_cfd_f)
 
-        CPLC_map_cfd2md_global = C_LOC(r_md_f)
+        CPLC_map_cfd2md_global = C_LOC(r_md_f(1))
 
     end function CPLC_map_cfd2md_global
      
