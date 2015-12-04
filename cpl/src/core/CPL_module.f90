@@ -1028,16 +1028,21 @@ contains
     subroutine check_mesh
         implicit none
 
-        ! Check grids are the right size 
-        if (size(xg,1) .ne. (ncx + 1) .or. size(xg,2) .ne. (ncy + 1)) then
-            call error_abort('xg is the wrong size in cpl_cfd_init')
-        end if
-        if (size(yg,1) .ne. (ncx + 1) .or. size(yg,2) .ne. (ncy + 1)) then
-            call error_abort('yg is the wrong size in cpl_cfd_init')
-        end if
-        if (size(zg) .ne. (ncz + 1)) then
-            call error_abort('zg is the wrong size in cpl_cfd_init')
-        end if
+!        ! Check grids are the right size 
+!        if (size(xg,1) .ne. (ncx + 1) .or. size(xg,2) .ne. (ncy + 1)) then
+!            print'(4(a,i7))', ' Grid size x in x = ', size(xg,1), ' Ncells in x = ', (ncx + 1),& 
+!                              ' Grid size y in x = ', size(xg,2), ' Ncells in y = ', (ncy + 1)
+!            call error_abort('xg is the wrong size in cpl_cfd_init')
+!        end if
+!        if (size(yg,1) .ne. (ncx + 1) .or. size(yg,2) .ne. (ncy + 1)) then
+!            print'(4(a,i7))', ' Grid size x in y = ', size(xg,1), ' Ncells in x = ', (ncx + 1),& 
+!                              ' Grid size y in y = ', size(xg,2), ' Ncells in y = ', (ncy + 1)
+!            call error_abort('yg is the wrong size in cpl_cfd_init')
+!        end if
+!        if (size(zg) .ne. (ncz + 1)) then
+!            print'(2(a,i7))', ' Grid size z = ', size(zg,1), ' Ncells in z = ', (ncz + 1)
+!            call error_abort('zg is the wrong size in cpl_cfd_init')
+!        end if
 
         !Define cell sizes dx,dy & dz and check for grid stretching
         ! - - x - -
