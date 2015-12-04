@@ -4,7 +4,7 @@ F90 = mpif90
 CPP = mpic++
 LINK = mpic++
 
-INTELDIR = /opt/intel/composer_xe_2013_sp1.2.144/compiler/lib/intel64/
+INTELDIR = # Place the path to the Intel  
 FORTRAN_LIBS = #-L$(INTELDIR) -lifport -lifcore -limf -lsvml -lintlc
 
 

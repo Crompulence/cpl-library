@@ -55,23 +55,23 @@ MPICH, which are both free and open-source.
     a) Compiling the library 
     ------------------------
 
-    Compiling CPL-Library itself, as a statically linked library, is likely to 
-    work with the makefile provided:
+    Compiling CPL Library with GCC, as a shared library, is likely to 
+    work with the makefile provided in cpl/:
 
         $  cd cpl
         $  make 
 
     If this doesn't work, the compilers and flags may need to be specified
-    manually. The makefiles provided with CPL Library include the file
-    make/[platform].inc, where the variable [platform] is specified exactly by
-    the contents of the file make/PLATFORM. A template is provided in
-    make/template.inc, and the file make/PLATFORM contains only the string 
-    "template" by default. The template provided is likely to
-    work for most machines, but the user is advised to create their own version
-    (make/user-include.inc, for example):
+    manually. The makefiles provided with CPL Library import the variables 
+    in the file make/[platform].inc, where the variable [platform] is specified
+    exactly by the contents of the file make/PLATFORM. A template is provided
+    in make/gcc.inc, and the file make/PLATFORM contains only the string "gcc" 
+    by default. The GCC template is likely to work for most machines, but
+    the user may create their own version (make/user-include.inc, for
+    example):
 
         $  cd ./make
-        $  cp template.inc user-include.inc
+        $  cp gcc.inc user-include.inc
         $  vi user-include.inc                     (make any necessary changes)
         $  cd ../cpl
         $  make PLATFORM=user-include
@@ -81,7 +81,9 @@ MPICH, which are both free and open-source.
     b) Building the demo applications
     ---------------------------------
 
-    This is a placeholder
+    Please see:
+
+        http://www.cpl-library.org/user-guide/quick-start.shtml 
 
 
 3. License

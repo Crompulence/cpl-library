@@ -35,23 +35,48 @@ License
 
 Description
 
-    Declares functions that wrap the C-bindings from cpl/src/bindings/c/CPLC.h
-    in the namespace CPL, such that CPL::function_name corresponds to
-    CPLC_function_name.
+    A (very) simple implementation of a three-dimensional vector class,
+    with definitions of some basic linear-algebra operations.
 
 Author(s)
-
+    
     David Trevelyan
 
 */
 
-#ifndef CPL_H_INCLUDED
-#define CPL_H_INCLUDED
+#ifndef CPL_VECTOR3D_H_INCLUDED
+#define CPL_VECTOR3D_H_INCLUDED
 
-#include "CPLCPP.h"
-#include "CPL_vector3D.h"
-#include "CPL_ndArray.h"
-#include "CPL_cartCreate.h"
-#include "CPL_usherBase.h"
+#include<ostream>
 
-#endif // CPL_H_INCLUDED
+namespace CPL
+{
+
+    struct Vector3D
+    {
+
+        Vector3D();
+        Vector3D (double x, double y, double z);
+
+        double x, y, z;
+
+        Vector3D& operator+= (const Vector3D& right);   
+        Vector3D& operator-= (const Vector3D& right);   
+        Vector3D& operator*= (double right);   
+        Vector3D& operator/= (double right);   
+        Vector3D  operator+  (const Vector3D& right);   
+        Vector3D  operator-  (const Vector3D& right);   
+        Vector3D  operator-  ();   
+        double    operator*  (const Vector3D& right);   
+        Vector3D  operator*  (double right);   
+        Vector3D  operator/  (double right);   
+
+        double magnitude();
+
+    };
+    Vector3D operator* (double left, const Vector3D& right);
+    std::ostream& operator<< (std::ostream& os, const Vector3D& vec);
+
+} // end namespace CPL
+
+#endif // CPL_VECTOR3D_H_INCLUDED
