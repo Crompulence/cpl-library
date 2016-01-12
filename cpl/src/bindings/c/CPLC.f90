@@ -160,6 +160,66 @@ contains
 
 
 
+    subroutine CPLC_test_python(int_p, doub_p, bool_p, int_pptr, doub_pptr, int_pptr_dims, doub_pptr_dims) &
+       bind (C, name="CPLC_test_python")
+       !use CPL, only: CPL_test_python
+       implicit none
+
+       integer(C_INT), value :: int_p
+       real(C_DOUBLE), value :: doub_p
+       logical(C_BOOL), value :: bool_p
+       type(C_PTR), value :: int_pptr
+       type(C_PTR), value :: doub_pptr
+       type(C_PTR), value :: int_pptr_dims
+       type(C_PTR), value :: doub_pptr_dims
+
+       !Fortran equivalent array pointers
+       integer, dimension(:,:), pointer :: int_pptr_f
+       real(kind(0.d0)), dimension(:,:), pointer :: doub_pptr_f
+       integer, dimension(:), pointer :: int_pptr_dims_f, doub_pptr_dims_f
+
+       !Aux variables
+       integer :: int_dimx, int_dimy
+       integer :: doub_dimx, doub_dimy
+       integer :: i, j
+
+       call C_F_POINTER(int_pptr_dims, int_pptr_dims_f, [2])
+       call C_F_POINTER(doub_pptr_dims, doub_pptr_dims_f, [2])
+
+
+       int_dimx = int_pptr_dims_f(1)
+       int_dimy = int_pptr_dims_f(2)
+       print * , 'int_dimx: ', int_dimx
+       print * , 'int_dimy: ', int_dimy
+
+       doub_dimx = doub_pptr_dims_f(1)
+       doub_dimy = doub_pptr_dims_f(2)
+       print * , 'doub_dimx: ', doub_dimx
+       print * , 'doub_dimy: ', doub_dimy
+
+       
+
+       call C_F_POINTER(int_pptr, int_pptr_f, [int_dimx, int_dimy])
+       call C_F_POINTER(doub_pptr, doub_pptr_f, [doub_dimx, doub_dimy])
+
+       print *, 'int_p: ', int_p
+       print *, 'doub_p: ', doub_p
+       if (bool_p) then
+         print *, 'bool_p: True'
+       else
+         print *, 'bool_p: False'
+       end if
+       print *, 'int_pptr: ', int_pptr_f
+       !do i=1,int_dimx
+       ! do j=1,int_dimy
+       !   print *, int_pptr_f(i,j)
+       ! end do
+       !end do
+       print *, 'doub_pptr: ', doub_pptr_f(5, 2)
+
+       !integer(C_INT) :: returned_realm_comm
+       !call CPL_test_python()
+    end subroutine CPLC_test_python
 
     subroutine CPLC_md_init(nsteps, initialstep, dt, icomm_grid, icoord, &
                             npxyz_md, globaldomain, density) &
@@ -411,288 +471,290 @@ contains
 
     ! Getters: integers
 
-        integer(C_INT) function CPLC_ncx() &
-            bind(C, name="CPLC_ncx")
-            use CPL, only: ncx
-            implicit none
+    integer(C_INT) function CPLC_ncx() &
+        bind(C, name="CPLC_ncx")
+        use CPL, only: ncx
+        implicit none
 
-            CPLC_ncx = ncx
-            
-        end function CPLC_ncx
-
-        integer(C_INT) function CPLC_ncy() &
-            bind(C, name="CPLC_ncy")
-            use CPL, only: ncy
-            implicit none
-
-            CPLC_ncy = ncy
-            
-        end function CPLC_ncy
-
-        integer(C_INT) function CPLC_ncz() &
-            bind(C, name="CPLC_ncz")
-            use CPL, only: ncz
-            implicit none
-
-            CPLC_ncz = ncz
-            
-        end function CPLC_ncz
-
-        integer(C_INT) function CPLC_icmin_olap() &
-            bind(C, name="CPLC_icmin_olap")
-            use CPL, only: icmin_olap
-            implicit none
-
-            CPLC_icmin_olap = icmin_olap
-            
-        end function CPLC_icmin_olap
-
-        integer(C_INT) function CPLC_jcmin_olap() &
-            bind(C, name="CPLC_jcmin_olap")
-            use CPL, only: jcmin_olap
-            implicit none
-
-            CPLC_jcmin_olap = jcmin_olap
-            
-        end function CPLC_jcmin_olap
-
-        integer(C_INT) function CPLC_kcmin_olap() &
-            bind(C, name="CPLC_kcmin_olap")
-            use CPL, only: kcmin_olap
-            implicit none
-
-            CPLC_kcmin_olap = kcmin_olap
-            
-        end function CPLC_kcmin_olap
-
-        integer(C_INT) function CPLC_icmax_olap() &
-            bind(C, name="CPLC_icmax_olap")
-            use CPL, only: icmax_olap
-            implicit none
-
-            CPLC_icmax_olap = icmax_olap
-            
-        end function CPLC_icmax_olap
-
-        integer(C_INT) function CPLC_jcmax_olap() &
-            bind(C, name="CPLC_jcmax_olap")
-            use CPL, only: jcmax_olap
-            implicit none
-
-            CPLC_jcmax_olap = jcmax_olap
-            
-        end function CPLC_jcmax_olap
-
-        integer(C_INT) function CPLC_kcmax_olap() &
-            bind(C, name="CPLC_kcmax_olap")
-            use CPL, only: kcmax_olap
-            implicit none
-
-            CPLC_kcmax_olap = kcmax_olap
-            
-        end function CPLC_kcmax_olap
-
-        integer(C_INT) function CPLC_icmin_cnst() &
-            bind(C, name="CPLC_icmin_cnst")
-            use CPL, only: icmin_cnst
-            implicit none
-
-            CPLC_icmin_cnst = icmin_cnst
-            
-        end function CPLC_icmin_cnst
-
-        integer(C_INT) function CPLC_jcmin_cnst() &
-            bind(C, name="CPLC_jcmin_cnst")
-            use CPL, only: jcmin_cnst
-            implicit none
-
-            CPLC_jcmin_cnst = jcmin_cnst
-            
-        end function CPLC_jcmin_cnst
-
-        integer(C_INT) function CPLC_kcmin_cnst() &
-            bind(C, name="CPLC_kcmin_cnst")
-            use CPL, only: kcmin_cnst
-            implicit none
-
-            CPLC_kcmin_cnst = kcmin_cnst
-            
-        end function CPLC_kcmin_cnst
-
-        integer(C_INT) function CPLC_icmax_cnst() &
-            bind(C, name="CPLC_icmax_cnst")
-            use CPL, only: icmax_cnst
-            implicit none
-
-            CPLC_icmax_cnst = icmax_cnst
-            
-        end function CPLC_icmax_cnst
-
-        integer(C_INT) function CPLC_jcmax_cnst() &
-            bind(C, name="CPLC_jcmax_cnst")
-            use CPL, only: jcmax_cnst
-            implicit none
-
-            CPLC_jcmax_cnst = jcmax_cnst
-            
-        end function CPLC_jcmax_cnst
-
-        integer(C_INT) function CPLC_kcmax_cnst() &
-            bind(C, name="CPLC_kcmax_cnst")
-            use CPL, only: kcmax_cnst
-            implicit none
-
-            CPLC_kcmax_cnst = kcmax_cnst
-            
-        end function CPLC_kcmax_cnst
-
-        integer(C_INT) function CPLC_timestep_ratio() &
-            bind(C, name="CPLC_timestep_ratio")
-            use CPL, only: timestep_ratio
-            implicit none
-
-            CPLC_timestep_ratio = timestep_ratio
-            
-        end function CPLC_timestep_ratio
-
-        integer(C_INT) function CPLC_cpl_md_bc_slice() &
-            bind(C, name="CPLC_cpl_md_bc_slice")
-            use CPL, only: cpl_md_bc_slice
-            implicit none
-
-            CPLC_cpl_md_bc_slice = cpl_md_bc_slice
-
-        end function CPLC_cpl_md_bc_slice
-
-        integer(C_INT) function CPLC_cpl_cfd_bc_slice() &
-            bind(C, name="CPLC_cpl_cfd_bc_slice")
-            use CPL, only: cpl_cfd_bc_slice
-            implicit none
-
-            CPLC_cpl_cfd_bc_slice = cpl_cfd_bc_slice
-
-        end function CPLC_cpl_cfd_bc_slice
-
-        integer(C_INT) function CPLC_cpl_cfd_bc_x() &
-            bind(C, name="CPLC_cpl_cfd_bc_x")
-            use CPL, only: cpl_cfd_bc_x
-            implicit none
-
-            CPLC_cpl_cfd_bc_x = cpl_cfd_bc_x 
-
-        end function CPLC_cpl_cfd_bc_x 
-
-        integer(C_INT) function CPLC_cpl_cfd_bc_y() &
-            bind(C, name="CPLC_cpl_cfd_bc_y")
-            use CPL, only: cpl_cfd_bc_y
-            implicit none
-
-            CPLC_cpl_cfd_bc_y = cpl_cfd_bc_y 
-
-        end function CPLC_cpl_cfd_bc_y 
-
-        integer(C_INT) function CPLC_cpl_cfd_bc_z() &
-            bind(C, name="CPLC_cpl_cfd_bc_z")
-            use CPL, only: cpl_cfd_bc_z
-            implicit none
-
-            CPLC_cpl_cfd_bc_z = cpl_cfd_bc_z
-
-        end function CPLC_cpl_cfd_bc_z 
-
-        integer(C_INT) function CPLC_comm_style() &
-            bind(C, name="CPLC_comm_style")
-            use CPL, only: comm_style
-            implicit none
-
-            CPLC_comm_style = comm_style
-            
-        end function CPLC_comm_style
-
-        integer(C_INT) function CPLC_comm_style_gath_scat() &
-            bind(C, name="CPLC_comm_style_gath_scat")
-            use CPL, only: comm_style_gath_scat
-            implicit none
-
-            CPLC_comm_style_gath_scat = comm_style_gath_scat
-            
-        end function CPLC_comm_style_gath_scat
-
-        integer(C_INT) function CPLC_comm_style_send_recv() &
-            bind(C, name="CPLC_comm_style_send_recv")
-            use CPL, only: comm_style_send_recv
-            implicit none
-
-            CPLC_comm_style_send_recv = comm_style_send_recv
-            
-        end function CPLC_comm_style_send_recv
-
-    ! Getters: doubles
-
-        real(C_DOUBLE) function CPLC_density_cfd() &
-            bind(C, name="CPLC_density_cfd")
-            use CPL, only: density_cfd
-            implicit none
-
-            CPLC_density_cfd = density_cfd
-            
-        end function CPLC_density_cfd
-
-        real(C_DOUBLE) function CPLC_dx() &
-            bind(C, name="CPLC_dx")
-            use CPL, only: dx
-            implicit none
-
-            CPLC_dx = dx
-            
-        end function CPLC_dx
-
-        real(C_DOUBLE) function CPLC_dy() &
-            bind(C, name="CPLC_dy")
-            use CPL, only: dy
-            implicit none
-
-            CPLC_dy = dy
-            
-        end function CPLC_dy
-
-        real(C_DOUBLE) function CPLC_dz() &
-            bind(C, name="CPLC_dz")
-            use CPL, only: dz
-            implicit none
-
-            CPLC_dz = dz
-            
-        end function CPLC_dz
-
-    ! Getters: pointers
+        CPLC_ncx = ncx
         
-        type(C_PTR) function CPLC_xg() &
-            bind(C, name="CPLC_xg")
-            use CPL, only: xg
-            implicit none
+    end function CPLC_ncx
 
-            CPLC_xg = C_LOC(xg)
+    integer(C_INT) function CPLC_ncy() &
+        bind(C, name="CPLC_ncy")
+        use CPL, only: ncy
+        implicit none
+
+        CPLC_ncy = ncy
         
-        end function CPLC_xg
+    end function CPLC_ncy
 
-        type(C_PTR) function CPLC_yg() &
-            bind(C, name="CPLC_yg")
-            use CPL, only: yg
-            implicit none
+    integer(C_INT) function CPLC_ncz() &
+        bind(C, name="CPLC_ncz")
+        use CPL, only: ncz
+        implicit none
 
-            CPLC_yg = C_LOC(yg)
+        CPLC_ncz = ncz
         
-        end function CPLC_yg
+    end function CPLC_ncz
 
-        type(C_PTR) function CPLC_zg() &
-            bind(C, name="CPLC_zg")
-            use CPL, only: zg
-            implicit none
+    integer(C_INT) function CPLC_icmin_olap() &
+        bind(C, name="CPLC_icmin_olap")
+        use CPL, only: icmin_olap
+        implicit none
 
-            CPLC_zg = C_LOC(zg)
+        CPLC_icmin_olap = icmin_olap
         
-        end function CPLC_zg
+    end function CPLC_icmin_olap
+
+    integer(C_INT) function CPLC_jcmin_olap() &
+        bind(C, name="CPLC_jcmin_olap")
+        use CPL, only: jcmin_olap
+        implicit none
+
+        CPLC_jcmin_olap = jcmin_olap
+        
+    end function CPLC_jcmin_olap
+
+    integer(C_INT) function CPLC_kcmin_olap() &
+        bind(C, name="CPLC_kcmin_olap")
+        use CPL, only: kcmin_olap
+        implicit none
+
+        CPLC_kcmin_olap = kcmin_olap
+        
+    end function CPLC_kcmin_olap
+
+    integer(C_INT) function CPLC_icmax_olap() &
+        bind(C, name="CPLC_icmax_olap")
+        use CPL, only: icmax_olap
+        implicit none
+
+        CPLC_icmax_olap = icmax_olap
+        
+    end function CPLC_icmax_olap
+
+    integer(C_INT) function CPLC_jcmax_olap() &
+        bind(C, name="CPLC_jcmax_olap")
+        use CPL, only: jcmax_olap
+        implicit none
+
+        CPLC_jcmax_olap = jcmax_olap
+        
+    end function CPLC_jcmax_olap
+
+    integer(C_INT) function CPLC_kcmax_olap() &
+        bind(C, name="CPLC_kcmax_olap")
+        use CPL, only: kcmax_olap
+        implicit none
+
+        CPLC_kcmax_olap = kcmax_olap
+        
+    end function CPLC_kcmax_olap
+
+    integer(C_INT) function CPLC_icmin_cnst() &
+        bind(C, name="CPLC_icmin_cnst")
+        use CPL, only: icmin_cnst
+        implicit none
+
+        CPLC_icmin_cnst = icmin_cnst
+        
+    end function CPLC_icmin_cnst
+
+    integer(C_INT) function CPLC_jcmin_cnst() &
+        bind(C, name="CPLC_jcmin_cnst")
+        use CPL, only: jcmin_cnst
+        implicit none
+
+        CPLC_jcmin_cnst = jcmin_cnst
+        
+    end function CPLC_jcmin_cnst
+
+    integer(C_INT) function CPLC_kcmin_cnst() &
+        bind(C, name="CPLC_kcmin_cnst")
+        use CPL, only: kcmin_cnst
+        implicit none
+
+        CPLC_kcmin_cnst = kcmin_cnst
+        
+    end function CPLC_kcmin_cnst
+
+    integer(C_INT) function CPLC_icmax_cnst() &
+        bind(C, name="CPLC_icmax_cnst")
+        use CPL, only: icmax_cnst
+        implicit none
+
+        CPLC_icmax_cnst = icmax_cnst
+        
+    end function CPLC_icmax_cnst
+
+    integer(C_INT) function CPLC_jcmax_cnst() &
+        bind(C, name="CPLC_jcmax_cnst")
+        use CPL, only: jcmax_cnst
+        implicit none
+
+        CPLC_jcmax_cnst = jcmax_cnst
+        
+    end function CPLC_jcmax_cnst
+
+    integer(C_INT) function CPLC_kcmax_cnst() &
+        bind(C, name="CPLC_kcmax_cnst")
+        use CPL, only: kcmax_cnst
+        implicit none
+
+        CPLC_kcmax_cnst = kcmax_cnst
+        
+    end function CPLC_kcmax_cnst
+
+    integer(C_INT) function CPLC_timestep_ratio() &
+        bind(C, name="CPLC_timestep_ratio")
+        use CPL, only: timestep_ratio
+        implicit none
+
+        CPLC_timestep_ratio = timestep_ratio
+        
+    end function CPLC_timestep_ratio
+
+    integer(C_INT) function CPLC_cpl_md_bc_slice() &
+        bind(C, name="CPLC_cpl_md_bc_slice")
+        use CPL, only: cpl_md_bc_slice
+        implicit none
+
+        CPLC_cpl_md_bc_slice = cpl_md_bc_slice
+
+    end function CPLC_cpl_md_bc_slice
+
+    integer(C_INT) function CPLC_cpl_cfd_bc_slice() &
+        bind(C, name="CPLC_cpl_cfd_bc_slice")
+        use CPL, only: cpl_cfd_bc_slice
+        implicit none
+
+        CPLC_cpl_cfd_bc_slice = cpl_cfd_bc_slice
+
+    end function CPLC_cpl_cfd_bc_slice
+
+    integer(C_INT) function CPLC_cpl_cfd_bc_x() &
+        bind(C, name="CPLC_cpl_cfd_bc_x")
+        use CPL, only: cpl_cfd_bc_x
+        implicit none
+
+        CPLC_cpl_cfd_bc_x = cpl_cfd_bc_x 
+
+    end function CPLC_cpl_cfd_bc_x 
+
+    integer(C_INT) function CPLC_cpl_cfd_bc_y() &
+        bind(C, name="CPLC_cpl_cfd_bc_y")
+        use CPL, only: cpl_cfd_bc_y
+        implicit none
+
+        CPLC_cpl_cfd_bc_y = cpl_cfd_bc_y 
+
+    end function CPLC_cpl_cfd_bc_y 
+
+    integer(C_INT) function CPLC_cpl_cfd_bc_z() &
+        bind(C, name="CPLC_cpl_cfd_bc_z")
+        use CPL, only: cpl_cfd_bc_z
+        implicit none
+
+        CPLC_cpl_cfd_bc_z = cpl_cfd_bc_z
+
+    end function CPLC_cpl_cfd_bc_z 
+
+    integer(C_INT) function CPLC_comm_style() &
+        bind(C, name="CPLC_comm_style")
+        use CPL, only: comm_style
+        implicit none
+
+        CPLC_comm_style = comm_style
+        
+    end function CPLC_comm_style
+
+    integer(C_INT) function CPLC_comm_style_gath_scat() &
+        bind(C, name="CPLC_comm_style_gath_scat")
+        use CPL, only: comm_style_gath_scat
+        implicit none
+
+        CPLC_comm_style_gath_scat = comm_style_gath_scat
+        
+    end function CPLC_comm_style_gath_scat
+
+    integer(C_INT) function CPLC_comm_style_send_recv() &
+        bind(C, name="CPLC_comm_style_send_recv")
+        use CPL, only: comm_style_send_recv
+        implicit none
+
+        CPLC_comm_style_send_recv = comm_style_send_recv
+        
+    end function CPLC_comm_style_send_recv
+
+    !Getters: doubles
+
+    real(C_DOUBLE) function CPLC_density_cfd() &
+        bind(C, name="CPLC_density_cfd")
+        use CPL, only: density_cfd
+        implicit none
+
+        CPLC_density_cfd = density_cfd
+        
+    end function CPLC_density_cfd
+
+    real(C_DOUBLE) function CPLC_dx() &
+        bind(C, name="CPLC_dx")
+        use CPL, only: dx
+        implicit none
+
+        CPLC_dx = dx
+        
+    end function CPLC_dx
+
+    real(C_DOUBLE) function CPLC_dy() &
+        bind(C, name="CPLC_dy")
+        use CPL, only: dy
+        implicit none
+
+        CPLC_dy = dy
+        
+    end function CPLC_dy
+
+    real(C_DOUBLE) function CPLC_dz() &
+        bind(C, name="CPLC_dz")
+        use CPL, only: dz
+        implicit none
+
+        CPLC_dz = dz
+        
+    end function CPLC_dz
+
+    !Getters: pointers
+    
+    type(C_PTR) function CPLC_xg() &
+        bind(C, name="CPLC_xg")
+        use CPL, only: xg
+        implicit none
+
+        CPLC_xg = C_LOC(xg)
+    
+    end function CPLC_xg
+
+    type(C_PTR) function CPLC_yg() &
+        bind(C, name="CPLC_yg")
+        use CPL, only: yg
+        implicit none
+
+        CPLC_yg = C_LOC(yg)
+    
+    end function CPLC_yg
+
+    type(C_PTR) function CPLC_zg() &
+        bind(C, name="CPLC_zg")
+        use CPL, only: zg
+        implicit none
+
+        CPLC_zg = C_LOC(zg)
+    
+    end function CPLC_zg
+
+
 
 
 end module CPLC

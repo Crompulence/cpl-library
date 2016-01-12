@@ -2286,4 +2286,17 @@ end function coupler_md_get_dt_cfd
 
 !------------------------------------------------------------------------------
 
+subroutine test_python (integer_p, double_p, bool_p, integer_pptr, double_pptr)
+  integer, intent(in) :: integer_p
+  real(kind(0.d0)), intent(in) :: double_p
+  logical, intent(in) :: bool_p
+  integer, dimension(:) :: integer_pptr
+  real(kind(0.d0)), dimension(:) :: double_pptr
+
+  print *, 'Integer: ', integer_p
+  print *, 'Double: ', double_p
+ end subroutine
+
+!------------------------------------------------------------------------------
+
 end module coupler

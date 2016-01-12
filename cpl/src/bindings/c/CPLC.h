@@ -73,6 +73,17 @@ extern "C" void CPLC_cfd_init
     double zgrid[]
 );
 
+extern "C" void CPLC_test_python
+(
+ 		int int_p, 
+		double doub_p, 
+		bool bool_p, 
+		int* int_pptr,
+		double* doub_pptr, 
+		int* int_pptr_dims,
+		int* doub_pptr_dims
+);
+
 extern "C" void CPLC_md_init
 (
     int& nsteps,
