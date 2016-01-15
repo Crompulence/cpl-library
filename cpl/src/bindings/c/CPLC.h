@@ -47,7 +47,7 @@ Author(s)
 extern "C" void CPLC_create_comm
 (
     int  calling_realm,
-    int& returned_realm_comm
+    int* returned_realm_comm
 );
 
 extern "C" void CPLC_cfd_init
@@ -86,8 +86,8 @@ extern "C" void CPLC_test_python
 
 extern "C" void CPLC_md_init
 (
-    int& nsteps,
-    int& initialstep,
+    int* nsteps,
+    int* initialstep,
     double dt,
     int icomm_grid,
     int icoord[],

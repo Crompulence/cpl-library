@@ -1,11 +1,12 @@
-from ctypes import c_int, c_double, c_bool, c_char_p, cdll, POINTER
+from ctypes import c_int, c_double, c_bool, c_char_p, cdll, POINTER, byref, pointer
+from mpi4py import MPI
 import numpy as np
 from numpy.ctypeslib import ndpointer
 import os
 
-__all__ = ["CPL"]
+__all__ = ["CPL", "create_CPL_cart_3Dgrid"]
 
-_libname = "cpl"
+_libname = "cpl_lib"
 #TODO: Raise exception of library not loaded
 _loaded = False
 
@@ -20,6 +21,8 @@ _CPL_VARS = {"icmin_olap" : c_int,
 
 class CPL:
     # Shared attribute containing the library
+    CFD_REALM = 1
+    MD_REALM = 2
     _cpl_lib = cdll.LoadLibrary(os.path.abspath(_libname))
 
     def __init__(self):
@@ -28,7 +31,9 @@ class CPL:
     # py_test_python function 
     py_test_python = _cpl_lib.CPLC_test_python
     py_test_python.argtypes = \
-            [c_int, c_double, c_bool, 
+            [c_int, 
+            c_double, 
+            c_bool, 
             ndpointer(np.int32, ndim=2, flags='aligned, f_contiguous'), 
             ndpointer(np.float64, ndim=2,  flags='aligned, f_contiguous'), 
             ndpointer(np.int32, shape=(2,),flags='aligned, f_contiguous'), 
@@ -41,6 +46,18 @@ class CPL:
         self.py_test_python(int_p, doub_p, bool_p, int_pptr, doub_pptr, 
                             int_pptr_dims, doub_pptr_dims)
 
+
+    _py_create_comm = _cpl_lib.CPLC_create_comm
+    _py_create_comm.argtypes= [c_int, POINTER(c_int)]
+
+
+    def create_comm(self, calling_realm):
+        returned_realm_comm = c_int()
+        self._py_create_comm(calling_realm, byref(returned_realm_comm))
+        # It is necessary to split again the COMM_WORLD communicator since it is
+        # not possible to build a communicator mpi4py python object from the 
+        # communicator returned by the CPL_create_comm function.
+        return MPI.COMM_WORLD.Split(calling_realm, MPI.COMM_WORLD.Get_rank())
 
     py_cfd_init = _cpl_lib.CPLC_cfd_init
 
@@ -61,16 +78,19 @@ class CPL:
             ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),         #jTmax
             ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),         #kTmin
             ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),         #kTmax
-            ndpointer(np.float64, ndim=1, flags='aligned, f_contiguous'),       #xgrid
-            ndpointer(np.float64, ndim=1, flags='aligned, f_contiguous'),       #ygrid
+            ndpointer(np.float64, ndim=2, flags='aligned, f_contiguous'),       #xgrid
+            ndpointer(np.float64, ndim=2, flags='aligned, f_contiguous'),       #ygrid
             ndpointer(np.float64, ndim=1, flags='aligned, f_contiguous')]       #zgrid
+
+
 
 
     def cfd_init(self, nsteps, dt, icomm_grid, icoord, npxyz_cfd, xyzL, ncxyz,
                 density, ijkcmax, ijkcmin,iTmin, iTmax, jTmin, jTmax, kTmin, 
                 kTmax, xgrid, ygrid, zgrid):
 
-        self.py_cfd_init(nsteps, dt, icomm_grid, icoord, npxyz_cfd, xyzL, ncxyz,
+
+        self.py_cfd_init(nsteps, dt, MPI._handleof(icomm_grid), icoord, npxyz_cfd, xyzL, ncxyz,
                          density, ijkcmax, ijkcmin,iTmin, iTmax, jTmin, jTmax, 
                          kTmin, kTmax, xgrid, ygrid, zgrid)
 
@@ -78,28 +98,18 @@ class CPL:
     py_md_init = _cpl_lib.CPLC_md_init
 
     py_md_init.argtypes = \
-            [POINTER(c_int),                                                             #nsteps
-            POINTER(c_int),                                                              #icomm_grid
+            [POINTER(c_int),                                                    #nsteps
+            POINTER(c_int),                                                     #initialstep
+            c_double,                                                           #dt
+            c_int,                                                              #icomm_grid
             ndpointer(np.int32, ndim=2, flags='aligned, f_contiguous'),         #icoord
-            ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),     #npxyz_cfd
-            ndpointer(np.float64, shape=(3), flags='aligned, f_contiguous'),    #xyzL
-            ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),     #ncxyz
-            c_double,                                                           #density
-            ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),     #ijkcmax 
-            ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),     #ijkcmin
-            ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),         #iTmin
-            ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),         #iTmax
-            ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),         #jTmin
-            ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),         #jTmax
-            ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),         #kTmin
-            ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),         #kTmax
-            ndpointer(np.float64, ndim=1, flags='aligned, f_contiguous'),       #xgrid
-            ndpointer(np.float64, ndim=1, flags='aligned, f_contiguous'),       #ygrid
-            ndpointer(np.float64, ndim=1, flags='aligned, f_contiguous')]       #zgrid
+            ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),     #npxyz_md
+            ndpointer(np.float64, ndim=1, flags='aligned, f_contiguous'),       #global_domain
+            c_double]                                                           #density
 
 
-    def md_init(self, nstep, initialstep, dt, icom_grid, icoord, mpxyz_md, global_domain, density=1.0):
-        self.py_md_init(nstep, initialstep, dt, icom_grid, icoord, mpxyz_md, global_domain, density)
+    def md_init(self, nsteps, initialstep, dt, icom_grid, icoord, npxyz_md, global_domain, density=1.0):
+        self.py_md_init(byref(nsteps), byref(initialstep), dt, MPI._handleof(icom_grid), icoord, npxyz_md, global_domain, density)
 
 
 
@@ -129,6 +139,18 @@ class CPL:
     def scatter(self):
         pass
 
+
+def create_CPL_cart_3Dgrid(ncx, ncy, ncz, dx, dy, dz):
+    xg = np.zeros((ncx + 1, ncy + 1), order='F')
+    yg = np.zeros((ncx + 1, ncy + 1), order='F')
+    zg = np.zeros(ncz + 1, order='F')
+    for i in xrange(ncx + 1):
+        for j in xrange(ncy + 1):
+            xg[i,j] = i*dx
+            yg[i,j] = j*dy
+    for k in xrange(ncz + 1):
+        zg[k] = k*dz
+    return (xg, yg, zg)
 
 
 if __name__ == "__main__":

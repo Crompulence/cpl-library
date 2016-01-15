@@ -48,8 +48,10 @@ void CPL::create_comm
 {
     CPLC_create_comm
     (
-        calling_realm,
-        returned_realm_comm
+    		calling_realm,
+     		&returned_realm_comm
+       //returned_realm_comm
+
     );
 }
 
@@ -114,8 +116,8 @@ void CPL::md_init
 {
     CPLC_md_init
     (
-        nsteps,
-        initialstep,
+        &nsteps,
+        &initialstep,
         dt,
         icomm_grid,
         icoord,
