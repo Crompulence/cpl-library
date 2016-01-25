@@ -1,14 +1,14 @@
- Simulation run on Date;  sim_date ;20160115
- Simulation start time ;  sim_start_time ;220035.255
+ Simulation run on Date;  sim_date ;20160125
+ Simulation start time ;  sim_start_time ;165353.594
  CFD density;  density_cfd ;  0.50000000000000000     
  choice of constraint algorithm;  constraint_algo ;           3
  CV form of constraint;  constraint_CVflag ;           0
  minimum x cell of constrained region;  icmin_cnst ;           1
- maximum x cell of constrained region;  icmax_cnst ;          16
- minimum y cell of constrained region;  jcmin_cnst ;           5
- maximum y cell of constrained region;  jcmax_cnst ;           4
+ maximum x cell of constrained region;  icmax_cnst ;          18
+ minimum y cell of constrained region;  jcmin_cnst ;           1
+ maximum y cell of constrained region;  jcmax_cnst ;           6
  minimum z cell of constrained region;  kcmin_cnst ;           1
- maximum z cell of constrained region;  kcmax_cnst ;           4
+ maximum z cell of constrained region;  kcmax_cnst ;          18
  minimum x cell of overlap region;  icmin_olap ;           1
  maximum x cell of overlap region;  icmax_olap ;          18
  minimum y cell of overlap region;  jcmin_olap ;           1

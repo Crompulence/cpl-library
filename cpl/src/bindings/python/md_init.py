@@ -1,13 +1,10 @@
 from mpi4py import MPI
 from cpl import CPL
 import numpy as np
-from ctypes import c_int
 
 comm = MPI.COMM_WORLD
 lib = CPL()
 
-nsteps = c_int(100)
-initialstep = c_int(0)
 dt = 0.1
 
 # Parameters of the cpu topology (cartesian grid)
@@ -23,14 +20,24 @@ Ly = 10.0
 Lz = 10.0
 global_domain = np.array([Lx, Ly, Lz], order='F', dtype=np.float64)
 
+# Create communicators and check that number of processors is consistent
 realm_comm = lib.create_comm(CPL.MD_REALM)
+nprocs_realm = realm_comm.Get_size()
+
+if (nprocs_realm != NProcs):
+    print "Non-coherent number of processes"
+    exit()
 
 cart_comm = realm_comm.Create_cart([NPx, NPy, NPz])
 cart_rank = cart_comm.Get_rank()
-icoords = np.zeros((NProcs, 3), order='F', dtype=np.int32)
+icoords = np.zeros((3, NProcs), order='F', dtype=np.int32)
 
-lib.md_init(nsteps, initialstep, dt, cart_comm, icoords, npxyz, global_domain, 1.0)
+for rank in xrange(NProcs):
+    cart_coords = cart_comm.Get_coords(rank)
+    icoords[:, rank] = cart_coords 
+icoords += 1
+nsteps, initialstep = lib.md_init(dt, cart_comm, icoords, npxyz, global_domain, 1)
+scatter_array = np.
+lib.scatter
 
-
-
-
+print "MD process " + str(realm_comm.Get_rank()) + " successfully initialised.\n"

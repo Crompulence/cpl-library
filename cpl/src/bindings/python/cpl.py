@@ -4,7 +4,7 @@ import numpy as np
 from numpy.ctypeslib import ndpointer
 import os
 
-__all__ = ["CPL", "create_CPL_cart_3Dgrid"]
+__all__ = ["CPL", "create_CPL_cart_3Dgrid", "cart_create"]
 
 _libname = "cpl_lib"
 #TODO: Raise exception of library not loaded
@@ -108,8 +108,11 @@ class CPL:
             c_double]                                                           #density
 
 
-    def md_init(self, nsteps, initialstep, dt, icom_grid, icoord, npxyz_md, global_domain, density=1.0):
-        self.py_md_init(byref(nsteps), byref(initialstep), dt, MPI._handleof(icom_grid), icoord, npxyz_md, global_domain, density)
+    def md_init(self, dt, icom_grid, icoord, npxyz_md, global_domain, density=1.0):
+			nsteps = c_int();
+			initialstep = c_int();
+			self.py_md_init(byref(nsteps), byref(initialstep), dt, MPI._handleof(icom_grid), icoord, npxyz_md, global_domain, density)
+			return (nsteps.value, initialstep.value)
 
 
 
@@ -125,19 +128,59 @@ class CPL:
             return fun()
 
     py_gather = _cpl_lib.CPLC_gather
+
     py_gather.argtypes = \
-                [ndpointer(np.float64, ndim=2, flags='aligned, f_contiguous'), 
-                ndpointer(np.int32, ndim=2, flags='aligned, f_contiguous'),
-                ndpointer(np.int32, ndim=2, flags='aligned, f_contiguous'),
-                ndpointer(np.float64, ndim=2, flags='aligned, f_contiguous'),
-                ndpointer(np.int32, ndim=2, flags='aligned, f_contiguous')]
-    def gather(self, scatterarray, scatter_shape, limits, recvarray, recv_shape):
-        pass
+                [ndpointer(np.float64, ndim=4, flags='aligned, f_contiguous'), 
+                ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
+                ndpointer(np.float64, ndim=4, flags='aligned, f_contiguous')]
+
+    def gather(self, gather_array, limits, recv_array):
+			gather_shape = np.array(gather_array.shape, order='F', dtype=np.int32)
+			recv_shape = np.array(recv_array.shape, order='F', dtype=np.int32)
+			self.py_scatter(gather_array, gather_shape, limits, recv_array, recv_shape)
 
     py_scatter = _cpl_lib.CPLC_scatter
-    py_scatter.argtypes = [ndpointer(np.float64, ndim=2, flags='aligned, f_contiguous'), ndpointer(np.int32, ndim=2, flags='aligned, f_contiguous'), ndpointer(np.int32, ndim=2, flags='aligned, f_contiguous'), ndpointer(np.float64, ndim=2, flags='aligned, f_contiguous'), ndpointer(np.int32, ndim=2, flags='aligned, f_contiguous')]
-    def scatter(self):
-        pass
+
+    py_scatter.argtypes = \
+                [ndpointer(np.float64, ndim=4, flags='aligned, f_contiguous'), 
+                ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
+                ndpointer(np.float64, ndim=4, flags='aligned, f_contiguous')]
+
+    def scatter(self, scatter_array, limits, recv_array):
+			scatter_shape = np.array(scatter_array.shape, order='F', dtype=np.int32)
+			recv_shape = np.array(recv_array.shape, order='F', dtype=np.int32)
+			self.py_scatter(scatter_array, scatter_shape, limits, recv_array, recv_shape)
+
+
+    py_proc_extents = _cpl_lib.CPLC_proc_extents
+    py_proc_extents.argtypes = \
+                [ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'), 
+                c_int, 
+                ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    def proc_extents(self, coord, realm):
+        extents = np.zeros(6, order='F', dtype=np.int32)
+        self.py_proc_extents(coord, realm, extents)
+        return extents
+
+
+
+    py_proc_portion = _cpl_lib.CPLC_proc_portion
+    py_proc_portion.argtypes = \
+                [ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'), 
+                c_int, 
+                ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
+                ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    def proc_portion(self, coord, realm, limits):
+        portion = np.zeros(6, order='F', dtype=np.int32)
+        self.py_proc_portion(coord, realm, limits, portion)
+        return portion
+
+
+
+
+
 
 
 def create_CPL_cart_3Dgrid(ncx, ncy, ncz, dx, dy, dz):
@@ -151,6 +194,17 @@ def create_CPL_cart_3Dgrid(ncx, ncy, ncz, dx, dy, dz):
     for k in xrange(ncz + 1):
         zg[k] = k*dz
     return (xg, yg, zg)
+
+
+def cart_create(old_comm, dims, periods, coords):
+	dummy_cart_comm = old_comm.Create_cart(dims, periods)
+	temp_comm = old_comm.Split(0, dummy_cart_comm.Get_rank())
+	new_cart_comm = temp_comm.Create_cart(dims, periods)
+	comm_coords = new_cart_comm.Get_coords(new_cart_comm.Get_rank())
+	if (not (coords == comm_coords).all()):
+		print "Not good!"
+		exit()
+	return new_cart_comm
 
 
 if __name__ == "__main__":
