@@ -1,5 +1,5 @@
 from mpi4py import MPI
-from cpl import CPL, create_CPL_cart_3Dgrid
+from cpl import CPL, create_CPL_cart_3Dgrid, get_olap_limits
 import numpy as np
 
 
@@ -85,7 +85,7 @@ for rank in xrange(NProcs):
 	jTmax[rank] = jTmin[rank] + ncyl - 1
 	kTmin[rank] = z*nczl + 1
 	kTmax[rank] = kTmin[rank] + nczl - 1
-
+print cart_comm.coords
 # Fortran indexing
 icoords += 1
 
@@ -95,8 +95,25 @@ lib.cfd_init(nsteps, dt, cart_comm, icoords, npxyz, xyzL, ncxyz,
             kTmax, xg, yg, zg)
 
 
+#print "MD process " + str(realm_comm.Get_rank()) + " successfully initialised.\n"
 
-print "MD process " + str(realm_comm.Get_rank()) + " successfully initialised.\n"
+# Scatter a 3 component array (CFD processes are the senders)
+scatter_array = cart_rank * np.ones((3, ncxl, ncyl, nczl), order='F', dtype=np.float64)
+olap_limits = get_olap_limits(lib)
+recv_array = np.zeros(3 , order='F', dtype=np.float64)
+lib.scatter(scatter_array, olap_limits, recv_array)  
+
+"""
+# Gather a 3 component array (CFD processes are the receivers)
+recv_array = -1 * np.ones((3, ncxl, ncyl, nczl), order='F', dtype=np.float64)
+gather_array = np.zeros(0, order='F', dtype=np.float64)
+lib.gather(gather_array, olap_limits, recv_array)
+
+if (np.all(recv_array > -1)):
+	print "CFD rank: " + str(cart_comm.Get_rank())# + " recv_array: " + str(recv_array)
+
+print "something"
+"""
 
 
 

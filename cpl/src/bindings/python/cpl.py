@@ -4,7 +4,7 @@ import numpy as np
 from numpy.ctypeslib import ndpointer
 import os
 
-__all__ = ["CPL", "create_CPL_cart_3Dgrid", "cart_create"]
+__all__ = ["CPL", "create_CPL_cart_3Dgrid", "cart_create", "get_olap_limits"]
 
 _libname = "cpl_lib"
 #TODO: Raise exception of library not loaded
@@ -17,12 +17,16 @@ _loaded = False
 
 _CPL_VARS = {"icmin_olap" : c_int,
             "jcmin_olap" : c_int,
-            "kcmin_olap" : c_int}
+            "kcmin_olap" : c_int,
+            "icmax_olap" : c_int,
+            "jcmax_olap" : c_int,
+            "kcmax_olap" : c_int,}
 
 class CPL:
     # Shared attribute containing the library
     CFD_REALM = 1
-    MD_REALM = 2
+   	MD_REALM = 2
+		NULL_REALM = 0
     _cpl_lib = cdll.LoadLibrary(os.path.abspath(_libname))
 
     def __init__(self):
@@ -130,21 +134,25 @@ class CPL:
     py_gather = _cpl_lib.CPLC_gather
 
     py_gather.argtypes = \
-                [ndpointer(np.float64, ndim=4, flags='aligned, f_contiguous'), 
+                [ndpointer(np.float64, flags='aligned, f_contiguous'), 
+                ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
                 ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
-                ndpointer(np.float64, ndim=4, flags='aligned, f_contiguous')]
+                ndpointer(np.float64, flags='aligned, f_contiguous'),
+                ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),]
 
     def gather(self, gather_array, limits, recv_array):
 			gather_shape = np.array(gather_array.shape, order='F', dtype=np.int32)
 			recv_shape = np.array(recv_array.shape, order='F', dtype=np.int32)
-			self.py_scatter(gather_array, gather_shape, limits, recv_array, recv_shape)
+			self.py_gather(gather_array, gather_shape, limits, recv_array, recv_shape)
 
     py_scatter = _cpl_lib.CPLC_scatter
 
     py_scatter.argtypes = \
-                [ndpointer(np.float64, ndim=4, flags='aligned, f_contiguous'), 
+                [ndpointer(np.float64, flags='aligned, f_contiguous'), 
+                ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
                 ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
-                ndpointer(np.float64, ndim=4, flags='aligned, f_contiguous')]
+                ndpointer(np.float64, flags='aligned, f_contiguous'),
+                ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),]
 
     def scatter(self, scatter_array, limits, recv_array):
 			scatter_shape = np.array(scatter_array.shape, order='F', dtype=np.int32)
@@ -206,6 +214,15 @@ def cart_create(old_comm, dims, periods, coords):
 		exit()
 	return new_cart_comm
 
+def get_olap_limits(lib):
+	olap_limits = np.zeros(6, order='F', dtype=np.int32)
+	olap_limits[0] = lib.get("icmin_olap")
+	olap_limits[1] = lib.get("icmax_olap")
+	olap_limits[2] = lib.get("jcmin_olap")
+	olap_limits[3] = lib.get("jcmax_olap")
+	olap_limits[4] = lib.get("kcmin_olap")
+	olap_limits[5] = lib.get("kcmax_olap")
+	return olap_limits
 
 if __name__ == "__main__":
     _cpl_library = CPL(CPL_LIBRARY_PATH)
