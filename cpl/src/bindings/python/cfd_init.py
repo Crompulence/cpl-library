@@ -85,9 +85,23 @@ for rank in xrange(NProcs):
 	jTmax[rank] = jTmin[rank] + ncyl - 1
 	kTmin[rank] = z*nczl + 1
 	kTmax[rank] = kTmin[rank] + nczl - 1
-print cart_comm.coords
+
 # Fortran indexing
 icoords += 1
+if cart_comm.Get_rank() == 0:
+    print "iTmin: " + str(iTmin)
+    print "iTmax: " + str(iTmax)
+    print "jTmin: " + str(jTmin)
+    print "jTmax: " + str(jTmax)
+    print "kTmin: " + str(kTmin)
+    print "kTmax: " + str(kTmax)
+    print "ijkcmin: " + str(ijkcmin)
+    print "ijkcmax: " + str(ijkcmax)
+    print "topo_coords: " + str(icoords)
+    print "xg: " +str(xg) + "len: " + str(len(xg))
+    print "yg: " +str(yg) + "len: " + str(len(yg))
+    print "zg: " +str(zg) + "len: " + str(len(zg))
+
 
 
 lib.cfd_init(nsteps, dt, cart_comm, icoords, npxyz, xyzL, ncxyz,
@@ -97,20 +111,20 @@ lib.cfd_init(nsteps, dt, cart_comm, icoords, npxyz, xyzL, ncxyz,
 
 #print "MD process " + str(realm_comm.Get_rank()) + " successfully initialised.\n"
 
+"""
 # Scatter a 3 component array (CFD processes are the senders)
 scatter_array = cart_rank * np.ones((3, ncxl, ncyl, nczl), order='F', dtype=np.float64)
 olap_limits = get_olap_limits(lib)
 recv_array = np.zeros(3 , order='F', dtype=np.float64)
-lib.scatter(scatter_array, olap_limits, recv_array)  
+#lib.scatter(scatter_array, olap_limits, recv_array)  
 
-"""
+if (np.all(recv_array > -1)):
+	print "CFD rank: " + str(cart_comm.Get_rank())# + " recv_array: " + str(recv_array)
 # Gather a 3 component array (CFD processes are the receivers)
 recv_array = -1 * np.ones((3, ncxl, ncyl, nczl), order='F', dtype=np.float64)
 gather_array = np.zeros(0, order='F', dtype=np.float64)
 lib.gather(gather_array, olap_limits, recv_array)
 
-if (np.all(recv_array > -1)):
-	print "CFD rank: " + str(cart_comm.Get_rank())# + " recv_array: " + str(recv_array)
 
 print "something"
 """

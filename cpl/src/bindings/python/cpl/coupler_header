@@ -1,5 +1,5 @@
- Simulation run on Date;  sim_date ;20160126
- Simulation start time ;  sim_start_time ;172149.728
+ Simulation run on Date;  sim_date ;20160201
+ Simulation start time ;  sim_start_time ;213459.915
  CFD density;  density_cfd ;  0.50000000000000000     
  choice of constraint algorithm;  constraint_algo ;           3
  CV form of constraint;  constraint_CVflag ;           0

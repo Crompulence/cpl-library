@@ -4,7 +4,7 @@ import numpy as np
 from numpy.ctypeslib import ndpointer
 import os
 
-__all__ = ["CPL", "create_CPL_cart_3Dgrid", "cart_create", "get_olap_limits"]
+__all__ = ["CPL", "create_CPL_cart_3Dgrid", "cart_create", "get_olap_limits", "toCPLArray"]
 
 _libname = "cpl_lib"
 #TODO: Raise exception of library not loaded
@@ -25,8 +25,8 @@ _CPL_VARS = {"icmin_olap" : c_int,
 class CPL:
     # Shared attribute containing the library
     CFD_REALM = 1
-   	MD_REALM = 2
-		NULL_REALM = 0
+    MD_REALM = 2
+    NULL_REALM = 0
     _cpl_lib = cdll.LoadLibrary(os.path.abspath(_libname))
 
     def __init__(self):
@@ -192,9 +192,9 @@ class CPL:
 
 
 def create_CPL_cart_3Dgrid(ncx, ncy, ncz, dx, dy, dz):
-    xg = np.zeros((ncx + 1, ncy + 1), order='F')
-    yg = np.zeros((ncx + 1, ncy + 1), order='F')
-    zg = np.zeros(ncz + 1, order='F')
+    xg = np.zeros((ncx + 1, ncy + 1), order='F', dtype=np.float64)
+    yg = np.zeros((ncx + 1, ncy + 1), order='F', dtype=np.float64)
+    zg = np.zeros(ncz + 1, order='F', dtype=np.float64)
     for i in xrange(ncx + 1):
         for j in xrange(ncy + 1):
             xg[i,j] = i*dx
@@ -223,6 +223,16 @@ def get_olap_limits(lib):
 	olap_limits[4] = lib.get("kcmin_olap")
 	olap_limits[5] = lib.get("kcmax_olap")
 	return olap_limits
+
+def toCPLArray(arr, arr_type=None):
+	if type(arr) == np.ndarray:
+			if not arr.flags["F_CONTIGUOUS"]:
+				return np.asfortranarray(arr, dtype=arr.dtype)
+	else:
+			if arr_type is not None:
+				return np.asfortranarray(arr, dtype=arr_type)
+			else:
+				print "Non-numpy arrays require argument arr_type"
 
 if __name__ == "__main__":
     _cpl_library = CPL(CPL_LIBRARY_PATH)

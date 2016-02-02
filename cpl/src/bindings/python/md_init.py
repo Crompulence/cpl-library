@@ -41,7 +41,8 @@ nsteps, initialstep = lib.md_init(dt, cart_comm, icoords, npxyz, global_domain, 
 #print "MD process " + str(realm_comm.Get_rank()) + " successfully initialised.\n"
 
 # Scatter a 3 component array (MD processes are the receivers)
-scatter_array = np.zeros(3, order='F', dtype=np.float64)
+#scatter_array = np.zeros(3, order='F', dtype=np.float64)
+"""
 my_coords = cart_comm.Get_coords(cart_comm.Get_rank())
 my_coords = np.array(my_coords, order='F', dtype=np.int32)
 my_coords += 1# Fortran indices
@@ -54,9 +55,8 @@ recv_array = -1*np.ones((3, ncxl, ncyl, nczl) , order='F', dtype=np.float64)
 lib.scatter(scatter_array, olap_limits,recv_array)  
 
 #if (np.all(recv_array > -1)):
-#	print "MD rank: " + str(cart_comm.Get_rank()) #+ " recv_array: " + str(recv_array)
+#	print "MD rank: " + str(cart_comm.Get_rank()) + " recv_array: " + str(recv_array)
 
-"""
 # Gather a 3 component array (MD processes are the senders)
 gather_array = cart_rank * np.ones((3, ncxl, ncyl, nczl), order='F', dtype=np.float64)
 recv_array = np.zeros(3, order='F', dtype=np.float64)
