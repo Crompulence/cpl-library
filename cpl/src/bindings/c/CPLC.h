@@ -93,10 +93,40 @@ extern "C" void CPLC_md_init
     int icoord[],
     int npxyz_md[],
     double globaldomain[],
-    double density
+		double density
 );
 
-extern "C" void CPLC_send();
+extern "C" void CPLC_send
+(
+		double* asend,	
+		double* asend_shape,
+		int ndims,
+		int icmin, 
+		int icmax,
+		int jcmin, 
+		int jcmax,
+		int kcmin, 
+		int kcmax,
+		bool* send_flag
+
+);
+
+extern "C" void CPLC_recv
+(
+		double* arecv,	
+		double* arecv_shape,
+		int ndims,
+		int icmin, 
+		int icmax,
+		int jcmin, 
+		int jcmax,
+		int kcmin, 
+		int kcmax,
+		bool* recv_flag
+
+);
+
+
 
 extern "C" void CPLC_scatter
 (

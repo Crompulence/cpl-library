@@ -1,12 +1,11 @@
-from ctypes import c_int, c_double, c_bool, c_char_p, cdll, POINTER, byref, pointer
+from ctypes import c_int, c_double, c_bool, byref, POINTER
 from mpi4py import MPI
 import numpy as np
-from numpy.ctypeslib import ndpointer
+from numpy.ctypeslib import ndpointer, load_library
 import os
 
 __all__ = ["CPL", "create_CPL_cart_3Dgrid", "cart_create", "get_olap_limits", "toCPLArray"]
 
-_libname = "cpl_lib"
 #TODO: Raise exception of library not loaded
 _loaded = False
 
@@ -26,8 +25,12 @@ class CPL:
     # Shared attribute containing the library
     CFD_REALM = 1
     MD_REALM = 2
+    GATHER_SCATTER = 1
+    SEND_RECEIVE = 2
     NULL_REALM = 0
-    _cpl_lib = cdll.LoadLibrary(os.path.abspath(_libname))
+    _libname = "libcpl"
+    _lib_path = os.environ.get("CPL_LIBRARY_PATH")
+    _cpl_lib = load_library(_libname, _lib_path)
 
     def __init__(self):
         pass
@@ -113,10 +116,10 @@ class CPL:
 
 
     def md_init(self, dt, icom_grid, icoord, npxyz_md, global_domain, density=1.0):
-			nsteps = c_int();
-			initialstep = c_int();
-			self.py_md_init(byref(nsteps), byref(initialstep), dt, MPI._handleof(icom_grid), icoord, npxyz_md, global_domain, density)
-			return (nsteps.value, initialstep.value)
+        nsteps = c_int();
+        initialstep = c_int();
+        self.py_md_init(byref(nsteps), byref(initialstep), dt, MPI._handleof(icom_grid), icoord, npxyz_md, global_domain, density)
+        return (nsteps.value, initialstep.value)
 
 
 
@@ -141,9 +144,9 @@ class CPL:
                 ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),]
 
     def gather(self, gather_array, limits, recv_array):
-			gather_shape = np.array(gather_array.shape, order='F', dtype=np.int32)
-			recv_shape = np.array(recv_array.shape, order='F', dtype=np.int32)
-			self.py_gather(gather_array, gather_shape, limits, recv_array, recv_shape)
+        gather_shape = np.array(gather_array.shape, order='F', dtype=np.int32)
+        recv_shape = np.array(recv_array.shape, order='F', dtype=np.int32)
+        self.py_gather(gather_array, gather_shape, limits, recv_array, recv_shape)
 
     py_scatter = _cpl_lib.CPLC_scatter
 
@@ -155,9 +158,9 @@ class CPL:
                 ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),]
 
     def scatter(self, scatter_array, limits, recv_array):
-			scatter_shape = np.array(scatter_array.shape, order='F', dtype=np.int32)
-			recv_shape = np.array(recv_array.shape, order='F', dtype=np.int32)
-			self.py_scatter(scatter_array, scatter_shape, limits, recv_array, recv_shape)
+        scatter_shape = np.array(scatter_array.shape, order='F', dtype=np.int32)
+        recv_shape = np.array(recv_array.shape, order='F', dtype=np.int32)
+        self.py_scatter(scatter_array, scatter_shape, limits, recv_array, recv_shape)
 
 
     py_proc_extents = _cpl_lib.CPLC_proc_extents
@@ -185,9 +188,38 @@ class CPL:
         self.py_proc_portion(coord, realm, limits, portion)
         return portion
 
+    py_send = _cpl_lib.CPLC_send
+    py_send.argtypes = \
+                [ndpointer(np.float64, flags='aligned, f_contiguous'), 
+                ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'), 
+                c_int,
+                c_int, c_int,
+                c_int, c_int,
+                c_int,c_int, POINTER(c_bool)]
+    
+    def send(self, asend, icmin, icmax, jcmin, jcmax, kcmin, kcmax):
+        asend_shape = np.array(asend.shape, order='F', dtype=np.int32)
+        ndims = asend.ndim
+        send_flag = c_bool()
+        self.py_send(asend, asend_shape, ndims, icmin, icmax, jcmin, jcmax, kcmin, kcmax, byref(send_flag))
+        return send_flag.value
 
 
-
+    py_recv = _cpl_lib.CPLC_recv
+    py_recv.argtypes = \
+                [ndpointer(np.float64, flags='aligned, f_contiguous'), 
+                ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'), 
+                c_int,
+                c_int, c_int,
+                c_int, c_int,
+                c_int,c_int, POINTER(c_bool)]
+    
+    def recv(self, arecv, icmin, icmax, jcmin, jcmax, kcmin, kcmax):
+        arecv_shape = np.array(arecv.shape, order='F', dtype=np.int32)
+        ndims = arecv.ndim
+        recv_flag = c_bool()
+        self.py_recv(arecv, arecv_shape, ndims, icmin, icmax, jcmin, jcmax, kcmin, kcmax, byref(recv_flag))
+        return recv_flag.value
 
 
 
@@ -205,34 +237,34 @@ def create_CPL_cart_3Dgrid(ncx, ncy, ncz, dx, dy, dz):
 
 
 def cart_create(old_comm, dims, periods, coords):
-	dummy_cart_comm = old_comm.Create_cart(dims, periods)
-	temp_comm = old_comm.Split(0, dummy_cart_comm.Get_rank())
-	new_cart_comm = temp_comm.Create_cart(dims, periods)
-	comm_coords = new_cart_comm.Get_coords(new_cart_comm.Get_rank())
-	if (not (coords == comm_coords).all()):
-		print "Not good!"
-		exit()
-	return new_cart_comm
+    dummy_cart_comm = old_comm.Create_cart(dims, periods)
+    temp_comm = old_comm.Split(0, dummy_cart_comm.Get_rank())
+    new_cart_comm = temp_comm.Create_cart(dims, periods)
+    comm_coords = new_cart_comm.Get_coords(new_cart_comm.Get_rank())
+    if (not (coords == comm_coords).all()):
+            print "Not good!"
+            exit()
+    return new_cart_comm
 
 def get_olap_limits(lib):
-	olap_limits = np.zeros(6, order='F', dtype=np.int32)
-	olap_limits[0] = lib.get("icmin_olap")
-	olap_limits[1] = lib.get("icmax_olap")
-	olap_limits[2] = lib.get("jcmin_olap")
-	olap_limits[3] = lib.get("jcmax_olap")
-	olap_limits[4] = lib.get("kcmin_olap")
-	olap_limits[5] = lib.get("kcmax_olap")
-	return olap_limits
+    olap_limits = np.zeros(6, order='F', dtype=np.int32)
+    olap_limits[0] = lib.get("icmin_olap")
+    olap_limits[1] = lib.get("icmax_olap")
+    olap_limits[2] = lib.get("jcmin_olap")
+    olap_limits[3] = lib.get("jcmax_olap")
+    olap_limits[4] = lib.get("kcmin_olap")
+    olap_limits[5] = lib.get("kcmax_olap")
+    return olap_limits
 
 def toCPLArray(arr, arr_type=None):
-	if type(arr) == np.ndarray:
-			if not arr.flags["F_CONTIGUOUS"]:
-				return np.asfortranarray(arr, dtype=arr.dtype)
-	else:
-			if arr_type is not None:
-				return np.asfortranarray(arr, dtype=arr_type)
-			else:
-				print "Non-numpy arrays require argument arr_type"
+    if type(arr) == np.ndarray:
+        if not arr.flags["F_CONTIGUOUS"]:
+            return np.asfortranarray(arr, dtype=arr.dtype)
+    else:
+        if arr_type is not None:
+            return np.asfortranarray(arr, dtype=arr_type)
+        else:
+            print "Non-numpy arrays require argument arr_type"
 
 if __name__ == "__main__":
-    _cpl_library = CPL(CPL_LIBRARY_PATH)
+    lib = CPL()

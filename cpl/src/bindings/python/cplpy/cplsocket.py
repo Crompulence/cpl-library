@@ -2,6 +2,7 @@ from __future__ import division
 from cpl import CPL, create_CPL_cart_3Dgrid, get_olap_limits, toCPLArray
 import numpy as np
 
+__all__ = ["CartSocketCFD", "CartSocketMD"]
 # Inheritance for _init() instead of call-backing allows the user
 # to define extra useful attributes. Pack and Unpack actions seems more
 # naturally to be just callbacks since they keep no state, just build
@@ -17,19 +18,22 @@ class CPLSocket(object) :
         # Send and receive internal buffers
         self.recv_buff = []
         self.send_buff = []
+        self.comm_method = CPL.SEND_RECEIVE
         # Flag to check if buffer is ready to be sent
         self.packed = False
         self.packers = {}
         self.unpackers = {}
-        self.activePacker = ""
+        self.active_packer = None
+        self.active_unpacker = None
         # Init domain and procs attributes
         self.lx = 0
         self.ly = 0
         self.lz = 0
         self.dt = 0.0
         self.topology = None
-        self.proc_region = None
         self._createComms()
+        self.proc_region = None
+        self.olap_region = None
 
     # _initialise take care of the initialization of the attributes
     # defined in the current class needed to call CPL initialization
@@ -43,6 +47,7 @@ class CPLSocket(object) :
         self.topology = topology
 
 
+
     def _createComms(self):
         if (not self._initialised) and (self._realm_comm is None):
             self._realm_comm = self._lib.create_comm(self._realm)
@@ -50,11 +55,13 @@ class CPLSocket(object) :
             print "Already created or initialised"
     
     def registerPacker(self, packer):
-        self.packers[packer.name] = packer.callback
+        self.packers[packer.name] = packer
+        self.packers[packer.name].createBuffs(self)
 
 
-    def registerUnpacker(self, unpack_name, unpack_callb):
-        self.unpackers[unpack_name] = unpack_callb
+    def registerUnpacker(self, unpacker):
+        self.unpackers[unpacker.name] = unpacker
+        self.unpackers[unpacker.name].createBuffs(self)
 
 
     
@@ -71,49 +78,35 @@ class CPLSocket(object) :
 
     # Send methods    
 
-    def send(self, buff=None, pack_name=None):
-        if self.context is not None: 
-            self._pack(pack_name)
-            self.active_packer = pack_name
-        else: 
-            print "Exception"
-            exit()
-        self._send(self.send_buff)
+    def send(self, pack_name):
+        self.active_packer = pack_name
+        self.packers[self.active_packer].prepareBuffs(self)
+        self.packers[self.active_packer](self)
+        self._send()
         
     
     # Receive methods    
-    def receive(self, data):
-        return self._receive()
-
-    def receiveDomainData(self, mag):
-        if self.context is not None:
-            self._unpack(mag)
-        else:
-            print "Exception"
-            exit()
+    def receive(self, unpack_name):
+        self.active_unpacker = unpack_name
+        self.unpackers[self.active_unpacker].prepareBuffs(self)
         self._receive()
-
-    # Routines that calls the appropiate pack/unpack callback
-    # Their pourpose is to prepare send_buff/recv_buff to be
-    # sent/received. 
-    def _pack(self, pack_name):
-        self.packers[pack_name](self)
-
-    def _unpack(self, unpack_name):
-        self.unpackers[unpack_name](self)
+        self.unpackers[self.active_unpacker](self)
+ 
 
 
     # Abstract methods
     def _init(self):
         pass
 
-    def _send(self, data): 
+    def _send(self): 
         pass
 
     def _receive(self):
         pass
-    
+
  
+    def _computeProcRegion(self):
+        pass
 
 class ProcTopology(object):
     def __init__(self):
@@ -130,6 +123,7 @@ class ProcTopology(object):
 
     def gridDims(self):
         pass
+
 
     # Check consistency of the number of processes
     def checkProcs(self):
@@ -175,23 +169,10 @@ class CartProcTopology(ProcTopology):
         pass
 
 
-class Packer(object):
-    def __init__(self, name, region, callback, data_len):
-        self.region = toCPLArray(region, np.int32)
-        self.callback = callback
-        self.name = name
-        self.buffer = np.zeros((data_len))
 
-    def __call__(self, context):
-        self.callback(self.region, socket)
-
-
-
-class TopoMap(object):
-    def __init__(self, topology=None, grid=None):
-        self.topo_map = None
-        if (topology is not None) and (grid is not None):
-            self.createMap(topology, grid)
+class CPLTopoMap(object):
+    def __init__(self):
+        self.topo_map = {}
 
     def createMap(self, topology, grid):
         self._create(topology, grid)
@@ -205,39 +186,50 @@ class TopoMap(object):
     def _computeProcBounds(self, topology=None, grid=None):
         pass
 
-class CartTopoMap(TopoMap):
+class CartTopoMap(CPLTopoMap):
     def __init__(self, topology=None, grid=None):
-        TopoMap.__init__(self, topology, grid)
+        CPLTopoMap.__init__(self)
 
     def _computeProcBounds(self, rank, topology=None, grid=None):
         cart_coords = topology._topo_comm.Get_coords(rank)
         [x, y, z] = cart_coords
-        self.topo_map[0, rank] = x*self.ncxl + 1
-        self.topo_map[1, rank] = self.topo_map[0, rank] + self.ncxl - 1
-        self.topo_map[2, rank] = y*self.ncyl + 1
-        self.topo_map[3, rank] = self.topo_map[2, rank] + self.ncyl - 1
-        self.topo_map[4, rank] = z*self.nczl + 1
-        self.topo_map[5, rank] = self.topo_map[4, rank] + self.nczl - 1
+        self.topo_map["iTmin"][x] = x*self.ncxl + 1
+        self.topo_map["iTmax"][x] = self.topo_map["iTmin"][x] + self.ncxl - 1
+        self.topo_map["jTmin"][y] = y*self.ncyl + 1
+        self.topo_map["jTmax"][y] = self.topo_map["jTmin"][y] + self.ncyl - 1
+        self.topo_map["kTmin"][z] = z*self.nczl + 1
+        self.topo_map["kTmax"][z] = self.topo_map["kTmin"][z] + self.nczl - 1
 
     def _create(self, topology, grid):
         self.ncxl = grid.ncx / topology.npx
         self.ncyl = grid.ncy / topology.npy
         self.nczl = grid.ncz / topology.npz
-        nprocs = topology._topo_comm.Get_size() 
-        self.topo_map = np.zeros((6, nprocs), order='F', dtype=np.int32)
+        self.topo_map["iTmin"] = np.zeros(topology.npx, order='F', dtype=np.int32)
+        self.topo_map["iTmax"] = np.zeros(topology.npx, order='F', dtype=np.int32)
+        self.topo_map["jTmin"] = np.zeros(topology.npy, order='F', dtype=np.int32)
+        self.topo_map["jTmax"] = np.zeros(topology.npy, order='F', dtype=np.int32)
+        self.topo_map["kTmin"] = np.zeros(topology.npz, order='F', dtype=np.int32)
+        self.topo_map["kTmax"] = np.zeros(topology.npz, order='F', dtype=np.int32)
 
 class CartRegion(object):
-    def __init__(self, xlo, xhi, ylo, yhi, zlo, zhi):
-        self.xlo = xlo
-        self.xhi = xhi
-        self.ylo = ylo
-        self.yhi = yhi
-        self.zlo = zlo
-        self.zhi = zhi
-        self.ncxl = xhi - xlo
-        self.ncyl = yhi - ylo
-        self.nczl = zhi - zlo
-    
+    def __init__(self, *args, **kwargs): 
+        params_ok = True
+        limits = kwargs.get("limits")
+        if limits is not None:
+            [self.xlo, self.xhi, self.ylo, 
+            self.yhi, self.zlo, self.zhi] = kwargs["limits"]
+        elif len(args) == 6:
+            [self.xlo, self.xhi, self.ylo,
+            self.yhi, self.zlo, self.zhi] = args
+        else:
+            params_ok = False
+        if params_ok:
+            self.ncxl = self.xhi - self.xlo + 1
+            self.ncyl = self.yhi - self.ylo + 1
+            self.nczl = self.zhi - self.zlo + 1
+        else:
+            print "Something is wrong with the parameters."
+        
     def isInside(self, reg):
         return  self.xlo <= reg.xlo and \
                 self.ylo <= reg.ylo and \
@@ -246,11 +238,18 @@ class CartRegion(object):
                 self.yhi >= reg.yhi and \
                 self.zhi >= reg.zhi
 
+    def flatten(self):
+        return toCPLArray([self.xlo, self.xhi, self.ylo, 
+                        self.yhi, self.zlo, self.zhi], np.int32)
+
+    def __repr__(self):
+        return str(self.flatten())
 
 
 
 
-class Grid(object):
+
+class CPLGrid(object):
     def __init__(self, xg=None, yg=None, zg=None):
         self.created = False
         if (xg is not None and yg is not None and zg is not None):
@@ -266,16 +265,14 @@ class Grid(object):
     def computeGlobBounds(self):
         pass
 
-class CartGrid(Grid):
+class CartGrid(CPLGrid):
     def __init__(self, ncxyz, lxyz, xg=None, yg=None, zg=None):
-        Grid.__init__(self, xg, yg, zg)
+        CPLGrid.__init__(self, xg, yg, zg)
         if (ncxyz) and (lxyz):
             self.ncx = ncxyz[0]
             self.ncy = ncxyz[1]
             self.ncz = ncxyz[2]
-
             if not self.created:
-                print "Created grid"
                 self.createGrid(ncxyz, lxyz)
         else:
             self.created = False
@@ -317,20 +314,33 @@ class CartSocketMD(CPLSocket):
         CPLSocket._initialise(dt, npxyz, xyzL, topology)
 
 
-    def _send(self, data):
-        # This should not happen since packed() is called in send() but
-        # deffensive programming is never a bad thing.
-        if self.packed:
-            olap_limits = get_olap_limits(self._lib)
-#            self._lib.scatter(self.recv_buff, olap_limits, self.send_buff)
-            self.packed = False
+    def _send(self):
+        limits = self.packers[self.active_packer].region.flatten()
+        if self.comm_method == CPL.GATHER_SCATTER:
+            self._lib.gather(self.send_buff, limits, self.recv_buff)
+        elif self.comm_method == CPL.SEND_RECEIVE:
+            self._lib.send(self.send_buff, *limits)
         else:
-            print "Exception: pack() has not been called"
+            print "No recognised communication method"
 
 
-    def _receive(self, data):
-        olap_limits = get_olap_limits(self._lib)
-#        self._lib.gather(self.send_buff, olap_limits, self.recv_buff)
+    def _receive(self):
+        limits = self.unpackers[self.active_unpacker].region.flatten()
+        if self.comm_method == CPL.GATHER_SCATTER:
+            self._lib.scatter(self.send_buff, limits, self.recv_buff)
+        elif self.comm_method == CPL.SEND_RECEIVE:
+            self._lib.recv(self.recv_buff, *limits)
+        else:
+            print "No recognised communication method"
+
+    def _computeProcRegion(self):
+        rank = self.topology._topo_comm.Get_rank()
+        self.my_coords = self.topology._topo_comm.Get_coords(rank)
+        self.my_coords = toCPLArray(self.my_coords, np.int32)
+        self.my_coords += 1# Fortran indices
+        extents = self._lib.proc_extents(self.my_coords, CPL.MD_REALM)
+        self.proc_region = CartRegion(extents[0], extents[1], extents[2],
+                                    extents[3], extents[4], extents[5])
 
     def _init(self):
         self._initMD()
@@ -341,14 +351,12 @@ class CartSocketMD(CPLSocket):
                                                 self.topology._topo_comm, 
                                                 self.topology._topo_coords, 
                                                 npxyz, xyzL, dummy_density)
-
-        rank = self.topology._topo_comm.Get_rank()
-        my_coords = self.topology._topo_comm.Get_coords(rank)
-        my_coords = toCPLArray(my_coords, dtype=np.int32)
-        my_coords += 1# Fortran indices
-        extents = self._lib.proc_extents(my_coords, CPL.MD_REALM)
-        self.proc_region = CartRegion(extents[0], extents[1], extents[2],
-                                    extents[3], extents[4], extents[5])
+        self._computeProcRegion()
+        self.olap_region = CartRegion(limits=get_olap_limits(self._lib))
+    #    if (True):
+    #        print str(self.topology._topo_comm.Get_rank())+" "+ "mycoords:" + str(self.my_coords) +" extents: " + str(self.proc_region.flatten())+" "+ str(self.topology._topo_comm)+ \
+    #                        str(self.topology._topo_coords)+ str(npxyz)+ str(xyzL)
+        
 
     def _initMD(self):
         pass
@@ -367,48 +375,55 @@ class CartSocketCFD(CPLSocket, CartTopoMap):
         self.createMap(topology, grid)
 
 
-    def _send(self, data):
-        if self.packed:
-            limits = self.packers[self.active_packer].region
-#           self._lib.scatter(self.recv_buff, limits, self.send_buff)
-            self.packed = False
+    def _send(self):
+        limits = self.packers[self.active_packer].region.flatten()
+        if self.comm_method == CPL.GATHER_SCATTER:
+            self._lib.scatter(self.send_buff, limits, self.recv_buff)
+        elif self.comm_method == CPL.SEND_RECEIVE:
+            self._lib.send(self.send_buff, *limits)
         else:
-            print "Exception: pack() has not been called"
+            print "No recognised communication method"
 
-    def _receive(self, data):
-        limits = self.unpackers[self.active_packer].region
-#        self._lib.gather(self.send_buff, limits, self.recv_buff)
+    def _receive(self):
+        limits = self.unpackers[self.active_unpacker].region.flatten()
+        if self.comm_method == CPL.GATHER_SCATTER:
+            self._lib.gather(self.send_buff, limits, self.recv_buff)
+        elif self.comm_method == CPL.SEND_RECEIVE:
+            self._lib.recv(self.recv_buff, *limits)
+        else:
+            print "No recognised communication method"
+
+
+    def _computeProcRegion(self):
+        rank = self.topology._topo_comm.Get_rank()
+        my_coords = self.topology._topo_comm.Get_coords(rank)
+        my_coords = toCPLArray(my_coords, np.int32)
+        self.my_coords = my_coords
+        my_coords += 1# Fortran indices
+        extents = self._lib.proc_extents(my_coords, CPL.CFD_REALM)
+        self.proc_region = CartRegion(extents[0], extents[1], extents[2],
+                                    extents[3], extents[4], extents[5])
+
+
+    def _initCFD(self):
+        pass
 
     def _init(self):
         self._initCFD()
-        npxyz = toCPLArray([self.topology.npx, self.topology.npy, self.topology.npz], np.int32)
+        self.createMap(self.topology, self.grid)
+        npxyz = toCPLArray(self.topology.gridDims(), np.int32)
         xyzL = toCPLArray([self.lx, self.ly, self.lz], np.float64)
         ncxyz = toCPLArray([self.grid.ncx, self.grid.ncy, self.grid.ncz], np.int32)
         dummy_density = 1.0
         self.createMap(self.topology, self.grid)
         tm = self.topo_map
         # After slicing the array can be easily non-contiguous 
-        iTmin = toCPLArray(tm[0, :])
-        iTmax = toCPLArray(tm[1, :])
-        jTmin = toCPLArray(tm[2, :])
-        jTmax = toCPLArray(tm[3, :])
-        kTmin = toCPLArray(tm[4, :])
-        kTmax = toCPLArray(tm[5, :])
-        if (self.topology._topo_comm.Get_rank() == 0):
-            print "iTmin: " + str(iTmin)
-            print "iTmax: " + str(iTmax)
-            print "jTmin: " + str(jTmin)
-            print "jTmax: " + str(jTmax)
-            print "kTmin: " + str(kTmin)
-            print "kTmax: " + str(kTmax)
-            print "self.topo_map" + str(self.topo_map)
-            print "npxyz: " + str(npxyz)
-            print "xyzL: " + str(xyzL)
-            print "ncxyz: " + str(ncxyz)
-            print "topo_coords:" + str(self.topology._topo_coords)
-            print "xg: " + str(self.grid.xg) + "len: " + str(len(self.grid.xg))
-            print "yg: " + str(self.grid.yg)+ "len: " + str(len(self.grid.zg))
-            print "zg: " + str(self.grid.zg)+ "len: " + str(len(self.grid.zg))
+        iTmin = tm["iTmin"]
+        iTmax = tm["iTmax"]
+        jTmin = tm["jTmin"]
+        jTmax = tm["jTmax"]
+        kTmin = tm["kTmin"]
+        kTmax = tm["kTmax"]
         ijkcmin = self.grid.glob_bounds[:, 0]
         ijkcmax = self.grid.glob_bounds[:, 1]
         self._lib.cfd_init(self.nsteps, self.dt, self.topology._topo_comm, 
@@ -417,15 +432,14 @@ class CartSocketCFD(CPLSocket, CartTopoMap):
                             jTmin, jTmax, kTmin, kTmax, self.grid.xg, 
                             self.grid.yg, self.grid.zg)
 
-        rank = self.topology._topo_comm.Get_rank()
-        self.proc_region = CartRegion(iTmin[rank], iTmax[rank], jTmin[rank],
-                                    jTmax[rank], kTmin[rank], kTmax[rank])
-                                        
-    def _initCFD(self):
-        pass
-
-
-
-
-
+        self._computeProcRegion()
+        self.olap_region = CartRegion(limits=get_olap_limits(self._lib))
+#        if self.topology._topo_comm.Get_rank() == 2:
+"""
+        if (True):
+            print str(self.topology._topo_comm.Get_rank())+" "+ "mycoords:" + str(self.my_coords+1) +" extents: " + str(self.proc_region.flatten())+" "+ str(self.nsteps)+ str(self.dt)+ str(self.topology._topo_comm)+ \
+                            str(self.topology._topo_coords)+ str(npxyz)+ str(xyzL)+ str(ncxyz)+\
+                            str(dummy_density)+ str(ijkcmax)+ str(ijkcmin)+ str(iTmin)+ str(iTmax)+\
+                            str(jTmin)+ str(jTmax)+ str(kTmin)+ str(kTmax)
+"""
 

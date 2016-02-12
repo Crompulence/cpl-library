@@ -127,9 +127,66 @@ void CPL::md_init
     );
 }
 
-void CPL::send()
+
+void CPL::send
+(
+		double* asend,	
+		double* asend_shape,
+		int ndims,
+		int icmin, 
+		int icmax,
+		int jcmin, 
+		int jcmax,
+		int kcmin, 
+		int kcmax,
+		bool& send_flag
+
+)
 {
-    CPLC_send();
+		CPLC_send
+		(
+				asend,	
+				asend_shape,
+				ndims,
+				icmin, 
+				icmax,
+				jcmin, 
+				jcmax,
+				kcmin, 
+				kcmax,
+				&send_flag
+		);
+}
+
+
+void CPL::recv
+(
+		double* arecv,	
+		double* arecv_shape,
+		int ndims,
+		int icmin, 
+		int icmax,
+		int jcmin, 
+		int jcmax,
+		int kcmin, 
+		int kcmax,
+		bool& recv_flag
+
+)
+{
+		CPLC_recv
+		(
+				arecv,	
+				arecv_shape,
+				ndims,
+				icmin, 
+				icmax,
+				jcmin, 
+				jcmax,
+				kcmin, 
+				kcmax,
+				&recv_flag
+		);
 }
 
 void CPL::scatter
