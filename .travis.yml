@@ -1,7 +1,16 @@
 # http://travis-ci.org/Crompulence/cpl-library
 # Note bug report #5221 required apt-get update for gfortran
+#    - MPI=mpich3 CPP=gcc-5 fortran=gfortran
 #    - MPI=mpich2 CPP=gcc-5 fortran=gfortran
 #    - MPI=openmpi CPP=gcc-5 fortran=gfortran
+#    sh ./make/travis/travis-install-fortran.sh $fortran &&
+#    - if [ ${fortran} != "gfortran" ];
+#    then 
+#        sh ./make/travis/travis-install-gcc.sh $CPP; 
+#    else 
+#        sh ./make/travis/travis-install-fortran.sh $fortran &&
+#        sh ./make/travis/travis-install-gcc.sh $CPP;
+#    fi
 
 os: linux
 sudo: required
@@ -10,7 +19,7 @@ python:
     - 2.7
 
 env:
-    - MPI=mpich3 CPP=gcc-5 fortran=gfortran
+    - MPI=mpich3 CPP=5.0 fortran=gfortran
 
 branches:
   only:
@@ -20,23 +29,35 @@ cache:
   apt: true
 
 before_install:
-    - sh ./make/travis/travis-install-fortran.sh $fortran
-    - sh ./make/travis/travis-install-gcc.sh $CPP
+
+    #If not gfortran then we'll need to get elsewhere 
+    - if [ ${fortran} != "gfortran" ];
+      then sh ./make/travis/travis-install-fortran.sh $fortran;
+      else echo "Getting gfortran from c++ repo";
+      fi
+    - sh ./make/travis/travis-install-gcc.sh 'gcc-'$CPP; 
     - test -n $CC  && unset CC
     - test -n $CXX && unset CXX
-    - sh ./make/travis/travis-install-mpi.sh $MPI
+    - alias gcc='gcc-'$CPP
+    - alias cc='gcc-'$CPP
+    - alias g++='g++-'$CPP
+    - alias c++='c++-'$CPP
+    - alias gfortran='gfortran-'$CPP
+    - export MPI_BUILD_DIR=$HOME/mpi
+    - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR
 
 install:
     - cd ./cpl
     - make
 
 before_script:
+    - export PATH=$MPI_BUILD_DIR/mpi/bin:$PATH
     - cd ../demo
     - make
     - MPIEXEC='mpiexec'
-    - cd ./run
 
 script:
+    - cd ./run
     - echo "test"
 #    - $MPIEXEC -n 8 ./md/mdProgram : -n 4 ./cfd/cfdProgram -v -f --no-builddir --exclude=spawn
 
