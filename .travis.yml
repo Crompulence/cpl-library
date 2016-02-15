@@ -25,9 +25,9 @@ cache:
 
 before_install:
     - sudo apt-get update -q
-    - sh ./make/travis/install-fortran.sh $fortran
-    - sh ./make/travis/install-gcc.sh $c++
-    - sh ./conf/travis/install-mpi.sh $MPI
+    - sh ./make/travis/travis-install-fortran.sh $fortran
+    - sh ./make/travis/travis-install-gcc.sh $c++
+    - sh ./conf/travis/travis-install-mpi.sh $MPI
 
 install:
     - cd ./cpl
