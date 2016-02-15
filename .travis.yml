@@ -1,4 +1,5 @@
 # http://travis-ci.org/Crompulence/cpl-library
+# Note bug report #5221 required apt-get update for gfortran
 
 os: linux
 sudo: required
@@ -19,7 +20,6 @@ cache:
   apt: true
 
 before_install:
-    - sudo apt-get update -q
     - sh ./make/travis/travis-install-fortran.sh $fortran
     - sh ./make/travis/travis-install-gcc.sh $c++
     - test -n $CC  && unset CC
