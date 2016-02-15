@@ -1,20 +1,13 @@
-# http://travis-ci.org/cpl_library
+# http://travis-ci.org/Crompulence/cpl-library
 
 language: python
 python:
     - 2.7
 
 env:
-    - MPI=mpich3
-    - MPI=mpich2
-    - MPI=mpich1
-    - MPI=openmpi
-    - c++=gcc-5
-    - fortran=gfortran
-
-matrix:
-  allow_failures:
-    - env: MPI=mpich1
+    - MPI=mpich3 c++=gcc-5 fortran=gfortran
+    - MPI=mpich2 c++=gcc-5 fortran=gfortran
+    - MPI=openmpi c++=gcc-5 fortran=gfortran
 
 branches:
   only:
@@ -24,10 +17,11 @@ cache:
   apt: true
 
 before_install:
-    - sudo apt-get update -q
     - sh ./make/travis/travis-install-fortran.sh $fortran
     - sh ./make/travis/travis-install-gcc.sh $c++
-    - sh ./conf/travis/travis-install-mpi.sh $MPI
+    - test -n $CC  && unset CC
+    - test -n $CXX && unset CXX
+    - sh ./make/travis/travis-install-mpi.sh $MPI
 
 install:
     - cd ./cpl
@@ -40,61 +34,8 @@ before_script:
     - cd ./run
 
 script:
-    - $MPIEXEC -n 8 ./md/mdProgram : -n 4 ./cfd/cfdProgram
+    - echo "test"
+    - $MPIEXEC -n 8 ./md/mdProgram : -n 4 ./cfd/cfdProgram -v -f --no-builddir --exclude=spawn
 
 #notifications:
 #  email: false
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# http://travis-ci.org/cpl_library
-
-language: python
-python:
-    - 2.7
-
-env:
-    - MPI=mpich3
-    - MPI=mpich2
-    - MPI=mpich1
-    - MPI=openmpi
-    - c++=gcc-5
-    - fortran=gfortran
-
-matrix:
-  allow_failures:
-    - env: MPI=mpich1
-
-branches:
-  only:
-    - master
-
-cache:
-  apt: true
-
-before_install:
-    - sudo apt-get update -q
-    - sh ./make/travis/install-fortran.sh $fortran
-    - sh ./make/travis/install-gcc.sh $c++
-    - sh ./conf/travis/install-mpi.sh $MPI
-
-install:
-    - cd ./cpl
-    - make
-
-before_script:
-    - cd ../demo
-    - make
