@@ -1,5 +1,7 @@
 # http://travis-ci.org/Crompulence/cpl-library
 # Note bug report #5221 required apt-get update for gfortran
+#    - MPI=mpich2 CPP=gcc-5 fortran=gfortran
+#    - MPI=openmpi CPP=gcc-5 fortran=gfortran
 
 os: linux
 sudo: required
@@ -8,9 +10,7 @@ python:
     - 2.7
 
 env:
-    - MPI=mpich3 c++=gcc-5 fortran=gfortran
-    - MPI=mpich2 c++=gcc-5 fortran=gfortran
-    - MPI=openmpi c++=gcc-5 fortran=gfortran
+    - MPI=mpich3 CPP=gcc-5 fortran=gfortran
 
 branches:
   only:
@@ -21,7 +21,7 @@ cache:
 
 before_install:
     - sh ./make/travis/travis-install-fortran.sh $fortran
-    - sh ./make/travis/travis-install-gcc.sh $c++
+    - sh ./make/travis/travis-install-gcc.sh $CPP
     - test -n $CC  && unset CC
     - test -n $CXX && unset CXX
     - sh ./make/travis/travis-install-mpi.sh $MPI
@@ -38,7 +38,7 @@ before_script:
 
 script:
     - echo "test"
-    - $MPIEXEC -n 8 ./md/mdProgram : -n 4 ./cfd/cfdProgram -v -f --no-builddir --exclude=spawn
+#    - $MPIEXEC -n 8 ./md/mdProgram : -n 4 ./cfd/cfdProgram -v -f --no-builddir --exclude=spawn
 
-#notifications:
-#  email: false
+notifications:
+  email: false
