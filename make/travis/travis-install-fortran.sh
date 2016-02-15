@@ -1,6 +1,5 @@
 #!/bin/sh
 set -e
-sudo apt-get update
 case $1 in
   gfortran) set -x;
     sudo apt-get install gfortran;;

@@ -2,7 +2,6 @@
 set -e
 sudo apt-get install build-essential
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-sudo apt-get update
 case $1 in
   gcc-4.6) set -x;
     sudo apt-get install gcc-4.6 g++-4.6;;

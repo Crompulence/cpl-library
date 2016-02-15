@@ -1,5 +1,7 @@
 # http://travis-ci.org/Crompulence/cpl-library
 
+os: linux
+sudo: required
 language: python
 python:
     - 2.7
