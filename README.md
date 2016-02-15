@@ -1,3 +1,6 @@
+
+# cpl-library [![Build Status](https://travis-ci.org/Crompulence/cpl-library.png?branch=master)](https://travis-ci.org/Crompulence/cpl-library)
+
 ~~~
     ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________        
      _____/\\\////////__\/\\\/////////\\\_\/\\\_____________       
@@ -9,10 +12,13 @@
            ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_ 
             _______\/////////__\///______________\///////////////__
 
-
-                          www.cpl-library.org
-
 ~~~ 
+
+<p align="center">
+  www.cpl-library.org
+</p>
+
+
 
 CPL Library is a communications and topology management system for
 coupling any continuum fluid dynamics (CFD) solver to any molecular dynamics
@@ -28,12 +34,14 @@ CPL Library.
 Contents
 ========
     
-    1. Pre-requisites for compilation
-    2. Install 
-        a) Compiling the library
-        b) Compiling and running the demo programs
-    3. License
-
+ 1. Pre-requisites for compilation
+ 2. Install 
+ 
+  a) Compiling the library
+  
+  b) Compiling and running the demo programs
+  
+ 3. License
 
 
 1. Pre-requisites for compilation
@@ -47,41 +55,40 @@ CPL Library was developed and tested using the GCC compiler collection and
 MPICH, which are both free and open-source. 
 
 
-
 2. Install
 ==========
 
+a) Compiling the library 
+------------------------
 
-    a) Compiling the library 
-    ------------------------
+Compiling CPL Library with GCC, as a shared library, is likely to 
+work with the makefile provided in cpl/:
 
-    Compiling CPL Library with GCC, as a shared library, is likely to 
-    work with the makefile provided in cpl/:
+    $  cd cpl
+    $  make 
 
-        $  cd cpl
-        $  make 
+If this doesn't work, the compilers and flags may need to be specified
+manually. The makefiles provided with CPL Library import the variables 
+in the file make/[platform].inc, where the variable [platform] is specified
+exactly by the contents of the file make/PLATFORM. A template is provided
+in make/gcc.inc, and the file make/PLATFORM contains only the string "gcc" 
+by default. The GCC template is likely to work for most machines, but
+the user may create their own version (make/user-include.inc, for
+example):
 
-    If this doesn't work, the compilers and flags may need to be specified
-    manually. The makefiles provided with CPL Library import the variables 
-    in the file make/[platform].inc, where the variable [platform] is specified
-    exactly by the contents of the file make/PLATFORM. A template is provided
-    in make/gcc.inc, and the file make/PLATFORM contains only the string "gcc" 
-    by default. The GCC template is likely to work for most machines, but
-    the user may create their own version (make/user-include.inc, for
-    example):
-
-        $  cd ./make
-        $  cp gcc.inc user-include.inc
-        $  vi user-include.inc                     (make any necessary changes)
-        $  cd ../cpl
-        $  make PLATFORM=user-include
-
+    $  cd ./make
+    $  cp gcc.inc user-include.inc
+    $  vi user-include.inc                     (make any necessary changes)
+    $  cd ../cpl
+    $  make PLATFORM=user-include
 
 
-    b) Building the demo applications
-    ---------------------------------
 
-    Please see:
+
+b) Building the demo applications
+---------------------------------
+
+Please see:
 
         http://www.cpl-library.org/user-guide/quick-start.shtml 
 
