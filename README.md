@@ -1,23 +1,9 @@
 
 # cpl-library [![Build Status](https://travis-ci.org/Crompulence/cpl-library.png?branch=master)](https://travis-ci.org/Crompulence/cpl-library)
 
-~~~
-    ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________        
-     _____/\\\////////__\/\\\/////////\\\_\/\\\_____________       
-      ___/\\\/___________\/\\\_______\/\\\_\/\\\_____________      
-       __/\\\_____________\/\\\\\\\\\\\\\/__\/\\\_____________     
-        _\/\\\_____________\/\\\/////////____\/\\\_____________    
-         _\//\\\____________\/\\\_____________\/\\\_____________   
-          __\///\\\__________\/\\\_____________\/\\\_____________  
-           ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_ 
-            _______\/////////__\///______________\///////////////__
-
-~~~ 
-
 <p align="center">
   www.cpl-library.org
 </p>
-
 
 
 CPL Library is a communications and topology management system for
@@ -35,12 +21,9 @@ Contents
 ========
     
  1. Pre-requisites for compilation
- 2. Install 
- 
-  a) Compiling the library
-  
+ 2. Install <br />
+  a) Compiling the library <br />
   b) Compiling and running the demo programs
-  
  3. License
 
 
