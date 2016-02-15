@@ -1,0 +1,45 @@
+# http://travis-ci.org/cpl_library
+
+language: python
+python:
+    - 2.7
+
+env:
+    - MPI=mpich3
+    - MPI=mpich2
+    - MPI=mpich1
+    - MPI=openmpi
+    - c++=gcc-5
+    - fortran=gfortran
+
+matrix:
+  allow_failures:
+    - env: MPI=mpich1
+
+branches:
+  only:
+    - master
+
+cache:
+  apt: true
+
+before_install:
+    - sudo apt-get update -q
+    - sh ./conf/travis/install-gcc.sh $MPI
+    - sh ./conf/travis/install-mpi.sh $MPI
+
+install:
+    - cd cpl-library/cpl
+    - make
+
+before_script:
+    - sudo hostname localhost
+    - MPIEXEC='mpiexec'; PYTHON='python';
+    - test $MPI == mpich1 && MPIEXEC='mpirun' || true
+    - test $MPI == mpich1 && PYTHON=$(command -v $PYTHON) || true
+script:
+    - $MPIEXEC -n 1 $PYTHON $PWD/test/runtests.py -v -f --no-builddir --exclude=spawn
+    - $MPIEXEC -n 3 $PYTHON $PWD/test/runtests.py -v -f --no-builddir --exclude=spawn
+
+#notifications:
+#  email: false

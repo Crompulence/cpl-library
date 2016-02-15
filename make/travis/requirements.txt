@@ -1,0 +1,8 @@
+#
+####### requirements.txt #######
+#
+nose
+numpy
+scipy
+matplotlib
+#
