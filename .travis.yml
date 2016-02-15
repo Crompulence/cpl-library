@@ -43,7 +43,7 @@ before_install:
     - alias g++='g++-'$CPP
     - alias c++='c++-'$CPP
     - alias gfortran='gfortran-'$CPP
-    - export MPI_BUILD_DIR=$HOME/mpi
+    - export MPI_BUILD_DIR=$TRAVIS_BUILD_DIR/mpi
     - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR
 
 install:
