@@ -18,7 +18,8 @@ case $1 in
     cd mpich-3.2
     mkdir build && cd build
     ../configure --prefix=$INSTALL_DIR --disable-static \
-                 --enable-fortran=yes FC=gfortran \
+                 --enable-fortran=yes FC=gfortran-5 \
+                 --enable-cxx=yes CXX=g++-5 CC=gcc-5 \
                  --enable-g=all --enable-error-messages=all \
                  --enable-error-checking=all
 
