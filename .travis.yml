@@ -36,9 +36,7 @@ before_install:
     #  else echo "Getting gfortran from c++ repo";
     #  fi
     - sh ./make/travis/travis-install-gcc.sh 'gcc-'$GCC_VERSION;
-    - which gfortran
     - sh ./make/travis/travis-install-fortran.sh $fortran
-    - which gfortran
     - test -n $CC  && unset CC
     - test -n $CXX && unset CXX
     - alias gcc='gcc-'$GCC_VERSION
@@ -46,6 +44,7 @@ before_install:
     - alias g++='g++-'$GCC_VERSION
     - alias c++='c++-'$GCC_VERSION
     - alias gfortran='gfortran-'$GCC_VERSION
+    - which gfortran
     - export MPI_BUILD_DIR=$TRAVIS_BUILD_DIR/mpi
     - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR
     - export MPI_DIR=$MPI_BUILD_DIR/$MPI
