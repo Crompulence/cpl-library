@@ -2,12 +2,14 @@
 
 os: linux
 sudo: required
+
 language: python
 python:
     - 2.7
 
 env:
     - MPI=mpich3 GCC_VERSION=5
+#    - MPI=openmpi GCC_VERSION=5
 
 branches:
   only:
@@ -22,31 +24,26 @@ before_install:
     - sh ./make/travis/travis-install-fortran.sh 'gfortran-'$GCC_VERSION
     - test -n $CC  && unset CC
     - test -n $CXX && unset CXX
-#    - alias gcc='gcc-'$GCC_VERSION
-#    - alias cc='gcc-'$GCC_VERSION
-#    - alias g++='g++-'$GCC_VERSION
-#    - alias c++='c++-'$GCC_VERSION
-#    - alias gfortran='gfortran-'$GCC_VERSION
-#    - which gfortran
     - export MPI_BUILD_DIR=$TRAVIS_BUILD_DIR/mpi
-    - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR
     - export MPI_DIR=$MPI_BUILD_DIR/$MPI
+    - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR
 
 install:
-    - echo "looking for MPI in "$MPI_DIR 
     - export PATH=$MPI_DIR/bin:$PATH
     - cd ./cpl
     - make
 
-#before_script:
-#    - export PATH=$MPI_DIR/bin:$PATH
-#    - cd ../demo/md-cfd-framework/
+before_script:
+    - export PATH=$MPI_DIR/bin:$PATH
+    - cd ../demo/md-cfd-framework/
+    - MPIEXEC='mpiexec'
+    - echo "Make demo here"
 #    - make cpp-fortran
-#    - MPIEXEC='mpiexec'
 
-#script:
+
+script:
+    - echo "test scripts here"
 #    - cd ./run
-#    - echo "test"
 #    - $MPIEXEC -n 8 ./md/mdProgram : -n 4 ./cfd/cfdProgram -v -f --no-builddir --exclude=spawn
 
 after_success:
@@ -61,4 +58,4 @@ after_success:
 
 
 notifications:
-  email: false
+  email: true
