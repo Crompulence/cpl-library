@@ -6,10 +6,10 @@
 #    sh ./make/travis/travis-install-fortran.sh $fortran &&
 #    - if [ ${fortran} != "gfortran" ];
 #    then 
-#        sh ./make/travis/travis-install-gcc.sh $CPP; 
+#        sh ./make/travis/travis-install-gcc.sh $GCC_VERSION; 
 #    else 
 #        sh ./make/travis/travis-install-fortran.sh $fortran &&
-#        sh ./make/travis/travis-install-gcc.sh $CPP;
+#        sh ./make/travis/travis-install-gcc.sh $GCC_VERSION;
 #    fi
 
 os: linux
@@ -19,7 +19,7 @@ python:
     - 2.7
 
 env:
-    - MPI=mpich3 CPP=5 fortran=gfortran
+    - MPI=mpich3 GCC_VERSION=5 fortran=gfortran
 
 branches:
   only:
@@ -35,14 +35,14 @@ before_install:
       then sh ./make/travis/travis-install-fortran.sh $fortran;
       else echo "Getting gfortran from c++ repo";
       fi
-    - sh ./make/travis/travis-install-gcc.sh 'gcc-'$CPP; 
+    - sh ./make/travis/travis-install-gcc.sh 'gcc-'$GCC_VERSION; 
     - test -n $CC  && unset CC
     - test -n $CXX && unset CXX
-    - alias gcc='gcc-'$CPP
-    - alias cc='gcc-'$CPP
-    - alias g++='g++-'$CPP
-    - alias c++='c++-'$CPP
-    - alias gfortran='gfortran-'$CPP
+    - alias gcc='gcc-'$GCC_VERSION
+    - alias cc='gcc-'$GCC_VERSION
+    - alias g++='g++-'$GCC_VERSION
+    - alias c++='c++-'$GCC_VERSION
+    - alias gfortran='gfortran-'$GCC_VERSION
     - export MPI_BUILD_DIR=$TRAVIS_BUILD_DIR/mpi
     - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR
 
@@ -51,7 +51,7 @@ install:
     - make
 
 before_script:
-    - export PATH=$MPI_BUILD_DIR/mpi/bin:$PATH
+    - export PATH=$MPI_BUILD_DIR/bin:$PATH
     - cd ../demo
     - make
     - MPIEXEC='mpiexec'
@@ -60,6 +60,11 @@ script:
     - cd ./run
     - echo "test"
 #    - $MPIEXEC -n 8 ./md/mdProgram : -n 4 ./cfd/cfdProgram -v -f --no-builddir --exclude=spawn
+
+after_failure:
+    - cat $MPI_BUILD_DIR/config.log
+
+
 
 notifications:
   email: false
