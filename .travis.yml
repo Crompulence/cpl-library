@@ -1,16 +1,4 @@
 # http://travis-ci.org/Crompulence/cpl-library
-# Note bug report #5221 required apt-get update for gfortran
-#    - MPI=mpich3 CPP=gcc-5 fortran=gfortran
-#    - MPI=mpich2 CPP=gcc-5 fortran=gfortran
-#    - MPI=openmpi CPP=gcc-5 fortran=gfortran
-#    sh ./make/travis/travis-install-fortran.sh $fortran &&
-#    - if [ ${fortran} != "gfortran" ];
-#    then 
-#        sh ./make/travis/travis-install-gcc.sh $GCC_VERSION; 
-#    else 
-#        sh ./make/travis/travis-install-fortran.sh $fortran &&
-#        sh ./make/travis/travis-install-gcc.sh $GCC_VERSION;
-#    fi
 
 os: linux
 sudo: required
@@ -31,7 +19,7 @@ cache:
 before_install:
 
     - sh ./make/travis/travis-install-gcc.sh 'gcc-'$GCC_VERSION;
-    - sh ./make/travis/travis-install-fortran.sh 'gfortran-'$GCC
+    - sh ./make/travis/travis-install-fortran.sh 'gfortran-'$GCC_VERSION
     - test -n $CC  && unset CC
     - test -n $CXX && unset CXX
 #    - alias gcc='gcc-'$GCC_VERSION
