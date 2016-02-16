@@ -8,6 +8,7 @@ else
     BUILD_DIR=$2
     echo "Build dir specified as " $BUILD_DIR
 fi
+mkdir -p $BUILD_DIR
 case $1 in
   mpich3) set -x;
     cd $BUILD_DIR
