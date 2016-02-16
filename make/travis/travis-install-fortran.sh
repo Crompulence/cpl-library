@@ -3,7 +3,13 @@ set -e
 sudo apt-get update -q
 case $1 in
   gfortran) set -x;
-    sudo apt-get install gfortran gfortran-5 -y;;
+    sudo apt-get install gfortran -y;;
+  gfortran-4.8) set -x;
+    sudo apt-get install gfortran-4.8 -y;;
+  gfortran-4.9) set -x;
+    sudo apt-get install gfortran-4.9 -y;;
+  gfortran-5) set -x;
+    sudo apt-get install gfortran-5 -y;;
   ifort) set -x;
     echo "Intel is not a supported fortran compiler for tests:" $1; exit 1;;
   *)

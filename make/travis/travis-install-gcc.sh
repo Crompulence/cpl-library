@@ -4,6 +4,8 @@ sudo apt-get install build-essential
 sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
 sudo apt-get update -q
 case $1 in
+  gcc) set -x;
+    sudo apt-get install gcc g++ -y;;
   gcc-4.8) set -x;
     sudo apt-get install gcc-4.8 g++-4.8 -y;;
   gcc-4.9) set -x;
