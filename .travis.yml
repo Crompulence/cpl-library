@@ -45,14 +45,16 @@ before_install:
     - alias gfortran='gfortran-'$GCC_VERSION
     - export MPI_BUILD_DIR=$TRAVIS_BUILD_DIR/mpi
     - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR
+    - export MPI_DIR=$MPI_BUILD_DIR/$MPI
 
 install:
-    - export PATH=$MPI_BUILD_DIR/bin:$PATH
+    - echo "looking for MPI in "$MPI_DIR 
+    - export PATH=$MPI_DIR/bin:$PATH
     - cd ./cpl
     - make
 
 before_script:
-    - export PATH=$MPI_BUILD_DIR/bin:$PATH
+    - export PATH=$MPI_DIR/bin:$PATH
     - cd ../demo
     - make
     - MPIEXEC='mpiexec'
@@ -63,6 +65,9 @@ script:
 #    - $MPIEXEC -n 8 ./md/mdProgram : -n 4 ./cfd/cfdProgram -v -f --no-builddir --exclude=spawn
 
 after_failure:
+    - which mpif90
+    - locate mpif90
+    - echo $MPI_BUILD_DIR $CXX $MPI_DIR
     - cat $MPI_BUILD_DIR/config.log
 
 

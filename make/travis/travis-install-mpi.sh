@@ -9,6 +9,7 @@ else
     echo "Build dir specified as " $BUILD_DIR
 fi
 mkdir -p $BUILD_DIR
+INSTALL_DIR=$BUILD_DIR/$1
 case $1 in
   mpich3) set -x;
     cd $BUILD_DIR
@@ -16,7 +17,7 @@ case $1 in
     tar -xzf mpich-3.2.tar.gz
     cd mpich-3.2
     mkdir build && cd build
-    ../configure --prefix=$BUILD_DIR/mpich --disable-static \
+    ../configure --prefix=$INSTALL_DIR --disable-static \
                  --enable-fortran=option FC=gfortran \
                  --enable-g=all --enable-error-messages=all \
                  --enable-error-checking=all
@@ -40,7 +41,7 @@ case $1 in
     tar -xvf openmpi-1.10.2.tar.gz
     cd openmpi-1.10.2
     mkdir build && cd build
-    ../configure --prefix=$BUILD_DIR/open-mpi \
+    ../configure --prefix=$INSTALL_DIR \
                 FC=gfortran --enable-mpi-fortran=all 
     make -j4
     make install;;
