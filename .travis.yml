@@ -47,6 +47,7 @@ before_install:
     - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR
 
 install:
+    - export PATH=$MPI_BUILD_DIR/bin:$PATH
     - cd ./cpl
     - make
 
