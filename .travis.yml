@@ -31,11 +31,14 @@ cache:
 before_install:
 
     #If not gfortran then we'll need to get elsewhere 
-    - if [ ${fortran} != "gfortran" ];
-      then sh ./make/travis/travis-install-fortran.sh $fortran;
-      else echo "Getting gfortran from c++ repo";
-      fi
-    - sh ./make/travis/travis-install-gcc.sh 'gcc-'$GCC_VERSION; 
+    #- if [ ${fortran} != "gfortran" ];
+    #  then sh ./make/travis/travis-install-fortran.sh $fortran;
+    #  else echo "Getting gfortran from c++ repo";
+    #  fi
+    - sh ./make/travis/travis-install-gcc.sh 'gcc-'$GCC_VERSION;
+    - which gfortran
+    - sh ./make/travis/travis-install-fortran.sh $fortran
+    - which gfortran
     - test -n $CC  && unset CC
     - test -n $CXX && unset CXX
     - alias gcc='gcc-'$GCC_VERSION
