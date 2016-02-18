@@ -11,7 +11,7 @@ coupling any continuum fluid dynamics (CFD) solver to any molecular dynamics
 (MD) code written in either C, C++ or Fortran. For more details about
 the philosophy, range of validity and aims of this software, please
 see the [wikki page](https://github.com/Crompulence/cpl-library/wiki/CPL-Library)
-and our dedicated website [www.cpl-library.org](www.cpl-library.org)
+and our dedicated website [www.cpl-library.org](http://www.cpl-library.org)
 A demonstration of CPL Library's capability is included in the "demo" folder. 
 Inside the demo, "dummy" MD and CFD programs are coupled via CPL Library and 
 exchange data on a virtual topology. The user is encouraged to examine the 
