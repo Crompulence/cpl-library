@@ -1,3 +1,4 @@
+!=============================================================================
 !
 !    ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________
 !     _____/\\\////////__\/\\\/////////\\\_\/\\\_____________
@@ -109,8 +110,7 @@ contains
 !------------------------------------------------------------------------------
 !                              CPL_gather                                     -
 !------------------------------------------------------------------------------
-!! @author David Trevelyan
-!
+!>
 !! Perform gather operation on CPL_OLAP_COMM communicator. The CFD processor
 !! is the root process. The gathered data is effectively "slotted" into the
 !! correct part of the recvarray, and is intented for use in providing the
@@ -145,6 +145,7 @@ contains
 !! - Output Parameters
 !!  - NONE
 !!
+!! @author David Trevelyan
 subroutine CPL_gather(gatherarray, npercell, limits, recvarray)!todo better name than recvarray
     use mpi
     use coupler_module
@@ -214,7 +215,7 @@ contains
         end do
         
         if (.not. consistent) then
-            call error_abort("MD and CFD limits not consistent in CPL_gather")
+            call error_abort("CPL_gather error - MD and CFD limits not consistent in CPL_gather")
         else
             return
         end if
@@ -236,7 +237,7 @@ contains
             limits(5) .lt. kcmin .or. &
             limits(6) .lt. kcmax) then
             
-            call error_abort("Gather limits are outside global domain. " // &
+			call error_abort("CPL_gather error - Gather limits are outside global domain. " // &
                              "Aborting simulation.")
             
         end if
@@ -244,7 +245,7 @@ contains
 
         ! Check if CFD processor has tried to "send" anything
         if (myid_olap.eq.CFDid_olap .and. product(shape(gatherarray)).ne.0) then
-            call error_abort('CFD proc input to CPL_gather: '          // &
+			call error_abort('CPL_gather error - CFD proc input to CPL_gather: '          // &
                              'gatherarray has nonzero size. Aborting ' // &
                              'from prepare_gatherv_parameters' )
         end if
@@ -398,8 +399,7 @@ end subroutine CPL_gather
 !------------------------------------------------------------------------------
 !                              CPL_scatter                                    -
 !------------------------------------------------------------------------------
-!! @author David Trevelyan
-!!
+!>
 !! Scatter cell-wise data from CFD processor to corresponding MD processors
 !! on the overlap communicator CPL_OLAP_COMM.
 !!
@@ -428,6 +428,7 @@ end subroutine CPL_gather
 !! - Output
 !!  - NONE
 !!
+!! @author David Trevelyan
 subroutine CPL_scatter(scatterarray,npercell,limits,recvarray)
     use coupler_module
     use mpi
@@ -475,7 +476,7 @@ contains
             limits(5) .lt. kcmin .or. &
             limits(6) .lt. kcmax) then
             
-            call error_abort("Scatter limits are outside global domain. " // &
+			call error_abort("CPL_scatter error - Scatter limits are outside global domain. " // &
                              "Aborting simulation.")
             
         end if
@@ -612,6 +613,7 @@ end subroutine CPL_scatter
 
 
 !=============================================================================
+!>
 !! CPL_send_data wrapper for 3d arrays
 !! see CPL_send_xd for input description
 !! @see coupler#subroutine_CPL_send_xd
@@ -680,6 +682,7 @@ subroutine CPL_send_3d(temp,icmin_send,icmax_send,jcmin_send, &
 end subroutine CPL_send_3d
 
 !=============================================================================
+!>
 !! CPL_send_data wrapper for 4d arrays
 !! see CPL_send_xd for input description
 !! @see coupler#subroutine_CPL_send_xd
@@ -753,7 +756,7 @@ end subroutine CPL_send_4d
 
 !=============================================================================
 !                       CPL_send_xd
-!
+!>
 !! Send data from the local grid to the associated ranks from the other 
 !! realm
 !!
@@ -912,6 +915,7 @@ subroutine CPL_send_xd(asend,icmin_send,icmax_send,jcmin_send, &
 end subroutine CPL_send_xd
 
 !=============================================================================
+!>
 !! CPL_recv_xd wrapper for 3d arrays
 !! see CPL_recv_xd for input description
 !! @see coupler#subroutine_CPL_recv_xd
@@ -984,6 +988,7 @@ subroutine CPL_recv_3d(temp,icmin_recv,icmax_recv,jcmin_recv, &
 end subroutine CPL_recv_3d
 
 !=============================================================================
+!>
 !! CPL_recv_xd  wrapper for 4d arrays
 !! See CPL_recv_xd for input description
 !! @see coupler#subroutine_CPL_recv_xd
@@ -1048,7 +1053,7 @@ end subroutine CPL_recv_4d
 
 !=============================================================================
 !                       CPL_recv_xd
-!
+!>
 !! Receive data from to local grid from the associated ranks from the other 
 !! realm
 !!
@@ -1433,7 +1438,7 @@ end subroutine CPL_unpack
 !-------------------------------------------------------------------
 !                   CPL_proc_extents                  -
 !-------------------------------------------------------------------
-!! @author David Trevelyan
+!>
 !!
 !! Gets maximum and minimum cells for processor coordinates
 !!
@@ -1461,6 +1466,7 @@ end subroutine CPL_unpack
 !!  - ncells (optional)
 !!   - number of cells on processor (integer) 
 !!
+!! @author David Trevelyan
 subroutine CPL_proc_extents(coord,realm,extents,ncells)
     use mpi
     use coupler_module, only: md_realm,      cfd_realm,      &
@@ -1488,7 +1494,7 @@ subroutine CPL_proc_extents(coord,realm,extents,ncells)
                     kcPmin_cfd(coord(3)),kcPmax_cfd(coord(3))/)
 
     case default
-        call error_abort('Wrong realm in CPL_proc_extents')
+		call error_abort('CPL_proc_extents error - Wrong realm in CPL_proc_extents')
     end select
 
     if (present(ncells)) then
@@ -1502,7 +1508,7 @@ end subroutine CPL_proc_extents
 !-------------------------------------------------------------------
 !                   CPL_olap_extents                  -
 !-------------------------------------------------------------------
-!! @author David Trevelyan
+!>
 !!
 !! Get maximum and minimum cells for current communicator within
 !! the overlapping region only
@@ -1531,6 +1537,7 @@ end subroutine CPL_proc_extents
 !!  - ncells (optional)
 !!   - number of cells on processor (integer) 
 !!
+!! @author David Trevelyan
 subroutine CPL_olap_extents(coord,realm,extents,ncells)
     use mpi
     use coupler_module, only: md_realm,      cfd_realm,      &
@@ -1566,7 +1573,7 @@ subroutine CPL_olap_extents(coord,realm,extents,ncells)
         extents(5) = max(kcPmin_cfd(coord(3)),kcmin_olap) 
         extents(6) = min(kcPmax_cfd(coord(3)),kcmax_olap) 
     case default
-        call error_abort('Wrong realm in CPL_olap_extents')
+		call error_abort('CPL_olap_extents error - Wrong realm in CPL_olap_extents')
     end select
 
     if (present(ncells)) then
@@ -1580,7 +1587,7 @@ end subroutine CPL_olap_extents
 !-------------------------------------------------------------------
 !                   CPL_proc_portion                  -
 !-------------------------------------------------------------------
-!! @author David Trevelyan
+!>
 !! Get maximum and minimum cell indices, i.e. the 'portion', of the
 !! input cell extents 'limits' that is contributed by the current
 !! overlapping processor. 
@@ -1613,6 +1620,8 @@ end subroutine CPL_olap_extents
 !!
 !! - Note: limits(6) and portion(6) are of the form:
 !!   (xmin,xmax,ymin,ymax,zmin,zmax)
+!!
+!! @author David Trevelyan
 
 subroutine CPL_proc_portion(coord,realm,limits,portion,ncells)
     use mpi
@@ -1658,6 +1667,7 @@ end subroutine CPL_proc_portion
 !                   CPL_Cart_coords                                -
 !-------------------------------------------------------------------
 
+!>
 !! Determines process coords in appropriate realm's cartesian topology 
 !! given a rank in any communicator
 !!
@@ -1826,6 +1836,7 @@ end subroutine CPL_Cart_coords
 !-------------------------------------------------------------------
 !                   CPL_get_rank                       -
 !-------------------------------------------------------------------
+!>
 !! Return rank of current processor in specified COMM 
 !!
 !! - Synopsis
@@ -1871,12 +1882,12 @@ subroutine CPL_get_rank(COMM,rank)
         rank = rank_graph
         return
     elseif(COMM .eq. CPL_REALM_INTERSECTION_COMM) then
-        call error_abort("CPL_Cart_coords Error - Intersection COMM not programmed")
+		call error_abort("CPL_get_rank Error - Intersection COMM not programmed")
     elseif(COMM .eq. CPL_INTER_COMM) then
-        call error_abort("CPL_Cart_coords Error - No rank in Intercomm" // &
+		call error_abort("CPL_get_rank Error - No rank in Intercomm" // &
                                  " - use realm comms instead")
     else 
-        call error_abort("CPL_Cart_coords Error - Unknown COMM")
+		call error_abort("CPL_get_rank Error - Unknown COMM")
     endif
     
 
@@ -1886,6 +1897,7 @@ end subroutine CPL_get_rank
 !-------------------------------------------------------------------
 !                   CPL_olap_check                                         -
 !-------------------------------------------------------------------
+!>
 !! Check if current processor is in the overlap region
 !!
 !! - Synopsis
@@ -1925,6 +1937,7 @@ end function CPL_overlap
 !-------------------------------------------------------------------
 !                   CPL_get                                        -
 !-------------------------------------------------------------------
+!>
 !! Wrapper to retrieve (read only) parameters from the coupler_module 
 !! Note - this ensures all variable in the coupler are protected
 !! from corruption by either CFD or MD codes
@@ -2128,6 +2141,7 @@ function CPL_comm_style()
 
 end function
 
+! Function to get current realm
 function CPL_realm()
     use coupler_module, only : realm
     implicit none
@@ -2140,7 +2154,7 @@ end function
 
 
 !=============================================================================
-! Get molecule's global position from position local to processor.
+!> Get molecule's global position from position local to processor.
 !-----------------------------------------------------------------------------
 function globalise(r) result(rg)
     use coupler_module, only :  xLl,iblock_realm,npx_md, & 
@@ -2158,7 +2172,7 @@ function globalise(r) result(rg)
 end function globalise
 
 !=============================================================================
-! Get local position on processor from molecule's global position.
+!> Get local position on processor from molecule's global position.
 !-----------------------------------------------------------------------------
 function localise(r) result(rg)
     use coupler_module, only :  xLl,iblock_realm,npx_md, & 
@@ -2177,7 +2191,7 @@ function localise(r) result(rg)
 end function localise
 
 !=============================================================================
-! Map global MD position to global CFD coordinate frame
+!> Map global MD position to global CFD coordinate frame
 !-----------------------------------------------------------------------------
 function map_md2cfd_global(r) result(rg)
     use coupler_module, only :  xL_md,xg,icmin_olap,icmax_olap, & 
@@ -2204,7 +2218,7 @@ end function map_md2cfd_global
 
 
 !=============================================================================
-! Map global CFD position in global MD coordinate frame
+!> Map global CFD position in global MD coordinate frame
 !-----------------------------------------------------------------------------
 function map_cfd2md_global(r) result(rg)
     use coupler_module, only :  xL_md,xg,icmin_olap,icmax_olap, & 

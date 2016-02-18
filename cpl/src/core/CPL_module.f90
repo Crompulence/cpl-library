@@ -641,7 +641,7 @@ end subroutine read_coupler_input
 !------------------------------------------------------------------------------
 !                              CPL_write_header                               -
 !------------------------------------------------------------------------------
-!!
+!>
 !! Writes header information to specified filename in the format
 !! Variable description ; variable name ; variable
 !!
@@ -726,7 +726,7 @@ end subroutine  CPL_write_header
 !------------------------------------------------------------------------------
 !                              coupler_cfd_init                               -
 !------------------------------------------------------------------------------
-!!
+!>
 !! Initialisation routine for coupler module - Every variable is sent and stored
 !! to ensure both md and cfd region have an identical list of parameters
 !!
@@ -1028,15 +1028,17 @@ contains
     subroutine check_mesh
         implicit none
 
+        integer :: i,j
+   
         ! Check grids are the right size 
         if (size(xg,1) .ne. (ncx + 1) .or. size(xg,2) .ne. (ncy + 1)) then
-            call error_abort('xg is the wrong size in cpl_cfd_init')
+            call error_abort('check_mesh error - xg is the wrong size in cpl_cfd_init')
         end if
         if (size(yg,1) .ne. (ncx + 1) .or. size(yg,2) .ne. (ncy + 1)) then
-            call error_abort('yg is the wrong size in cpl_cfd_init')
+            call error_abort('check_mesh error - yg is the wrong size in cpl_cfd_init')
         end if
         if (size(zg) .ne. (ncz + 1)) then
-            call error_abort('zg is the wrong size in cpl_cfd_init')
+            call error_abort('check_mesh error - zg is the wrong size in cpl_cfd_init')
         end if
 
         !Define cell sizes dx,dy & dz and check for grid stretching
@@ -1046,7 +1048,7 @@ contains
         dxmin = minval(xg(2:ncx+1,2:ncy+1)-xg(1:ncx,1:ncy))
         if (dxmax-dx.gt.0.00001d0 .or.dx-dxmin.gt.0.00001d0) then
             print'(3(a,f15.7))', 'Max dx = ', dxmax, ' dx = ', dx, ' Min dx = ',dxmin
-            call error_abort("ERROR - Grid stretching in x not supported")
+            call error_abort("check_mesh error -  Grid stretching in x not supported")
         endif
         ! - - y - -
         dy = yg(1,2)-yg(1,1)
@@ -1054,7 +1056,7 @@ contains
         dymin = minval(yg(2:ncx+1,2:ncy+1)-yg(1:ncx,1:ncy))
         if (dymax-dy.gt.0.00001d0 .or. dy-dymin.gt.0.00001d0) then
             print'(3(a,f15.7))', 'Max dy = ', dymax, ' dy = ', dy, ' Min dy = ',dymin
-            call error_abort("ERROR - Grid stretching in y not supported")
+            call error_abort("check_mesh error -  Grid stretching in y not supported")
         endif
         !if (dymax-dy.gt.0.0001 .or. dy-dymin.gt.0.0001) then
         !    write(*,*) "********************************************************************"
@@ -1069,7 +1071,7 @@ contains
         dzmin = minval(zg(2:ncz)-zg(1:ncz-1))
         if (dzmax-dz.gt.0.00001d0 .or. dz-dzmin.gt.0.00001d0) then
             print'(3(a,f15.7))', 'Max dz = ', dzmax, ' dz = ', dz, ' Min dz = ',dzmin
-            call error_abort("ERROR - Grid stretching in z not supported")
+            call error_abort("check_mesh error - Grid stretching in z not supported")
         endif
 
 
@@ -1081,7 +1083,7 @@ end subroutine coupler_cfd_init
 !------------------------------------------------------------------------------
 !                              coupler_md_init                               -
 !------------------------------------------------------------------------------
-!
+!>
 !! Initialisation routine for coupler module - Every variable is sent and stored
 !! to ensure both md and cfd region have an identical list of parameters
 !!
@@ -1137,7 +1139,7 @@ subroutine coupler_md_init(Nsteps,initialstep,dt,icomm_grid,icoord,npxyz_md,glob
     real(kind=kind(0.d0)),dimension(:),allocatable  :: rbuf
 
     ! Read COUPLER.in input file
-    call read_coupler_input     
+    call read_coupler_input()
 
     ! Duplicate grid communicator for coupler use
     call MPI_comm_dup(icomm_grid,CPL_CART_COMM,ierr)
@@ -1312,7 +1314,7 @@ subroutine coupler_md_init(Nsteps,initialstep,dt,icomm_grid,icoord,npxyz_md,glob
     ncz_olap = kcmax_olap - kcmin_olap + 1
 
     ! Establish mapping between MD an CFD
-    call CPL_create_map
+    call CPL_create_map()
    
     !if ( nsteps_md <= 0 ) then
     !    write(0,*) "Number of MD steps per dt interval <= 0"
@@ -1377,19 +1379,19 @@ subroutine CPL_create_map
     implicit none
 
     ! Check (as best as one can) that the inputs will work
-    call check_config_feasibility
+    call check_config_feasibility()
 
     ! Get ranges of cells on each MD processor
-    call get_md_cell_ranges
+    call get_md_cell_ranges()
 
     ! Get overlapping mapping for MD to CFD
-    call get_overlap_blocks
+    call get_overlap_blocks()
 
     ! Setup overlap communicators
-    call prepare_overlap_comms
+    call prepare_overlap_comms()
 
     ! Setup graph topology
-    call CPL_overlap_topology
+    call CPL_overlap_topology()
 
 contains
 
@@ -1407,7 +1409,7 @@ subroutine check_config_feasibility
     rval = rval + abs(zL_md - zL_cfd)
     if (rval .gt. rtoler) then
         
-        string = "MD/CFD domain sizes do not match in both x and z "   // &
+        string = "CPL_create_map error - MD/CFD domain sizes do not match in both x and z "   // &
                  "directions. Aborting simulation. "
         print*, "xL_md = ", xL_md
         print*, "xL_cfd = ", xL_cfd
@@ -1421,7 +1423,7 @@ subroutine check_config_feasibility
     ival = nint( dble(ncy) / dble(npy_cfd) )
     if (ncy_olap .gt. ival) then
 
-        string = "This coupler will not work if there is more than one "// &
+        string = "CPL_create_map error - This coupler will not work if there is more than one "// &
                  "CFD (y-coordinate) in the overlapping region. "       // &
                  "Aborting simulation."
         call error_abort(string)
@@ -1441,7 +1443,7 @@ subroutine check_config_feasibility
         print'(6(a,f10.5))', ' xL_md/dx = ',xL_md/dx, 'dx =', dx, & 
                      ' yL_md/dy = ',yL_md/dy, 'dy =', dy, &
                      ' zL_md/dz = ',zL_md/dz, 'dz =', dz
-        string = "MD region lengths must be an integer number of CFD " // &
+        string = "CPL_create_map error - MD region lengths must be an integer number of CFD " // &
                  "cell sizes (i.e. xL_md must be an integer multiple " // &
                  "of dx, etc. ), aborting simulation."
         call error_abort(string)
@@ -1458,7 +1460,7 @@ subroutine check_config_feasibility
     ival = ival + mod(ncz,npz_md)
     if (ival.ne.0) then 
 
-        string = "The number of cells in the cfd domain is not an "    // &
+        string = "CPL_create_map error - The number of cells in the cfd domain is not an "    // &
                  "integer multiple of the number of processors in "    // &
                  "the x and z directions. Aborting simulation." 
         call error_abort(string)
@@ -1474,7 +1476,7 @@ subroutine check_config_feasibility
         yL_md .lt. (yL_olap - dy/2.d0) .or. &
         zL_md .lt. (zL_olap - dz/2.d0)      ) then
 
-        string = "Overlap region is larger than the MD region. "       // &
+        string = "CPL_create_map error - Overlap region is larger than the MD region. "       // &
                  "Aborting simulation."
         call error_abort(string)
 
@@ -1494,7 +1496,7 @@ subroutine check_config_feasibility
                             , kcmin, kcmax
         print'(a,6i10)', 'olap extents    = ', icmin_olap, icmax_olap, jcmin_olap, &
                                    jcmax_olap, kcmin_olap, kcmax_olap
-        string = "Overlap region has been specified outside of the "  // &
+        string = "CPL_create_map error - Overlap region has been specified outside of the "  // &
                  "CFD region. Aborting simulation."
         call error_abort(string)
     end if
@@ -1505,7 +1507,7 @@ subroutine check_config_feasibility
         print'(a,i8,a,i8)', ' number of MD processors in x ', npx_md,     & 
                             ' number of CFD processors in x ', npx_cfd
 
-        call error_abort("get_overlap_blocks error - number of MD "    // & 
+        call error_abort("CPL_create_map error - get_overlap_blocks error - number of MD "    // & 
                          "processors in x must be an integer multiple "// &
                          "of number of CFD processors in x")
 
@@ -1514,7 +1516,7 @@ subroutine check_config_feasibility
         print'(a,i8,a,i8)', ' number of MD processors in z ', npz_md,     & 
                             ' number of CFD processors in z ', npz_cfd
 
-        call error_abort("get_overlap_blocks error - number of MD "    // &
+        call error_abort("CPL_create_map error - get_overlap_blocks error - number of MD "    // &
                          "processors in z must be an integer multiple "// &
                          "of number of CFD processors in z")
 
@@ -1528,7 +1530,7 @@ end subroutine check_config_feasibility
 !------------------------------------------------------------------------------
 !                      GET MD CELL RANGES                                     -
 !------------------------------------------------------------------------------
-!! @author David Trevelyan 
+!>
 !! Store the minimum and maximum CFD cell coordinates that overlap each
 !! MD processor.   
 !!
@@ -1543,6 +1545,7 @@ end subroutine check_config_feasibility
 !! - Output
 !!  - NONE 
 !! 
+!! @author David Trevelyan 
 subroutine get_md_cell_ranges
     implicit none
 
@@ -1632,11 +1635,11 @@ subroutine get_md_cell_ranges
 
     !Sanity Check min not less than max
     if (icPmin_md(iblock_realm) .gt. icPmax_md(iblock_realm)) & 
-        call error_abort("Error in get_md_cell_ranges - mapping failure imin greater than imax")
+        call error_abort("get_md_cell_ranges error - mapping failure imin greater than imax")
     if (jcPmin_md(jblock_realm) .gt. jcPmax_md(jblock_realm)) &
-        call error_abort("Error in get_md_cell_ranges - mapping failure jmin greater than jmax")
+        call error_abort("get_md_cell_ranges error - mapping failure jmin greater than jmax")
     if (kcPmin_md(kblock_realm) .gt. kcPmax_md(kblock_realm)) & 
-        call error_abort("Error in get_md_cell_ranges - mapping failure kmin greater than kmax")
+        call error_abort("get_md_cell_ranges error - mapping failure kmin greater than kmax")
 
 end subroutine get_md_cell_ranges
 
@@ -1646,7 +1649,7 @@ end subroutine get_md_cell_ranges
 !------------------------------------------------------------------------------
 !                          GET OVERLAP BLOCKS                                 -
 !------------------------------------------------------------------------------
-!! @author David Trevelyan
+!>
 !! Store MD processor coordinates that overlap each CFD processor coordinate. 
 !!
 !! - Synopsis
@@ -1660,6 +1663,7 @@ end subroutine get_md_cell_ranges
 !! - Output
 !!  - NONE 
 !! 
+!! @author David Trevelyan
 subroutine get_overlap_blocks
     implicit none
 
@@ -1703,7 +1707,7 @@ subroutine get_overlap_blocks
     yLl_cfd = yL_cfd/npy_cfd
     endproc = ceiling(yL_olap/yLl_cfd)
     if (endproc .gt. npy_cfd) then
-        print*, "Warning in get_overlap_blocks -- top processor in CFD greater than number"
+        print*, "get_overlap_blocks warning - in get_overlap_blocks -- top processor in CFD greater than number"
         print*,  "  of processors. This may be correct if some MD domain exists above CFD."
         endproc = npy_cfd
         nolapsy = 1
@@ -1816,6 +1820,7 @@ end subroutine get_overlap_blocks
 !------------------------------------------------------------------------------
 !                    PREPARE OVERLAP COMMS                                    -
 !------------------------------------------------------------------------------
+!>
 !! @author David Trevelyan 
 !! Splits the world communicator into "overlap" communicators. Each overlap 
 !! communicator consists of a CFD root processor and the MD processors which
@@ -2074,7 +2079,7 @@ subroutine CPL_cfd_adjust_domain(xL, yL, zL, nx, ny, nz, density_output)
     endif
 
     if ( changed ) then
-        print*, "Regenerate Grid with corrected sizes as above"
+        print*, "CPL_cfd_adjust_domain error - Regenerate Grid with corrected sizes as above"
         call MPI_Abort(MPI_COMM_WORLD,ierror,ierr)
     endif
 
