@@ -52,10 +52,10 @@ ncyl = extents[3] - extents[2] + 1
 nczl = extents[5] - extents[4] + 1
 
 
-if (True):
-    print str(cart_comm.Get_rank())+" "+ "mycoords: " + str(my_coords)+ "extents:" + str(extents)+ " "+str(dt)+ str(cart_comm)+ \
-    str(icoords)+ str(npxyz)+ str(global_domain)
-
+# if (True):
+#     print str(cart_comm.Get_rank())+" "+ "mycoords: " + str(my_coords)+ "extents:" + str(extents)+ " "+str(dt)+ str(cart_comm)+ \
+#     str(icoords)+ str(npxyz)+ str(global_domain)
+#
 
 """
 scatter_array = np.zeros(3, order='F', dtype=np.float64)
