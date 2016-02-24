@@ -166,6 +166,12 @@ extern "C" double* CPLC_map_cfd2md_global
     double r_cfd[]
 );
 
+// Setters
+extern "C" void CPLC_set_output_mode
+(
+    int mode
+);
+
 // Getters
 extern "C" int CPLC_icmin_olap();
 extern "C" int CPLC_jcmin_olap();

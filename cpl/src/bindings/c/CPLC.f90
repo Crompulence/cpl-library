@@ -562,7 +562,17 @@ contains
     end function CPLC_map_cfd2md_global
      
 
+    ! Setters:
 
+    subroutine CPLC_set_output_mode(mode) &
+        bind(C, name="CPLC_set_output_mode")
+        use CPL, only: set_output_mode
+        
+        integer(C_INT), intent(in), value :: mode
+
+        call set_output_mode(mode)
+        
+    end subroutine CPLC_set_output_mode
 
     ! Getters: integers
 

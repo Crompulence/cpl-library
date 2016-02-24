@@ -172,6 +172,11 @@ namespace CPL
         double r_cfd[]
     );
 
+    void set_output_mode
+    (
+        int mode
+    );
+
     // Getters
     template<class T>
     T get(std::string name)

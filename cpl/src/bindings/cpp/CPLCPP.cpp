@@ -267,6 +267,15 @@ double* CPL::map_cfd2md_global
     return CPLC_map_cfd2md_global (r_cfd);
 }
 
+// Setters
+void CPL::set_output_mode
+(
+    int mode
+)
+{
+    CPLC_set_output_mode(mode);
+}
+
 // Getters
 double CPL::density_cfd()
 {

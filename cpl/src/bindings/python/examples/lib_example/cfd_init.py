@@ -6,19 +6,21 @@ import numpy as np
 
 lib = CPL()
 
+#lib.set("output_mode", 0)
+
 nsteps = 100
 dt = 0.2
 
 # Parameters of the cpu topology (cartesian grid)
 NPx = 3
 NPy = 3
-NPz = 1
+NPz = 3
 NProcs = NPx*NPy*NPz
 npxyz = np.array([NPx, NPy, NPz], order='F', dtype=np.int32)
 # Parameters of the mesh topology (cartesian grid)
-NCx = 6
-NCy = 6
-NCz = 1
+NCx = 18
+NCy = 18
+NCz = 18
 ncxyz = np.array([NCx, NCy, NCz], order='F', dtype=np.int32)
 Lx = 10.0
 Ly = 10.0
@@ -117,6 +119,7 @@ my_coords = cart_comm.Get_coords(cart_comm.Get_rank())
 my_coords = np.array(my_coords, order='F', dtype=np.int32)
 my_coords += 1# Fortran indices
 extents = lib.proc_extents(my_coords, CPL.CFD_REALM)
+
 #if (True):
 #    print str(cart_comm.Get_rank())+" "+ "mycoords: " + str(my_coords)+ "extents:" + str(extents)+ " "+str(nsteps)+ str(dt)+ str(cart_comm)+ \
 #    str(icoords)+ str(npxyz)+ str(xyzL)+ str(ncxyz)+\

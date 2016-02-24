@@ -83,6 +83,10 @@ module coupler_module
     character(len=*),parameter :: &
         realm_name(2) = (/ "CFD", "MD " /)  !! Used with realm identifier to get name
 
+    !! Output options
+    integer, parameter:: QUIET = 0
+    integer, parameter:: NORMAL = 1
+
     !! error codes
     integer, parameter :: & 
         COUPLER_ERROR_REALM  = 1        !! wrong realm value
@@ -102,6 +106,9 @@ module coupler_module
         COUPLER_ABORT_SEND_CFD   = 8    !! error in coupler_cfd_send
     integer, parameter :: & 
         COUPLER_ERROR_CART_COMM   = 9   !! Wrong comm value in CPL_Cart_coords
+
+    !! Output mode flag
+    integer :: output_mode = NORMAL
 
     !! MPI error flag
     integer     :: ierr 
@@ -381,7 +388,7 @@ subroutine CPL_create_comm(callingrealm, RETURNED_REALM_COMM, ierror)
     rank_world = myid_world + 1; rootid_world = 0
     call MPI_comm_size(MPI_COMM_WORLD,nproc_world,ierr)
 
-    if (myid_world .eq. rootid_world) call print_cplheader
+    if (myid_world .eq. rootid_world .and. (output_mode .ne. QUIET)) call print_cplheader
 
     ! test if we have a CFD and a MD realm
     ierror=0
@@ -518,9 +525,10 @@ subroutine create_comm
     call MPI_intercomm_create(CPL_REALM_COMM, comm_size - 1, CPL_WORLD_COMM,&
                                     remote_leader, 1, CPL_INTER_COMM, ierr)
 
-
-    print*, 'Completed CPL communicator setup for ', realm_name(realm), &
-            ' , CPL_WORLD_COMM ID:', myid_world
+    if (output_mode .ne. QUIET) then
+        print*, 'Completed CPL communicator setup for ', realm_name(realm), &
+                ' , CPL_WORLD_COMM ID:', myid_world
+    endif
 
 end subroutine create_comm
 
@@ -1357,7 +1365,7 @@ subroutine set_coupled_timing(initialstep, Nsteps)
     Nsteps_md   = initialstep + Nsteps_cfd * Nsteps_MDperCFD
     elapsedtime = Nsteps_md * dt_MD
 
-    if (rank_realm .eq. 1) then 
+    if (rank_realm .eq. 1 .and. (output_mode .ne. QUIET)) then 
         print*, 'Nsteps in CFD is ', Nsteps_cfd
         print*, 'Nsteps in MD reset from ', Nsteps, ' to ', Nsteps_md
         print*, 'Total simulation time will be ', elapsedtime, ' in LJ units'
@@ -2287,14 +2295,18 @@ end subroutine locate
 
 subroutine error_abort_s(msg)
     use mpi
+    use iso_fortran_env, only : error_unit
     implicit none
 
     character(len=*), intent(in), optional :: msg
    
     integer errcode,ierr
+    
+    ! In Unix systems 0 means exit with success
+    errcode = 1
 
     if (present(msg)) then 
-        write(*,*) msg
+        write(error_unit ,*) msg
     endif
 
     call MPI_Abort(MPI_COMM_WORLD,errcode,ierr)
@@ -2304,6 +2316,7 @@ end subroutine error_abort_s
 
 subroutine error_abort_si(msg,i)
     use mpi
+    use iso_fortran_env, only : error_unit
     implicit none
 
     character(len=*), intent(in) :: msg
@@ -2311,7 +2324,10 @@ subroutine error_abort_si(msg,i)
 
     integer errcode,ierr
 
-    write(*,*) msg,i
+    ! In Unix systems 0 means exit with success
+    errcode = 1
+
+    write(error_unit,*) msg,i
 
     call MPI_Abort(MPI_COMM_WORLD,errcode,ierr)
 
@@ -2320,6 +2336,7 @@ end subroutine error_abort_si
 
 subroutine messenger_lasterrorcheck
     use mpi
+    use iso_fortran_env, only : error_unit
     implicit none
 
     integer resultlen
@@ -2465,5 +2482,13 @@ function CPL_new_fileunit() result (f)
 
 end function
 
+
+subroutine set_output_mode(mode)
+    implicit none
+
+    integer, intent(in) :: mode
+    
+    output_mode = mode
+end subroutine
 
 end module coupler_module

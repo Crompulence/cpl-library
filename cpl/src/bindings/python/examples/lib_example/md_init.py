@@ -5,12 +5,14 @@ import numpy as np
 comm = MPI.COMM_WORLD
 lib = CPL()
 
+#lib.set("output_mode", 0)
+
 dt = 0.1
 
 # Parameters of the cpu topology (cartesian grid)
 NPx = 3
 NPy = 3
-NPz = 1
+NPz = 3
 NProcs = NPx*NPy*NPz
 npxyz = np.array([NPx, NPy, NPz], order='F', dtype=np.int32)
 
@@ -50,7 +52,6 @@ extents = lib.proc_extents(my_coords, CPL.MD_REALM)
 ncxl = extents[1] - extents[0] + 1  
 ncyl = extents[3] - extents[2] + 1
 nczl = extents[5] - extents[4] + 1
-
 
 # if (True):
 #     print str(cart_comm.Get_rank())+" "+ "mycoords: " + str(my_coords)+ "extents:" + str(extents)+ " "+str(dt)+ str(cart_comm)+ \
