@@ -114,7 +114,7 @@ $(utilsobjfiles): $(objdir)/%.o : $(utilsdir)/%.cpp
 
 # Link static lib to dynamic (shared) library
 link: $(objdir) $(libobjfiles) $(utilsobjfiles)
-	$(LINK) $(LFLAGS) $(LSHAREDLIB) -o $(lib) $(allobjfiles)
+	$(LINK) $(LSHAREDLIB) -o $(lib) $(allobjfiles) $(LFLAGS) 
 
 # Clean
 clean:

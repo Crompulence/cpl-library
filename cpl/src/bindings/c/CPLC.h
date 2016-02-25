@@ -47,7 +47,7 @@ Author(s)
 extern "C" void CPLC_create_comm
 (
     int  calling_realm,
-    int& returned_realm_comm
+    int* returned_realm_comm
 );
 
 extern "C" void CPLC_cfd_init
@@ -73,19 +73,60 @@ extern "C" void CPLC_cfd_init
     double zgrid[]
 );
 
+extern "C" void CPLC_test_python
+(
+ 		int int_p, 
+		double doub_p, 
+		bool bool_p, 
+		int* int_pptr,
+		double* doub_pptr, 
+		int* int_pptr_dims,
+		int* doub_pptr_dims
+);
+
 extern "C" void CPLC_md_init
 (
-    int& nsteps,
-    int& initialstep,
+    int* nsteps,
+    int* initialstep,
     double dt,
     int icomm_grid,
     int icoord[],
     int npxyz_md[],
     double globaldomain[],
-    double density
+		double density
 );
 
-extern "C" void CPLC_send();
+extern "C" void CPLC_send
+(
+		double* asend,	
+		double* asend_shape,
+		int ndims,
+		int icmin, 
+		int icmax,
+		int jcmin, 
+		int jcmax,
+		int kcmin, 
+		int kcmax,
+		bool* send_flag
+
+);
+
+extern "C" void CPLC_recv
+(
+		double* arecv,	
+		double* arecv_shape,
+		int ndims,
+		int icmin, 
+		int icmax,
+		int jcmin, 
+		int jcmax,
+		int kcmin, 
+		int kcmax,
+		bool* recv_flag
+
+);
+
+
 
 extern "C" void CPLC_scatter
 (
@@ -123,6 +164,12 @@ extern "C" void CPLC_proc_portion
 extern "C" double* CPLC_map_cfd2md_global
 (
     double r_cfd[]
+);
+
+// Setters
+extern "C" void CPLC_set_output_mode
+(
+    int mode
 );
 
 // Getters
