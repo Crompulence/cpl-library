@@ -1960,6 +1960,7 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
                    kcmax_olap,kcmin_olap,density_cfd,density_md, &
                    dt_cfd,dt_MD,dx,dy,dz,ncx,ncy,ncz,xg,yg,zg,   &
                    xL_md,xL_cfd,yL_md,yL_cfd,zL_md,zL_cfd,       &
+                   npx_md,npy_md,npz_md,npx_cfd,npy_cfd,npz_cfd, &
                    constraint_algo, constraint_CVflag,           &
                    constraint_OT, constraint_NCER,               &
                    constraint_Flekkoy, constraint_off,           &
@@ -1988,6 +1989,12 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
                                 xL_cfd_=> xL_cfd,                &
                                 yL_cfd_=> yL_cfd,                &
                                 zL_cfd_=> zL_cfd,                &
+                                npx_md_=> npx_md,                &
+                                npy_md_=> npy_md,                &
+                                npz_md_=> npz_md,                &
+                                npx_cfd_=> npx_cfd,                &
+                                npy_cfd_=> npy_cfd,                &
+                                npz_cfd_=> npz_cfd,                &
                                 xg_=>xg, yg_=> yg, zg_=> zg,     &
                                 timestep_ratio_ => timestep_ratio, &
                                 md_cfd_match_cellsize_ => md_cfd_match_cellsize, &
@@ -2021,6 +2028,8 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
     integer, optional, intent(out)          :: jcmax_olap ,jcmin_olap
     integer, optional, intent(out)          :: kcmax_olap ,kcmin_olap
     integer, optional, intent(out)          :: ncx,ncy,ncz
+    integer, optional, intent(out)          :: npx_md,npy_md,npz_md
+    integer, optional, intent(out)          :: npx_cfd,npy_cfd,npz_cfd
     integer, optional, intent(out)          :: md_cfd_match_cellsize,timestep_ratio
 
     integer, optional, intent(out)          :: constraint_algo
@@ -2081,7 +2090,15 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
     if (present(yL_cfd)) yL_cfd= yL_cfd_
     if (present(zL_md )) zL_md = zL_md_
     if (present(zL_cfd)) zL_cfd= zL_cfd_
-            
+
+    !Number of processors
+    if (present(npx_md)) npx_md = npx_md_
+    if (present(npy_md)) npy_md = npy_md_
+    if (present(npz_md)) npz_md = npz_md_
+    if (present(npx_cfd)) npx_cfd = npx_cfd_
+    if (present(npy_cfd)) npy_cfd = npy_cfd_
+    if (present(npz_cfd)) npz_cfd = npz_cfd_
+
     !The mesh
     if (present(xg)) then
         allocate(xg(size(xg_,1),size(xg_,2)))

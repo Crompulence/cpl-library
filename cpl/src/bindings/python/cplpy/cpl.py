@@ -22,7 +22,22 @@ _CPL_GET_VARS = {"icmin_olap": c_int,
                  "kcmin_olap": c_int,
                  "icmax_olap": c_int,
                  "jcmax_olap": c_int,
-                 "kcmax_olap": c_int}
+                 "kcmax_olap": c_int,
+                 "ncx": c_int,
+                 "ncy": c_int,
+                 "ncz": c_int,
+                 "npx_md": c_int,
+                 "npy_md": c_int,
+                 "npz_md": c_int,
+                 "npx_cfd": c_int,
+                 "npy_cfd": c_int,
+                 "npz_cfd": c_int,
+                 "xl_md": c_double,
+                 "yl_md": c_double,
+                 "zl_md": c_double,
+                 "xl_cfd": c_double,
+                 "yl_cfd": c_double,
+                 "zl_cfd": c_double}
 
 _CPL_SET_VARS = {"output_mode": c_int}
 
@@ -64,7 +79,7 @@ class CPL:
     def create_comm(self, calling_realm):
         returned_realm_comm = c_int()
         self._py_create_comm(calling_realm, byref(returned_realm_comm))
-        # It is necessary to split again the COMM_WORLD communicator since it's
+        # It is necessary to split the COMM_WORLD communicator again since it is
         # not possible to build a communicator mpi4py python object from the
         # communicator returned by the CPL_create_comm function.
         return MPI.COMM_WORLD.Split(calling_realm, MPI.COMM_WORLD.Get_rank())

@@ -4,14 +4,12 @@ F90 = mpif90
 CPP = mpic++
 LINK = mpic++
 
-INTELDIR = # Place the path to the Intel  
-FORTRAN_LIBS = #-L$(INTELDIR) -lifport -lifcore -limf -lsvml -lintlc
-
+INTELDIR = /opt/intel/composer_xe_2013_sp1.2.144/compiler/lib/intel64/ # Place the path to the Intel  
 
 # Base flags for Fortran/C++/Linker
 FFLAGS = #-cxxlib
 CFLAGS = -std=c++14
-LFLAGS =
+LFLAGS = -L$(INTELDIR) -lifport -lifcore -limf -lsvml -lintlc
 
 # Compiler's flag for specifying where to place compiled Fortran modules
 FMODKEY = -module 

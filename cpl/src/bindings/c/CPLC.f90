@@ -603,6 +603,62 @@ contains
         
     end function CPLC_ncz
 
+    integer(C_INT) function CPLC_npx_md() &
+        bind(C, name="CPLC_npx_md")
+        use CPL, only: npx_md
+        implicit none
+
+        CPLC_npx_md = npx_md
+        
+    end function CPLC_npx_md
+
+    integer(C_INT) function CPLC_npy_md() &
+        bind(C, name="CPLC_npy_md")
+        use CPL, only: npy_md
+        implicit none
+
+        CPLC_npy_md = npy_md
+        
+    end function CPLC_npy_md
+
+    integer(C_INT) function CPLC_npz_md() &
+        bind(C, name="CPLC_npz_md")
+        use CPL, only: npz_md
+        implicit none
+
+        CPLC_npz_md = npz_md
+        
+    end function CPLC_npz_md
+
+
+    integer(C_INT) function CPLC_npx_cfd() &
+        bind(C, name="CPLC_npx_cfd")
+        use CPL, only: npx_cfd
+        implicit none
+
+        CPLC_npx_cfd = npx_cfd
+        
+    end function CPLC_npx_cfd
+
+    integer(C_INT) function CPLC_npy_cfd() &
+        bind(C, name="CPLC_npy_cfd")
+        use CPL, only: npy_cfd
+        implicit none
+
+        CPLC_npy_cfd = npy_cfd
+        
+    end function CPLC_npy_cfd
+
+    integer(C_INT) function CPLC_npz_cfd() &
+        bind(C, name="CPLC_npz_cfd")
+        use CPL, only: npz_cfd
+        implicit none
+
+        CPLC_npz_cfd = npz_cfd
+        
+    end function CPLC_npz_cfd
+
+
     integer(C_INT) function CPLC_icmin_olap() &
         bind(C, name="CPLC_icmin_olap")
         use CPL, only: icmin_olap
@@ -829,6 +885,61 @@ contains
         CPLC_dz = dz
         
     end function CPLC_dz
+
+    real(C_DOUBLE) function CPLC_xl_md() &
+        bind(C, name="CPLC_xl_md")
+        use CPL, only: xl_md
+        implicit none
+
+        CPLC_xl_md = xl_md
+        
+    end function CPLC_xl_md
+
+    real(C_DOUBLE) function CPLC_yl_md() &
+        bind(C, name="CPLC_yl_md")
+        use CPL, only: yl_md
+        implicit none
+
+        CPLC_yl_md = yl_md
+        
+    end function CPLC_yl_md
+
+    real(C_DOUBLE) function CPLC_zl_md() &
+        bind(C, name="CPLC_zl_md")
+        use CPL, only: zl_md
+        implicit none
+
+        CPLC_zl_md = zl_md
+        
+    end function CPLC_zl_md
+
+
+    real(C_DOUBLE) function CPLC_xl_cfd() &
+        bind(C, name="CPLC_xl_cfd")
+        use CPL, only: xl_cfd
+        implicit none
+
+        CPLC_xl_cfd = xl_cfd
+        
+    end function CPLC_xl_cfd
+
+    real(C_DOUBLE) function CPLC_yl_cfd() &
+        bind(C, name="CPLC_yl_cfd")
+        use CPL, only: yl_cfd
+        implicit none
+
+        CPLC_yl_cfd = yl_cfd
+        
+    end function CPLC_yl_cfd
+
+    real(C_DOUBLE) function CPLC_zl_cfd() &
+        bind(C, name="CPLC_zl_cfd")
+        use CPL, only: zl_cfd
+        implicit none
+
+        CPLC_zl_cfd = zl_cfd
+        
+    end function CPLC_zl_cfd
 
     !Getters: pointers
     

@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+# Note bug report #5221 required apt-get update for gfortran
 sudo apt-get update -q
 case $1 in
   gfortran) set -x;

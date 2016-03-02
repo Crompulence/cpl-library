@@ -1131,7 +1131,8 @@ end subroutine coupler_cfd_init
 ! Initialisation routine for coupler - Every variable is sent and stored
 ! to ensure both md and cfd region have an identical list of parameters
 
-subroutine coupler_md_init(Nsteps,initialstep,dt,icomm_grid,icoord,npxyz_md,globaldomain,density)
+subroutine coupler_md_init(Nsteps, initialstep, dt, icomm_grid, & 
+                           icoord, npxyz_md, globaldomain, density)
     use mpi
     implicit none
 
