@@ -1,0 +1,41 @@
+~~~
+    ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________        
+     _____/\\\////////__\/\\\/////////\\\_\/\\\_____________       
+      ___/\\\/___________\/\\\_______\/\\\_\/\\\_____________      
+       __/\\\_____________\/\\\\\\\\\\\\\/__\/\\\_____________     
+        _\/\\\_____________\/\\\/////////____\/\\\_____________    
+         _\//\\\____________\/\\\_____________\/\\\_____________   
+          __\///\\\__________\/\\\_____________\/\\\_____________  
+           ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_ 
+            _______\/////////__\///______________\///////////////__
+~~~
+
+Overview of subdirectories in this folder:
+==========================================
+
+CPLPstream:
+
+    OpenFOAM's parallel-computing communications supports a number of different
+    paradigms, including MPI. In order to support all of them, it wraps all 
+    communication functions in a library called "Pstream". CPL Library is based
+    on MPI, but requires the MPI_COMM_WORLD communicator to be split into 
+    two "realm" communicators - one for MD, and the other for CFD. All 
+    subsequent operations that would have been on MPI_COMM_WORLD in the MD
+    and CFD coupled programs must now be called on the realm communicator
+    CPL_REALM_COMM. 
+
+    CPLPstream replicates OpenFOAM's MPI Pstream, where CPL_REALM_COMM has
+    been substituted in place of MPI_COMM_WORLD.
+
+
+CPLSocket:
+
+    The interface to CPL Library is implemented in a single class named
+    CPLSocket. This directory holds its source code. 
+
+solvers:
+
+    OpenFOAM is implemented as a set of libraries, and it is up to the 
+    user to develop their own main-level applications that use these 
+    libraries. This directory contains the source code for a coupled
+    incompressible solver CPLIcoFoam that is based on OpenFOAM's icoFoam.

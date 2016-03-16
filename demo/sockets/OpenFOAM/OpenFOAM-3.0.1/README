@@ -1,0 +1,90 @@
+~~~
+    ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________        
+     _____/\\\////////__\/\\\/////////\\\_\/\\\_____________       
+      ___/\\\/___________\/\\\_______\/\\\_\/\\\_____________      
+       __/\\\_____________\/\\\\\\\\\\\\\/__\/\\\_____________     
+        _\/\\\_____________\/\\\/////////____\/\\\_____________    
+         _\//\\\____________\/\\\_____________\/\\\_____________   
+          __\///\\\__________\/\\\_____________\/\\\_____________  
+           ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_ 
+            _______\/////////__\///______________\///////////////__
+~~~
+
+About
+=====
+
+This directory contains a clone of the publically released source code
+for the OpenFOAM CFD software package. It also contains source code that allows
+OpenFOAM to be interfaced to CPL Library in coupled MD/CFD simulations.
+
+
+
+Compilation procedure
+=====================
+
+The compilation of OpenFOAM, coupled with CPL Library, should be performed in
+the following order:
+
+    1. Compile CPL Library (see the README in the cpl-library repository
+       top-level directory, hereafter referred to as $CPLTOPDIR). With a bit
+       of luck, the following commands will suffice:
+
+        $  cd $CPLTOPDIR/cpl
+        $  make all
+
+    2. Compile OpenFOAM without linking to CPL Library 
+       from the repository's source, which is located in 
+       openfoam/OpenFOAM-2.3.x/. BEFORE ATTEMPTING THIS PLEASE READ THE
+       INSTRUCTIONS BELOW FOR COMPILING OPENFOAM FROM THE REPOSITORY. 
+       If the required environment variables are set correctly, the following 
+       commands should work:
+
+        $  cd $CPLTOPDIR/openfoam/OpenFOAM-2.3.x
+        $  ./Allwmake
+
+Finally, 
+
+    3. Compile the socket libraries and applications in openfoam/cpl-socket. 
+        
+        $  cd $CPLTOPDIR/openfoam/cpl-socket
+        $  ./Allwmake 
+
+
+Step 3 above depends on steps 1 and 2 having been successfully completed.
+
+
+
+
+Step 2: More information on compiling OpenFOAM from repository source
+=====================================================================
+
+Before attempting to compile OpenFOAM, please familiarise yourself with the 
+repository installation instructions that may be found at:
+
+    http://www.openfoam.org/download/git.php
+
+Part of this process requires some environment variables to be defined. This is
+usually performed by sourcing OpenFOAM-2.3.x/etc/bashrc (as in the installation
+instructions above), but it is likely that a few environment variables will
+require changing for your machine. An example of these changes is provided in
+$CPLTOPDIR/openfoam/SOURCEME:
+
+    $  cd $CPLTOPDIR/openfoam
+    $  source SOURCEME
+    $  (cd OpenFOAM-2.3.x && ./Allwmake)
+    
+You will need to correct the settings (like MPI implementation) in the
+set of environment variables, otherwise OpenFOAM will not compile properly for 
+use with CPL Libraray.
+
+
+
+
+Directory structure
+===================
+
+cpl-socket:         source code for socket for CPL Library
+examples:           example cases relevant to CPL Library
+OpenFOAM-2.3.x:     OpenFOAM source code
+SOURCEME:           extra environment variable definitions (required)
+ThirdParty-2.3.x:   third party OpenFOAM source code

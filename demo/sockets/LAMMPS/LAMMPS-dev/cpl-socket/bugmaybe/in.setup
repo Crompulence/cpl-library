@@ -1,0 +1,29 @@
+# LAMMPS
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 8*$x
+variable	yy equal 8*$y
+variable	zz equal 8*$z
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 1.0
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style	lj/cut 1.12246204830937
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+thermo 10
+
+fix		1 all nve

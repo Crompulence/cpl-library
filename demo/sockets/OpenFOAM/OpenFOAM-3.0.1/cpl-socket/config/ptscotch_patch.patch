@@ -1,0 +1,18 @@
+diff --git a/src/parallel/decompose/ptscotchDecomp/ptscotchDecomp.C b/src/parallel/decompose/ptscotchDecomp/ptscotchDecomp.C
+index 29f1f6b..3a3ce1f 100644
+--- a/src/parallel/decompose/ptscotchDecomp/ptscotchDecomp.C
++++ b/src/parallel/decompose/ptscotchDecomp/ptscotchDecomp.C
+@@ -119,10 +119,12 @@ License
+ #include "globalIndex.H"
+ #include "SubField.H"
+ 
++// Source of trouble when compiling with mpich3.2. Throws a redefinition of MPI_Init() error.
++// The #include <mpi.h> has been moved outside the extern  block.
++#include <mpi.h>
+ extern "C"
+ {
+     #include <stdio.h>
+-    #include <mpi.h>
+     #include "ptscotch.h"
+ }
+ 

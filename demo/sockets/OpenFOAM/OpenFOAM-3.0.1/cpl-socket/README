@@ -1,0 +1,40 @@
+~~~
+    ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________        
+     _____/\\\////////__\/\\\/////////\\\_\/\\\_____________       
+      ___/\\\/___________\/\\\_______\/\\\_\/\\\_____________      
+       __/\\\_____________\/\\\\\\\\\\\\\/__\/\\\_____________     
+        _\/\\\_____________\/\\\/////////____\/\\\_____________    
+         _\//\\\____________\/\\\_____________\/\\\_____________   
+          __\///\\\__________\/\\\_____________\/\\\_____________  
+           ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_ 
+            _______\/////////__\///______________\///////////////__
+~~~
+
+CPL Library socket 
+==================
+
+This directory is where the source code, libraries and binaries are stored for
+the CPL Library socket. The source code is located in ./src/ and the
+dynamic-link library binaries are created in a new folder ./lib/. 
+Executable solver applications are created in the a folder ./bin.
+
+The following environnment variables:
+
+    FOAM_CPL_SOCKET_LIBBIN = $FOAM_INST_DIR/cpl-socket/lib
+    LD_LIBRARY_PATH        = $LD_LIBRARY_PATH:$FOAM_CPL_LIBBIN
+
+**must be defined** in order for a) the compilation to work and b) the library
+to be found by the ld linker. They are conveniently defined in the config 
+file SOURCEME, which may be found in the level above this README file: 
+
+    $  cd ../
+    $  source SOURCEME
+    $  cd -
+
+
+Compilation:
+============
+
+    $  ./Allwmake
+
+N.B.: warnings from the included MPI headers may be ignored. 
