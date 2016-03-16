@@ -1,0 +1,59 @@
+# LAMMPS
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 96*$x
+variable	yy equal 19*$y
+variable	zz equal 25*$z
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.5
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+boundary p f p
+create_box	1 box
+
+variable    bottomwallgap equal $x
+variable    bottomwalltop equal 4*$x
+variable    bottomwalltopplus equal v_bottomwalltop+0.5
+region lowerwallregion block 0 ${xx} ${bottomwallgap} ${bottomwalltop} 0 ${zz}
+region fluidregion block 0 ${xx} ${bottomwalltopplus} ${yy} 0 ${zz}
+
+create_atoms	1 region fluidregion
+
+# Higher density wall at the bottom
+lattice fcc 1.0
+create_atoms	1 region lowerwallregion
+group lowerwallgroup region lowerwallregion
+fix lowerwallfix lowerwallgroup spring/self 30.0
+
+# Reflecting wall at the top
+fix upperspecular all wall/reflect ylo EDGE yhi EDGE
+
+mass		1 1.0
+
+velocity	all create 1.0 87287 loop geom
+
+pair_style	lj/cut 1.12246204830937
+pair_coeff	1 1 1.0 1.0 1.12246204830937 
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+variable dx equal 4*$x
+variable dy equal 2*$x 
+variable dz equal 2*$x 
+
+compute vfieldcompute all chunk/atom bin/3d x lower ${dx} y lower ${dy} z lower ${dz}
+fix vfieldfix all ave/chunk 10 50 5000 vfieldcompute vx vy vz norm all file lammps/cplchunk
+
+thermo 10
+
+dump dumpdcd all dcd 5000 lammps/traj.dcd 
+
+fix		1 all nve
+
+# Equilibrate before coupling
+run 1000

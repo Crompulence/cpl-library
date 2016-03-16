@@ -33,6 +33,10 @@ declare -A URLS_LAMMPS_PACKAGE
 URLS_LAMMPS_PACKAGE=( ["USER-CPL"]="https://edu159@bitbucket.org/edu159/lammps-user-cpl.git" )
 
 
+# Path to examples
+EXAMPLES_PATH=$CPL_PATH/../demo/sockets/examples
+
+
 
 # Pretty printing for "info", "error" and "warning" mensages.
 pprint() {
@@ -86,7 +90,7 @@ download() {
     elif [ $download_m == cp ]; then
         pprint "[Downloading ${name}...]\n" info
         cp -R $url $name
-        [ $? -ne 0 ] && exit_error "Download of $fname failed!\n" || pprint "[Download... Done]\n" info
+        [ $? -ne 0 ] && exit_error "Download of $name failed!\n" || pprint "[Download... Done]\n" info
 
     fi
 }
@@ -97,7 +101,11 @@ download() {
 case $1 in
 create)
     echo
-    echo "Select supported CFD:"
+    pprint "****************************************************\n" info2
+    pprint "[--[CONFIGURATION SCRIPT FOR COUPLED SIMULATIONS]--]\n" info2
+    pprint "****************************************************\n" info2
+    echo
+    pprint "[*] Select supported CFD:\n" info
     index=0
     for item in ${SUPPORTED_CFD[*]}
     do
@@ -107,7 +115,8 @@ create)
     printf "Option: "
     read $opt_cfd
     cfd_name=${SUPPORTED_CFD[$opt_cfd]}
-    echo "Select supported MD:"
+    echo
+    pprint "[*] Select supported MD:\n" info
     index=0
     for item in ${SUPPORTED_MD[*]}
     do
@@ -123,6 +132,8 @@ create)
     cd $ROOT_DIR
     MD_DIR="${md_name}_coupled"
     CFD_DIR="${cfd_name}_coupled"
+
+    
     echo
     pprint "[---[Downloading Sockets]---]\n" info2
     echo
@@ -131,7 +142,6 @@ create)
     echo
     pprint "[2]" info
     download $CFD_DIR ${CPL_SOCKET_CFD[$cfd_name]} cp "" ""
-    mkdir examples
 
     cd $CFD_DIR
     echo
@@ -153,8 +163,8 @@ create)
         download ${name_3rdP} $url_3rdP  wget $md5_hash_3rdP tgz
     fi
     cd ..
+
     cd $MD_DIR
-    
     url_md=${URLS_MD[$md_name]}
     download_m_md=${DOWNLOAD_MD[$md_name]}
     md5_hash_md=${MD5_MD[$md_name]}
@@ -167,7 +177,19 @@ create)
         echo 
         pprint "[2.2]" info
         download "USER-CPL" ${URLS_LAMMPS_PACKAGE["USER-CPL"]} git "" ""
+        cd ../..
     fi
+    cd ..
+
+    echo
+    pprint "[---[Downloading related examples]---]\n" info2
+    # This assumes example names have to be formated as MDname-CFDname 
+    example_md=$(echo $md_name | cut -f 1 -d '-')
+    example_cfd=$(echo $cfd_name | cut -f 1 -d '-')
+    example_name="${example_md}-${example_cfd}"
+    pprint "[3]" info
+    download "examples" "${EXAMPLES_PATH}/${example_name}/" cp "" ""
+
     pprint "[Success!]\n" info
     ;;
 esac
