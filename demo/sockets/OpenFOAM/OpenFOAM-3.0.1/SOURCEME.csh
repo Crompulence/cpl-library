@@ -13,7 +13,7 @@
 #
 
 # Environment variable for install directory
-setenv FOAM_CPL_VERSION 3.0.x
+setenv FOAM_CPL_VERSION 3.0.1
 setenv FOAM_INST_DIR `pwd`
 # Source the other environment variables
 set foamDotFile=$FOAM_INST_DIR/OpenFOAM-$FOAM_CPL_VERSION/etc/cshrc
