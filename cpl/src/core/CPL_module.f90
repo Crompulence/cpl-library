@@ -2308,6 +2308,8 @@ subroutine error_abort_s(msg)
 
     if (present(msg)) then 
         write(error_unit ,*) msg
+        flush(error_unit)
+        call sleep(2)
     endif
 
     call MPI_Abort(MPI_COMM_WORLD,errcode,ierr)
@@ -2329,6 +2331,8 @@ subroutine error_abort_si(msg,i)
     errcode = 1
 
     write(error_unit,*) msg,i
+    flush(error_unit)
+    call sleep(2)
 
     call MPI_Abort(MPI_COMM_WORLD,errcode,ierr)
 

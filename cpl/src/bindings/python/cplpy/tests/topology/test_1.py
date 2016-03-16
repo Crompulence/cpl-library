@@ -54,8 +54,11 @@ def run_test(config_params, md_params, cfd_params, err):
     try:
         mdprocs = md_params["npx"] * md_params["npy"] * md_params["npz"]
         cfdprocs = cfd_params["npx"] * cfd_params["npy"] * cfd_params["npz"]
-        check_output(["sh", RUN_FILE, str(mdprocs), str(cfdprocs)],
-                     stderr=STDOUT)
+#        check_output(["csh", RUN_FILE, str(mdprocs), str(cfdprocs)],
+#                     stderr=STDOUT)
+	check_output(" ".join(["mpiexec", "-n", str(mdprocs), "python", "md_test.py", ":",
+		      "-n", str(cfdprocs), "python", "cfd_test.py"]), stderr=STDOUT, shell=True)
+
     except CalledProcessError as exc:
         if err:
             assert exc.output != ""

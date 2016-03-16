@@ -1,3 +1,4 @@
+#!/bin/bash
 if [ -z "$CPL_PATH" ] 
 then
     echo "CPL_PATH variable is not set."
