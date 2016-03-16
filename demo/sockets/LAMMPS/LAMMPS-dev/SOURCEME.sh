@@ -14,7 +14,7 @@
 
 
 export LAMMPS_INST_DIR=`pwd`
-export LAMMPS_PATH=$LAMMPS_INST_DIR/`ls | grep lammps-*`
+export LAMMPS_PATH=$LAMMPS_INST_DIR/`ls | grep -i LAMMPS-*`
 export LAMMPS_CPL_SOCKET=$LAMMPS_INST_DIR/cpl-socket
 export LAMMPS_CPL_SOCKET_BIN=$LAMMPS_CPL_SOCKET/bin
 export PATH=$PATH\:$LAMMPS_CPL_SOCKET_BIN

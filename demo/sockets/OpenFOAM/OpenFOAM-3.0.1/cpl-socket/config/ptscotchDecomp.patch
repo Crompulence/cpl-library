@@ -1,8 +1,6 @@
-diff --git a/src/parallel/decompose/ptscotchDecomp/ptscotchDecomp.C b/src/parallel/decompose/ptscotchDecomp/ptscotchDecomp.C
-index 29f1f6b..3a3ce1f 100644
---- a/src/parallel/decompose/ptscotchDecomp/ptscotchDecomp.C
-+++ b/src/parallel/decompose/ptscotchDecomp/ptscotchDecomp.C
-@@ -119,10 +119,12 @@ License
+--- ptscotchDecomp.C	2016-03-16 14:46:11.639209864 +0000
++++ ptscotchDecomp.C2	2016-03-16 14:46:05.079209912 +0000
+@@ -119,10 +119,12 @@
  #include "globalIndex.H"
  #include "SubField.H"
  

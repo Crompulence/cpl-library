@@ -14,7 +14,7 @@
 
 
 setenv LAMMPS_INST_DIR `pwd`
-setenv LAMMPS_PATH $LAMMPS_INST_DIR/`ls | grep lammps-*`
+setenv LAMMPS_PATH $LAMMPS_INST_DIR/`ls | grep -i LAMMPS-*`
 setenv LAMMPS_CPL_SOCKET $LAMMPS_INST_DIR/cpl-socket
 setenv LAMMPS_CPL_SOCKET_BIN $LAMMPS_CPL_SOCKET/bin
 setenv PATH $PATH\:$LAMMPS_CPL_SOCKET_BIN

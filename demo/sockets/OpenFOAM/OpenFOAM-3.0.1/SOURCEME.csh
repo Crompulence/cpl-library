@@ -22,7 +22,7 @@ if( -f $foamDotFile ) then
 else
     echo "ERROR:"
     echo "   Configuration file 'OpenFOAM-$FOAM_CPL_VERSION/etc/cshrc' not found."
-    exit 1 
+    return 1
 endif
 
 echo ""

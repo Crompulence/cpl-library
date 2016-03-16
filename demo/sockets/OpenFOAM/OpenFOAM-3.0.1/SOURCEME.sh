@@ -18,13 +18,12 @@ export FOAM_INST_DIR=`pwd`
 # Source the other environment variables
 foamDotFile=$FOAM_INST_DIR/OpenFOAM-$FOAM_CPL_VERSION/etc/bashrc
 echo $foamDotFile
-if [ -f foamDotFile ]
-then
+if [ -f foamDotFile ]; then
     source $foamDotFile
 else
     echo "ERROR:"
     echo "   Configuration file 'OpenFOAM-$FOAM_CPL_VERSION/etc/bashrc' not found."
-    exit 1 
+    return 1
 fi
 
 echo ""
