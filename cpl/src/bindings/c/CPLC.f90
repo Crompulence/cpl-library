@@ -311,7 +311,7 @@ contains
           call C_F_POINTER(asend, asend4D_f, [s1, s2, s3, s4])
           call CPL_send(asend4D_f, icmax, icmin, jcmax, jcmin, kcmax, kcmin)
         else
-          print*, "Error only 3 and 4 is allowed for ndims."
+          print*, "Error in CPLC_send -- only 3 and 4 is allowed for ndims."
         end if
 
 
@@ -847,6 +847,20 @@ contains
         CPLC_comm_style_send_recv = comm_style_send_recv
         
     end function CPLC_comm_style_send_recv
+
+
+    integer(C_INT) function CPLC_overlap() &
+        bind(C, name="CPLC_overlap")
+        use CPL, only: CPL_overlap
+        implicit none
+
+        if (CPL_overlap()) then 
+            CPLC_overlap = 1
+        else
+            CPLC_overlap = 0
+        endif
+        
+    end function CPLC_overlap
 
     !Getters: doubles
 

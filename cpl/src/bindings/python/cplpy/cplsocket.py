@@ -77,13 +77,11 @@ class CPLSocket(object) :
                 exit()
 
     # Send methods    
-
     def send(self, pack_name):
         self.active_packer = pack_name
         self.packers[self.active_packer].prepareBuffs(self)
         self.packers[self.active_packer](self)
         self._send()
-        
     
     # Receive methods    
     def receive(self, unpack_name):
@@ -91,8 +89,6 @@ class CPLSocket(object) :
         self.unpackers[self.active_unpacker].prepareBuffs(self)
         self._receive()
         self.unpackers[self.active_unpacker](self)
- 
-
 
     # Abstract methods
     def _init(self):
@@ -340,7 +336,7 @@ class CartSocketMD(CPLSocket):
         self.my_coords += 1# Fortran indices
         extents = self._lib.proc_extents(self.my_coords, CPL.MD_REALM)
         self.proc_region = CartRegion(extents[0], extents[1], extents[2],
-                                    extents[3], extents[4], extents[5])
+                                      extents[3], extents[4], extents[5])
 
     def _init(self):
         self._initMD()
@@ -417,7 +413,7 @@ class CartSocketCFD(CPLSocket, CartTopoMap):
         dummy_density = 1.0
         self.createMap(self.topology, self.grid)
         tm = self.topo_map
-        # After slicing the array can be easily non-contiguous 
+        # After slicing the array can easily be non-contiguous 
         iTmin = tm["iTmin"]
         iTmax = tm["iTmax"]
         jTmin = tm["jTmin"]

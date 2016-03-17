@@ -1,4 +1,4 @@
-from ctypes import c_int, c_double, c_bool, byref, POINTER
+from ctypes import c_int, c_double, c_bool, byref, POINTER, util
 from mpi4py import MPI
 import numpy as np
 from numpy.ctypeslib import ndpointer, load_library
@@ -32,6 +32,7 @@ _CPL_GET_VARS = {"icmin_olap": c_int,
                  "npx_cfd": c_int,
                  "npy_cfd": c_int,
                  "npz_cfd": c_int,
+                 "overlap": c_int,
                  "xl_md": c_double,
                  "yl_md": c_double,
                  "zl_md": c_double,
@@ -51,7 +52,39 @@ class CPL:
     NULL_REALM = 0
     _libname = "libcpl"
     _lib_path = os.environ.get("CPL_LIBRARY_PATH")
-    _cpl_lib = load_library(_libname, _lib_path)
+    #Try using CPL_LIBRARY_PATH and if not look 
+    #in system path (or ctype path)
+    try:
+        _cpl_lib = load_library(_libname, _lib_path)
+    except OSError:
+        print("WARNING - "+ _libname +" not found under path specified by CPL_LIBRARY_PATH variable: "+ _lib_path)
+        print("Attempting to find system version")
+        _lib_path = util.find_library(_libname)
+    # If not found, try to look around the current directory system
+    # for the library
+    try:
+        _cpl_lib = load_library(_libname, _lib_path)
+    except OSError:
+        print("WARNING - "+ _libname +" not found in system path or $CPL_LIBRARY_PATH: "+ _lib_path)
+        print("Attempting to search current folder system")
+        trydir = ''; Found=False
+        for level in range(10):
+            if not Found:
+                trydir += "../"
+            for root, dirs, files in os.walk(trydir):
+                print(level,trydir,root)
+                if "libcpl.so" in files:
+                    print("A version of "+ _libname +" is found under path: "+ root + ". Attempting to use this..")
+                    Found=True
+                    _lib_path = root
+                    break
+
+        #Note this is a security issue, maybe better to inform the user here?
+        if found:
+            _cpl_lib = load_library(_libname, _lib_path)
+        else:
+            print(_libname +" not found, please ensure you have compiled correctly")
+            print( " and set CPL_LIBRARY_PATH to its location" )
 
     def __init__(self):
         pass
@@ -169,7 +202,20 @@ class CPL:
          ndpointer(np.float64, flags='aligned, f_contiguous'),
          ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous')]
 
+
+    def _type_check(self, A):
+        if type(A) is list:
+            A = np.array(A)
+        if not A.flags["F_CONTIGUOUS"]:
+            A = np.require(A, requirements=['F'])
+        if not A.flags["ALIGNED"]:
+            A = np.require(A, requirements=['A'])
+        #if (len(A.shape) != 4):
+        #    raise 
+        return A
+
     def gather(self, gather_array, limits, recv_array):
+        gather_array = self._type_check(gather_array)
         gather_shape = np.array(gather_array.shape, order='F', dtype=np.int32)
         recv_shape = np.array(recv_array.shape, order='F', dtype=np.int32)
         self.py_gather(gather_array, gather_shape, limits, recv_array,
@@ -185,6 +231,7 @@ class CPL:
          ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous')]
 
     def scatter(self, scatter_array, limits, recv_array):
+        scatter_array = self._type_check(scatter_array)
         scatter_shape = np.array(scatter_array.shape, order='F',
                                  dtype=np.int32)
         recv_shape = np.array(recv_array.shape, order='F', dtype=np.int32)
@@ -198,6 +245,7 @@ class CPL:
          ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
 
     def proc_extents(self, coord, realm):
+        coord = self._type_check(coord)
         extents = np.zeros(6, order='F', dtype=np.int32)
         self.py_proc_extents(coord, realm, extents)
         return extents
@@ -210,6 +258,7 @@ class CPL:
          ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
 
     def proc_portion(self, coord, realm, limits):
+        coord = self._type_check(coord)
         portion = np.zeros(6, order='F', dtype=np.int32)
         self.py_proc_portion(coord, realm, limits, portion)
         return portion
@@ -224,6 +273,7 @@ class CPL:
          c_int, c_int, POINTER(c_bool)]
 
     def send(self, asend, icmin, icmax, jcmin, jcmax, kcmin, kcmax):
+        asend = self._type_check(asend)
         asend_shape = np.array(asend.shape, order='F', dtype=np.int32)
         ndims = asend.ndim
         send_flag = c_bool()
@@ -241,12 +291,15 @@ class CPL:
          c_int, c_int, POINTER(c_bool)]
 
     def recv(self, arecv, icmin, icmax, jcmin, jcmax, kcmin, kcmax):
+        arecv = self._type_check(arecv)
         arecv_shape = np.array(arecv.shape, order='F', dtype=np.int32)
         ndims = arecv.ndim
         recv_flag = c_bool()
         self.py_recv(arecv, arecv_shape, ndims, icmin, icmax, jcmin, jcmax,
                      kcmin, kcmax, byref(recv_flag))
-        return recv_flag.value
+        return arecv, recv_flag.value
+
+
 
 
 def create_CPL_cart_3Dgrid(ncx, ncy, ncz, dx, dy, dz):

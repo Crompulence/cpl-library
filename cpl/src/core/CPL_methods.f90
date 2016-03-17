@@ -1467,6 +1467,7 @@ end subroutine CPL_unpack
 !!   - number of cells on processor (integer) 
 !!
 !! @author David Trevelyan
+!! @author Edward Smith
 subroutine CPL_proc_extents(coord,realm,extents,ncells)
     use mpi
     use coupler_module, only: md_realm,      cfd_realm,      &
@@ -1479,16 +1480,53 @@ subroutine CPL_proc_extents(coord,realm,extents,ncells)
                               error_abort
     implicit none
 
+    character(250)       :: strng
     integer, intent(in)  :: coord(3), realm
     integer, intent(out) :: extents(6)
     integer, optional, intent(out) :: ncells
 
     select case(realm)
     case(md_realm)
+        if (size(icPmax_md) .lt. coord(1)) then
+            write(strng,'(a,i8,a,i8,a)'), 'CPL_proc_extents error - MD proc ',       & 
+                                           coord(1), ' extents requested but only ', & 
+                                           size(icPmax_md) , ' in x'
+            call error_abort(trim(strng))
+        endif
+        if (size(jcPmax_md) .lt. coord(2)) then
+            write(strng,'(a,i8,a,i8,a)'), 'CPL_proc_extents error - MD proc ',       & 
+                                           coord(2), ' extents requested but only ', & 
+                                           size(icPmax_md) , ' in y'
+            call error_abort(trim(strng))
+        endif
+        if (size(kcPmax_md) .lt. coord(3)) then
+            write(strng,'(a,i8,a,i8,a)'), 'CPL_proc_extents error - MD proc ',       & 
+                                           coord(3), ' extents requested but only ', & 
+                                           size(icPmax_md) , ' in z'
+            call error_abort(trim(strng))
+        endif
         extents = (/icPmin_md(coord(1)),icPmax_md(coord(1)), & 
                     jcPmin_md(coord(2)),jcPmax_md(coord(2)), & 
                     kcPmin_md(coord(3)),kcPmax_md(coord(3))/)
     case(cfd_realm)
+        if (size(icPmax_cfd) .lt. coord(1)) then
+            write(strng,'(a,i8,a,i8,a)'), 'CPL_proc_extents error - CFD proc ',      & 
+                                           coord(1), ' extents requested but only ', & 
+                                           size(icPmax_cfd) , ' in x'
+            call error_abort(trim(strng))
+        endif
+        if (size(jcPmax_cfd) .lt. coord(2)) then
+            write(strng,'(a,i8,a,i8,a)'), 'CPL_proc_extents error - CFD proc ',      & 
+                                           coord(2), ' extents requested but only ', & 
+                                           size(icPmax_cfd) , ' in y'
+            call error_abort(trim(strng))
+        endif
+        if (size(kcPmax_cfd) .lt. coord(3)) then
+            write(strng,'(a,i8,a,i8,a)'), 'CPL_proc_extents error - CFD proc ',      & 
+                                           coord(3), ' extents requested but only ', & 
+                                           size(icPmax_cfd) , ' in z'
+            call error_abort(trim(strng))
+        endif
         extents = (/icPmin_cfd(coord(1)),icPmax_cfd(coord(1)), & 
                     jcPmin_cfd(coord(2)),jcPmax_cfd(coord(2)), & 
                     kcPmin_cfd(coord(3)),kcPmax_cfd(coord(3))/)
