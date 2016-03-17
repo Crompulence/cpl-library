@@ -5,7 +5,7 @@
 #
 # Directory locations: Fixed for any cpl implementation.
 # during make install?? 
-prefix=/tmp/cpl-library/cpl
+prefix=/home/es205/codes/cpl/cpl-library/
 CPL_VERSION=0.4
 
 exec_prefix=${prefix}/bin

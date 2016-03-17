@@ -143,6 +143,8 @@ if rank == root:
             if inoverlapgather[nrank]:
                 for j in range(portion[2]-1,portion[3]):
                     print(nrank,j,j-portion[2])
-                    ax.plot(x[portion[0]-1:portion[1]], j*dy+0.5*dy*(Agather[nrank][0,0:nxp,j-portion[2]+1,0]+1.),'-s',alpha=0.5, color=colors[ib%2][jb%2])
+                    ax.plot(x[portion[0]-1:portion[1]], 
+                            j*dy+0.5*dy*(Agather[nrank][0,0:nxp,j-portion[2]+1,0]+1.),
+                            '-s',alpha=0.5, color=colors[ib%2][jb%2])
 
 plt.show()

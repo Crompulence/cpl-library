@@ -169,6 +169,8 @@ if rank == root:
             #print("CFD shape", nrank, inoverlapgather[nrank], extents, Agather[nrank].shape, np.sum(Agather[nrank]))
             if inoverlapgather[nrank]:
                 for j in range(nyp):
-                    ax.plot(x[portion[0]-1:portion[1]], j*dy + 0.5*dy*(Agather[nrank][0,0:nxp,j,0]+1.),'-s', alpha=0.5, color=colors[ib%2][jb%2])
+                    ax.plot(x[portion[0]-1:portion[1]], 
+                            j*dy+0.5*dy*(Agather[nrank][0,0:nxp,j,0]+1.),
+                            '-s', alpha=0.5, color=colors[ib%2][jb%2])
 
 plt.show()
