@@ -380,8 +380,8 @@ subroutine CPL_create_comm(callingrealm, RETURNED_REALM_COMM, ierror)
     !                           CPL_WORLD_COMM, CPL_REALM_COMM, CPL_INTER_COMM
     implicit none
 
-    integer, intent(in) :: callingrealm ! CFD or MD
-    integer, intent(out):: RETURNED_REALM_COMM, ierror
+    integer, intent(in)   :: callingrealm ! CFD or MD
+    integer, intent(out)  :: RETURNED_REALM_COMM, ierror
 
     !Get processor id in world across both realms
     call MPI_comm_rank(MPI_COMM_WORLD,myid_world,ierr)
@@ -393,11 +393,11 @@ subroutine CPL_create_comm(callingrealm, RETURNED_REALM_COMM, ierror)
     ! test if we have a CFD and a MD realm
     ierror=0
     ! Test realms are assigned correctly
-    call test_realms    
+    call test_realms()
 
     ! Create intercommunicator between realms       
     realm = callingrealm
-    call create_comm        
+    call create_comm()
 
 contains
 
@@ -476,12 +476,12 @@ subroutine create_comm
 
     integer ::  callingrealm, ibuf(2), jbuf(2), remote_leader, comm_size
 
-    callingrealm = realm
     ! Split MPI COMM WORLD ready to establish two communicators
     ! 1) A global intra-communicator in each realm for communication
     ! internally between CFD processes or between MD processes
     ! 2) An inter-communicator which allows communication between  
-    ! the 'groups' of processors in MD and the group in the CFD 
+    ! the 'groups' of processors in MD and the group in the CFD
+    callingrealm = realm
     call MPI_comm_dup(MPI_COMM_WORLD,CPL_WORLD_COMM,ierr)
     RETURNED_REALM_COMM = MPI_COMM_NULL
     CPL_REALM_COMM      = MPI_COMM_NULL
@@ -489,7 +489,7 @@ subroutine create_comm
     !------------ create realm intra-communicators -----------------------
     ! Split MPI_COMM_WORLD into an intra-communicator for each realm 
     ! (used for any communication within each realm - e.g. broadcast from 
-    !  an md process to all other md processes) 
+    !  an md process to all other md processes)
     call MPI_comm_split(CPL_WORLD_COMM,callingrealm,myid_world,RETURNED_REALM_COMM,ierr)
 
     !------------ create realm inter-communicators -----------------------

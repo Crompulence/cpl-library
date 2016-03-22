@@ -1,4 +1,5 @@
-from ctypes import c_int, c_double, c_bool, byref, POINTER, util
+from ctypes import c_int, c_double, c_bool, c_void_p, byref, POINTER, util
+import ctypes
 from mpi4py import MPI
 import numpy as np
 from numpy.ctypeslib import ndpointer, load_library
@@ -110,12 +111,25 @@ class CPL:
     _py_create_comm.argtypes = [c_int, POINTER(c_int)]
 
     def create_comm(self, calling_realm):
+
+        #Call create comm
         returned_realm_comm = c_int()
         self._py_create_comm(calling_realm, byref(returned_realm_comm))
-        # It is necessary to split the COMM_WORLD communicator again since it is
-        # not possible to build a communicator mpi4py python object from the
-        # communicator returned by the CPL_create_comm function.
-        return MPI.COMM_WORLD.Split(calling_realm, MPI.COMM_WORLD.Get_rank())
+
+        # build a communicator mpi4py python object from the
+        # handle returned by the CPL_create_comm function.
+        if MPI._sizeof(MPI.Comm) == ctypes.sizeof(c_int): 
+            MPI_Comm = c_int 
+        else: 
+            MPI_Comm = c_void_p 
+
+        # Use an intracomm object as the template and override value
+        newcomm = MPI.Intracomm()
+        newcomm_ptr = MPI._addressof(newcomm) 
+        comm_val = MPI_Comm.from_address(newcomm_ptr)
+        comm_val.value = returned_realm_comm.value
+
+        return newcomm
 
     py_cfd_init = _cpl_lib.CPLC_cfd_init
 
@@ -193,16 +207,6 @@ class CPL:
             fun.argtypes = [var_type]
             return fun(var_type(value))
 
-    py_gather = _cpl_lib.CPLC_gather
-
-    py_gather.argtypes = \
-        [ndpointer(np.float64, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
-         ndpointer(np.float64, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous')]
-
-
     def _type_check(self, A):
         if type(A) is list:
             A = np.array(A)
@@ -214,8 +218,18 @@ class CPL:
         #    raise 
         return A
 
+    py_gather = _cpl_lib.CPLC_gather
+
+    py_gather.argtypes = \
+        [ndpointer(np.float64, flags='aligned, f_contiguous'),
+         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
+         ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
+         ndpointer(np.float64, flags='aligned, f_contiguous'),
+         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous')]
+
     def gather(self, gather_array, limits, recv_array):
         gather_array = self._type_check(gather_array)
+        recv_array = self._type_check(recv_array)
         gather_shape = np.array(gather_array.shape, order='F', dtype=np.int32)
         recv_shape = np.array(recv_array.shape, order='F', dtype=np.int32)
         self.py_gather(gather_array, gather_shape, limits, recv_array,
@@ -232,11 +246,13 @@ class CPL:
 
     def scatter(self, scatter_array, limits, recv_array):
         scatter_array = self._type_check(scatter_array)
+        recv_array = self._type_check(recv_array)
         scatter_shape = np.array(scatter_array.shape, order='F',
                                  dtype=np.int32)
         recv_shape = np.array(recv_array.shape, order='F', dtype=np.int32)
         self.py_scatter(scatter_array, scatter_shape, limits,
                         recv_array, recv_shape)
+        return recv_array
 
     py_proc_extents = _cpl_lib.CPLC_proc_extents
     py_proc_extents.argtypes = \
