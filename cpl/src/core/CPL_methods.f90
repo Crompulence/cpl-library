@@ -173,6 +173,16 @@ subroutine CPL_gather(gatherarray, npercell, limits, recvarray)!todo better name
                      recvcounts, displs, MPI_DOUBLE_PRECISION, CFDid_olap, &
                      CPL_OLAP_COMM, ierr)
 
+!    if (realm .eq.md_realm) then
+!        print'(a,5i8,3f18.12)', "md gather", sendcount, shape(gatherarray), sum(sendbuf), minval(sendbuf), maxval(sendbuf)
+!    elseif( realm .eq. cfd_realm) then
+!        do sendcount=1,size(recvcounts)
+!            print'(a,6i8,3f18.12)', "cfd gather", sendcount, recvcounts(sendcount), & 
+!                                    shape(recvarray), sum(recvbuf), minval(recvbuf), maxval(recvbuf)
+!        enddo
+!    endif
+
+
     if (realm .eq. cfd_realm) call unpack_recvbuf
 
     call deallocate_gather_u
@@ -215,6 +225,7 @@ contains
         end do
         
         if (.not. consistent) then
+            print'(2(a,6i8))', 'MD limits=', md_limits, ' CFD limits=', cfd_limits
             call error_abort("CPL_gather error - MD and CFD limits not consistent in CPL_gather")
         else
             return
@@ -235,7 +246,26 @@ contains
             limits(3) .lt. jcmin .or. &
             limits(4) .gt. jcmax .or. &
             limits(5) .lt. kcmin .or. &
-            limits(6) .lt. kcmax) then
+            limits(6) .gt. kcmax) then
+
+            if (limits(1) .lt. icmin) then
+                print'(2(a,6i8))', "CPL_gather x minimum limit = ", limits(1), " is less than domain limit ", icmin
+            endif
+            if (limits(2) .gt. icmax) then
+                print'(2(a,6i8))', "CPL_gather x maximum limit = ", limits(2), " is greater than domain limit ", icmax
+            endif
+            if (limits(3) .lt. jcmin) then
+                print'(2(a,6i8))', "CPL_gather y minimum limit = ", limits(3), " is less than domain limit ", jcmin
+            endif
+            if (limits(4) .gt. jcmax) then
+                print'(2(a,6i8))', "CPL_gather y maximum limit = ", limits(4), " is greater than domain limit ", jcmax
+            endif
+            if (limits(5) .lt. kcmin) then
+                print'(2(a,6i8))', "CPL_gather z minimum limit = ", limits(5), " is less than domain limit ", kcmin
+            endif
+            if (limits(6) .gt. kcmax) then
+                print'(2(a,6i8))', "CPL_gather z maximum limit = ", limits(6), " is greater than domain limit ", kcmax
+            endif
             
 			call error_abort("CPL_gather error - Gather limits are outside global domain. " // &
                              "Aborting simulation.")
@@ -454,6 +484,13 @@ subroutine CPL_scatter(scatterarray,npercell,limits,recvarray)
                       recvbuf, recvcount, MPI_DOUBLE_PRECISION, CFDid_olap, &
                       CPL_OLAP_COMM, ierr)
 
+!    if (realm .eq.md_realm) then
+!        print'(a,3f18.12)', "md scatter", sum(recvbuf),minval(recvbuf),maxval(recvbuf)
+!    elseif( realm .eq. cfd_realm) then
+!        !print'(a,3f18.12)', "cfd scatter", sum(scatterbuf),minval(scatterbuf),maxval(scatterbuf)
+!    endif
+
+
     if (realm .eq. md_realm)  call unpack_scatterbuf
 
     call deallocate_scatter_s
@@ -474,7 +511,26 @@ contains
             limits(3) .lt. jcmin .or. &
             limits(4) .gt. jcmax .or. &
             limits(5) .lt. kcmin .or. &
-            limits(6) .lt. kcmax) then
+            limits(6) .gt. kcmax) then
+
+            if (limits(1) .lt. icmin) then
+                print'(2(a,6i8))', "CPL_scatter x minimum limit = ", limits(1), " is less than domain limit ", icmin
+            endif
+            if (limits(2) .gt. icmax) then
+                print'(2(a,6i8))', "CPL_scatter x maximum limit = ", limits(2), " is greater than domain limit ", icmax
+            endif
+            if (limits(3) .lt. jcmin) then
+                print'(2(a,6i8))', "CPL_scatter y minimum limit = ", limits(3), " is less than domain limit ", jcmin
+            endif
+            if (limits(4) .gt. jcmax) then
+                print'(2(a,6i8))', "CPL_scatter y maximum limit = ", limits(4), " is greater than domain limit ", jcmax
+            endif
+            if (limits(5) .lt. kcmin) then
+                print'(2(a,6i8))', "CPL_scatter z minimum limit = ", limits(5), " is less than domain limit ", kcmin
+            endif
+            if (limits(6) .gt. kcmax) then
+                print'(2(a,6i8))', "CPL_scatter z maximum limit = ", limits(6), " is greater than domain limit ", kcmax
+            endif
             
 			call error_abort("CPL_scatter error - Scatter limits are outside global domain. " // &
                              "Aborting simulation.")
@@ -1671,7 +1727,7 @@ subroutine CPL_proc_portion(coord,realm,limits,portion,ncells)
     integer, optional, intent(out) :: ncells
     integer :: extents(6)
 
-    call CPL_proc_extents(coord,realm,extents)
+    call CPL_proc_extents(coord, realm, extents)
 
     if (extents(1).gt.limits(2) .or. &
         extents(2).lt.limits(1) .or. &

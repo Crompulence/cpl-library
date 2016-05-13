@@ -131,7 +131,7 @@ void CPL::md_init
 void CPL::send
 (
 		double* asend,	
-		double* asend_shape,
+		int* asend_shape,
 		int ndims,
 		int icmin, 
 		int icmax,
@@ -139,7 +139,7 @@ void CPL::send
 		int jcmax,
 		int kcmin, 
 		int kcmax,
-		bool& send_flag
+		bool send_flag
 
 )
 {
@@ -154,7 +154,7 @@ void CPL::send
 				jcmax,
 				kcmin, 
 				kcmax,
-				&send_flag
+				send_flag
 		);
 }
 
@@ -162,7 +162,7 @@ void CPL::send
 void CPL::recv
 (
 		double* arecv,	
-		double* arecv_shape,
+		int* arecv_shape,
 		int ndims,
 		int icmin, 
 		int icmax,
@@ -170,7 +170,7 @@ void CPL::recv
 		int jcmax,
 		int kcmin, 
 		int kcmax,
-		bool& recv_flag
+		bool recv_flag
 
 )
 {
@@ -185,7 +185,7 @@ void CPL::recv
 				jcmax,
 				kcmin, 
 				kcmax,
-				&recv_flag
+				recv_flag
 		);
 }
 

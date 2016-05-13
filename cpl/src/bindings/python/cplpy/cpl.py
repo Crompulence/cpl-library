@@ -9,6 +9,9 @@ import os
 __all__ = ["CPL", "create_CPL_cart_3Dgrid", "cart_create",
            "get_olap_limits", "toCPLArray"]
 
+class OpenMPI_Not_Supported(Exception):
+    pass
+
 
 # TODO: Raise exception of library not loaded
 _loaded = False
@@ -108,25 +111,33 @@ class CPL:
                             int_pptr_dims, doub_pptr_dims)
 
     _py_create_comm = _cpl_lib.CPLC_create_comm
-    _py_create_comm.argtypes = [c_int, POINTER(c_int)]
+    #OpenMPI comm greater than c_int
+    if MPI._sizeof(MPI.Comm) == ctypes.sizeof(c_int): 
+        _py_create_comm.argtypes = [c_int, POINTER(c_int)]
+    else:
+        excptstr ="Problem is in create_comm wrapper, as the OpenMPI COMM handle is not "
+        excptstr += "an integer, c_void_p should be used so C bindings needs something like **void" 
+        excptstr += "(No idea what to do in the Fortran code, maybe MPI_COMM_f2C required)"
+        raise OpenMPI_Not_Supported(excptstr)
+        _py_create_comm.argtypes = [c_int, POINTER(c_void_p)]
 
     def create_comm(self, calling_realm):
-
-        #Call create comm
-        returned_realm_comm = c_int()
-        self._py_create_comm(calling_realm, byref(returned_realm_comm))
 
         # build a communicator mpi4py python object from the
         # handle returned by the CPL_create_comm function.
         if MPI._sizeof(MPI.Comm) == ctypes.sizeof(c_int): 
-            MPI_Comm = c_int 
+            COMM_ctype = c_int 
         else: 
-            MPI_Comm = c_void_p 
+            COMM_ctype = c_void_p 
+
+        #Call create comm
+        returned_realm_comm = COMM_ctype()
+        self._py_create_comm(calling_realm, byref(returned_realm_comm))
 
         # Use an intracomm object as the template and override value
         newcomm = MPI.Intracomm()
         newcomm_ptr = MPI._addressof(newcomm) 
-        comm_val = MPI_Comm.from_address(newcomm_ptr)
+        comm_val = COMM_ctype.from_address(newcomm_ptr)
         comm_val.value = returned_realm_comm.value
 
         return newcomm
@@ -234,6 +245,8 @@ class CPL:
         recv_shape = np.array(recv_array.shape, order='F', dtype=np.int32)
         self.py_gather(gather_array, gather_shape, limits, recv_array,
                        recv_shape)
+
+        return recv_array
 
     py_scatter = _cpl_lib.CPLC_scatter
 

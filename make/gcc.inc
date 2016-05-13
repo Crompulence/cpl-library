@@ -5,7 +5,7 @@ CPP = mpic++
 LINK = mpic++
 
 # Base flags for Fortran/C++/Linker
-FFLAGS = -fno-underscoring
+FFLAGS = -fno-underscoring -cpp
 CFLAGS = -std=c++14
 LFLAGS = -lgfortran -lmpifort -lstdc++
 
@@ -23,6 +23,6 @@ ifeq ($(strip $(BUILD)),debug)
     FFLAGS += -O0 -g -ggdb -Wall
     CFLAGS += -O0 -g -ggdb -Wall
 else
-    FFLAGS += -O3
+    FFLAGS += -O3 -cpp
     CFLAGS += -O3
 endif

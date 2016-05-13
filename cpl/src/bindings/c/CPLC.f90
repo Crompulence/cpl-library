@@ -66,7 +66,7 @@ contains
         implicit none
         
         integer(C_INT), value :: calling_realm
-        integer(C_INT) :: returned_realm_comm
+        integer(C_INT)        :: returned_realm_comm
         
         integer :: ierror
 

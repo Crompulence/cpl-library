@@ -100,38 +100,33 @@ namespace CPL
         double density
     );
 
-		void send
-		(
-				double* asend,	
-				double* asend_shape,
-				int ndims,
-				int icmin, 
-				int icmax,
-				int jcmin, 
-				int jcmax,
-				int kcmin, 
-				int kcmax,
-				bool& send_flag
+	void send
+	(
+			double* asend,	
+			int* asend_shape,
+			int ndims,
+			int icmin, 
+			int icmax,
+			int jcmin, 
+			int jcmax,
+			int kcmin, 
+			int kcmax,
+			bool send_flag
+	);
 
-		);
-
-		void recv
-		(
-				double* arecv,	
-				double* arecv_shape,
-				int ndims,
-				int icmin, 
-				int icmax,
-				int jcmin, 
-				int jcmax,
-				int kcmin, 
-				int kcmax,
-				bool& recv_flag
-
-		);
-
-
-    void send();
+	void recv
+	(
+			double* arecv,	
+			int* arecv_shape,
+			int ndims,
+			int icmin, 
+			int icmax,
+			int jcmin, 
+			int jcmax,
+			int kcmin, 
+			int kcmax,
+			bool recv_flag
+	);
 
     void scatter
     (
