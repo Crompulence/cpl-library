@@ -2,8 +2,8 @@
 # Get compilers and base flags from platform include file 
 MAKEINCPATH= ../../make
 include $(MAKEINCPATH)/platform.inc
-F_LIBS = -lgfortran -lmpifort
-C_LIBS = -lc -lstdc++
+#F_LIBS = -lgfortran -lmpifort
+#C_LIBS = -lc 
 
 # Executable paths (to be built)
 MDEXE = run/md/mdProgram

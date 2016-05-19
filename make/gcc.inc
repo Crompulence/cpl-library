@@ -5,8 +5,8 @@ CPP = mpic++
 LINK = mpic++
 
 # Base flags for Fortran/C++/Linker
-FFLAGS = -fno-underscoring
-CFLAGS = -std=c++14
+FFLAGS = -fno-underscoring -fbounds-check
+CFLAGS = -std=c++11
 LFLAGS = -lgfortran -lmpifort -lstdc++
 
 # Compiler's flag for specifying where to place compiled Fortran modules
