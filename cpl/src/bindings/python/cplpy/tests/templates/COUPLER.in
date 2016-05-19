@@ -59,13 +59,12 @@ $[olap_zhi]
 CONSTRAINT_INFO
 3
 0
-1
-18
-1
-6
-1
-18
-
+$[cnst_xlo]
+$[cnst_xhi]
+$[cnst_ylo]
+$[cnst_yhi]
+$[cnst_zlo]
+$[cnst_zhi]
 ###############################################################################
 #
 #   timestep ratio (integer) 

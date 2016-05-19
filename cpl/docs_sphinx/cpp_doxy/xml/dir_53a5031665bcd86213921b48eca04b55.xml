@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.6">
+  <compounddef id="dir_53a5031665bcd86213921b48eca04b55" kind="dir">
+    <compoundname>/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp</compoundname>
+    <innerfile refid="CPLCPP_8h">CPLCPP.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/"/>
+  </compounddef>
+</doxygen>

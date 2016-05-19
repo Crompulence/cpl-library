@@ -10,7 +10,6 @@ TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 TEST_NAME = os.path.basename(os.path.realpath(__file__))
 MD_FILE = "md_test.py"
 CFD_FILE = "cfd_test.py"
-RUN_FILE = "run.sh"
 
 
 def parametrizeConfig(params):
@@ -28,15 +27,7 @@ def parametrizeConfig(params):
 def prepareConfig(tmp_path):
     shutil.copy(os.path.join(TEST_DIR, MD_FILE), tmp_path.strpath)
     shutil.copy(os.path.join(TEST_DIR, CFD_FILE), tmp_path.strpath)
-    shutil.copy(os.path.join(TEST_DIR, RUN_FILE), tmp_path.strpath)
     os.chdir(tmp_path.strpath)
-
-
-@pytest.fixture(scope="module")
-def prepareConfigOnce(tmpdir_factory):
-    tmpdir_factory.mktemp("cpl", numbered=False)
-    prepareConfig(tmpdir_factory.getbasetemp())
-    return tmpdir_factory.getbasetemp()
 
 
 @pytest.fixture()
@@ -47,25 +38,27 @@ def prepareConfigEvery(tmpdir):
     return tmpdir
 
 
-def run_test(config_params, md_params, cfd_params, err):
+def run_test(config_params, md_params, cfd_params, err_msg):
     parametrizeConfig(config_params)
     cPickle.dump(md_params, open("md_params.dic", "wb"))
     cPickle.dump(cfd_params, open("cfd_params.dic", "wb"))
     try:
         mdprocs = md_params["npx"] * md_params["npy"] * md_params["npz"]
         cfdprocs = cfd_params["npx"] * cfd_params["npy"] * cfd_params["npz"]
-#        check_output(["csh", RUN_FILE, str(mdprocs), str(cfdprocs)],
-#                     stderr=STDOUT)
-	check_output(" ".join(["mpiexec", "-n", str(mdprocs), "python", "md_test.py", ":",
-		      "-n", str(cfdprocs), "python", "cfd_test.py"]), stderr=STDOUT, shell=True)
+        cmd = " ".join(["mpiexec", "-n", str(mdprocs), "python",
+                        "md_test.py", ":", "-n", str(cfdprocs), "python",
+                        "cfd_test.py"])
+
+        check_output(cmd, stderr=STDOUT, shell=True)
 
     except CalledProcessError as exc:
-        if err:
-            assert exc.output != ""
+        print exc.output
+        if err_msg != "":
+            assert err_msg in exc.output
         else:
             assert exc.output == ""
     else:
-        if err:
+        if err_msg != "":
             assert False
         else:
             assert True
@@ -76,12 +69,14 @@ def run_test(config_params, md_params, cfd_params, err):
 
 # EXPLANATION: These tests fail due to no_procs(MD) < no_procs(CFD) in
 #              one direction.
-@pytest.mark.parametrize("mdprocs,expect_error", [
-                         ((0, 0, 0), True),
-                         ((1, 1, 1), True),
-                         ((2, 2, 2), True),
-                         ((3, 3, 3), True)])
-def test_mdprocs(prepareConfigEvery, mdprocs, expect_error):
+@pytest.mark.parametrize("mdprocs,err_msg", [
+                         ((0, 0, 0), "CFD or MD realm is missing"),
+                         ((1, 4, 4), "number of MD processors in x must be"),
+                         ((4, 4, 2), "number of MD processors in z must be"),
+                       # Revise this case
+                       #  ((4, 3, 4), "number of MD processors in x must be"),
+                         ((4, 4, 4), "")])
+def test_mdprocs(prepareConfigEvery, mdprocs, err_msg):
     MD_PARAMS = {"npx": 0, "npy": 0, "npz": 0,
                  "lx": 24.0, "ly": 24.0, "lz": 24.0, }
     MD_PARAMS["npx"], MD_PARAMS["npy"], MD_PARAMS["npz"] = mdprocs
@@ -96,18 +91,18 @@ def test_mdprocs(prepareConfigEvery, mdprocs, expect_error):
                      "olap_zlo": 1, "olap_zhi": 24,
                      "tstep_ratio": 50, }
 
-    run_test(CONFIG_PARAMS, MD_PARAMS, CFD_PARAMS, expect_error)
+    run_test(CONFIG_PARAMS, MD_PARAMS, CFD_PARAMS, err_msg)
 
 
 # EXPLANATION: These tests fail due to no_procs(MD) != k*no_procs(CFD),
 #              k in [1,2,3,...] in one direction.
-@pytest.mark.parametrize("cfdprocs,expect_error", [
+@pytest.mark.parametrize("cfdprocs, err_msg", [
                          ((0, 0, 0), True),
                          ((3, 3, 3), True),
                          ((4, 4, 5), True),
                          ((4, 5, 4), True),
                          ((5, 4, 4), True)])
-def test_cfdprocs(prepareConfigEvery, cfdprocs, expect_error):
+def test_cfdprocs(prepareConfigEvery, cfdprocs, err_msg):
     MD_PARAMS = {"npx": 4, "npy": 4, "npz": 4,
                  "lx": 24.0, "ly": 24.0, "lz": 24.0, }
 
@@ -122,7 +117,7 @@ def test_cfdprocs(prepareConfigEvery, cfdprocs, expect_error):
                      "olap_zlo": 1, "olap_zhi": 24,
                      "tstep_ratio": 50, }
 
-    run_test(CONFIG_PARAMS, MD_PARAMS, CFD_PARAMS, expect_error)
+    run_test(CONFIG_PARAMS, MD_PARAMS, CFD_PARAMS, err_msg)
 
 
 # EXPLANATION: These tests fail due to bad ranges in overlap cell ranges OR

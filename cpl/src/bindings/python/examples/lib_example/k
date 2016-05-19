@@ -1,0 +1,216 @@
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+  File "cfd_init2.py", line 22, in <module>
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+  File "cfd_init2.py", line 22, in <module>
+    Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "cfd_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.CFD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)
+Traceback (most recent call last):
+  File "md_init2.py", line 22, in <module>
+    realm_comm = CPL.create_comm(CPL.MD_REALM)
+TypeError: unbound method handleExcepts() must be called with CPL instance as first argument (got int instance instead)

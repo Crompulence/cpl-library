@@ -293,9 +293,15 @@ module coupler_module
         xL_md,            &
         yL_md,            &
         zL_md,            &
+        x_orig_md,        & ! Origin of the md domain
+        y_orig_md,        &
+        z_orig_md,        &
         xL_cfd,           &
         yL_cfd,           &
         zL_cfd,           &
+        x_orig_cfd,       & ! Origin of the cfd domain
+        y_orig_cfd,       &
+        z_orig_cfd,       &
         xL_olap,          &
         yL_olap,          &
         zL_olap,          &
@@ -307,6 +313,7 @@ module coupler_module
         dz,               &
         dymin,            &
         dymax
+
 
     ! Positions of CFD grid lines
     real(kind(0.d0)),protected, dimension(:,:), allocatable, target :: &
@@ -373,7 +380,7 @@ contains
 !!         and create intercommunicator between CFD and MD
 !-----------------------------------------------------------------------------
 
-subroutine CPL_create_comm(callingrealm, RETURNED_REALM_COMM, ierror)
+subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
     use mpi
     !use coupler_module, only : rank_world,myid_world,rootid_world,nproc_world,&
     !                           realm, rank_realm,myid_realm,rootid_realm,ierr,& 
@@ -532,7 +539,7 @@ subroutine create_comm
 
 end subroutine create_comm
 
-end subroutine CPL_create_comm
+end subroutine CPL_init
 
 !=============================================================================
 !! Read Coupler input file
@@ -730,6 +737,103 @@ subroutine CPL_write_header(header_filename)
 end subroutine  CPL_write_header
 
 
+subroutine CPL_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density)
+
+    use mpi
+    implicit none           
+    
+    ! Params
+    integer, intent(in)                           :: nsteps, icomm_grid 
+    integer, dimension(3), intent(in)             :: ncxyz
+    real(kind(0.d0)), intent(in)                  :: dt, density
+    real(kind(0.d0)), dimension(3),  intent(in)   :: xyzL, xyz_orig
+
+    ! Vars
+    integer, dimension(:), allocatable            :: iTmin, iTmax, jTmin,&
+                                                     jTmax, kTmin, kTmax
+    integer, dimension(:,:), allocatable          :: icoord
+    real(kind(0.d0)), dimension(:), allocatable   :: zgrid
+    real(kind(0.d0)), dimension(:,:), allocatable :: xgrid, ygrid
+    integer, dimension(3)                         :: ijkcmin, ijkcmax
+    integer, dimension(3)                         :: npxyz_cfd, cart_coords
+    logical, dimension(3)                         :: cart_periods
+    real(kind(0.d0))                              :: dx, dy, dz
+    integer                                       :: cart_nprocs, rank, x, y, z,&
+                                                     ncxl, ncyl, nczl, i, j, k
+
+    ! Ranges of cells 
+    ijkcmin = (/1,1,1/)
+    ijkcmax = ncxyz
+
+    ! Get number of processors in each direction (periods and coords are not needed)
+    call MPI_Cart_get(icomm_grid, 3, npxyz_cfd, cart_periods, cart_coords, ierr)
+    call MPI_Comm_size(icomm_grid, cart_nprocs, ierr)
+    
+    allocate(icoord(3, cart_nprocs), stat=ierr)
+    allocate(iTmin(npxyz_cfd(1)), stat=ierr)
+    allocate(iTmax(npxyz_cfd(1)), stat=ierr)
+    allocate(jTmin(npxyz_cfd(2)), stat=ierr)
+    allocate(jTmax(npxyz_cfd(2)), stat=ierr)
+    allocate(kTmin(npxyz_cfd(3)), stat=ierr)
+    allocate(kTmax(npxyz_cfd(3)), stat=ierr)
+
+    ! I am not sure if this should be checked for error here 
+    ncxl = ncxyz(1) / npxyz_cfd(1)
+    ncyl = ncxyz(2) / npxyz_cfd(2)
+    nczl = ncxyz(3) / npxyz_cfd(3)
+    
+    ! Do the mapping from rank to cartesian coords
+    do rank=0, cart_nprocs - 1
+        call MPI_Cart_coords(icomm_grid, rank, 3, cart_coords, ierr)
+        icoord(1:3, rank + 1) = cart_coords + 1
+        x = cart_coords(1)
+        y = cart_coords(2)
+        z = cart_coords(3)
+        iTmin(x+1) = x*ncxl + 1                                                                                                                                                                                                             
+        iTmax(x+1) = iTmin(x+1) + ncxl - 1                                                                                                                                                                                                    
+        jTmin(y+1) = y*ncyl + 1                                                                                                                                                                                                             
+        jTmax(y+1) = jTmin(y+1) + ncyl - 1                                                                                                                                                                                                    
+        kTmin(z+1) = z*nczl + 1                                                                                                                                                                                                             
+        kTmax(z+1) = kTmin(z+1) + nczl - 1
+    enddo
+    
+    allocate(xgrid(ncxyz(1) + 1, ncxyz(2) + 1), stat=ierr)
+    allocate(ygrid(ncxyz(1) + 1, ncxyz(2) + 1), stat=ierr)
+    allocate(zgrid(ncxyz(3) + 1), stat=ierr)
+    ! Construct cartesian grid
+    dx =  xyzL(1) / ncxyz(1)
+    dy =  xyzL(2) / ncxyz(2)
+    dz =  xyzL(3) / ncxyz(3)
+    do i=1, ncxyz(1) + 1
+        do j=1, ncxyz(2) + 1
+            xgrid(i, j) = (i - 1) * dx
+            ygrid(i, j) = (j - 1) * dy
+        enddo
+    enddo
+            
+    do k=1, ncxyz(3) + 1
+        zgrid(k) = (k - 1) * dz
+    enddo
+
+
+    call coupler_cfd_init(nsteps, dt, icomm_grid, icoord, npxyz_cfd, xyzL, &
+                          xyz_orig, ncxyz, density, ijkcmax, ijkcmin, iTmin, &
+                          iTmax, jTmin, jTmax, kTmin, kTmax, xgrid, ygrid, &
+                          zgrid)
+    deallocate(icoord)
+    deallocate(iTmin)
+    deallocate(iTmax)
+    deallocate(jTmin)
+    deallocate(jTmax)
+    deallocate(kTmin)
+    deallocate(kTmax)
+    deallocate(xgrid)
+    deallocate(ygrid)
+    deallocate(zgrid)
+ 
+end subroutine CPL_setup_cfd
+
+
 
 !------------------------------------------------------------------------------
 !                              coupler_cfd_init                               -
@@ -799,7 +903,7 @@ end subroutine  CPL_write_header
 ! ----------------------------------------------------------------------------
 
 
-subroutine coupler_cfd_init(nsteps,dt,icomm_grid,icoord,npxyz_cfd,xyzL,ncxyz, & 
+subroutine coupler_cfd_init(nsteps,dt,icomm_grid,icoord,npxyz_cfd,xyzL, xyz_orig, ncxyz, &
                             density,ijkcmax,ijkcmin,iTmin,iTmax,jTmin, & 
                             jTmax,kTmin,kTmax,xgrid,ygrid,zgrid)
     use mpi
@@ -810,7 +914,7 @@ subroutine coupler_cfd_init(nsteps,dt,icomm_grid,icoord,npxyz_cfd,xyzL,ncxyz, &
     integer,dimension(:),           intent(in)  :: iTmin,iTmax,jTmin,jTmax,kTmin,kTmax
     integer,dimension(:,:),         intent(in)  :: icoord
     real(kind(0.d0)),               intent(in)  :: dt,density
-    real(kind(0.d0)),dimension(3),  intent(in)  :: xyzL
+    real(kind(0.d0)),dimension(3),  intent(in)  :: xyzL, xyz_orig
     real(kind(0.d0)),dimension(:  ),intent(in)  :: zgrid
     real(kind(0.d0)),dimension(:,:),intent(in)  :: xgrid,ygrid
 
@@ -834,7 +938,7 @@ subroutine coupler_cfd_init(nsteps,dt,icomm_grid,icoord,npxyz_cfd,xyzL,ncxyz, &
         source=MPI_PROC_NULL
     endif
 
-    ! ================ Exchange and store Data ==============================
+        ! ================ Exchange and store Data ==============================
     ! Data is stored to the coupler module with the same name in both realms
     ! Note - MPI Broadcast between intercommunicators is only supported by MPI-2
 
@@ -848,7 +952,7 @@ subroutine coupler_cfd_init(nsteps,dt,icomm_grid,icoord,npxyz_cfd,xyzL,ncxyz, &
 
     ! Receive & Store MD number of processors
     allocate(buf(3))
-    call MPI_bcast(   buf   ,3,MPI_INTEGER,  0   ,CPL_INTER_COMM,ierr)  !Receive
+    call MPI_bcast(buf, 3 , MPI_INTEGER, 0, CPL_INTER_COMM, ierr)  !Receive
     npx_md = buf(1)
     npy_md = buf(2)
     npz_md = buf(3)
@@ -964,10 +1068,20 @@ subroutine coupler_cfd_init(nsteps,dt,icomm_grid,icoord,npxyz_cfd,xyzL,ncxyz, &
     xL_cfd = xyzL(1); yL_cfd = xyzL(2); zL_cfd = xyzL(3)
     call MPI_bcast(xyzL,3,MPI_double_precision,source,CPL_INTER_COMM,ierr)  !Send
 
+    ! Store & send CFD domain origin coords
+    x_orig_cfd = xyz_orig(1); y_orig_cfd = xyz_orig(2); z_orig_cfd = xyz_orig(3)
+    call MPI_bcast(xyz_orig,3,MPI_double_precision,source,CPL_INTER_COMM,ierr)  !Send
+
     ! Receive & store MD domain size
     allocate(rbuf(3))
     call MPI_bcast(rbuf,3,MPI_double_precision,0,CPL_INTER_COMM,ierr)       !Receive
     xL_md = rbuf(1); yL_md = rbuf(2); zL_md = rbuf(3);
+    deallocate(rbuf)
+
+    ! Receive & store MD domain origin coords
+    allocate(rbuf(3))
+    call MPI_bcast(rbuf,3,MPI_double_precision,0,CPL_INTER_COMM,ierr)       !Receive
+    x_orig_md = rbuf(1); y_orig_md = rbuf(2); z_orig_md = rbuf(3);
     deallocate(rbuf)
 
     ! Store & send CFD grid extents
@@ -1088,6 +1202,48 @@ contains
 end subroutine coupler_cfd_init
 
 
+subroutine CPL_setup_md(nsteps, initialstep, dt, icomm_grid, xyzL, xyz_orig, density)
+    use mpi
+    implicit none
+
+    !Params
+    integer, intent(inout)                          :: nsteps, initialstep
+    integer, intent(in)                             :: icomm_grid
+    real(kind(0.d0)), intent(in)                    :: dt, density
+    real(kind=kind(0.d0)), dimension(3), intent(in) :: xyzL, xyz_orig
+    
+    !Vars
+    integer, dimension(3)                           :: npxyz_md, cart_coords
+    logical, dimension(3)                           :: cart_periods
+    integer, dimension(:,:), allocatable            :: icoord
+    integer                                         :: cart_nprocs, rank, i, j
+
+    ! Get number of processors in each direction (periods and coords are not needed)
+    call MPI_Cart_get(icomm_grid, 3, npxyz_md, cart_periods, cart_coords, ierr)
+    call MPI_Comm_size(icomm_grid, cart_nprocs, ierr)
+    
+    allocate(icoord(3, cart_nprocs), stat=ierr)
+
+    ! Do the mapping from rank to cartesian coords
+    do rank=0, cart_nprocs - 1
+        call MPI_Cart_coords(icomm_grid, rank, 3, cart_coords, ierr)
+        icoord(1:3, rank + 1) = cart_coords + 1
+    enddo
+
+
+!    if (myid_realm .eq. 0) then
+!        print*, 'cart_nprocs=',cart_nprocs, 'npx= ', npxyz_md(1) , 'npy= ', npxyz_md(2), 'npz= ', npxyz_md(3)  
+!        do i=1,3
+!         write(*,'(20G12.4)') icoord(i,:)
+!        enddo
+!    endif
+
+    call coupler_md_init(Nsteps, initialstep, dt, icomm_grid, & 
+                         icoord, npxyz_md, xyzL, xyz_orig, density)
+    deallocate(icoord) 
+
+end subroutine CPL_setup_md
+
 !------------------------------------------------------------------------------
 !                              coupler_md_init                               -
 !------------------------------------------------------------------------------
@@ -1132,16 +1288,16 @@ end subroutine coupler_cfd_init
 ! to ensure both md and cfd region have an identical list of parameters
 
 subroutine coupler_md_init(Nsteps, initialstep, dt, icomm_grid, & 
-                           icoord, npxyz_md, globaldomain, density)
+                           icoord, npxyz_md, globaldomain, xyz_orig, density)
     use mpi
     implicit none
 
     integer, intent(inout)                          :: nsteps,initialstep
     integer, intent(in)                             :: icomm_grid
-    integer, dimension(3), intent(in)                :: npxyz_md
-    integer, dimension(:,:), intent(in) :: icoord
+    integer, dimension(3), intent(in)               :: npxyz_md
+    integer, dimension(:,:), intent(in)             :: icoord
     real(kind(0.d0)),intent(in)                     :: dt,density
-    real(kind=kind(0.d0)),dimension(3),intent(in)   :: globaldomain
+    real(kind=kind(0.d0)),dimension(3),intent(in)   :: globaldomain, xyz_orig
 
     integer                                         :: i,ib,jb,kb,pcoords(3),source,nproc
     integer,dimension(:),allocatable                :: buf,rank_world2rank_realm,rank_world2rank_cart
@@ -1277,9 +1433,21 @@ subroutine coupler_md_init(Nsteps, initialstep, dt, icomm_grid, &
     xL_cfd = rbuf(1); yL_cfd = rbuf(2); zL_cfd = rbuf(3)
     deallocate(rbuf)
 
+    ! Receive & store CFD domain origin coords
+    allocate(rbuf(3))
+    call MPI_bcast(rbuf,3,MPI_double_precision,0,CPL_INTER_COMM,ierr)               !Receive
+    x_orig_cfd = rbuf(1); y_orig_cfd = rbuf(2); z_orig_cfd = rbuf(3)
+    deallocate(rbuf)
+
+
+
     ! Store & send MD domain size
     xL_md = globaldomain(1); yL_md = globaldomain(2); zL_md = globaldomain(3) 
     call MPI_bcast(globaldomain,3,MPI_double_precision,source,CPL_INTER_COMM,ierr)  !Send
+
+    ! Store & send MD domain origin coords
+    x_orig_md = xyz_orig(1); y_orig_md = xyz_orig(2); z_orig_md = xyz_orig(3)
+    call MPI_bcast(xyz_orig, 3, MPI_double_precision, source, CPL_INTER_COMM, ierr)  !Send
 
     ! Receive & Store global CFD grid extents
     allocate(buf(6))

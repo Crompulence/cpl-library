@@ -1,0 +1,668 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.8.6">
+  <compounddef id="namespaceCPL" kind="namespace">
+    <compoundname>CPL</compoundname>
+      <sectiondef kind="var">
+      <memberdef kind="variable" id="namespaceCPL_1a769aaa349d2c5fcbe171303e273004c3" prot="public" static="yes" mutable="no">
+        <type>const int</type>
+        <definition>const int CPL::cfd_realm</definition>
+        <argsstring></argsstring>
+        <name>cfd_realm</name>
+        <initializer>= 1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="58" column="1" bodyfile="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" bodystart="58" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="namespaceCPL_1a48c7a7628ef85643232d0d5fe9aa0afa" prot="public" static="yes" mutable="no">
+        <type>const int</type>
+        <definition>const int CPL::md_realm</definition>
+        <argsstring></argsstring>
+        <name>md_realm</name>
+        <initializer>= 2</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="59" column="1" bodyfile="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" bodystart="59" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceCPL_1ad4d75a46cb7304ef48d44a34bddc0337" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::init</definition>
+        <argsstring>(int calling_realm, int &amp;returned_realm_comm)</argsstring>
+        <name>init</name>
+        <param>
+          <type>int</type>
+          <declname>calling_realm</declname>
+        </param>
+        <param>
+          <type>int &amp;</type>
+          <declname>returned_realm_comm</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="61" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1ae6e030ba528996e6a73b586897be80ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::setup_cfd</definition>
+        <argsstring>(int nsteps, double dt, int icomm_grid, double xyzL[], double xyz_orig[], int ncxyz[], double density)</argsstring>
+        <name>setup_cfd</name>
+        <param>
+          <type>int</type>
+          <declname>nsteps</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>dt</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>icomm_grid</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>xyzL</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>xyz_orig</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ncxyz</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>density</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="64" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1ac8ae709e722566943976e336c62d1354" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::setup_md</definition>
+        <argsstring>(int &amp;nsteps, int &amp;initialstep, double dt, int icomm_grid, double xyzL[], double xyz_orig[], double density)</argsstring>
+        <name>setup_md</name>
+        <param>
+          <type>int &amp;</type>
+          <declname>nsteps</declname>
+        </param>
+        <param>
+          <type>int &amp;</type>
+          <declname>initialstep</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>dt</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>icomm_grid</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>xyzL</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>xyz_orig</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>density</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="75" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1a429ef6699aecab8eb3f2640064967dd6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::send</definition>
+        <argsstring>(double *asend, double *asend_shape, int ndims, int icmin, int icmax, int jcmin, int jcmax, int kcmin, int kcmax, bool &amp;send_flag)</argsstring>
+        <name>send</name>
+        <param>
+          <type>double *</type>
+          <declname>asend</declname>
+        </param>
+        <param>
+          <type>double *</type>
+          <declname>asend_shape</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ndims</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>icmin</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>icmax</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>jcmin</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>jcmax</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>kcmin</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>kcmax</declname>
+        </param>
+        <param>
+          <type>bool &amp;</type>
+          <declname>send_flag</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="87" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1ade34f07ea2dfdb1965c8af056ee6027d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::recv</definition>
+        <argsstring>(double *arecv, double *arecv_shape, int ndims, int icmin, int icmax, int jcmin, int jcmax, int kcmin, int kcmax, bool &amp;recv_flag)</argsstring>
+        <name>recv</name>
+        <param>
+          <type>double *</type>
+          <declname>arecv</declname>
+        </param>
+        <param>
+          <type>double *</type>
+          <declname>arecv_shape</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ndims</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>icmin</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>icmax</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>jcmin</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>jcmax</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>kcmin</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>kcmax</declname>
+        </param>
+        <param>
+          <type>bool &amp;</type>
+          <declname>recv_flag</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="102" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1a2af4132541cd7609a6a3599cda3300af" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::scatter</definition>
+        <argsstring>(double *scatterarray, int *scatter_shape, int *limits, double *recvarray, int *recv_shape)</argsstring>
+        <name>scatter</name>
+        <param>
+          <type>double *</type>
+          <declname>scatterarray</declname>
+        </param>
+        <param>
+          <type>int *</type>
+          <declname>scatter_shape</declname>
+        </param>
+        <param>
+          <type>int *</type>
+          <declname>limits</declname>
+        </param>
+        <param>
+          <type>double *</type>
+          <declname>recvarray</declname>
+        </param>
+        <param>
+          <type>int *</type>
+          <declname>recv_shape</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="118" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1ace58b63e62bdffb596bb20a248f0ed81" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::gather</definition>
+        <argsstring>(double *gatherarray, int *gather_shape, int *limits, double *recvarray, int *recv_shape)</argsstring>
+        <name>gather</name>
+        <param>
+          <type>double *</type>
+          <declname>gatherarray</declname>
+        </param>
+        <param>
+          <type>int *</type>
+          <declname>gather_shape</declname>
+        </param>
+        <param>
+          <type>int *</type>
+          <declname>limits</declname>
+        </param>
+        <param>
+          <type>double *</type>
+          <declname>recvarray</declname>
+        </param>
+        <param>
+          <type>int *</type>
+          <declname>recv_shape</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="127" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1a5c17c020148e385df1e58fe5889d21d3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::proc_extents</definition>
+        <argsstring>(int coord[], int realm, int extents[])</argsstring>
+        <name>proc_extents</name>
+        <param>
+          <type>int</type>
+          <declname>coord</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>realm</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>extents</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="136" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1a30e0920ca21c6570349b9ef3e6a8732d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::my_proc_extents</definition>
+        <argsstring>(int extents[])</argsstring>
+        <name>my_proc_extents</name>
+        <param>
+          <type>int</type>
+          <declname>extents</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="143" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1a449fb23b029bff3acd6dfc3d0a78a9f9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::proc_portion</definition>
+        <argsstring>(int coord[], int realm, int limits[], int portion[])</argsstring>
+        <name>proc_portion</name>
+        <param>
+          <type>int</type>
+          <declname>coord</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>realm</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>limits</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>portion</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="148" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1a0e63a259c8c6790666308fffb49e8ab3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::my_proc_portion</definition>
+        <argsstring>(int limits[], int portion[])</argsstring>
+        <name>my_proc_portion</name>
+        <param>
+          <type>int</type>
+          <declname>limits</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>portion</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="157" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1a29a186308a3457f8bfa82a799e09aafc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::map_cell2coord</definition>
+        <argsstring>(int i, int j, int k, double coord_xyz[])</argsstring>
+        <name>map_cell2coord</name>
+        <param>
+          <type>int</type>
+          <declname>i</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>j</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>coord_xyz</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="163" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1a667987ec612b42bb2d09c7227e53c36b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool CPL::map_coord2cell</definition>
+        <argsstring>(double x, double y, double z, int cell_ijk[])</argsstring>
+        <name>map_coord2cell</name>
+        <param>
+          <type>double</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>z</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>cell_ijk</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="171" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1ad7758485fafb33d9280c3155edd2d551" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::get_no_cells</definition>
+        <argsstring>(int limits[], int no_cells[])</argsstring>
+        <name>get_no_cells</name>
+        <param>
+          <type>int</type>
+          <declname>limits</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>no_cells</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="179" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1aaa031537fcd69614650bba24caf52396" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool CPL::map_glob2loc_cell</definition>
+        <argsstring>(int limits[], int glob_cell[], int loc_cell[])</argsstring>
+        <name>map_glob2loc_cell</name>
+        <param>
+          <type>int</type>
+          <declname>limits</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>glob_cell</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>loc_cell</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="185" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1a2e249f42126d5ac3871207abcd44508f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::get_olap_limits</definition>
+        <argsstring>(int limits[])</argsstring>
+        <name>get_olap_limits</name>
+        <param>
+          <type>int</type>
+          <declname>limits</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="192" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1a13a6700ca71e56cdd2a8dae97d8a8375" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::get_cnst_limits</definition>
+        <argsstring>(int limits[])</argsstring>
+        <name>get_cnst_limits</name>
+        <param>
+          <type>int</type>
+          <declname>limits</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="197" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1accbfb53b73a10ed4d43a873aaaa46b6b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool CPL::map_cfd2md_coord</definition>
+        <argsstring>(double cfd_coord[], double md_coord[])</argsstring>
+        <name>map_cfd2md_coord</name>
+        <param>
+          <type>double</type>
+          <declname>cfd_coord</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>md_coord</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="202" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1a12dc0de5f3ae711f3620f83574e62d54" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool CPL::map_md2cfd_coord</definition>
+        <argsstring>(double md_coord[], double cfd_coord[])</argsstring>
+        <name>map_md2cfd_coord</name>
+        <param>
+          <type>double</type>
+          <declname>md_coord</declname>
+          <array>[]</array>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>cfd_coord</declname>
+          <array>[]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="208" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1a65e047db16b69f0fad5215369f638166" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void CPL::set_output_mode</definition>
+        <argsstring>(int mode)</argsstring>
+        <name>set_output_mode</name>
+        <param>
+          <type>int</type>
+          <declname>mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="214" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1af6caf5ca546acced3fd351c00bddb0a9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type>T</type>
+        <definition>T CPL::get</definition>
+        <argsstring>(std::string name)</argsstring>
+        <name>get</name>
+        <param>
+          <type>std::string</type>
+          <declname>name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="221" column="1" bodyfile="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" bodystart="221" bodyend="257"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceCPL_1afe824021abc7022cec8c9f3450bc2fe6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>double CPL::density_cfd</definition>
+        <argsstring>()</argsstring>
+        <name>density_cfd</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="259" column="1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="/home/eduardo/Desktop/repositories/cpl-library/cpl/src/bindings/cpp/CPLCPP.h" line="55" column="1"/>
+  </compounddef>
+</doxygen>

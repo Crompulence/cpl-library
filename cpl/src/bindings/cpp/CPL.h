@@ -52,6 +52,6 @@ Author(s)
 #include "CPL_vector3D.h"
 #include "CPL_ndArray.h"
 #include "CPL_cartCreate.h"
-#include "CPL_usherBase.h"
+//#include "CPL_usherBase.h"
 
 #endif // CPL_H_INCLUDED

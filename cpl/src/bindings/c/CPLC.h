@@ -44,33 +44,21 @@ Author(s)
 
 */
 
-extern "C" void CPLC_create_comm
+extern "C" void CPLC_init
 (
     int  calling_realm,
     int* returned_realm_comm
 );
 
-extern "C" void CPLC_cfd_init
+extern "C" void CPLC_setup_cfd
 (
     int nsteps,
     double dt,
     int icomm_grid,
-    int icoord[],
-    int npxyz_cfd[],
     double xyzL[],
+    double xyz_orig[],
     int ncxyz[],
-    double density,
-    int ijkcmax[],
-    int ijkcmin[],
-    int iTmin[],
-    int iTmax[],
-    int jTmin[],
-    int jTmax[],
-    int kTmin[],
-    int kTmax[],
-    double xgrid[],
-    double ygrid[],
-    double zgrid[]
+    double density
 );
 
 extern "C" void CPLC_test_python
@@ -84,16 +72,15 @@ extern "C" void CPLC_test_python
 		int* doub_pptr_dims
 );
 
-extern "C" void CPLC_md_init
+extern "C" void CPLC_setup_md
 (
     int* nsteps,
     int* initialstep,
     double dt,
     int icomm_grid,
-    int icoord[],
-    int npxyz_md[],
-    double globaldomain[],
-		double density
+    double xyzL[],
+    double xyz_orig[],
+	double density
 );
 
 extern "C" void CPLC_send
@@ -153,6 +140,11 @@ extern "C" void CPLC_proc_extents
     int extents[]
 );
 
+extern "C" void CPLC_my_proc_extents
+(
+    int extents[]
+);
+
 extern "C" void CPLC_proc_portion
 (
     int coord[],
@@ -161,10 +153,64 @@ extern "C" void CPLC_proc_portion
     int portion[]
 );
 
-extern "C" double* CPLC_map_cfd2md_global
+extern "C" void CPLC_my_proc_portion
 (
-    double r_cfd[]
+    int limits[],
+    int portion[]
 );
+
+extern "C" void CPLC_map_cell2coord
+(
+    int i,
+    int j,
+    int k,
+    double coord_xyz[]
+);
+
+extern "C" bool CPLC_map_coord2cell
+(
+    double x, 
+    double y, 
+    double z, 
+    int cell_ijk[]
+);
+
+extern "C" void CPLC_get_no_cells
+(
+    int limits[],
+    int no_cells[]
+);
+
+extern "C" bool CPLC_map_glob2loc_cell
+(
+    int limits[],
+    int glob_cell[],
+    int loc_cell[]
+);
+
+extern "C" void CPLC_get_olap_limits
+(
+    int limits[]
+);
+
+extern "C" void CPLC_get_cnst_limits
+(
+    int limits[]
+);
+
+
+extern "C" bool CPLC_map_cfd2md_coord
+(
+    double coord_cfd[],
+    double coord_md[]
+);
+
+extern "C" bool CPLC_map_md2cfd_coord
+(
+    double coord_md[],
+    double coord_cfd[]
+);
+
 
 // Setters
 extern "C" void CPLC_set_output_mode

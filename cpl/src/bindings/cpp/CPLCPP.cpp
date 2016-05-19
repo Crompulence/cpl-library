@@ -40,238 +40,159 @@ Description
 */
 #include "CPLCPP.h"
 
-void CPL::create_comm
+void CPL::init
 (
     int  calling_realm,
     int& returned_realm_comm
 )
 {
-    CPLC_create_comm
+    CPLC_init
     (
     		calling_realm,
      		&returned_realm_comm
-       //returned_realm_comm
 
     );
 }
 
-void CPL::cfd_init
+void CPL::setup_cfd
 (
     int nsteps,
     double dt,
     int icomm_grid,
-    int icoord[],
-    int npxyz_cfd[],
     double xyzL[],
+    double xyz_orig[],
     int ncxyz[],
-    double density,
-    int ijkcmax[],
-    int ijkcmin[],
-    int iTmin[],
-    int iTmax[],
-    int jTmin[],
-    int jTmax[],
-    int kTmin[],
-    int kTmax[],
-    double xgrid[],
-    double ygrid[],
-    double zgrid[]
+    double density
 )
 {
-    CPLC_cfd_init
+    CPLC_setup_cfd
     (
         nsteps,
         dt,
         icomm_grid,
-        icoord,
-        npxyz_cfd,
         xyzL,
+        xyz_orig,
         ncxyz,
-        density,
-        ijkcmax,
-        ijkcmin,
-        iTmin,
-        iTmax,
-        jTmin,
-        jTmax,
-        kTmin,
-        kTmax,
-        xgrid,
-        ygrid,
-        zgrid
+        density
     );
 }
 
-void CPL::md_init
+void CPL::setup_md
 (
     int& nsteps,
     int& initialstep,
     double dt,
     int icomm_grid,
-    int icoord[],
-    int npxyz_md[],
-    double globaldomain[],
+    double xyzL[],
+    double xyz_orig[],
     double density
 )
 {
-    CPLC_md_init
+    CPLC_setup_md
     (
         &nsteps,
         &initialstep,
         dt,
         icomm_grid,
-        icoord,
-        npxyz_md,
-        globaldomain,
+        xyzL,
+        xyz_orig,
         density
     );
 }
 
-
-void CPL::send
-(
-		double* asend,	
-		double* asend_shape,
-		int ndims,
-		int icmin, 
-		int icmax,
-		int jcmin, 
-		int jcmax,
-		int kcmin, 
-		int kcmax,
-		bool& send_flag
-
-)
+void CPL::send (double* asend,	double* asend_shape, int ndims, int icmin, 
+                int icmax, int jcmin, int jcmax, int kcmin, int kcmax,
+                bool& send_flag)
 {
-		CPLC_send
-		(
-				asend,	
-				asend_shape,
-				ndims,
-				icmin, 
-				icmax,
-				jcmin, 
-				jcmax,
-				kcmin, 
-				kcmax,
-				&send_flag
-		);
+		CPLC_send (asend, asend_shape, ndims, icmin, icmax, jcmin, 
+                   jcmax, kcmin, kcmax, &send_flag);
 }
 
 
-void CPL::recv
-(
-		double* arecv,	
-		double* arecv_shape,
-		int ndims,
-		int icmin, 
-		int icmax,
-		int jcmin, 
-		int jcmax,
-		int kcmin, 
-		int kcmax,
-		bool& recv_flag
-
-)
+void CPL::recv (double* arecv,	double* arecv_shape, int ndims, int icmin, 
+                int icmax, int jcmin, int jcmax, int kcmin, int kcmax,
+        		bool& recv_flag)
 {
-		CPLC_recv
-		(
-				arecv,	
-				arecv_shape,
-				ndims,
-				icmin, 
-				icmax,
-				jcmin, 
-				jcmax,
-				kcmin, 
-				kcmax,
-				&recv_flag
-		);
+    CPLC_recv (arecv, arecv_shape, ndims, icmin, icmax, jcmin, jcmax,
+               kcmin, kcmax, &recv_flag);
 }
 
-void CPL::scatter
-(
-    double* scatterarray,
-    int* scatter_shape,
-    int* limits,
-    double* recvarray,
-    int* recv_shape
-)
+void CPL::scatter (double* scatterarray, int* scatter_shape, int* limits,
+                   double* recvarray, int* recv_shape)
 {
-    CPLC_scatter
-    (
-        scatterarray,
-        scatter_shape,
-        limits,
-        recvarray,
-        recv_shape
-    );
+    CPLC_scatter (scatterarray, scatter_shape, limits, recvarray, recv_shape);
 }
 
-void CPL::gather
-(
-    double* gatherarray,
-    int* gather_shape,
-    int* limits,
-    double* recvarray,
-    int* recv_shape
-)
+void CPL::gather (double* gatherarray, int* gather_shape, int* limits,
+                  double* recvarray, int* recv_shape)
 {
-    CPLC_gather
-    (
-        gatherarray,
-        gather_shape,
-        limits,
-        recvarray,
-        recv_shape
-    );
+    CPLC_gather (gatherarray, gather_shape, limits, recvarray, recv_shape);
 }
 
-void CPL::proc_extents
-(
-    int coord[],
-    int realm,
-    int extents[]
-)
+void CPL::proc_extents (int coord[], int realm, int extents[])
 {
-    CPLC_proc_extents
-    (
-        coord,
-        realm,
-        extents
-    );
+    CPLC_proc_extents (coord, realm, extents);
 }
 
-void CPL::proc_portion
-(
-    int coord[],
-    int realm,
-    int limits[],
-    int portion[]
-)
+void CPL::my_proc_extents (int extents[])
 {
-    CPLC_proc_portion
-    (
-        coord,
-        realm,
-        limits,
-        portion
-    );
+    CPLC_my_proc_extents (extents);
 }
 
-double* CPL::map_cfd2md_global
-(
-    double r_cfd[]
-)
+void CPL::proc_portion (int coord[], int realm,
+                        int limits[], int portion[])
 {
-    return CPLC_map_cfd2md_global (r_cfd);
+    CPLC_proc_portion (coord, realm, limits, portion);
+}
+
+void CPL::my_proc_portion (int limits[], int portion[])
+{
+    CPLC_my_proc_portion (limits, portion);
+}
+
+void CPL::map_cell2coord (int i, int j, int k, double coord_xyz[])
+{
+    CPLC_map_cell2coord (i, j, k, coord_xyz);
+}
+
+bool CPL::map_coord2cell (double x, double y, double z, int cell_ijk[])
+{
+    return CPLC_map_coord2cell (x, y, z, cell_ijk);
+}
+
+void CPL::get_no_cells (int limits[], int no_cells[])
+{
+    CPLC_get_no_cells(limits, no_cells);
+}
+
+bool CPL::map_glob2loc_cell (int limits[], int glob_cell[], int loc_cell[])
+{
+    return CPLC_map_glob2loc_cell(limits, glob_cell, loc_cell);
+}
+
+void CPL::get_olap_limits (int limits[]) 
+{
+    CPLC_get_olap_limits(limits);
+}
+
+
+void CPL::get_cnst_limits (int limits[])
+{
+    CPLC_get_cnst_limits(limits);
+}
+
+bool CPL::map_cfd2md_coord (double cfd_coord[], double md_coord[])
+{
+    return CPLC_map_cfd2md_coord (cfd_coord, md_coord);
+}
+
+bool CPL::map_md2cfd_coord (double md_coord[], double cfd_coord[])
+{
+    return CPLC_map_md2cfd_coord (md_coord, cfd_coord);
 }
 
 // Setters
-void CPL::set_output_mode
-(
-    int mode
-)
+void CPL::set_output_mode (int mode)
 {
     CPLC_set_output_mode(mode);
 }

@@ -58,80 +58,62 @@ namespace CPL
     static const int cfd_realm = 1;
     static const int md_realm = 2;
 
-    void create_comm
-    (
-        int  calling_realm,
-        int& returned_realm_comm
-    );
+    void init ( int  calling_realm, int& returned_realm_comm); 
 
     // All the info (plus some, need to streamline!) from cfd for mapping
-    void cfd_init
+    void setup_cfd
     (
         int nsteps,
         double dt,
         int icomm_grid,
-        int icoord[],
-        int npxyz_cfd[],
         double xyzL[],
+        double xyz_orig[],
         int ncxyz[],
-        double density,
-        int ijkcmax[],
-        int ijkcmin[],
-        int iTmin[],
-        int iTmax[],
-        int jTmin[],
-        int jTmax[],
-        int kTmin[],
-        int kTmax[],
-        double xgrid[],
-        double ygrid[],
-        double zgrid[]
+        double density
     );
 
-    void md_init
+    void setup_md
     (
         int& nsteps,
         int& initialstep,
         double dt,
         int icomm_grid,
-        int icoord[],
-        int npxyz_md[],
-        double globaldomain[],
+        double xyzL[],
+        double xyz_orig[],
         double density
     );
 
-		void send
-		(
-				double* asend,	
-				double* asend_shape,
-				int ndims,
-				int icmin, 
-				int icmax,
-				int jcmin, 
-				int jcmax,
-				int kcmin, 
-				int kcmax,
-				bool& send_flag
 
-		);
+    void send
+    (
+        double* asend,	
+        double* asend_shape,
+        int ndims,
+        int icmin, 
+        int icmax,
+        int jcmin, 
+        int jcmax,
+        int kcmin, 
+        int kcmax,
+        bool& send_flag
 
-		void recv
-		(
-				double* arecv,	
-				double* arecv_shape,
-				int ndims,
-				int icmin, 
-				int icmax,
-				int jcmin, 
-				int jcmax,
-				int kcmin, 
-				int kcmax,
-				bool& recv_flag
+    );
 
-		);
+    void recv
+    (
+        double* arecv,	
+        double* arecv_shape,
+        int ndims,
+        int icmin, 
+        int icmax,
+        int jcmin, 
+        int jcmax,
+        int kcmin, 
+        int kcmax,
+        bool& recv_flag
 
+    );
 
-    void send();
 
     void scatter
     (
@@ -158,6 +140,11 @@ namespace CPL
         int extents[]
     );
 
+    void my_proc_extents
+    (
+        int extents[]
+    );
+
     void proc_portion
     (
         int coord[],
@@ -167,9 +154,61 @@ namespace CPL
     );
 
 
-    double* map_cfd2md_global
+    void my_proc_portion
     (
-        double r_cfd[]
+        int limits[],
+        int portion[]
+    );
+
+    void map_cell2coord
+    (
+        int i,
+        int j,
+        int k,
+        double coord_xyz[]
+    );
+
+    bool map_coord2cell
+    (
+        double x,
+        double y,
+        double z,
+        int cell_ijk[]
+    );
+
+    void get_no_cells
+    (
+        int limits[],
+        int no_cells[]
+    );
+
+    bool map_glob2loc_cell
+    (
+        int limits[],
+        int glob_cell[],
+        int loc_cell[]
+    );
+
+    void get_olap_limits
+    (
+        int limits[]
+    );
+
+    void get_cnst_limits
+    (
+        int limits[]
+    );
+
+    bool map_cfd2md_coord
+    (
+        double cfd_coord[],
+        double md_coord[]
+    );
+
+    bool map_md2cfd_coord
+    (
+        double md_coord[],
+        double cfd_coord[]
     );
 
     void set_output_mode
@@ -202,9 +241,6 @@ namespace CPL
         if (name == "dx") fp = reinterpret_cast<T(*)()> (&CPLC_dx);
         if (name == "dy") fp = reinterpret_cast<T(*)()> (&CPLC_dy);
         if (name == "dz") fp = reinterpret_cast<T(*)()> (&CPLC_dz);
-        if (name == "xg") fp = reinterpret_cast<T(*)()> (&CPLC_xg);
-        if (name == "yg") fp = reinterpret_cast<T(*)()> (&CPLC_yg);
-        if (name == "zg") fp = reinterpret_cast<T(*)()> (&CPLC_zg);
         if (name == "comm_style") fp = reinterpret_cast<T(*)()> (&CPLC_comm_style); 
         if (name == "comm_style_gath_scat") fp = reinterpret_cast<T(*)()> (&CPLC_comm_style_gath_scat); 
         if (name == "comm_style_send_recv") fp = reinterpret_cast<T(*)()> (&CPLC_comm_style_send_recv); 

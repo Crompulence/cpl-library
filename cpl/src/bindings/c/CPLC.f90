@@ -60,9 +60,9 @@ contains
 
 
 
-    subroutine CPLC_create_comm(calling_realm, returned_realm_comm) &
-        bind (C, name="CPLC_create_comm")
-        use CPL, only: CPL_create_comm
+    subroutine CPLC_init(calling_realm, returned_realm_comm) &
+        bind (C, name="CPLC_init")
+        use CPL, only: CPL_init
         implicit none
         
         integer(C_INT), value :: calling_realm
@@ -70,14 +70,45 @@ contains
         
         integer :: ierror
 
-        call CPL_create_comm(calling_realm, returned_realm_comm, ierror)
+        call CPL_init(calling_realm, returned_realm_comm, ierror)
 
-    end subroutine CPLC_create_comm
-
-
+    end subroutine CPLC_init
 
 
-    subroutine CPLC_cfd_init(nsteps, dt, icomm_grid, icoord, npxyz_cfd, xyzL, &
+
+    subroutine CPLC_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density) &
+        bind (C, name="CPLC_setup_cfd")
+        use CPL, only: CPL_setup_cfd
+        implicit none
+
+        ! Integers
+        integer(C_INT), value :: nsteps
+        integer(C_INT), value :: icomm_grid
+        type(C_PTR), value :: ncxyz ! (3)
+
+        ! Reals
+        real(C_DOUBLE), value :: dt
+        real(C_DOUBLE), value :: density
+        type(C_PTR), value :: xyzL, xyz_orig ! (3)
+
+        ! Fortran equivalent array pointers
+        integer, dimension(:), pointer :: ncxyz_f
+        real(kind(0.d0)), dimension(:), pointer :: xyzL_f, xyz_orig_f
+
+        ! Integers
+        call C_F_POINTER(ncxyz, ncxyz_f, [3])
+
+        ! Reals
+        call C_F_POINTER(xyzL, xyzL_f, [3])
+        call C_F_POINTER(xyz_orig, xyz_orig_f, [3])
+
+        call CPL_setup_cfd(nsteps, dt, icomm_grid, xyzL_f, xyz_orig_f, ncxyz_f, density)
+
+
+    end subroutine CPLC_setup_cfd
+
+
+    subroutine CPLC_cfd_init(nsteps, dt, icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, &
                              ncxyz, density, ijkcmax, ijkcmin, iTmin, iTmax,  &
                              jTmin, jTmax, kTmin, kTmax, xgrid, ygrid, zgrid) &
         bind (C, name="CPLC_cfd_init")
@@ -100,6 +131,7 @@ contains
         real(C_DOUBLE), value :: dt
         real(C_DOUBLE), value :: density
         type(C_PTR), value :: xyzL ! (3)
+        type(C_PTR), value :: xyz_orig ! (3)
         type(C_PTR), value :: xgrid, ygrid ! (ncx, ncy)
         type(C_PTR), value :: zgrid ! (ncz)
 
@@ -111,6 +143,7 @@ contains
         integer, dimension(:), pointer :: kTmin_f, kTmax_f
         integer, dimension(:,:), pointer :: icoord_f
         real(kind(0.d0)), dimension(:), pointer :: xyzL_f
+        real(kind(0.d0)), dimension(:), pointer :: xyz_orig_f
         real(kind(0.d0)), dimension(:), pointer :: zgrid_f
         real(kind(0.d0)), dimension(:,:), pointer :: xgrid_f, ygrid_f
 
@@ -146,13 +179,14 @@ contains
 
         ! Reals
         call C_F_POINTER(xyzL, xyzL_f, [3])
+        call C_F_POINTER(xyz_orig, xyz_orig_f, [3])
         call C_F_POINTER(xgrid, xgrid_f, [ncx+1, ncy+1])
         call C_F_POINTER(ygrid, ygrid_f, [ncx+1, ncy+1])
         call C_F_POINTER(zgrid, zgrid_f, [ncz+1])
 
         ! Call the old routine
         call coupler_cfd_init(nsteps, dt, icomm_grid, icoord_f, npxyz_cfd_f,  &
-                              xyzL_f, ncxyz_f, density, ijkcmax_f, ijkcmin_f, &
+                              xyzL_f, xyz_orig_f, ncxyz_f, density, ijkcmax_f, ijkcmin_f, &
                               iTmin_f, iTmax_f, jTmin_f, jTmax_f, kTmin_f,    &
                               kTmax_f, xgrid_f, ygrid_f, zgrid_f)
 
@@ -221,8 +255,40 @@ contains
        !call CPL_test_python()
     end subroutine CPLC_test_python
 
+
+    subroutine CPLC_setup_md(nsteps, initialstep, dt, icomm_grid, &
+                             xyzL, xyz_orig, density) &
+        bind(C, name="CPLC_setup_md")
+        use CPL, only: CPL_setup_md
+        implicit none
+
+        ! Integers
+        integer(C_INT) :: nsteps ! NOT by value, will be modified
+        integer(C_INT) :: initialstep ! NOT by value, will be modified
+        integer(C_INT), value :: icomm_grid
+       
+        ! Reals
+        real(C_DOUBLE), value :: dt
+        real(C_DOUBLE), value :: density
+        type(C_PTR), value :: xyzL, xyz_orig! (3)
+
+        ! Fortran equivalent arrays
+        real(kind(0.d0)), dimension(:), pointer :: xyzL_f, xyz_orig_f
+
+        ! C -> Fortran array pointer type conversions
+        call C_F_POINTER(xyzL, xyzL_f, [3])
+        call C_F_POINTER(xyz_orig, xyz_orig_f, [3])
+
+        ! Call routine
+        call CPL_setup_md(nsteps, initialstep, dt, icomm_grid, xyzL_f, xyz_orig_f, &
+                          density)
+    
+        
+    end subroutine CPLC_setup_md
+
+
     subroutine CPLC_md_init(nsteps, initialstep, dt, icomm_grid, icoord, &
-                            npxyz_md, globaldomain, density) &
+                            npxyz_md, globaldomain, xyz_orig, density) &
         bind(C, name="CPLC_md_init")
         use CPL, only: coupler_md_init
         implicit none
@@ -238,11 +304,13 @@ contains
         real(C_DOUBLE), value :: dt
         real(C_DOUBLE), value :: density
         type(C_PTR), value :: globaldomain ! (3)
+        type(C_PTR), value :: xyz_orig! (3)
 
         ! Fortran equivalent arrays
         integer, dimension(:), pointer :: npxyz_md_f
         integer, dimension(:,:), pointer :: icoord_f
         real(kind(0.d0)), dimension(:), pointer :: globaldomain_f
+        real(kind(0.d0)), dimension(:), pointer :: xyz_orig_f 
 
         ! Other function internals
         integer :: nprocs
@@ -250,6 +318,7 @@ contains
         ! C -> Fortran array pointer type conversions
         call C_F_POINTER(npxyz_md, npxyz_md_f, [3])
         call C_F_POINTER(globaldomain, globaldomain_f, [3])
+        call C_F_POINTER(xyz_orig, xyz_orig_f, [3])
 
         ! Store convenience variables
         nprocs = npxyz_md_f(1)*npxyz_md_f(2)*npxyz_md_f(3)
@@ -259,11 +328,9 @@ contains
 
         ! Call routine
         call coupler_md_init(nsteps, initialstep, dt, icomm_grid, icoord_f, &
-                             npxyz_md_f, globaldomain_f, density)
+                             npxyz_md_f, globaldomain_f, xyz_orig_f, density)
     
     end subroutine CPLC_md_init
-
-
 
 
     subroutine CPLC_send(asend, asend_shape, ndims, icmax, icmin, jcmax, &
@@ -309,7 +376,7 @@ contains
           s3 = asend_shape_f(3) 
           s4 = asend_shape_f(4) 
           call C_F_POINTER(asend, asend4D_f, [s1, s2, s3, s4])
-          call CPL_send(asend4D_f, icmax, icmin, jcmax, jcmin, kcmax, kcmin)
+          call CPL_send(asend4D_f, icmax + 1, icmin + 1, jcmax + 1, jcmin + 1, kcmax + 1, kcmin + 1)
         else
           print*, "Error in CPLC_send -- only 3 and 4 is allowed for ndims."
         end if
@@ -361,7 +428,7 @@ contains
           s3 = arecv_shape_f(3) 
           s4 = arecv_shape_f(4) 
           call C_F_POINTER(arecv, arecv4D_f, [s1, s2, s3, s4])
-          call CPL_recv(arecv4D_f, icmax, icmin, jcmax, jcmin, kcmax, kcmin)
+          call CPL_recv(arecv4D_f, icmax + 1, icmin + 1, jcmax + 1, jcmin + 1, kcmax + 1, kcmin + 1)
         else
           print*, "Error only 3 and 4 is allowed for ndims."
         end if
@@ -423,8 +490,14 @@ contains
         call C_F_POINTER(scatterarray, scatterarray_f, [sn, sx, sy, sz])
         call C_F_POINTER(recvarray, recvarray_f, [rn, rx, ry, rz])
 
+        limits_f = limits_f + 1
+
         ! Library call
         call CPL_scatter(scatterarray_f, sn, limits_f, recvarray_f)
+
+        limits_f = limits_f - 1
+
+
 
     end subroutine CPLC_scatter
 
@@ -477,8 +550,12 @@ contains
         call C_F_POINTER(gatherarray, gatherarray_f, [gn, gx, gy, gz])
         call C_F_POINTER(recvarray, recvarray_f, [rn, rx, ry, rz])
 
+        limits_f = limits_f + 1
+
         ! Library call
         call CPL_gather(gatherarray_f, rn, limits_f, recvarray_f)
+
+        limits_f = limits_f - 1
 
 
     end subroutine CPLC_gather
@@ -502,11 +579,32 @@ contains
         call C_F_POINTER(coord, coord_f, [3])
         call C_F_POINTER(extents, extents_f, [6])
 
+        coord_f = coord_f + 1
+
         call CPL_proc_extents(coord_f, realm, extents_f)
+
+        coord_f = coord_f - 1
+        extents_f = extents_f - 1;
 
     end subroutine CPLC_proc_extents
 
+    subroutine CPLC_my_proc_extents(extents) &
+        bind(C, name="CPLC_my_proc_extents")
+        use CPL, only: CPL_my_proc_extents
+        
+        ! Inputs
+        type(C_PTR), value :: extents! (6)
 
+        ! Fortran equivalent arrays
+        integer, dimension(:), pointer :: extents_f
+
+        call C_F_POINTER(extents, extents_f, [6])
+
+        call CPL_my_proc_extents(extents_f)
+
+        extents_f = extents_f - 1;
+
+    end subroutine CPLC_my_proc_extents
 
 
     subroutine CPLC_proc_portion(coord, realm, limits, portion) &
@@ -528,40 +626,212 @@ contains
         call C_F_POINTER(limits, limits_f, [6])
         call C_F_POINTER(portion, portion_f, [6])
 
+
+        coord_f = coord_f + 1
+        limits_f = limits_f + 1
+
+
         call CPL_proc_portion(coord_f, realm, limits_f, portion_f)
+
+        portion_f = portion_f - 1;
+        coord_f = coord_f - 1
+        limits_f = limits_f - 1
 
     end subroutine CPLC_proc_portion
 
 
+    subroutine CPLC_my_proc_portion(limits, portion) &
+        bind(C, name="CPLC_my_proc_portion")
+        use CPL, only: CPL_my_proc_portion
+        
+        ! Inputs
+        type(C_PTR), value :: limits ! (6)
+        type(C_PTR), value :: portion ! (6)
+
+        ! Fortran equivalent arrays
+        integer, dimension(:), pointer :: limits_f
+        integer, dimension(:), pointer :: portion_f
+
+        call C_F_POINTER(limits, limits_f, [6])
+        call C_F_POINTER(portion, portion_f, [6])
+
+        limits_f = limits_f + 1
+
+        call CPL_my_proc_portion(limits_f, portion_f)
+
+        portion_f = portion_f - 1;
+        limits_f = limits_f - 1
+
+    end subroutine CPLC_my_proc_portion
 
 
-    type(C_PTR) function CPLC_map_cfd2md_global(r_cfd) &
-        bind(C, name="CPLC_map_cfd2md_global")
-        use CPL, only: map_cfd2md_global
+    logical(C_BOOL) function CPLC_map_cfd2md_coord(coord_cfd, coord_md) &
+        bind(C, name="CPLC_map_cfd2md_coord")
+        use CPL, only: CPL_map_cfd2md_coord
     
         ! Input position
-        type(C_PTR), value :: r_cfd ! (3)
+        type(C_PTR), value :: coord_cfd ! (3)
+        type(C_PTR), value :: coord_md ! (3)
        
         ! Fortran equivalent array
-        real(kind(0.d0)), dimension(:), pointer :: r_cfd_f
+        real(kind(0.d0)), dimension(:), pointer :: coord_cfd_f
+        real(kind(0.d0)), dimension(:), pointer :: coord_md_f
        
-        ! Output position
-        real(C_DOUBLE), dimension(:), pointer :: r_md_f
+        call C_F_POINTER(coord_cfd, coord_cfd_f, [3])
+        call C_F_POINTER(coord_md, coord_md_f, [3])
 
-        call C_F_POINTER(r_cfd, r_cfd_f, [3])
+        CPLC_map_cfd2md_coord = CPL_map_cfd2md_coord(coord_cfd_f, coord_md_f)
 
-        ! Allocate array but DON'T deallocate, otherwise data
-        ! will be nullified and the calling C program will just
-        ! get undefined values 
-        allocate(r_md_f(3)) 
+    end function CPLC_map_cfd2md_coord
+    
+    logical(C_BOOL) function CPLC_map_md2cfd_coord(coord_md, coord_cfd) &
+        bind(C, name="CPLC_map_md2cfd_coord")
+        use CPL, only: CPL_map_md2cfd_coord
+    
+        ! Input position
+        type(C_PTR), value :: coord_cfd ! (3)
+        type(C_PTR), value :: coord_md ! (3)
+       
+        ! Fortran equivalent array
+        real(kind(0.d0)), dimension(:), pointer :: coord_cfd_f
+        real(kind(0.d0)), dimension(:), pointer :: coord_md_f
+       
+        call C_F_POINTER(coord_cfd, coord_cfd_f, [3])
+        call C_F_POINTER(coord_md, coord_md_f, [3])
 
-        r_md_f = map_cfd2md_global(r_cfd_f)
+        CPLC_map_md2cfd_coord = CPL_map_md2cfd_coord(coord_md_f, coord_cfd_f)
 
-        CPLC_map_cfd2md_global = C_LOC(r_md_f(1))
+    end function CPLC_map_md2cfd_coord
+ 
 
-    end function CPLC_map_cfd2md_global
-     
+    subroutine CPLC_map_cell2coord(i, j, k, coord_xyz) &
+        bind(C, name="CPLC_map_cell2coord")
+        use CPL, only: CPL_map_cell2coord
+    
+        ! Input position
+        integer, value :: i, j, k
+        type(C_PTR), value :: coord_xyz ! (3)
+       
+        ! Fortran equivalent array
+        real(kind(0.d0)), dimension(:), pointer :: coord_xyz_f
+       
+        call C_F_POINTER(coord_xyz, coord_xyz_f, [3])
+        
+        call CPL_map_cell2coord(i + 1, j + 1, k + 1, coord_xyz_f)
+        
+    end subroutine CPLC_map_cell2coord
 
+
+    logical(C_BOOL) function CPLC_map_coord2cell(x, y, z, cell_ijk) &
+        bind(C, name="CPLC_map_coord2cell")
+        use CPL, only: CPL_map_coord2cell
+    
+        ! Input position
+        real(kind(0.d0)), value :: x, y, z
+        type(C_PTR), value :: cell_ijk ! (3)
+       
+        ! Fortran equivalent array
+        integer, dimension(:), pointer :: cell_ijk_f
+       
+        call C_F_POINTER(cell_ijk, cell_ijk_f, [3])
+       
+        CPLC_map_coord2cell = CPL_map_coord2cell(x, y, z, cell_ijk_f)
+
+        cell_ijk_f = cell_ijk_f - 1
+        
+    end function CPLC_map_coord2cell
+    
+
+    subroutine CPLC_get_no_cells(limits, no_cells) &
+        bind(C, name="CPLC_get_no_cells")
+        use CPL, only: CPL_get_no_cells
+    
+        ! Input position
+        type(C_PTR), value :: limits ! (6)
+        type(C_PTR), value :: no_cells ! (3)
+       
+        ! Fortran equivalent array
+        integer, dimension(:), pointer :: limits_f
+        integer, dimension(:), pointer :: no_cells_f
+       
+        call C_F_POINTER(limits, limits_f, [6])
+        call C_F_POINTER(no_cells, no_cells_f, [3])
+
+        limits_f = limits_f + 1
+
+        call CPL_get_no_cells(limits_f, no_cells_f)
+
+        limits_f = limits_f - 1
+
+    end subroutine CPLC_get_no_cells
+
+    logical(C_BOOL) function CPLC_map_glob2loc_cell(limits, glob_cell, loc_cell) &
+        bind(C, name="CPLC_map_glob2loc_cell")
+        use CPL, only: CPL_map_glob2loc_cell
+    
+        ! Input position
+        type(C_PTR), value :: limits ! (6)
+        type(C_PTR), value :: glob_cell, loc_cell ! (3)
+       
+        ! Fortran equivalent array
+        integer, dimension(:), pointer :: limits_f
+        integer, dimension(:), pointer :: glob_cell_f, loc_cell_f
+       
+        call C_F_POINTER(limits, limits_f, [6])
+        call C_F_POINTER(glob_cell, glob_cell_f, [3])
+        call C_F_POINTER(loc_cell, loc_cell_f, [3])
+
+        limits_f = limits_f + 1
+        glob_cell_f = glob_cell_f + 1
+
+        CPLC_map_glob2loc_cell = CPL_map_glob2loc_cell(limits_f, glob_cell_f, loc_cell_f)
+
+        limits_f = limits_f - 1
+        glob_cell_f = glob_cell_f - 1
+        loc_cell_f = loc_cell_f - 1
+
+    end function CPLC_map_glob2loc_cell
+   
+
+    subroutine CPLC_get_olap_limits(limits) &
+        bind(C, name="CPLC_get_olap_limits")
+        use CPL, only: CPL_get_olap_limits
+    
+        ! Input position
+        type(C_PTR), value :: limits ! (6)
+       
+        ! Fortran equivalent array
+        integer, dimension(:), pointer :: limits_f
+       
+        call C_F_POINTER(limits, limits_f, [6])
+
+
+        call CPL_get_olap_limits(limits_f)
+
+        limits_f = limits_f - 1
+
+    end subroutine CPLC_get_olap_limits
+   
+
+    subroutine CPLC_get_cnst_limits(limits) &
+        bind(C, name="CPLC_get_cnst_limits")
+        use CPL, only: CPL_get_cnst_limits
+    
+        ! Input position
+        type(C_PTR), value :: limits ! (6)
+       
+        ! Fortran equivalent array
+        integer, dimension(:), pointer :: limits_f
+       
+        call C_F_POINTER(limits, limits_f, [6])
+
+        call CPL_get_cnst_limits(limits_f)
+
+        limits_f = limits_f - 1
+
+    end subroutine CPLC_get_cnst_limits
+    
+   
     ! Setters:
 
     subroutine CPLC_set_output_mode(mode) &
@@ -573,6 +843,7 @@ contains
         call set_output_mode(mode)
         
     end subroutine CPLC_set_output_mode
+
 
     ! Getters: integers
 
@@ -664,7 +935,7 @@ contains
         use CPL, only: icmin_olap
         implicit none
 
-        CPLC_icmin_olap = icmin_olap
+        CPLC_icmin_olap = icmin_olap - 1
         
     end function CPLC_icmin_olap
 
@@ -673,7 +944,7 @@ contains
         use CPL, only: jcmin_olap
         implicit none
 
-        CPLC_jcmin_olap = jcmin_olap
+        CPLC_jcmin_olap = jcmin_olap - 1
         
     end function CPLC_jcmin_olap
 
@@ -682,7 +953,7 @@ contains
         use CPL, only: kcmin_olap
         implicit none
 
-        CPLC_kcmin_olap = kcmin_olap
+        CPLC_kcmin_olap = kcmin_olap - 1
         
     end function CPLC_kcmin_olap
 
@@ -691,7 +962,7 @@ contains
         use CPL, only: icmax_olap
         implicit none
 
-        CPLC_icmax_olap = icmax_olap
+        CPLC_icmax_olap = icmax_olap - 1
         
     end function CPLC_icmax_olap
 
@@ -700,7 +971,7 @@ contains
         use CPL, only: jcmax_olap
         implicit none
 
-        CPLC_jcmax_olap = jcmax_olap
+        CPLC_jcmax_olap = jcmax_olap - 1
         
     end function CPLC_jcmax_olap
 
@@ -709,7 +980,7 @@ contains
         use CPL, only: kcmax_olap
         implicit none
 
-        CPLC_kcmax_olap = kcmax_olap
+        CPLC_kcmax_olap = kcmax_olap - 1
         
     end function CPLC_kcmax_olap
 
@@ -718,7 +989,7 @@ contains
         use CPL, only: icmin_cnst
         implicit none
 
-        CPLC_icmin_cnst = icmin_cnst
+        CPLC_icmin_cnst = icmin_cnst - 1
         
     end function CPLC_icmin_cnst
 
@@ -727,7 +998,7 @@ contains
         use CPL, only: jcmin_cnst
         implicit none
 
-        CPLC_jcmin_cnst = jcmin_cnst
+        CPLC_jcmin_cnst = jcmin_cnst - 1
         
     end function CPLC_jcmin_cnst
 
@@ -736,7 +1007,7 @@ contains
         use CPL, only: kcmin_cnst
         implicit none
 
-        CPLC_kcmin_cnst = kcmin_cnst
+        CPLC_kcmin_cnst = kcmin_cnst - 1
         
     end function CPLC_kcmin_cnst
 
@@ -745,7 +1016,7 @@ contains
         use CPL, only: icmax_cnst
         implicit none
 
-        CPLC_icmax_cnst = icmax_cnst
+        CPLC_icmax_cnst = icmax_cnst - 1
         
     end function CPLC_icmax_cnst
 
@@ -754,7 +1025,7 @@ contains
         use CPL, only: jcmax_cnst
         implicit none
 
-        CPLC_jcmax_cnst = jcmax_cnst
+        CPLC_jcmax_cnst = jcmax_cnst - 1
         
     end function CPLC_jcmax_cnst
 
@@ -763,7 +1034,7 @@ contains
         use CPL, only: kcmax_cnst
         implicit none
 
-        CPLC_kcmax_cnst = kcmax_cnst
+        CPLC_kcmax_cnst = kcmax_cnst - 1
         
     end function CPLC_kcmax_cnst
 
@@ -848,19 +1119,6 @@ contains
         
     end function CPLC_comm_style_send_recv
 
-
-    integer(C_INT) function CPLC_overlap() &
-        bind(C, name="CPLC_overlap")
-        use CPL, only: CPL_overlap
-        implicit none
-
-        if (CPL_overlap()) then 
-            CPLC_overlap = 1
-        else
-            CPLC_overlap = 0
-        endif
-        
-    end function CPLC_overlap
 
     !Getters: doubles
 

@@ -1,5 +1,0 @@
-[IMPROVEMENTS]
-
-- Define an enviroment variable with the path to the header output file
-- Check memmory allocation success (boring but necessary to avoid unexpected segfault errors)
-

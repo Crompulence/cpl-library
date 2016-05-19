@@ -1,48 +1,53 @@
+from __future__ import print_function, division
 from ctypes import c_int, c_double, c_bool, c_void_p, byref, POINTER, util
 import ctypes
 from mpi4py import MPI
 import numpy as np
 from numpy.ctypeslib import ndpointer, load_library
-import os
+from functools import wraps
+import os, time
 
 
-__all__ = ["CPL", "create_CPL_cart_3Dgrid", "cart_create",
-           "get_olap_limits", "toCPLArray"]
+__all__ = ["CPL", "cart_create"]
 
 
 # TODO: Raise exception of library not loaded
 _loaded = False
 
-
 # All Python types except integers, strings, and unicode strings have to be
 # wrapped in their corresponding ctypes type, so that they can be converted
 # to the required C
 
-_CPL_GET_VARS = {"icmin_olap": c_int,
-                 "jcmin_olap": c_int,
-                 "kcmin_olap": c_int,
-                 "icmax_olap": c_int,
-                 "jcmax_olap": c_int,
-                 "kcmax_olap": c_int,
-                 "ncx": c_int,
-                 "ncy": c_int,
-                 "ncz": c_int,
-                 "npx_md": c_int,
-                 "npy_md": c_int,
-                 "npz_md": c_int,
-                 "npx_cfd": c_int,
-                 "npy_cfd": c_int,
-                 "npz_cfd": c_int,
-                 "overlap": c_int,
-                 "xl_md": c_double,
-                 "yl_md": c_double,
-                 "zl_md": c_double,
-                 "xl_cfd": c_double,
-                 "yl_cfd": c_double,
+_CPL_GET_VARS = {"icmin_olap": c_int, "jcmin_olap": c_int, "kcmin_olap": c_int,
+                 "icmax_olap": c_int, "jcmax_olap": c_int, "kcmax_olap": c_int,
+                 "icmin_cnst": c_int, "jcmin_cnst": c_int, "kcmin_cnst": c_int,
+                 "icmax_cnst": c_int, "jcmax_cnst": c_int, "kcmax_cnst": c_int,
+                 "ncx": c_int, "ncy": c_int, "ncz": c_int,
+                 "npx_md": c_int, "npy_md": c_int, "npz_md": c_int,
+                 "npx_cfd": c_int, "npy_cfd": c_int, "npz_cfd": c_int,
+                 "overlap": c_int, "xl_md": c_double, "yl_md": c_double,
+                 "zl_md": c_double, "xl_cfd": c_double, "yl_cfd": c_double,
                  "zl_cfd": c_double}
 
 _CPL_SET_VARS = {"output_mode": c_int}
 
+# Decorator to abort all processes if an exception is thrown. This
+# avoids getting blocked when the exception do not occurs in every
+# process.
+def abortMPI(func):
+    @wraps(func)
+    def handleExcepts(self, *args, **kwargs):
+        retval = None
+        try:
+            retval = func(self, *args, **kwargs)
+        except Exception as e:
+            print (e)
+            # Dirty workaround to let the output be printed.
+            time.sleep(2)
+            MPI.COMM_WORLD.Abort(errorcode=1)
+        else:
+            return retval
+    return handleExcepts
 
 class CPL:
     # Shared attribute containing the library
@@ -53,39 +58,47 @@ class CPL:
     NULL_REALM = 0
     _libname = "libcpl"
     _lib_path = os.environ.get("CPL_LIBRARY_PATH")
-    #Try using CPL_LIBRARY_PATH and if not look 
-    #in system path (or ctype path)
+    # Try using CPL_LIBRARY_PATH and if not look
+    # in system path (or ctype path)
     try:
         _cpl_lib = load_library(_libname, _lib_path)
-    except OSError:
-        print("WARNING - "+ _libname +" not found under path specified by CPL_LIBRARY_PATH variable: "+ _lib_path)
+    except OSError as e:
+        print("OSError: ", e)
+        print("WARNING - " + _libname + " not found under path specified by \
+              CPL_LIBRARY_PATH variable: " + _lib_path)
         print("Attempting to find system version")
         _lib_path = util.find_library(_libname)
     # If not found, try to look around the current directory system
     # for the library
-    try:
-        _cpl_lib = load_library(_libname, _lib_path)
-    except OSError:
-        print("WARNING - "+ _libname +" not found in system path or $CPL_LIBRARY_PATH: "+ _lib_path)
-        print("Attempting to search current folder system")
-        trydir = ''; Found=False
-        for level in range(10):
-            if not Found:
-                trydir += "../"
-            for root, dirs, files in os.walk(trydir):
-                print(level,trydir,root)
-                if "libcpl.so" in files:
-                    print("A version of "+ _libname +" is found under path: "+ root + ". Attempting to use this..")
-                    Found=True
-                    _lib_path = root
-                    break
-
-        #Note this is a security issue, maybe better to inform the user here?
-        if found:
+    else:
+        try:
             _cpl_lib = load_library(_libname, _lib_path)
-        else:
-            print(_libname +" not found, please ensure you have compiled correctly")
-            print( " and set CPL_LIBRARY_PATH to its location" )
+        except OSError:
+            print("WARNING - " + _libname + " not found in system path or \
+                  $CPL_LIBRARY_PATH: " + _lib_path)
+            print("Attempting to search current folder system")
+            trydir = ''
+            found = False
+            for level in range(10):
+                if not found:
+                    trydir += "../"
+                for root, dirs, files in os.walk(trydir):
+                    print(level, trydir, root)
+                    if "libcpl.so" in files:
+                        print("A version of " + _libname + " is found under \
+                              path: " + root + ". Attempting to use this..")
+                        found = True
+                        _lib_path = root
+                        break
+
+            if found:
+                _cpl_lib = load_library(_libname, _lib_path)
+            else:
+                print(_libname + " not found, please ensure you have \
+                      compiled correctly")
+                print(" and set CPL_LIBRARY_PATH appropitely")
+                time.sleep(2)
+                MPI.COMM_WORLD.Abort(errorcode=1)
 
     def __init__(self):
         pass
@@ -101,122 +114,87 @@ class CPL:
          ndpointer(np.int32, shape=(2,), flags='aligned, f_contiguous'),
          ndpointer(np.int32, shape=(2,), flags='aligned, f_contiguous')]
 
+    @abortMPI
     def test_python(self, int_p, doub_p, bool_p, int_pptr, doub_pptr):
         int_pptr_dims = np.array(int_pptr.shape, order='F', dtype=np.int32)
         doub_pptr_dims = np.array(doub_pptr.shape, order='F', dtype=np.int32)
         self.py_test_python(int_p, doub_p, bool_p, int_pptr, doub_pptr,
                             int_pptr_dims, doub_pptr_dims)
 
-    _py_create_comm = _cpl_lib.CPLC_create_comm
-    _py_create_comm.argtypes = [c_int, POINTER(c_int)]
+    _py_init = _cpl_lib.CPLC_init
+    _py_init.argtypes = [c_int, POINTER(c_int)]
 
-    def create_comm(self, calling_realm):
+    @abortMPI
+    def init(self, calling_realm):
 
-        #Call create comm
+        # Call create comm
         returned_realm_comm = c_int()
-        self._py_create_comm(calling_realm, byref(returned_realm_comm))
+        self._py_init(calling_realm, byref(returned_realm_comm))
 
-        # build a communicator mpi4py python object from the
-        # handle returned by the CPL_create_comm function.
-        if MPI._sizeof(MPI.Comm) == ctypes.sizeof(c_int): 
-            MPI_Comm = c_int 
-        else: 
-            MPI_Comm = c_void_p 
+        # Build a communicator mpi4py python object from the
+        # handle returned by the CPL_init function.
+        if MPI._sizeof(MPI.Comm) == ctypes.sizeof(c_int):
+            MPI_Comm = c_int
+        else:
+            MPI_Comm = c_void_p
 
         # Use an intracomm object as the template and override value
         newcomm = MPI.Intracomm()
-        newcomm_ptr = MPI._addressof(newcomm) 
+        newcomm_ptr = MPI._addressof(newcomm)
         comm_val = MPI_Comm.from_address(newcomm_ptr)
         comm_val.value = returned_realm_comm.value
 
         return newcomm
 
-    py_cfd_init = _cpl_lib.CPLC_cfd_init
 
-    py_cfd_init.argtypes = \
+    py_setup_cfd = _cpl_lib.CPLC_setup_cfd
+
+    py_setup_cfd.argtypes = \
         [c_int,
          c_double,
          c_int,
-         ndpointer(np.int32, ndim=2, flags='aligned, f_contiguous'),
+         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
+         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
          ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),
-         ndpointer(np.float64, shape=(3), flags='aligned, f_contiguous'),
-         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),
-         c_double,
-         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),
-         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),
-         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
-         ndpointer(np.float64, ndim=2, flags='aligned, f_contiguous'),
-         ndpointer(np.float64, ndim=2, flags='aligned, f_contiguous'),
-         ndpointer(np.float64, ndim=1, flags='aligned, f_contiguous')]
+         c_double]
 
-    def cfd_init(self, nsteps, dt, icomm_grid, icoord, npxyz_cfd, xyzL, ncxyz,
-                 density, ijkcmax, ijkcmin, iTmin, iTmax, jTmin, jTmax, kTmin,
-                 kTmax, xgrid, ygrid, zgrid):
+    @abortMPI
+    def setup_cfd(self, nsteps, dt, icomm_grid, xyzL, xyz_orig,
+                  ncxyz, density):
+        """
+        Keyword arguments:
+        real -- the real part (default 0.0)
+        imag -- the imaginary part (default 0.0)
+        """
 
-        self.py_cfd_init(nsteps, dt, MPI._handleof(icomm_grid), icoord,
-                         npxyz_cfd, xyzL, ncxyz, density, ijkcmax, ijkcmin,
-                         iTmin, iTmax, jTmin, jTmax, kTmin, kTmax, xgrid,
-                         ygrid, zgrid)
+        self.py_setup_cfd(nsteps, dt, MPI._handleof(icomm_grid), xyzL,
+                          xyz_orig, ncxyz, density)
 
-    py_md_init = _cpl_lib.CPLC_md_init
 
-    py_md_init.argtypes = \
+    py_setup_md = _cpl_lib.CPLC_setup_md
+
+    py_setup_md.argtypes = \
         [POINTER(c_int),
          POINTER(c_int),
          c_double,
          c_int,
-         ndpointer(np.int32, ndim=2, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),
-         ndpointer(np.float64, ndim=1, flags='aligned, f_contiguous'),
+         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
+         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
          c_double]
 
-    def md_init(self, dt, icom_grid, icoord, npxyz_md, global_domain,
-                density=1.0):
+    @abortMPI
+    def setup_md(self, dt, icom_grid, xyzL, xyz_orig, density=1.0):
+        """
+        setup_md(self, dt, icom_grid, xyzL, xyz_orig, density=1.0)
+        Keyword arguments:
+        real -- the real part (default 0.0)
+        imag -- the imaginary part (default 0.0)
+        """
         nsteps = c_int()
         initialstep = c_int()
-        self.py_md_init(byref(nsteps), byref(initialstep), dt,
-                        MPI._handleof(icom_grid), icoord, npxyz_md,
-                        global_domain, density)
+        self.py_setup_md(byref(nsteps), byref(initialstep), dt,
+                         MPI._handleof(icom_grid), xyzL, xyz_orig, density)
         return (nsteps.value, initialstep.value)
-
-    def get(self, var_name):
-        try:
-            var_type = _CPL_GET_VARS[var_name]
-            fun = getattr(self._cpl_lib, "CPLC_" + var_name)
-        except KeyError:
-            print "CPL-ERROR: CPL Library function '" + \
-                  str(var_name) + "' not found!"
-        else:
-            fun.restype = var_type
-            return fun()
-
-    def set(self, var_name, value):
-        try:
-            var_type = _CPL_SET_VARS[var_name]
-            fun = getattr(self._cpl_lib, "CPLC_set_" + var_name)
-        except KeyError:
-            print "CPL-ERROR: CPL Library function '" + \
-                  str(var_name) + "' not found!"
-            # Raise Function not found
-        else:
-            fun.argtypes = [var_type]
-            return fun(var_type(value))
-
-    def _type_check(self, A):
-        if type(A) is list:
-            A = np.array(A)
-        if not A.flags["F_CONTIGUOUS"]:
-            A = np.require(A, requirements=['F'])
-        if not A.flags["ALIGNED"]:
-            A = np.require(A, requirements=['A'])
-        #if (len(A.shape) != 4):
-        #    raise 
-        return A
 
     py_gather = _cpl_lib.CPLC_gather
 
@@ -227,6 +205,7 @@ class CPL:
          ndpointer(np.float64, flags='aligned, f_contiguous'),
          ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous')]
 
+    @abortMPI
     def gather(self, gather_array, limits, recv_array):
         gather_array = self._type_check(gather_array)
         recv_array = self._type_check(recv_array)
@@ -244,6 +223,7 @@ class CPL:
          ndpointer(np.float64, flags='aligned, f_contiguous'),
          ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous')]
 
+    @abortMPI
     def scatter(self, scatter_array, limits, recv_array):
         scatter_array = self._type_check(scatter_array)
         recv_array = self._type_check(recv_array)
@@ -260,10 +240,21 @@ class CPL:
          c_int,
          ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
 
+    @abortMPI
     def proc_extents(self, coord, realm):
         coord = self._type_check(coord)
         extents = np.zeros(6, order='F', dtype=np.int32)
         self.py_proc_extents(coord, realm, extents)
+        return extents
+
+    py_my_proc_extents = _cpl_lib.CPLC_my_proc_extents
+    py_my_proc_extents.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def my_proc_extents(self):
+        extents = np.zeros(6, order='F', dtype=np.int32)
+        self.py_my_proc_extents(extents)
         return extents
 
     py_proc_portion = _cpl_lib.CPLC_proc_portion
@@ -273,11 +264,117 @@ class CPL:
          ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
          ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
 
+    @abortMPI
     def proc_portion(self, coord, realm, limits):
         coord = self._type_check(coord)
+        limits = self._type_check(limits)
         portion = np.zeros(6, order='F', dtype=np.int32)
         self.py_proc_portion(coord, realm, limits, portion)
         return portion
+
+    py_my_proc_portion = _cpl_lib.CPLC_my_proc_portion
+    py_my_proc_portion.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
+         ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def my_proc_portion(self, limits):
+        limits = self._type_check(limits)
+        portion = np.zeros(6, order='F', dtype=np.int32)
+        self.py_my_proc_portion(limits, portion)
+        return portion
+
+    py_map_cfd2md_coord = _cpl_lib.CPLC_map_cfd2md_coord
+    py_map_cfd2md_coord.argtypes = \
+        [ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
+         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def map_cfd2md_coord(self, coord_cfd):
+        coord_cfd = self._type_check(coord_cfd)
+        coord_md = np.zeros(3, order='F', dtype=np.float64)
+        self.py_map_cfd2md_coord(coord_cfd, coord_md)
+        return coord_md
+
+    py_map_md2cfd_coord = _cpl_lib.CPLC_map_md2cfd_coord
+    py_map_md2cfd_coord.argtypes = \
+        [ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
+         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def map_md2cfd_coord(self, coord_md):
+        coord_md = self._type_check(coord_md)
+        coord_cfd = np.zeros(3, order='F', dtype=np.float64)
+        self.py_map_md2cfd_coord(coord_md, coord_cfd)
+        return coord_cfd
+
+    py_map_glob2loc_cell = _cpl_lib.CPLC_map_glob2loc_cell
+    py_map_glob2loc_cell.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
+         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),
+         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def map_glob2loc_cell(self, limits, glob_cell):
+        limits = self._type_check(limits)
+        glob_cell = self._type_check(glob_cell)
+        loc_cell = np.zeros(3, order='F', dtype=np.int32)
+        self.py_map_glob2loc_cell(limits, glob_cell, loc_cell)
+        return loc_cell
+
+    py_map_cell2coord = _cpl_lib.CPLC_map_cell2coord
+    py_map_cell2coord.argtypes = \
+        [c_int, c_int, c_int,
+         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def map_cell2coord(self, i, j, k):
+        coord = np.zeros(3, order='F', dtype=np.float64)
+        self.py_map_cell2coord(i, j, k, coord)
+        return coord
+
+    py_map_coord2cell = _cpl_lib.CPLC_map_coord2cell
+    py_map_coord2cell.argtypes = \
+        [c_double, c_double, c_double,
+         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def map_coord2cell(self, x, y, z):
+        cell = np.zeros(3, order='F', dtype=np.int32)
+        self.py_map_coord2cell(x, y, z, cell)
+        return cell
+
+    py_get_no_cells = _cpl_lib.CPLC_get_no_cells
+    py_get_no_cells.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
+         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def get_no_cells(self, limits):
+        limits = self._type_check(limits)
+        no_cells = np.zeros(3, order='F', dtype=np.int32)
+        self.py_get_no_cells(limits, no_cells)
+        return no_cells
+
+    py_get_olap_limits = _cpl_lib.CPLC_get_olap_limits
+    py_get_olap_limits.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def get_olap_limits(self):
+        limits = np.zeros(6, order='F', dtype=np.int32)
+        self.py_get_olap_limits(limits)
+        return limits
+
+    py_get_cnst_limits = _cpl_lib.CPLC_get_cnst_limits
+    py_get_cnst_limits.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def get_cnst_limits(self):
+        limits = np.zeros(6, order='F', dtype=np.int32)
+        self.py_get_cnst_limits(limits)
+        return limits
 
     py_send = _cpl_lib.CPLC_send
     py_send.argtypes = \
@@ -288,6 +385,7 @@ class CPL:
          c_int, c_int,
          c_int, c_int, POINTER(c_bool)]
 
+    @abortMPI
     def send(self, asend, icmin, icmax, jcmin, jcmax, kcmin, kcmax):
         asend = self._type_check(asend)
         asend_shape = np.array(asend.shape, order='F', dtype=np.int32)
@@ -306,6 +404,7 @@ class CPL:
          c_int, c_int,
          c_int, c_int, POINTER(c_bool)]
 
+    @abortMPI
     def recv(self, arecv, icmin, icmax, jcmin, jcmax, kcmin, kcmax):
         arecv = self._type_check(arecv)
         arecv_shape = np.array(arecv.shape, order='F', dtype=np.int32)
@@ -315,20 +414,41 @@ class CPL:
                      kcmin, kcmax, byref(recv_flag))
         return arecv, recv_flag.value
 
+    @abortMPI
+    def get(self, var_name):
+        try:
+            var_type = _CPL_GET_VARS[var_name]
+            fun = getattr(self._cpl_lib, "CPLC_" + var_name)
+        except KeyError:
+            print ("CPL-ERROR: CPL Library function '" +
+                   str(var_name) + "' not found!")
+            raise KeyError
+        else:
+            fun.restype = var_type
+            return fun()
 
+    @abortMPI
+    def set(self, var_name, value):
+        try:
+            var_type = _CPL_SET_VARS[var_name]
+            fun = getattr(self._cpl_lib, "CPLC_set_" + var_name)
+        except KeyError:
+            print ("CPL-ERROR: CPL Library function '" +
+                   str(var_name) + "' not found!")
+            raise KeyError
+        else:
+            fun.argtypes = [var_type]
+            return fun(var_type(value))
 
-
-def create_CPL_cart_3Dgrid(ncx, ncy, ncz, dx, dy, dz):
-    xg = np.zeros((ncx + 1, ncy + 1), order='F', dtype=np.float64)
-    yg = np.zeros((ncx + 1, ncy + 1), order='F', dtype=np.float64)
-    zg = np.zeros(ncz + 1, order='F', dtype=np.float64)
-    for i in xrange(ncx + 1):
-        for j in xrange(ncy + 1):
-            xg[i, j] = i*dx
-            yg[i, j] = j*dy
-    for k in xrange(ncz + 1):
-        zg[k] = k*dz
-    return (xg, yg, zg)
+    @abortMPI
+    def _type_check(self, A):
+        if type(A) is list:
+            A = np.asfortranarray(A, dtype=np.int32)
+        if not A.flags["F_CONTIGUOUS"]:
+            A = np.require(A, requirements=['F'])
+        if not A.flags["ALIGNED"]:
+            A = np.require(A, requirements=['A'])
+        return A
 
 
 def cart_create(old_comm, dims, periods, coords):
@@ -337,31 +457,10 @@ def cart_create(old_comm, dims, periods, coords):
     new_cart_comm = temp_comm.Create_cart(dims, periods)
     comm_coords = new_cart_comm.Get_coords(new_cart_comm.Get_rank())
     if (not (coords == comm_coords).all()):
-            print "Not good!"
+            print ("Not good!")
             exit()
     return new_cart_comm
 
-
-def get_olap_limits(lib):
-    olap_limits = np.zeros(6, order='F', dtype=np.int32)
-    olap_limits[0] = lib.get("icmin_olap")
-    olap_limits[1] = lib.get("icmax_olap")
-    olap_limits[2] = lib.get("jcmin_olap")
-    olap_limits[3] = lib.get("jcmax_olap")
-    olap_limits[4] = lib.get("kcmin_olap")
-    olap_limits[5] = lib.get("kcmax_olap")
-    return olap_limits
-
-
-def toCPLArray(arr, arr_type=None):
-    if type(arr) == np.ndarray:
-        if not arr.flags["F_CONTIGUOUS"]:
-            return np.asfortranarray(arr, dtype=arr.dtype)
-    else:
-        if arr_type is not None:
-            return np.asfortranarray(arr, dtype=arr_type)
-        else:
-            print "Non-numpy arrays require argument arr_type"
 
 if __name__ == "__main__":
     lib = CPL()
