@@ -71,6 +71,9 @@ CFLAGS += -fPIC
 # Default: make both the fortran and the c libraries
 default: core fortran c cpp utilities link
 
+debug: core fortran c cpp utilities link
+    FFLAGS = -fPIC -O0 -fbacktrace -fbounds-check $(FMODKEY)$(includedir)
+
 # Declare phony targets
 .phony.: fortran c cpp utilities
 fortran: core $(fbindobjfile) 

@@ -100,7 +100,7 @@ void CPL::setup_md
     );
 }
 
-void CPL::send (double* asend,	double* asend_shape, int ndims, int icmin, 
+void CPL::send (double* asend,	int* asend_shape, int ndims, int icmin, 
                 int icmax, int jcmin, int jcmax, int kcmin, int kcmax,
                 bool& send_flag)
 {
@@ -108,8 +108,7 @@ void CPL::send (double* asend,	double* asend_shape, int ndims, int icmin,
                    jcmax, kcmin, kcmax, &send_flag);
 }
 
-
-void CPL::recv (double* arecv,	double* arecv_shape, int ndims, int icmin, 
+void CPL::recv (double* arecv,	int* arecv_shape, int ndims, int icmin, 
                 int icmax, int jcmin, int jcmax, int kcmin, int kcmax,
         		bool& recv_flag)
 {
@@ -131,7 +130,7 @@ void CPL::gather (double* gatherarray, int* gather_shape, int* limits,
 
 void CPL::proc_extents (int coord[], int realm, int extents[])
 {
-    CPLC_proc_extents (coord, realm, extents);
+   CPLC_proc_extents (coord, realm, extents);
 }
 
 void CPL::my_proc_extents (int extents[])

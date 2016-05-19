@@ -40,7 +40,7 @@ Description
     
 Author(s)
 
-    David Trevelyan
+    David Trevelyan, Edward Smith
 
 */
 
@@ -63,13 +63,13 @@ extern "C" void CPLC_setup_cfd
 
 extern "C" void CPLC_test_python
 (
- 		int int_p, 
-		double doub_p, 
-		bool bool_p, 
-		int* int_pptr,
-		double* doub_pptr, 
-		int* int_pptr_dims,
-		int* doub_pptr_dims
+	int int_p, 
+	double doub_p, 
+	bool bool_p, 
+	int* int_pptr,
+	double* doub_pptr, 
+	int* int_pptr_dims,
+	int* doub_pptr_dims
 );
 
 extern "C" void CPLC_setup_md
@@ -85,32 +85,30 @@ extern "C" void CPLC_setup_md
 
 extern "C" void CPLC_send
 (
-		double* asend,	
-		double* asend_shape,
-		int ndims,
-		int icmin, 
-		int icmax,
-		int jcmin, 
-		int jcmax,
-		int kcmin, 
-		int kcmax,
-		bool* send_flag
-
+	double* asend,	
+	int* asend_shape,
+	int ndims,
+	int icmin, 
+	int icmax,
+	int jcmin, 
+	int jcmax,
+	int kcmin, 
+	int kcmax,
+	bool send_flag
 );
 
 extern "C" void CPLC_recv
 (
-		double* arecv,	
-		double* arecv_shape,
-		int ndims,
-		int icmin, 
-		int icmax,
-		int jcmin, 
-		int jcmax,
-		int kcmin, 
-		int kcmax,
-		bool* recv_flag
-
+	double* arecv,	
+	int* arecv_shape,
+	int ndims,
+	int icmin, 
+	int icmax,
+	int jcmin, 
+	int jcmax,
+	int kcmin, 
+	int kcmax,
+	bool recv_flag
 );
 
 

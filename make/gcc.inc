@@ -23,6 +23,6 @@ ifeq ($(strip $(BUILD)),debug)
     FFLAGS += -O0 -g -ggdb -Wall
     CFLAGS += -O0 -g -ggdb -Wall
 else
-    FFLAGS += -O3
+    FFLAGS += -O3 -cpp
     CFLAGS += -O3
 endif

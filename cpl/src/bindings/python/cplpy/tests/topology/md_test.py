@@ -41,7 +41,7 @@ xyzL = np.array([Lx, Ly, Lz], order='F', dtype=np.float64)
 xyz_orig = np.array([0.0, 0.0, 0.0], order='F', dtype=np.float64)
 
 # Create communicators and check that number of processors is consistent
-realm_comm = CPL.create_comm(CPL.MD_REALM)
+realm_comm = CPL.init(CPL.MD_REALM)
 nprocs_realm = realm_comm.Get_size()
 
 if (nprocs_realm != NProcs):
@@ -50,4 +50,4 @@ if (nprocs_realm != NProcs):
 
 cart_comm = realm_comm.Create_cart([NPx, NPy, NPz])
 
-nsteps, initialstep = CPL.md_init2(dt, cart_comm, xyzL, xyz_orig, 1.0)
+nsteps, initialstep = CPL.setup_md(dt, cart_comm, xyzL, xyz_orig, 1.0)

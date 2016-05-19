@@ -1727,7 +1727,7 @@ subroutine get_md_cell_ranges
     implicit none
 
     integer :: n
-    integer :: olap_jmin_mdcoord
+    integer :: olap_jmin_mdproc
     integer :: ncxl, nczl!, ncyl
     integer :: ncy_mdonly, ncy_md, ncyP_md
     integer :: funit
@@ -1747,15 +1747,28 @@ subroutine get_md_cell_ranges
     end do  
 
     ! - - y - -
+    if (npy_md .lt. npy_cfd) then
+        call error_abort("get_md_cell_ranges error - MD processors in y must be greater than or equal to CFD processors in y")
+    endif
     ncy_md   = nint(yL_md/dy)
     ncy_mdonly = ncy_md - ncy_olap
     ncyP_md = ncy_md / npy_md
-    olap_jmin_mdcoord = npy_md - ceiling(dble(ncy_olap)/dble(ncyP_md)) + 1
-    do n = olap_jmin_mdcoord,npy_md
+    olap_jmin_mdproc = npy_md - ceiling(dble(ncy_olap)/dble(ncyP_md)) + 1
+    do n = olap_jmin_mdproc,npy_md
         jcPmax_md(n) = n * ncyP_md - ncy_mdonly
         jcPmin_md(n) = jcPmax_md(n) - ncyP_md + 1
         if (jcPmin_md(n).le.0) jcPmin_md(n) = 1
     end do  
+!    if (realm .eq. cfd_realm) then
+!        if (jcPmin_cfd(jblock_realm) .gt. jcmax_olap) then
+!            jcPmin_md(:) = VOID
+!            jcPmax_md(:) = VOID
+!        endif
+!        !print*, realm, rank_realm, jblock_realm, jcmax_olap, jcPmin_cfd()!, cfd_jcoord2olap_md_jcoords(rank_realm,:)
+!    endif
+
+    !print'(a,10i8)','summary', ncy_md, ncy_mdonly, ncy_olap, ncyP_md,  npy_md, ceiling(dble(ncy_olap)/dble(ncyP_md)), & 
+    !                 olap_jmin_mdproc, jblock_realm, jcPmin_md(1), jcPmax_md(1)
 
     ! - - z - -
     nczl = ceiling(dble(ncz)/dble(npz_md))
@@ -1787,7 +1800,7 @@ subroutine get_md_cell_ranges
         write(funit,*), 'ncyP_md    = ', ncyP_md 
         write(funit,*), 'ncy_olap   = ', ncy_olap
         write(funit,*), 'ncy_mdonly = ', ncy_mdonly
-        write(funit,*), 'olap_jmin_mdcoord = ', olap_jmin_mdcoord
+        write(funit,*), 'olap_jmin_mdproc = ', olap_jmin_mdproc
         write(funit,*), 'dy         = ', dy
         write(funit,*), '-------------------------------------------'
         write(funit,*), '  jcoord_md     jcPmin_md       jcPmax_md  '
@@ -1811,11 +1824,13 @@ subroutine get_md_cell_ranges
     endif
 
     !Sanity Check min not less than max
-    if (icPmin_md(iblock_realm) .gt. icPmax_md(iblock_realm)) & 
+    if (icPmin_md(iblock_realm) .gt. icPmax_md(iblock_realm) .and. icPmax_md(iblock_realm) .ne. VOID) & 
         call error_abort("get_md_cell_ranges error - mapping failure imin greater than imax")
-    if (jcPmin_md(jblock_realm) .gt. jcPmax_md(jblock_realm)) &
-        call error_abort("get_md_cell_ranges error - mapping failure jmin greater than jmax")
-    if (kcPmin_md(kblock_realm) .gt. kcPmax_md(kblock_realm)) & 
+    do n = olap_jmin_mdproc,npy_md
+        if (jcPmin_md(n) .gt. jcPmax_md(n) .and. jcPmax_md(n) .ne. VOID) &
+            call error_abort("get_md_cell_ranges error - mapping failure jmin greater than jmax")
+    enddo
+    if (kcPmin_md(kblock_realm) .gt. kcPmax_md(kblock_realm) .and. kcPmax_md(kblock_realm) .ne. VOID) & 
         call error_abort("get_md_cell_ranges error - mapping failure kmin greater than kmax")
 
 end subroutine get_md_cell_ranges

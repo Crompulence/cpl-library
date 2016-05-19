@@ -51,7 +51,7 @@ xyz_orig = np.array([0.0, 0.0, 0.0], order='F', dtype=np.float64)
 
 
 # Create communicators and check that number of processors is consistent
-realm_comm = CPL.create_comm(CPL.CFD_REALM)
+realm_comm = CPL.init(CPL.CFD_REALM)
 nprocs_realm = realm_comm.Get_size()
 
 if (nprocs_realm != NProcs):
@@ -62,4 +62,4 @@ if (nprocs_realm != NProcs):
 # for the grid topology.
 cart_comm = realm_comm.Create_cart([NPx, NPy, NPz])
 
-CPL.cfd_init2(nsteps, dt, cart_comm, xyzL, xyz_orig, ncxyz, 1.0)
+CPL.setup_cfd(nsteps, dt, cart_comm, xyzL, xyz_orig, ncxyz, 1.0)
