@@ -1585,7 +1585,6 @@ subroutine check_config_feasibility
     rval = rval + abs(xL_md - xL_cfd)
     rval = rval + abs(zL_md - zL_cfd)
     if (rval .gt. rtoler) then
-        
         string = "CPL_create_map error - MD/CFD domain sizes do not match in both x and z "   // &
                  "directions. Aborting simulation. "
         print*, "xL_md = ", xL_md
@@ -1657,6 +1656,31 @@ subroutine check_config_feasibility
                  "Aborting simulation."
         call error_abort(string)
 
+    end if
+
+    ! Check overlap lower limit are not greater than upper limits
+    ival = 0
+    if (icmin_olap.gt.icmax_olap) ival = ival + 1        
+    if (jcmin_olap.gt.jcmax_olap) ival = ival + 1        
+    if (kcmin_olap.gt.kcmax_olap) ival = ival + 1        
+    if (ival.ne.0) then
+        string = "CPL_create_map error - Overlap region lower limits are greater than upper"  // &
+                 " limits for some directions. Aborting simulation."
+        call error_abort(string)
+    end if
+
+    ! Check overlap cells are non-negative
+    ival = 0
+    if (icmin_olap.lt.0) ival = ival + 1        
+    if (icmax_olap.lt.0) ival = ival + 1        
+    if (jcmin_olap.lt.0) ival = ival + 1        
+    if (jcmax_olap.lt.0) ival = ival + 1        
+    if (kcmin_olap.lt.0) ival = ival + 1        
+    if (kcmax_olap.lt.0) ival = ival + 1        
+    if (ival.ne.0) then
+        string = "CPL_create_map error - Overlap region limits contains a negative index"  // &
+                 ". Aborting simulation."
+        call error_abort(string)
     end if
 
     ! Check overlap cells are within CFD extents
@@ -1748,7 +1772,9 @@ subroutine get_md_cell_ranges
 
     ! - - y - -
     if (npy_md .lt. npy_cfd) then
-        call error_abort("get_md_cell_ranges error - MD processors in y must be greater than or equal to CFD processors in y")
+        call error_abort("get_md_cell_ranges error - number of MD " // &
+                         "processors in y must be greater than or equal" // &
+                         " to CFD processors in y")
     endif
     ncy_md   = nint(yL_md/dy)
     ncy_mdonly = ncy_md - ncy_olap
