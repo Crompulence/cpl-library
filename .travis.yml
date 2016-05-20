@@ -36,6 +36,8 @@ install:
 
 before_script:
     - export PATH=$MPI_DIR/bin:$PATH
+    - export CPL_PATH=`pwd`
+    - source $CPL_PATH/SOURCEME.sh
     - pushd .
     - cd ../demo/md-cfd-framework/
     - popd
