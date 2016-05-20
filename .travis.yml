@@ -27,7 +27,7 @@ before_install:
     - export MPI_BUILD_DIR=$TRAVIS_BUILD_DIR/mpi
     - export MPI_DIR=$MPI_BUILD_DIR/$MPI
     - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR
-    - sh ./make/travis/travis-install-mpy4py.sh $MPI_DIR
+    - sh ./make/travis/travis-install-mpi4py.sh $MPI_DIR
 
 install:
     - export PATH=$MPI_DIR/bin:$PATH
