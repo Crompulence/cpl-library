@@ -36,7 +36,9 @@ install:
 
 before_script:
     - export PATH=$MPI_DIR/bin:$PATH
+    - pushd .
     - cd ../demo/md-cfd-framework/
+    - popd
     - MPIEXEC='mpiexec'
     - echo "Make demo here"
 #    - make cpp-fortran
@@ -44,7 +46,7 @@ before_script:
 
 script:
     - echo "test scripts here"
-#    - cd ./run
+    - make test
 #    - $MPIEXEC -n 8 ./md/mdProgram : -n 4 ./cfd/cfdProgram -v -f --no-builddir --exclude=spawn
 
 after_success:
