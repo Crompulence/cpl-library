@@ -67,19 +67,31 @@ CPL.setup_cfd(nsteps, dt, cart_comm, xyzL, xyz_orig, ncxyz, 1.0)
 
 # Sending cell coordinates from CFD to MD
 
-olap = CPL.get_olap_region()
-portion = CPL.my_proc_portion(olap)
+olap_region = CPL.get_olap_region_region()
+portion = CPL.my_proc_portion(olap_region)
 [ncxl, ncyl, nczl] = CPL.get_no_cells(portion)
-scatter_array = np.zeros((3, ncxl, ncyl, nczl), order='F', dtype=np.float64)
+send_array = np.zeros((3, ncxl, ncyl, nczl), order='F', dtype=np.float64)
 for iglob in xrange(portion[0], portion[1]):
     for jglob in xrange(portion[2], portion[3]):
         for kglob in xrange(portion[4], portion[5]):
             iloc, jloc, kloc, = CPL.map_glob2loc(portion, [iglob, jglob, kglob])
-            scatter_array[0:3, iloc, jloc, kloc] = [iglob, jglob, kglob]
+            send_array[0:3, iloc, jloc, kloc] = [iglob, jglob, kglob]
 
-recv_array = np.zeros((9, 0, 0, 0), order='F', dtype=np.float64)
-lib.scatter(scatter_array, olap_region, recv_array)
-                                                                                                                                                                                                                                              
+recv_array = np.zeros((3, 0, 0, 0), order='F', dtype=np.float64)
+CPL.scatter(send_array, olap_region, recv_array)
+
+
+recv_array = np.zeros((3, ncxl, ncyl, nczl), order='F', dtype=np.float64)
+send_array = np.zeros((3, 0, 0, 0), order='F', dtype=np.float64)
+CPL.gather(send_array, olap_region, recv_array)
+for icfd in xrange(portion[0], portion[1]):
+    for jcfd in xrange(portion[2], portion[3]):
+        for kcfd in xrange(portion[4], portion[5]):
+            iloc, jloc, kloc, = CPL.map_glob2loc(portion, [icfd, jcfd, kcfd])
+            [imd, jmd, kmd] = recv_array[0:3, iloc, jloc, kloc]
+            lines += str(imd) + str(jmd) + str(kmd) + str(jmd
+
+
 lines = realm_comm.gather(lines, root=0)
 myrank = realm_comm.Get_rank()
 if myrank == 0:
