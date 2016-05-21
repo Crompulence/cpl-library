@@ -38,9 +38,6 @@ before_script:
     - export PATH=$MPI_DIR/bin:$PATH
     - export CPL_PATH=`pwd`
     - source $CPL_PATH/SOURCEME.sh
-    - ls `pip -V | cut -f4 -d " "`
-      # Add virtual env python dist-packages directory to python path
-    - export PYTHONPATH=`pip -V | cut -f4 -d " "`:$PYTHONPATH
     - pushd .
     - cd ../demo/md-cfd-framework/
     - popd
