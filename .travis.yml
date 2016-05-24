@@ -27,6 +27,7 @@ before_install:
     - export MPI_BUILD_DIR=$TRAVIS_BUILD_DIR/mpi
     - export MPI_DIR=$MPI_BUILD_DIR/$MPI
     - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR
+    - sh ./make/travis/travis-install-mpi4py.sh $MPI_DIR
 
 install:
     - export PATH=$MPI_DIR/bin:$PATH
@@ -35,15 +36,18 @@ install:
 
 before_script:
     - export PATH=$MPI_DIR/bin:$PATH
+    - export CPL_PATH=`pwd`
+    - source $CPL_PATH/SOURCEME.sh
+    - pushd .
     - cd ../demo/md-cfd-framework/
+    - popd
     - MPIEXEC='mpiexec'
     - echo "Make demo here"
 #    - make cpp-fortran
 
 
 script:
-    - echo "test scripts here"
-#    - cd ./run
+    - make test
 #    - $MPIEXEC -n 8 ./md/mdProgram : -n 4 ./cfd/cfdProgram -v -f --no-builddir --exclude=spawn
 
 after_success:
