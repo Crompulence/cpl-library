@@ -3,44 +3,50 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to cpl's documentation!
-===============================
 
-First Steps with Sphinx
-=======================
+Welcome to CPL library's documentation
+======================================
 
-This document is meant to give a tutorial-like overview of all common tasks
-while using Sphinx.
+CPL Library is a communications and topology management system for coupling any continuum fluid dynamics (CFD) solver to any molecular dynamics (MD) code. CPL Library is free and open-source, please see `CPL <http://www.cpl-library.org/download.shtml>`_ for more information.
 
-The green arrows designate "more info" links leading to advanced sections about
-the described task.
+First Steps with CPL
+====================
 
+This document list the interface for CPL library in python, C/C++ and Fortran.
 
-Install Sphinx
---------------
+Install CPL library
+-------------------
 
-Install Sphinx, either from a distribution package or from
-`PyPI <https://pypi.python.org/pypi/Sphinx>`_ with ::
+Install CPL library by following instructions on our website
+`CPL <http://www.cpl-library.org/download.shtml>`_ or clone with ::
 
-   $ pip install Sphinx
+   $ git clone https://github.com/Crompulence/cpl-library.git
 
 
 .. toctree::
     :maxdepth: 2
 
-    API index
-    Contento
+CPL python Bindings
+-------------------
 
 .. autoclass:: cplpy.cpl.CPL
     :members:
+
+CPL C++ Bindings
+----------------
 
 .. doxygennamespace:: CPL
     :members:
     :project: cpp_cpl
 
+CPL Fortran Bindings
+--------------------
+
 .. f:autofunction:: CPL_init
 .. f:autofunction:: cpl_setup_md
 .. f:autofunction:: cpl_setup_cfd
+.. f:autofunction:: cpl_send
+.. f:autofunction:: cpl_recv
 .. f:autofunction:: cpl_proc_extents
 .. f:autofunction:: cpl_my_proc_extents
 .. f:autofunction:: cpl_proc_portion
