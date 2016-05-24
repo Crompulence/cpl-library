@@ -40,80 +40,36 @@ Description
 */
 #include "CPLCPP.h"
 
-void CPL::init
-(
-    int  calling_realm,
-    int& returned_realm_comm
-)
+void CPL::init(int calling_realm, int& returned_realm_comm)
 {
-    CPLC_init
-    (
-    		calling_realm,
-     		&returned_realm_comm
-
-    );
+    CPLC_init(calling_realm, &returned_realm_comm);
 }
 
-void CPL::setup_cfd
-(
-    int nsteps,
-    double dt,
-    int icomm_grid,
-    double xyzL[],
-    double xyz_orig[],
-    int ncxyz[],
-    double density
-)
+void CPL::setup_cfd(int nsteps, double dt, int icomm_grid, double xyzL[],
+                    double xyz_orig[], int ncxyz[], double density)
 {
-    CPLC_setup_cfd
-    (
-        nsteps,
-        dt,
-        icomm_grid,
-        xyzL,
-        xyz_orig,
-        ncxyz,
-        density
-    );
+    CPLC_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density);
 }
 
-void CPL::setup_md
-(
-    int& nsteps,
-    int& initialstep,
-    double dt,
-    int icomm_grid,
-    double xyzL[],
-    double xyz_orig[],
-    double density
-)
+void CPL::setup_md(int& nsteps, int& initialstep, double dt,
+                   int icomm_grid, double xyzL[], 
+                   double xyz_orig[], double density)
 {
-    CPLC_setup_md
-    (
-        &nsteps,
-        &initialstep,
-        dt,
-        icomm_grid,
-        xyzL,
-        xyz_orig,
-        density
-    );
+    CPLC_setup_md(&nsteps, &initialstep, dt, icomm_grid, xyzL, xyz_orig, density);
 }
 
-void CPL::send (double* asend,	int* asend_shape, int ndims, int icmin, 
-                int icmax, int jcmin, int jcmax, int kcmin, int kcmax,
-                bool& send_flag)
+bool CPL::send (double* asend, int* asend_shape, int* limits)
 {
-		CPLC_send (asend, asend_shape, ndims, icmin, icmax, jcmin, 
-                   jcmax, kcmin, kcmax, &send_flag);
+    bool send_flag;
+    CPLC_send(asend, asend_shape, limits, &send_flag);
+    return send_flag;
 }
 
-void CPL::recv (double* arecv,	int* arecv_shape, int ndims, int icmin, 
-                int icmax, int jcmin, int jcmax, int kcmin, int kcmax,
-        		bool& recv_flag)
+bool CPL::recv (double* arecv,	int* arecv_shape, int* limits)
 {
-    CPLC_recv (arecv, arecv_shape, ndims, icmin, icmax, jcmin, jcmax,
-               kcmin, kcmax, &recv_flag);
+    bool recv_flag;
+    CPLC_recv(arecv, arecv_shape, limits, &recv_flag);
+    return recv_flag;
 }
 
 void CPL::scatter (double* scatterarray, int* scatter_shape, int* limits,

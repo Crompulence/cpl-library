@@ -83,35 +83,8 @@ extern "C" void CPLC_setup_md
 	double density
 );
 
-extern "C" void CPLC_send
-(
-	double* asend,	
-	int* asend_shape,
-	int ndims,
-	int icmin, 
-	int icmax,
-	int jcmin, 
-	int jcmax,
-	int kcmin, 
-	int kcmax,
-	bool send_flag
-);
-
-extern "C" void CPLC_recv
-(
-	double* arecv,	
-	int* arecv_shape,
-	int ndims,
-	int icmin, 
-	int icmax,
-	int jcmin, 
-	int jcmax,
-	int kcmin, 
-	int kcmax,
-	bool recv_flag
-);
-
-
+extern "C" void CPLC_send(double* asend, int* asend_shape, int* limits, bool *send_flag);
+extern "C" void CPLC_recv(double* arecv, int* arecv_shape, int* limits, bool *recv_flag);
 
 extern "C" void CPLC_scatter
 (

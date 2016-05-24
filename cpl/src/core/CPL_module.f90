@@ -70,7 +70,7 @@
 !! - CPL_cfd_adjust_domain     (cfd)     adjust CFD tomain to an integer number
 !!                                       FCC or similar MD initial layout
 !
-!! @author David Trevelyan, Edward Smith
+!! .. codeauthor:: David Trevelyan, Edward Smith
 !! @see coupler
 !=============================================================================
 
@@ -675,7 +675,7 @@ end subroutine read_coupler_input
 !! - Output
 !!  - NONE
 !! 
-!! @author Edward Smith
+!! .. sectionauthor:: Edward Smith
 !
 ! ----------------------------------------------------------------------------
 
@@ -789,11 +789,11 @@ subroutine CPL_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density)
         x = cart_coords(1)
         y = cart_coords(2)
         z = cart_coords(3)
-        iTmin(x+1) = x*ncxl + 1                                                                                                                                                                                                             
-        iTmax(x+1) = iTmin(x+1) + ncxl - 1                                                                                                                                                                                                    
-        jTmin(y+1) = y*ncyl + 1                                                                                                                                                                                                             
-        jTmax(y+1) = jTmin(y+1) + ncyl - 1                                                                                                                                                                                                    
-        kTmin(z+1) = z*nczl + 1                                                                                                                                                                                                             
+        iTmin(x+1) = x*ncxl + 1
+        iTmax(x+1) = iTmin(x+1) + ncxl - 1
+        jTmin(y+1) = y*ncyl + 1
+        jTmax(y+1) = jTmin(y+1) + ncyl - 1
+        kTmin(z+1) = z*nczl + 1
         kTmax(z+1) = kTmin(z+1) + nczl - 1
     enddo
     
@@ -898,7 +898,7 @@ end subroutine CPL_setup_cfd
 !! - Output
 !!  - NONE
 !! 
-!! @author Edward Smith
+!! .. sectionauthor:: Edward Smith
 !
 ! ----------------------------------------------------------------------------
 
@@ -1279,7 +1279,7 @@ end subroutine CPL_setup_md
 !! - Output
 !!  - NONE
 !! 
-!! @author Edward Smith
+!! .. sectionauthor:: Edward Smith
 !
 ! ----------------------------------------------------------------------------
 
@@ -1722,8 +1722,8 @@ end subroutine check_config_feasibility
 !! - Output
 !!  - NONE 
 !! 
-!! @author David Trevelyan 
-subroutine get_md_cell_ranges
+!! .. sectionauthor:: David Trevelyan 
+subroutine get_md_cell_ranges()
     implicit none
 
     integer :: n
@@ -1855,7 +1855,7 @@ end subroutine get_md_cell_ranges
 !! - Output
 !!  - NONE 
 !! 
-!! @author David Trevelyan
+!! .. sectionauthor:: David Trevelyan
 subroutine get_overlap_blocks
     implicit none
 
@@ -2013,7 +2013,7 @@ end subroutine get_overlap_blocks
 !                    PREPARE OVERLAP COMMS                                    -
 !------------------------------------------------------------------------------
 !>
-!! @author David Trevelyan 
+!! .. sectionauthor:: David Trevelyan 
 !! Splits the world communicator into "overlap" communicators. Each overlap 
 !! communicator consists of a CFD root processor and the MD processors which
 !! lie on top of it in the domain. 

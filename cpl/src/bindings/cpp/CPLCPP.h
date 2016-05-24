@@ -84,35 +84,8 @@ namespace CPL
     );
 
 
-    void send
-    (
-        double* asend,	
-        int* asend_shape,
-        int ndims,
-        int icmin, 
-        int icmax,
-        int jcmin, 
-        int jcmax,
-        int kcmin, 
-        int kcmax,
-        bool& send_flag
-
-    );
-
-    void recv
-    (
-        double* arecv,	
-        int* arecv_shape,
-        int ndims,
-        int icmin, 
-        int icmax,
-        int jcmin, 
-        int jcmax,
-        int kcmin, 
-        int kcmax,
-        bool& recv_flag
-
-    );
+    bool send(double* asend, int* asend_shape, int* limits);
+    bool recv(double* arecv, int* arecv_shape, int* limits);
 
     void scatter
     (
