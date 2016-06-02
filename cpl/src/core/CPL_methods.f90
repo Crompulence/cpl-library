@@ -37,9 +37,9 @@
 !
 !
 !Author(s)
-!
-!   Edward Smith
-!   David Trevelyan
+! .. codeauthor:: Edward Smith 
+! .. codeauthor:: David Trevelyan September 2012 to De
+! .. codeauthor:: Lucian Anton, November 2011  
 !
 !! Routines accessible from application ( molecular or continuum ) after
 !! the name, in parenthesis, is the realm in which each routine must be called
@@ -76,21 +76,11 @@
 !! - CPL_md_get_cfd_id          (md)    id for CFD code, possible values set 
 !!                                      in coupler_parameters
 !!
-!! @author  Lucian Anton, November 2011  
-!! @author Edward Smith, Dave Trevelyan September 2012
 !! @see coupler_module
 !=============================================================================
 
 module coupler
     implicit none
-
-    interface CPL_send
-        module procedure CPL_send_3d, CPL_send_4d
-    end interface
-
-    interface CPL_recv
-        module procedure CPL_recv_3d, CPL_recv_4d
-    end interface
 
     private
 
@@ -149,7 +139,8 @@ contains
 !! - Output Parameters
 !!  - NONE
 !!
-!! @author David Trevelyan
+!! .. sectionauthor:: David Trevelyan
+
 subroutine CPL_gather(gatherarray, npercell, limits, recvarray)!todo better name than recvarray
     use mpi
     use coupler_module
@@ -253,22 +244,28 @@ contains
             limits(6) .gt. kcmax) then
 
             if (limits(1) .lt. icmin) then
-                print'(2(a,6i8))', "CPL_gather x minimum limit = ", limits(1), " is less than domain limit ", icmin
+                print'(2(a,6i8))', "CPL_gather x minimum limit = ", limits(1), & 
+                                   " is less than domain limit ", icmin
             endif
             if (limits(2) .gt. icmax) then
-                print'(2(a,6i8))', "CPL_gather x maximum limit = ", limits(2), " is greater than domain limit ", icmax
+                print'(2(a,6i8))', "CPL_gather x maximum limit = ", limits(2), &
+                                   " is greater than domain limit ", icmax
             endif
             if (limits(3) .lt. jcmin) then
-                print'(2(a,6i8))', "CPL_gather y minimum limit = ", limits(3), " is less than domain limit ", jcmin
+                print'(2(a,6i8))', "CPL_gather y minimum limit = ", limits(3),  &
+                                   " is less than domain limit ", jcmin
             endif
             if (limits(4) .gt. jcmax) then
-                print'(2(a,6i8))', "CPL_gather y maximum limit = ", limits(4), " is greater than domain limit ", jcmax
+                print'(2(a,6i8))', "CPL_gather y maximum limit = ", limits(4),  &
+                                   " is greater than domain limit ", jcmax
             endif
             if (limits(5) .lt. kcmin) then
-                print'(2(a,6i8))', "CPL_gather z minimum limit = ", limits(5), " is less than domain limit ", kcmin
+                print'(2(a,6i8))', "CPL_gather z minimum limit = ", limits(5),  &
+                                   " is less than domain limit ", kcmin
             endif
             if (limits(6) .gt. kcmax) then
-                print'(2(a,6i8))', "CPL_gather z maximum limit = ", limits(6), " is greater than domain limit ", kcmax
+                print'(2(a,6i8))', "CPL_gather z maximum limit = ", limits(6),  &
+                                   " is greater than domain limit ", kcmax
             endif
             
         call error_abort("CPL_gather error - Gather limits are outside global domain. " // &
@@ -456,7 +453,7 @@ end subroutine CPL_gather
 !! - Output
 !!  - NONE
 !!
-!! @author David Trevelyan
+!! .. sectionauthor:: David Trevelyan
 subroutine CPL_scatter(scatterarray,npercell,limits,recvarray)
     use coupler_module
     use mpi
@@ -667,205 +664,83 @@ contains
 
 end subroutine CPL_scatter
 
-
-!=============================================================================
-!>
-!! CPL_send_data wrapper for 3d arrays
-!! see CPL_send_xd for input description
-!! @see coupler#subroutine_CPL_send_xd
-!-----------------------------------------------------------------------------
-subroutine CPL_send_3d(temp,icmin_send,icmax_send,jcmin_send, & 
-                            jcmax_send,kcmin_send,kcmax_send,send_flag)
-    use coupler_module, only : icmin_olap,icmax_olap, & 
-                               jcmin_olap,jcmax_olap, &
-                               kcmin_olap,kcmax_olap,error_abort
-    implicit none
- 
-    logical, intent(out), optional                      :: send_flag
-    integer, intent(in), optional                       :: icmax_send,icmin_send
-    integer, intent(in), optional                       :: jcmax_send,jcmin_send
-    integer, intent(in), optional                       :: kcmax_send,kcmin_send
-    real(kind=kind(0.d0)),dimension(:,:,:), intent(in)  :: temp
-    
-    integer :: n1,n2,n3,n4
-    integer :: icmin,icmax,jcmin,jcmax,kcmin,kcmax
-    real(kind=kind(0.d0)),dimension(:,:,:,:),allocatable :: asend
-
-
-    !Revert to default i domain sending - top of overlap to bottom of overlap
-    if ((present(icmax_send)) .and. (present(icmin_send))) then
-            icmax = icmax_send; icmin = icmin_send
-    elseif ((.not. present(icmax_send)).and.(.not. present(icmin_send))) then
-            icmax = icmax_olap; icmin = icmin_olap
-    else
-        call error_abort("CPL_send error - both max and min i limits " // &
-                         "required and only one supplied")
-    endif
-
-    !Revert to default j domain sending - top of overlap to bottom of overlap
-    if ((present(jcmax_send)) .and. (present(jcmin_send))) then
-            jcmax = jcmax_send; jcmin = jcmin_send
-    elseif ((.not. present(jcmax_send)).and.(.not. present(jcmin_send))) then
-            jcmax = jcmax_olap; jcmin = jcmin_olap
-    else
-        call error_abort("CPL_send error - both max and min j limits " // &
-                         "required and only one supplied")
-    endif
-
-    !Revert to default k domain sending - top of overlap to bottom of overlap
-    if ((present(kcmax_send)) .and. (present(kcmin_send))) then
-            kcmax = kcmax_send; kcmin = kcmin_send
-    elseif ((.not. present(kcmax_send)).and.(.not. present(kcmin_send))) then
-            kcmax = kcmax_olap; kcmin = kcmin_olap
-    else
-        call error_abort("CPL_send error - both max and min k limits " // &
-                         "required and only one supplied")
-    endif
-
-   
-    n1 = 1
-    n2 = size(temp,1)
-    n3 = size(temp,2)
-    n4 = size(temp,3)
-
-    !Add padding column to 3D array to make it 4D
-    allocate(asend(n1,n2,n3,n4))
-    asend(1,:,:,:) = temp(:,:,:)
-
-    call CPL_send_xd(asend,icmax,icmin,jcmax, & 
-                           jcmin,kcmax,kcmin,send_flag )
-
-end subroutine CPL_send_3d
-
-!=============================================================================
-!>
-!! CPL_send_data wrapper for 4d arrays
-!! see CPL_send_xd for input description
-!! @see coupler#subroutine_CPL_send_xd
-!-----------------------------------------------------------------------------
-subroutine CPL_send_4d(asend,icmin_send,icmax_send,jcmin_send, & 
-                             jcmax_send,kcmin_send,kcmax_send,send_flag)
-    use coupler_module, only : icmin_olap,icmax_olap, & 
-                               jcmin_olap,jcmax_olap, &
-                               kcmin_olap,kcmax_olap,error_abort
-    implicit none
- 
-    logical, intent(out), optional                      :: send_flag
-    integer, intent(in), optional                       :: icmax_send,icmin_send
-    integer, intent(in), optional                       :: jcmax_send,jcmin_send
-    integer, intent(in), optional                       :: kcmax_send,kcmin_send
-    real(kind=kind(0.d0)),dimension(:,:,:,:), intent(in) :: asend
-    
-    integer :: npercell
-    integer :: icmin,icmax,jcmin,jcmax,kcmin,kcmax
-
-    npercell = size(asend,1)
-    !if ((present(icmax_send))) print*, 'icmax_send', icmax_send
-    !if ((present(icmin_send))) print*, 'icmin_send', icmin_send
-    !if ((present(jcmax_send))) print*, 'jcmax_send', jcmax_send
-    !if ((present(jcmin_send))) print*, 'jcmin_send', jcmin_send
-    !if ((present(kcmax_send))) print*, 'kcmax_send', kcmax_send
-    !if ((present(kcmin_send))) print*, 'kcmin_send', kcmin_send
-
-    !Revert to default i domain sending - top of overlap to bottom of overlap
-    if ((present(icmax_send)) .and. (present(icmin_send))) then
-            icmax = icmax_send; icmin = icmin_send
-    elseif ((.not. present(icmax_send)).and.(.not. present(icmin_send))) then
-            icmax = icmax_olap; icmin = icmin_olap
-    else
-        call error_abort("CPL_send error - both max and min i limits " // &
-                         "required and only one supplied")
-    endif
-
-    !Revert to default j domain sending - top of overlap to bottom of overlap
-    if ((present(jcmax_send)) .and. (present(jcmin_send))) then
-            jcmax = jcmax_send; jcmin = jcmin_send
-    elseif ((.not. present(jcmax_send)).and.(.not. present(jcmin_send))) then
-            jcmax = jcmax_olap; jcmin = jcmin_olap
-    else
-        call error_abort("CPL_send error - both max and min j limits " // &
-                         "required and only one supplied")
-    endif
-
-    !Revert to default k domain sending - top of overlap to bottom of overlap
-    if ((present(kcmax_send)) .and. (present(kcmin_send))) then
-            kcmax = kcmax_send; kcmin = kcmin_send
-    elseif ((.not. present(kcmax_send)).and.(.not. present(kcmin_send))) then
-            kcmax = kcmax_olap; kcmin = kcmin_olap
-    else
-        call error_abort("CPL_send error - both max and min k limits " // &
-                         "required and only one supplied")
-    endif
-
-    !send_extents = (/npercell,icmax-icmin+1,jcmax-jcmin+1,kcmax-kcmin+1 /) 
-    !if (any(shape(asend) .lt. send_extents)) then
-    !   print'(2(a,4i5))', '  Shape of input array = ', shape(asend), & 
-    !                     '  Passed range = ',send_extents 
-    !   call error_abort("CPL_send error - Specified send range is greater" // &
-    !                    "than the number of cells on processor")
-    !endif
- 
-    call CPL_send_xd(asend,icmin,icmax,jcmin, & 
-                           jcmax,kcmin,kcmax,send_flag )
-
-end subroutine CPL_send_4d
-
-!=============================================================================
-!                       CPL_send_xd
-!>
-!! Send data from the local grid to the associated ranks from the other 
-!! realm
-!!
-!! - Synopsis
-!!
-!!  - CPL_send_xd(asend,icmin_send,icmax_send,jcmin_send,  
-!!                           jcmax_send,kcmin_send,kcmax_send,send_flag)
-!!
-!! - Input Parameters
-!!
-!!   - asend
-!!
-!!   - icmin_send
-!!
-!!   - icmax_send
-!!
-!!   - jcmin_send
-!!
-!!   - jcmax_send
-!!
-!!   - kcmin_send
-!!
-!!   - kcmax_send
-!!
-!! - Output Parameter
-!!
-!!   - send_flag
-!!
-!! @author Edward Smith
 ! ----------------------------------------------------------------------------
-subroutine CPL_send_xd(asend,icmin_send,icmax_send,jcmin_send, & 
-                             jcmax_send,kcmin_send,kcmax_send,send_flag)
+subroutine CPL_send(asend, limits, send_flag)
+! ----------------------------------------------------------------------------
+!Send four dimensional array *asend* of data from all processors in the 
+!current realm with data between global cell array *limits* to the 
+!corresponding processors from the other realm.
+!
+!**Remarks**
+!
+!Assumes the coupler has been initialised with `CPL_init <#f/_/cpl_init>`_ and 
+!topological mapping has been setup using either `CPL_setup_md <#f/_/cpl_setup_md>`_ 
+!or `CPL_setup_cfd <#f/_/cpl_setup_cfd>`_ as appropriate.
+!
+!**Synopsis**
+!
+!.. code-block:: c
+!
+!  CPL_send(
+!           asend, 
+!           limits, 
+!           send_flag
+!           )    
+!
+!**Inputs**
+!
+! - *asend*
+!
+!   - Array of data to send. Should be a four dimensional array allocated using the number of cells on the current processor between the limits. Size should be be obtained from `CPL_my_proc_portion(limits, portion) <#f/_/cpl_my_proc_portion>`_.
+! 
+! - limits 
+!
+!   - Limits in global cell coordinates, must be the same as corresponding recieve
+!
+!**Outputs**
+!
+! - send_flag
+!
+!   - Returned flag which indicates success or failure of send process
+!
+!**Example**
+!
+!.. code-block:: guess
+!
+!  call CPL_get_olap_limits(limits)
+!  call CPL_my_proc_portion(limits, portion)
+!  call CPL_get_no_cells(portion, Ncells)
+!
+!  !Coupled Send array
+!  allocate(A(3, Ncells(1), Ncells(2), Ncells(3)))
+!
+!  do i =portion(1),portion(2)
+!  do j =portion(3),portion(4)
+!  do k =portion(5),portion(6)
+!     ii = i-portion(1)+1; jj = j-portion(3)+1; kk = k-portion(5)+1
+!     A(1,ii,jj,kk) = dble(i)
+!     A(2,ii,jj,kk) = dble(j)
+!     A(3,ii,jj,kk) = dble(k)
+!  enddo
+!  enddo
+!  enddo
+!  call CPL_send(A, limits, send_flag)
+
+!
+! .. sectionauthor::Edward Smith
+! ----------------------------------------------------------------------------
     use mpi
     use coupler_module, only : md_realm,cfd_realm, & 
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
-                               rank_world, realm, & 
+                               rank_world, realm, rank_realm,rank_olap, & 
                                iblock_realm,jblock_realm,kblock_realm,ierr, VOID
     implicit none
 
-    !Flag set if processor has passed data
-    logical, intent(out), optional  :: send_flag
-
-    ! Minimum and maximum values to send
-    integer, intent(in) :: icmax_send,icmin_send, & 
-                           jcmax_send,jcmin_send, & 
-                           kcmax_send,kcmin_send
-
-   ! Array containing data distributed on the grid
-    real(kind=kind(0.d0)),dimension(:,:,:,:), intent(in):: asend
+    
+    logical, intent(out), optional  :: send_flag !Flag set if processor has passed data   
+    integer, dimension(6), intent(in) :: limits ! Global cell indices with minimum and maximum values to send
+    real(kind=kind(0.d0)),dimension(:,:,:,:), intent(in):: asend ! Array containing data to send
    
-    !Number of halos
-    !integer :: nh = 1 !?? todo needed?
-
     !Neighbours
     integer                             :: nneighbors   
     integer,dimension(:),allocatable    :: id_neighbors
@@ -876,26 +751,33 @@ subroutine CPL_send_xd(asend,icmin_send,icmax_send,jcmin_send, &
     integer :: npercell
 
     ! auxiliaries 
-    integer                             :: nbr,ndata,itag,destid,ncells
-    integer                             :: pcoords(3)
-    integer,dimension(6)                :: extents,limits,portion
+    integer                             :: nbr, ndata, itag, destid, Ncells
+    integer,dimension(3)                :: pcoords, Ncell
+    integer,dimension(6)                :: portion, myportion, portion_CFD
     real(kind=kind(0.d0)), allocatable  :: vbuf(:)
 
     ! This local CFD domain is outside MD overlap zone 
     if (olap_mask(rank_world) .eqv. .false.) return
 
-    ! Save limits array of Minimum and maximum values to send
-    limits = (/ icmin_send,icmax_send,jcmin_send,jcmax_send,kcmin_send,kcmax_send /)
-
-    ! Get local grid box ranges seen by this rank for CFD
-    if (realm .eq. cfd_realm) then 
-        !Load extents of CFD processor
-        pcoords = (/iblock_realm,jblock_realm,kblock_realm /)
-        call CPL_proc_extents(pcoords,cfd_realm,extents)
-    endif
-
     ! Number of components at each grid point
     npercell = size(asend,1)
+
+    !Get current processors portion
+    call CPL_my_proc_portion(limits, myportion)
+
+    !Check size is consistent with array
+    if (myportion(2)-myportion(1)+1 .ne. size(asend,2)) then
+        print*, myportion(2)-myportion(1)+1, size(asend,2)
+        call error_abort("Error in CPL send -- x size of asend must be the same as portion(2)-portion(1)+1")
+    endif
+    if (myportion(4)-myportion(3)+1 .ne. size(asend,3)) then
+        print*, myportion(4)-myportion(3)+1, size(asend,3)
+        call error_abort("Error in CPL send -- y size of asend must be the same as portion(4)-portion(3)+1")
+    endif
+    if (myportion(6)-myportion(5)+1 .ne. size(asend,4)) then
+        print*, myportion(6)-myportion(5)+1, size(asend,4)
+        call error_abort("Error in CPL send -- z size of asend must be the same as portion(6)-portion(5)+1")
+    endif
 
     !Get neighbours
     call MPI_Graph_neighbors_count(CPL_GRAPH_COMM,myid_graph,nneighbors,ierr)
@@ -913,45 +795,41 @@ subroutine CPL_send_xd(asend,icmin_send,icmax_send,jcmin_send, &
 
         ! ----------------- pack data for destid-----------------------------
         if (realm .eq. cfd_realm) then
-            !Get extents of nbr MD processor to send to
-            call CPL_Cart_coords(CPL_GRAPH_COMM, destid+1,  md_realm, 3, pcoords, ierr) 
+            !Get portion of nbr MD processor to send to
+            call CPL_Cart_coords(CPL_GRAPH_COMM, destid+1,  md_realm, 3, pcoords, ierr)
+            call CPL_proc_portion(pcoords, md_realm, limits, portion, Ncells)
         elseif (realm .eq. md_realm) then
             !Data to send is based on current processor as MD proc size < CFD proc size
-            pcoords = (/iblock_realm,jblock_realm,kblock_realm /)
-            !Get extents of current processor
-            call CPL_proc_extents(pcoords,md_realm,extents)
+            call CPL_my_proc_portion(limits, portion)
+            call CPL_get_no_cells(portion, Ncell)
+            Ncells = product(Ncell)
         endif
 
-        ! If limits passed to send routine, use these instead
-        ! of overlap/processor limits
-        call CPL_proc_portion(pcoords,md_realm,limits,portion,ncells)
+        !Get index in local cell coordinates for data
+        iclmin = portion(1)-myportion(1)+1;   iclmax = portion(2)-myportion(1)+1
+        jclmin = portion(3)-myportion(3)+1;   jclmax = portion(4)-myportion(3)+1
+        kclmin = portion(5)-myportion(5)+1;   kclmax = portion(6)-myportion(5)+1
 
         ! Amount of data to be sent
         if (any(portion.eq.VOID)) then
             !print*, 'VOID send qqqq',realm_name(realm),rank_world,rank_realm
             ndata = 0
         else
-
-            ! Get data range on processor's local extents
-            iclmin = portion(1)-extents(1)+1;   iclmax = portion(2)-extents(1)+1
-            jclmin = portion(3)-extents(3)+1;   jclmax = portion(4)-extents(3)+1
-            kclmin = portion(5)-extents(5)+1;   kclmax = portion(6)-extents(5)+1
-
-            ndata = npercell * ncells
+            ndata = npercell * Ncells
             if (allocated(vbuf)) deallocate(vbuf); allocate(vbuf(ndata))
             if (present(send_flag)) send_flag = .true.
+
             ! Pack array into buffer
             pos = 1
-            !print'(a,5i4,2i6,i4,24i4)', 'send qqqq',rank_world,rank_realm,rank_olap,ndata,nbr,destid, & 
-            !                       size(asend),pos,&
-            !                       iclmin,   iclmax,   jclmin,   jclmax,   kclmin,   kclmax,     &
-            !                       icmin_send,icmax_send,jcmin_send,jcmax_send,kcmin_send,kcmax_send, & 
-            !                       portion, extents
+!            print'(a,7i8,i4,21i3)', 'send qqqq', rank_world, rank_realm,            & 
+!                                   rank_olap, ndata, nbr, destid, size(asend), pos, &
+!                                   iclmin, iclmax, jclmin, jclmax, kclmin, kclmax,  &
+!                                   limits, portion
             do kcell=kclmin,kclmax
             do jcell=jclmin,jclmax
             do icell=iclmin,iclmax
             do n = 1,npercell
-                vbuf(pos) = asend(n,icell,jcell,kcell)
+                vbuf(pos) = asend(n, icell, jcell, kcell)
                 !write(98000+destid+1+10*rank_world,'(3i8,f20.5)') rank_world,destid+1,n, vbuf(pos)
                 pos = pos + 1
             end do
@@ -968,199 +846,73 @@ subroutine CPL_send_xd(asend,icmin_send,icmax_send,jcmin_send, &
 
     enddo
 
-end subroutine CPL_send_xd
-
-!=============================================================================
-!>
-!! CPL_recv_xd wrapper for 3d arrays
-!! see CPL_recv_xd for input description
-!! @see coupler#subroutine_CPL_recv_xd
-!-----------------------------------------------------------------------------
-subroutine CPL_recv_3d(temp,icmin_recv,icmax_recv,jcmin_recv, & 
-                            jcmax_recv,kcmin_recv,kcmax_recv,recv_flag)
-    use coupler_module, only : icmin_olap,icmax_olap, & 
-                               jcmin_olap,jcmax_olap, &
-                               kcmin_olap,kcmax_olap,error_abort
-    implicit none
-
-    logical, intent(out), optional                  :: recv_flag
-    integer, intent(in), optional                   :: icmax_recv,icmin_recv
-    integer, intent(in), optional                   :: jcmax_recv,jcmin_recv
-    integer, intent(in), optional                   :: kcmax_recv,kcmin_recv
-    real(kind(0.d0)),dimension(:,:,:),intent(inout) :: temp 
-                                                          
-    integer :: n1,n2,n3,n4
-    integer :: icmin,icmax,jcmin,jcmax,kcmin,kcmax
-    real(kind(0.d0)),dimension(:,:,:,:),allocatable  :: arecv
-
-    !if ((present(icmax_recv))) print*, 'icmax_recv', icmax_recv
-    !if ((present(icmin_recv))) print*, 'icmin_recv', icmin_recv
-    !if ((present(jcmax_recv))) print*, 'jcmax_recv', jcmax_recv
-    !if ((present(jcmin_recv))) print*, 'jcmin_recv', jcmin_recv
-    !if ((present(kcmax_recv))) print*, 'kcmax_recv', kcmax_recv
-    !if ((present(kcmin_recv))) print*, 'kcmin_recv', kcmin_recv
-
-    !Revert to default i domain sending - top of overlap to bottom of overlap
-    if ((present(icmax_recv)) .and. (present(icmin_recv))) then
-            icmax = icmax_recv; icmin = icmin_recv
-    elseif ((.not. present(icmax_recv)).and.(.not. present(icmin_recv))) then
-            icmax = icmax_olap; icmin = icmin_olap
-    else
-        call error_abort("CPL_recv error - both max and min i limits " // &
-                         "required and only one supplied")
-    endif
-
-    !Revert to default j domain sending - top of overlap to bottom of overlap
-    if ((present(jcmax_recv)) .and. (present(jcmin_recv))) then
-            jcmax = jcmax_recv; jcmin = jcmin_recv
-    elseif ((.not. present(jcmax_recv)).and.(.not. present(jcmin_recv))) then
-            jcmax = jcmax_olap; jcmin = jcmin_olap
-    else
-        call error_abort("CPL_recv error - both max and min j limits " // &
-                         "required and only one supplied")
-    endif
-
-    !Revert to default k domain sending - top of overlap to bottom of overlap
-    if ((present(kcmax_recv)) .and. (present(kcmin_recv))) then
-            kcmax = kcmax_recv; kcmin = kcmin_recv
-    elseif ((.not. present(kcmax_recv)).and.(.not. present(kcmin_recv))) then
-            kcmax = kcmax_olap; kcmin = kcmin_olap
-    else
-        call error_abort("CPL_recv error - both max and min k limits " // &
-                         "required and only one supplied")
-    endif
- 
-    n1 = 1 
-    n2 = size(temp,1)
-    n3 = size(temp,2)
-    n4 = size(temp,3)
-
-    !Add padding column to 3D array to make it 4D
-    allocate(arecv(n1,n2,n3,n4))
-    call CPL_recv_xd(arecv,icmin,icmax,jcmin, & 
-                           jcmax,kcmin,kcmax,recv_flag)
-    temp(:,:,:) =   arecv(1,:,:,:) 
-
-end subroutine CPL_recv_3d
-
-!=============================================================================
-!>
-!! CPL_recv_xd  wrapper for 4d arrays
-!! See CPL_recv_xd for input description
-!! @see coupler#subroutine_CPL_recv_xd
-!-----------------------------------------------------------------------------
-subroutine CPL_recv_4d(arecv,icmin_recv,icmax_recv,jcmin_recv, & 
-                             jcmax_recv,kcmin_recv,kcmax_recv,recv_flag)
-    use coupler_module, only : icmin_olap,icmax_olap, & 
-                               jcmin_olap,jcmax_olap, &
-                               kcmin_olap,kcmax_olap,error_abort
-    implicit none
- 
-    logical, intent(out), optional                        :: recv_flag
-    integer, intent(in), optional                         :: icmax_recv,icmin_recv
-    integer, intent(in), optional                         :: jcmax_recv,jcmin_recv
-    integer, intent(in), optional                         :: kcmax_recv,kcmin_recv
-    real(kind=kind(0.d0)),dimension(:,:,:,:), intent(out) :: arecv
-    
-    integer :: icmin,icmax,jcmin,jcmax,kcmin,kcmax
-
-    !if ((present(icmax_recv))) print*, 'icmax_recv', icmax_recv
-    !if ((present(icmin_recv))) print*, 'icmin_recv', icmin_recv
-    !if ((present(jcmax_recv))) print*, 'jcmax_recv', jcmax_recv
-    !if ((present(jcmin_recv))) print*, 'jcmin_recv', jcmin_recv
-    !if ((present(kcmax_recv))) print*, 'kcmax_recv', kcmax_recv
-    !if ((present(kcmin_recv))) print*, 'kcmin_recv', kcmin_recv
-
-    !Revert to default i domain sending - top of overlap to bottom of overlap
-    if ((present(icmax_recv)) .and. (present(icmin_recv))) then
-            icmax = icmax_recv; icmin = icmin_recv
-    elseif ((.not. present(icmax_recv)).and.(.not. present(icmin_recv))) then
-            icmax = icmax_olap; icmin = icmin_olap
-    else
-        call error_abort("CPL_recv error - both max and min i limits " // &
-                         "required and only one supplied")
-    endif
-
-    !Revert to default j domain sending - top of overlap to bottom of overlap
-    if ((present(jcmax_recv)) .and. (present(jcmin_recv))) then
-            jcmax = jcmax_recv; jcmin = jcmin_recv
-    elseif ((.not. present(jcmax_recv)).and.(.not. present(jcmin_recv))) then
-            jcmax = jcmax_olap; jcmin = jcmin_olap
-    else
-        call error_abort("CPL_recv error - both max and min j limits " // &
-                         "required and only one supplied")
-    endif
-
-    !Revert to default k domain sending - top of overlap to bottom of overlap
-    if ((present(kcmax_recv)) .and. (present(kcmin_recv))) then
-            kcmax = kcmax_recv; kcmin = kcmin_recv
-    elseif ((.not. present(kcmax_recv)).and.(.not. present(kcmin_recv))) then
-            kcmax = kcmax_olap; kcmin = kcmin_olap
-    else
-        call error_abort("CPL_recv error - both max and min k limits " // &
-                         "required and only one supplied")
-    endif
- 
-    call CPL_recv_xd(arecv,icmin,icmax,jcmin, & 
-                           jcmax,kcmin,kcmax,recv_flag)
-
-end subroutine CPL_recv_4d
+end subroutine CPL_send
 
 
-!=============================================================================
-!                       CPL_recv_xd
-!>
-!! Receive data from to local grid from the associated ranks from the other 
-!! realm
-!!
-!! - Synopsis
-!!
-!!  - CPL_recv_xd(arecv,icmin_recv,icmax_recv,jcmin_recv,  
-!!                           jcmax_recv,kcmin_recv,kcmax_recv,recv_flag)
-!!
-!! - Input Parameters
-!!
-!!   - arecv
-!!
-!!   - icmin_recv
-!!
-!!   - icmax_recv
-!!
-!!   - jcmin_recv
-!!
-!!   - jcmax_recv
-!!
-!!   - kcmin_recv
-!!
-!!   - kcmax_recv
-!!
-!! - Output Parameter
-!!
-!!   - recv_flag
-!!
-!! @author Edward Smith
 ! ----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-subroutine CPL_recv_xd(arecv,icmin_recv,icmax_recv,jcmin_recv, & 
-                             jcmax_recv,kcmin_recv,kcmax_recv,recv_flag)
+subroutine CPL_recv(arecv, limits, recv_flag)
+! ----------------------------------------------------------------------------
+!
+! Receive data from to local grid from the associated ranks from the other 
+! realm
+!
+!**Remarks**
+!
+!Assumes the coupler has been initialised with `CPL_init <#f/_/cpl_init>`_ and 
+!topological mapping has been setup using either `CPL_setup_md <#f/_/cpl_setup_md>`_ 
+!or `CPL_setup_cfd <#f/_/cpl_setup_cfd>`_ as appropriate.
+!
+!**Synopsis**
+!
+!.. code-block:: c
+!
+!  CPL_send(
+!           arecv, 
+!           limits, 
+!           recv_flag
+!           )    
+!
+!**Inputs**
+!
+! - *arecv*
+!
+!   - Array of data to recv. Should be a four dimensional array allocated using the number of cells on the current processor between the limits. Size should be be obtained from `CPL_my_proc_portion(limits, portion) <#f/_/cpl_my_proc_portion>`_.
+! 
+! - limits 
+!
+!   - Limits in global cell coordinates, must be the same as corresponding send
+!
+!**Outputs**
+!
+! - recv_flag
+!
+!   - Returned flag which indicates success or failure of recv process
+!
+!**Example**
+!
+!.. code-block:: guess
+!
+!  call CPL_get_olap_limits(limits)
+!  call CPL_my_proc_portion(limits, portion)
+!  call CPL_get_no_cells(portion, Ncells)
+!
+!  !Coupled Recieve
+!  allocate(A(3, Ncells(1), Ncells(2), Ncells(3)))
+!  call CPL_recv(A, limits, recv_flag)
+!
+! .. sectionauthor::Edward Smith
+! ----------------------------------------------------------------------------
     use mpi
     use coupler_module, only : md_realm,cfd_realm, & 
                                rank_graph, &
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
-                               rank_world, realm, & 
+                               rank_world, realm, rank_realm, rank_olap, & 
                                iblock_realm,jblock_realm,kblock_realm,VOID,ierr
     implicit none
 
-    !Flag set if processor has received data
-    logical, intent(out), optional                  :: recv_flag
-
-    ! Minimum and maximum values of j to send
-    integer, intent(in) :: icmax_recv,icmin_recv, & 
-                           jcmax_recv,jcmin_recv, & 
-                           kcmax_recv,kcmin_recv
-
-    ! Array that recieves grid distributed data 
-    real(kind(0.d0)), dimension(:,:,:,:),intent(inout):: arecv     
+    logical, intent(out), optional  :: recv_flag  !Flag set if processor has received data
+    integer, intent(in), dimension(6) :: limits  ! Global cell indices with minimum and maximum values to recv
+    real(kind(0.d0)), dimension(:,:,:,:),intent(inout):: arecv ! Pre allocated array that recieves data 
 
     !Neighbours
     integer                             :: nneighbors   
@@ -1170,7 +922,7 @@ subroutine CPL_recv_xd(arecv,icmin_recv,icmax_recv,jcmin_recv, &
     integer :: n,nbr,icell,jcell,kcell
     integer :: pos,iclmin,iclmax,jclmin,jclmax,kclmin,kclmax
     integer :: pcoords(3),npercell,ndata,ncells
-    integer,dimension(6) :: extents,portion,limits
+    integer,dimension(6) :: portion, myportion, portion_CFD
 
     ! auxiliaries 
     integer :: itag, sourceid,start_address
@@ -1181,9 +933,6 @@ subroutine CPL_recv_xd(arecv,icmin_recv,icmax_recv,jcmin_recv, &
     ! This local CFD domain is outside MD overlap zone 
     if (olap_mask(rank_world).eqv. .false.) return
 
-    ! Save limits array of Minimum and maximum values to recv
-    limits = (/ icmin_recv,icmax_recv,jcmin_recv,jcmax_recv,kcmin_recv,kcmax_recv /)
-
     ! Number of components at each grid point
     npercell = size(arecv,1)
 
@@ -1192,11 +941,10 @@ subroutine CPL_recv_xd(arecv,icmin_recv,icmax_recv,jcmin_recv, &
 
         !Load CFD cells per processor
         call CPL_Cart_coords(CPL_GRAPH_COMM, rank_graph, cfd_realm, 3, pcoords, ierr) 
-        call CPL_proc_extents(pcoords,cfd_realm,extents)
 
         ! If limits passed to recv routine, use these instead
         ! of overlap/processor limits
-        call CPL_proc_portion(pcoords,cfd_realm,limits,portion,ncells)
+        call CPL_proc_portion(pcoords, cfd_realm, limits, portion, ncells)
 
         ! Amount of data to receive from all MD processors
         ndata = npercell * ncells
@@ -1229,7 +977,7 @@ subroutine CPL_recv_xd(arecv,icmin_recv,icmax_recv,jcmin_recv, &
 
         ! If limits passed to recv routine, use these instead
         ! of overlap/processor limits
-        call CPL_proc_portion(pcoords,md_realm,limits,portion,ncells)
+        call CPL_proc_portion(pcoords, md_realm, limits, portion, ncells)
 
         !Only receive if overlapping
         if (any(portion.eq.VOID)) then
@@ -1265,6 +1013,23 @@ subroutine CPL_recv_xd(arecv,icmin_recv,icmax_recv,jcmin_recv, &
     !   enddo
     !endif
 
+    !Get current processors portion
+    call CPL_my_proc_portion(limits, myportion)
+
+    !Check size is consistent with array
+    if (myportion(2)-myportion(1)+1 .ne. size(arecv,2)) then
+        print*, myportion(2)-myportion(1)+1, size(arecv,2)
+        call error_abort("Error in CPL send -- x size of arecv must be the same as portion(2)-portion(1)+1")
+    endif
+    if (myportion(4)-myportion(3)+1 .ne. size(arecv,3)) then
+        print*, myportion(4)-myportion(3)+1, size(arecv,3)
+        call error_abort("Error in CPL send -- y size of arecv must be the same as portion(4)-portion(3)+1")
+    endif
+    if (myportion(6)-myportion(5)+1 .ne. size(arecv,4)) then
+        print*, myportion(6)-myportion(5)+1, size(arecv,4)
+        call error_abort("Error in CPL send -- z size of arecv must be the same as portion(6)-portion(5)+1")
+    endif
+
     ! ----------------- Unpack data -----------------------------
     start_address = 1
     do nbr = 1, nneighbors
@@ -1277,17 +1042,16 @@ subroutine CPL_recv_xd(arecv,icmin_recv,icmax_recv,jcmin_recv, &
             !CFD always receives data
             if (present(recv_flag)) recv_flag = .true.
             !CFD realm receives data based on size of MD processor domain
-            call CPL_Cart_coords(CPL_GRAPH_COMM, sourceid+1, md_realm, 3, pcoords, ierr) 
+            call CPL_Cart_coords(CPL_GRAPH_COMM, sourceid+1, md_realm, 3, pcoords, ierr)
+            call CPL_proc_portion(pcoords, md_realm, limits, portion, ncells)
         elseif (realm .eq. md_realm) then
             !MD realm receives data as big as own processor domain
-            pcoords = (/iblock_realm,jblock_realm,kblock_realm /)
-            !Get extents of current processor/overlap region
-            call CPL_proc_extents(pcoords,md_realm,extents)
+            call CPL_my_proc_portion(limits, portion)
         endif
 
-        ! If limits passed to recv routine, use these instead
-        ! of overlap/processor limits
-        call CPL_proc_portion(pcoords,md_realm,limits,portion,ncells)
+        iclmin = portion(1)-myportion(1)+1;   iclmax = portion(2)-myportion(1)+1
+        jclmin = portion(3)-myportion(3)+1;   jclmax = portion(4)-myportion(3)+1
+        kclmin = portion(5)-myportion(5)+1;   kclmax = portion(6)-myportion(5)+1
                 
         ! Unpack array into buffer
         if (any(portion.eq.VOID)) then
@@ -1296,13 +1060,11 @@ subroutine CPL_recv_xd(arecv,icmin_recv,icmax_recv,jcmin_recv, &
         else
             ! Get local extents in received region
             pos = start_address; ndata = npercell * ncells
-            iclmin = portion(1)-extents(1)+1;   iclmax = portion(2)-extents(1)+1
-            jclmin = portion(3)-extents(3)+1;   jclmax = portion(4)-extents(3)+1
-            kclmin = portion(5)-extents(5)+1;   kclmax = portion(6)-extents(5)+1
-            !print'(a,5i4,2i6,i4,18i4,l)', 'recv qqqq',rank_world,rank_realm,rank_olap,ndata,nbr, & 
-            !                           rank_graph2rank_world(sourceid+1),size(arecv),start_address,&
-            !                           iclmin,iclmax,jclmin,jclmax,kclmin,kclmax, & 
-            !                           portion,extents,recv_flag
+!            print'(a,3i4,4i10,12i4,l)', 'recv qqqq', rank_world, rank_realm, rank_olap, &
+!                                       ndata, nbr, size(arecv), start_address,          &
+!                                       iclmin, iclmax, jclmin, jclmax, kclmin, kclmax,  &
+!                                       portion, recv_flag
+
             do kcell=kclmin,kclmax
             do jcell=jclmin,jclmax
             do icell=iclmin,iclmax
@@ -1324,171 +1086,171 @@ subroutine CPL_recv_xd(arecv,icmin_recv,icmax_recv,jcmin_recv, &
     enddo
     ! ----------------- Unpack data -----------------------------
            
-end subroutine CPL_recv_xd
+end subroutine CPL_recv
 
 !-------------------------------------------------------------------
 
-subroutine CPL_pack(unpacked,packed,realm,icmax_pack,icmin_pack,jcmax_pack, & 
-                                          jcmin_pack,kcmax_pack,kcmin_pack    )
-    use coupler_module, only : CPL_CART_COMM,rank_cart,md_realm,cfd_realm, & 
-                               error_abort,CPL_GRAPH_COMM,myid_graph,realm_name
-    implicit none
+!subroutine CPL_pack(unpacked,packed,realm,icmax_pack,icmin_pack,jcmax_pack, & 
+!                                          jcmin_pack,kcmax_pack,kcmin_pack    )
+!    use coupler_module, only : CPL_CART_COMM,rank_cart,md_realm,cfd_realm, & 
+!                               error_abort,CPL_GRAPH_COMM,myid_graph,realm_name
+!    implicit none
 
-    integer, intent(in)                                         :: realm
-    real(kind=kind(0.d0)),dimension(:,:,:,:), intent(in)        :: unpacked
-    real(kind=kind(0.d0)),dimension(:),allocatable, intent(out) :: packed
+!    integer, intent(in)                                         :: realm
+!    real(kind=kind(0.d0)),dimension(:,:,:,:), intent(in)        :: unpacked
+!    real(kind=kind(0.d0)),dimension(:),allocatable, intent(out) :: packed
 
-    ! Optional minimum and maximum values to pack
-    integer, intent(in), optional    :: icmax_pack,icmin_pack
-    integer, intent(in), optional    :: jcmax_pack,jcmin_pack
-    integer, intent(in), optional    :: kcmax_pack,kcmin_pack
+!    ! Optional minimum and maximum values to pack
+!    integer, intent(in), optional    :: icmax_pack,icmin_pack
+!    integer, intent(in), optional    :: jcmax_pack,jcmin_pack
+!    integer, intent(in), optional    :: kcmax_pack,kcmin_pack
 
-    integer                          :: pos,n,nbr,id_nbr,icell,jcell,kcell,ierr
-    integer                          :: npercell,ncells,nneighbors
-    integer,dimension(3)             :: coord
-    integer,dimension(6)             :: extents,gextents
-    integer,dimension(:),allocatable :: id_neighbors
+!    integer                          :: pos,n,nbr,id_nbr,icell,jcell,kcell,ierr
+!    integer                          :: npercell,ncells,nneighbors
+!    integer,dimension(3)             :: coord
+!    integer,dimension(6)             :: extents,gextents
+!    integer,dimension(:),allocatable :: id_neighbors
 
-    !Amount of data per cell
-    npercell = size(unpacked,1)
+!    !Amount of data per cell
+!    npercell = size(unpacked,1)
 
-    !Allocate packing buffer
-    if (allocated(packed)) deallocate(packed)
-    allocate(packed(size(unpacked)))
+!    !Allocate packing buffer
+!    if (allocated(packed)) deallocate(packed)
+!    allocate(packed(size(unpacked)))
 
-    ! Get neighbour topology to determine ordering of packed data
-    call MPI_Graph_neighbors_count(CPL_GRAPH_COMM,myid_graph,nneighbors,ierr)
-    allocate(id_neighbors(nneighbors))
-    call MPI_Graph_neighbors(CPL_GRAPH_COMM,myid_graph,nneighbors,id_neighbors,ierr)
+!    ! Get neighbour topology to determine ordering of packed data
+!    call MPI_Graph_neighbors_count(CPL_GRAPH_COMM,myid_graph,nneighbors,ierr)
+!    allocate(id_neighbors(nneighbors))
+!    call MPI_Graph_neighbors(CPL_GRAPH_COMM,myid_graph,nneighbors,id_neighbors,ierr)
 
-    ! Loop through all neighbours which will be sent to and order the data 
-    ! appropriately to send each correctly
-    do nbr = 1,nneighbors
+!    ! Loop through all neighbours which will be sent to and order the data 
+!    ! appropriately to send each correctly
+!    do nbr = 1,nneighbors
 
-        if (realm .eq. cfd_realm) then
+!        if (realm .eq. cfd_realm) then
 
-            ! Get MD neighbour
-            id_nbr = id_neighbors(nbr)
-            call CPL_Cart_coords(CPL_GRAPH_COMM,id_nbr+1,md_realm,3,coord,ierr) 
-            call CPL_olap_extents(coord,md_realm,extents,ncells)
+!            ! Get MD neighbour
+!            id_nbr = id_neighbors(nbr)
+!            call CPL_Cart_coords(CPL_GRAPH_COMM,id_nbr+1,md_realm,3,coord,ierr) 
+!            call CPL_olap_extents(coord,md_realm,extents,ncells)
 
-            ! Get offset of neighbouring processor
-            pos = id_nbr * npercell * ncells
+!            ! Get offset of neighbouring processor
+!            pos = id_nbr * npercell * ncells
 
-            !print*,'Pack',rank_cart,realm_name(realm),coord,nbr,id_nbr,extents,coord
+!            !print*,'Pack',rank_cart,realm_name(realm),coord,nbr,id_nbr,extents,coord
 
-        elseif (realm .eq. md_realm) then
-            !Get own processor coordinates 
-            call CPL_Cart_coords(CPL_CART_COMM,rank_cart,realm,3,coord,ierr) 
-            call CPL_olap_extents(coord,realm,gextents,ncells)
-            ! Get local extents
-            extents(1) = 1; extents(2) = gextents(2)-gextents(1)
-            extents(3) = 1; extents(4) = gextents(4)-gextents(3)
-            extents(5) = 1; extents(6) = gextents(6)-gextents(5)
-            pos = 1
-        endif
+!        elseif (realm .eq. md_realm) then
+!            !Get own processor coordinates 
+!            call CPL_Cart_coords(CPL_CART_COMM,rank_cart,realm,3,coord,ierr) 
+!            call CPL_olap_extents(coord,realm,gextents,ncells)
+!            ! Get local extents
+!            extents(1) = 1; extents(2) = gextents(2)-gextents(1)
+!            extents(3) = 1; extents(4) = gextents(4)-gextents(3)
+!            extents(5) = 1; extents(6) = gextents(6)-gextents(5)
+!            pos = 1
+!        endif
 
-        ! Pack array into buffer
-        do kcell=extents(5),extents(6)
-        do jcell=extents(3),extents(4)
-        do icell=extents(1),extents(2)
-        do n = 1,npercell
+!        ! Pack array into buffer
+!        do kcell=extents(5),extents(6)
+!        do jcell=extents(3),extents(4)
+!        do icell=extents(1),extents(2)
+!        do n = 1,npercell
 
-            packed(pos) = unpacked(n,icell,jcell,kcell)
-            pos = pos + 1
+!            packed(pos) = unpacked(n,icell,jcell,kcell)
+!            pos = pos + 1
 
-        end do
-        end do
-        end do
-        end do
+!        end do
+!        end do
+!        end do
+!        end do
 
-    end do
+!    end do
 
-    !Sanity check
-    if (size(packed) .ne. npercell*ncells) then
-        !print*, 'data size', size(packed), 'expected size', npercell*ncells
-        call error_abort("CPL_pack error - cell array does not match expected extents")
-    endif
+!    !Sanity check
+!    if (size(packed) .ne. npercell*ncells) then
+!        !print*, 'data size', size(packed), 'expected size', npercell*ncells
+!        call error_abort("CPL_pack error - cell array does not match expected extents")
+!    endif
 
-end subroutine CPL_pack
+!end subroutine CPL_pack
 
 
-!-------------------------------------------------------------------
+!!-------------------------------------------------------------------
 
-subroutine CPL_unpack(packed,unpacked,realm)
-    use coupler_module, only : CPL_CART_COMM,rank_cart,md_realm,cfd_realm, & 
-                               error_abort,CPL_GRAPH_COMM,myid_graph
-    implicit none
+!subroutine CPL_unpack(packed,unpacked,realm)
+!    use coupler_module, only : CPL_CART_COMM,rank_cart,md_realm,cfd_realm, & 
+!                               error_abort,CPL_GRAPH_COMM,myid_graph
+!    implicit none
 
-    integer, intent(in)                                               :: realm
-    real(kind=kind(0.d0)),dimension(:,:,:,:),allocatable, intent(out) :: unpacked
-    real(kind=kind(0.d0)),dimension(:),allocatable, intent(inout)     :: packed
+!    integer, intent(in)                                               :: realm
+!    real(kind=kind(0.d0)),dimension(:,:,:,:),allocatable, intent(out) :: unpacked
+!    real(kind=kind(0.d0)),dimension(:),allocatable, intent(inout)     :: packed
 
-    integer                          :: pos,n,nbr,id_nbr,icell,jcell,kcell,ierr
-    integer                          :: npercell,ncells,nneighbors
-    integer,dimension(3)             :: coord
-    integer,dimension(6)             :: extents,gextents
-    integer,dimension(:),allocatable :: id_neighbors
+!    integer                          :: pos,n,nbr,id_nbr,icell,jcell,kcell,ierr
+!    integer                          :: npercell,ncells,nneighbors
+!    integer,dimension(3)             :: coord
+!    integer,dimension(6)             :: extents,gextents
+!    integer,dimension(:),allocatable :: id_neighbors
 
-    call CPL_Cart_coords(CPL_CART_COMM,rank_cart,realm,3,coord,ierr) 
-    call CPL_proc_extents(coord,realm,extents,ncells)
+!    call CPL_Cart_coords(CPL_CART_COMM,rank_cart,realm,3,coord,ierr) 
+!    call CPL_proc_extents(coord,realm,extents,ncells)
 
-    !Amount of data per cell
-    npercell = size(packed)/ncells
+!    !Amount of data per cell
+!    npercell = size(packed)/ncells
 
-    !Allocate packing buffer
-    if (allocated(unpacked)) deallocate(unpacked)
-    allocate(unpacked(npercell,1:extents(2)-extents(1), &
-                               1:extents(4)-extents(3), &
-                               1:extents(6)-extents(5)))
+!    !Allocate packing buffer
+!    if (allocated(unpacked)) deallocate(unpacked)
+!    allocate(unpacked(npercell,1:extents(2)-extents(1), &
+!                               1:extents(4)-extents(3), &
+!                               1:extents(6)-extents(5)))
 
-    ! Get neighbour topology to determine ordering of packed data
-    call MPI_Graph_neighbors_count(CPL_GRAPH_COMM,myid_graph,nneighbors,ierr)
-    allocate(id_neighbors(nneighbors))
-    call MPI_Graph_neighbors(CPL_GRAPH_COMM,myid_graph,nneighbors,id_neighbors,ierr)
+!    ! Get neighbour topology to determine ordering of packed data
+!    call MPI_Graph_neighbors_count(CPL_GRAPH_COMM,myid_graph,nneighbors,ierr)
+!    allocate(id_neighbors(nneighbors))
+!    call MPI_Graph_neighbors(CPL_GRAPH_COMM,myid_graph,nneighbors,id_neighbors,ierr)
 
-    ! Loop through all neighbours which will be sent to and order the data 
-    ! appropriately to send each correctly
-    do nbr = 1,nneighbors
+!    ! Loop through all neighbours which will be sent to and order the data 
+!    ! appropriately to send each correctly
+!    do nbr = 1,nneighbors
 
-        if (realm .eq. cfd_realm) then
-            ! Get MD neighbour
-            id_nbr = id_neighbors(nbr)
-            call CPL_Cart_coords(CPL_GRAPH_COMM,id_nbr,md_realm,3,coord,ierr) 
-            call CPL_proc_extents(coord,md_realm,extents,ncells)
-            ! Get offset of neighbouring processor
-            pos = id_nbr * npercell * ncells    !ASSUMES all ncell the same!!
-        elseif (realm .eq. md_realm) then
-            !Get own processor coordinates 
-            call CPL_Cart_coords(CPL_CART_COMM,rank_cart,realm,3,coord,ierr) 
-            call CPL_proc_extents(coord,realm,gextents,ncells)
-            ! Get local extents
-            extents(1) = 1; extents(2) = gextents(2)-gextents(1)
-            extents(3) = 1; extents(4) = gextents(4)-gextents(3)
-            extents(5) = 1; extents(6) = gextents(6)-gextents(5)
-            pos = 1
-        endif
+!        if (realm .eq. cfd_realm) then
+!            ! Get MD neighbour
+!            id_nbr = id_neighbors(nbr)
+!            call CPL_Cart_coords(CPL_GRAPH_COMM,id_nbr,md_realm,3,coord,ierr) 
+!            call CPL_proc_extents(coord,md_realm,extents,ncells)
+!            ! Get offset of neighbouring processor
+!            pos = id_nbr * npercell * ncells    !ASSUMES all ncell the same!!
+!        elseif (realm .eq. md_realm) then
+!            !Get own processor coordinates 
+!            call CPL_Cart_coords(CPL_CART_COMM,rank_cart,realm,3,coord,ierr) 
+!            call CPL_proc_extents(coord,realm,gextents,ncells)
+!            ! Get local extents
+!            extents(1) = 1; extents(2) = gextents(2)-gextents(1)
+!            extents(3) = 1; extents(4) = gextents(4)-gextents(3)
+!            extents(5) = 1; extents(6) = gextents(6)-gextents(5)
+!            pos = 1
+!        endif
 
-        ! Unpack buffer into array
-        do kcell=extents(5),extents(6)
-        do jcell=extents(3),extents(4)
-        do icell=extents(1),extents(2)
-        do n = 1,npercell
+!        ! Unpack buffer into array
+!        do kcell=extents(5),extents(6)
+!        do jcell=extents(3),extents(4)
+!        do icell=extents(1),extents(2)
+!        do n = 1,npercell
 
-            unpacked(n,icell,jcell,kcell) = packed(pos)
-            pos = pos + 1
+!            unpacked(n,icell,jcell,kcell) = packed(pos)
+!            pos = pos + 1
 
-        end do
-        end do
-        end do
-        end do
+!        end do
+!        end do
+!        end do
+!        end do
 
-    end do
+!    end do
 
-    !Deallocate packed buffer
-    deallocate(packed)
+!    !Deallocate packed buffer
+!    deallocate(packed)
 
-end subroutine CPL_unpack
+!end subroutine CPL_unpack
 
 
 !-------------------------------------------------------------------
@@ -1522,8 +1284,8 @@ end subroutine CPL_unpack
 !!  - ncells (optional)
 !!   - number of cells on processor (integer) 
 !!
-!! @author David Trevelyan
-!! @author Edward Smith
+!! .. sectionauthor:: David Trevelyan
+!! .. sectionauthor:: Edward Smith
 subroutine CPL_proc_extents(coord,realm,extents,ncells)
     use mpi
     use coupler_module, only: md_realm,      cfd_realm,      &
@@ -1631,7 +1393,7 @@ end subroutine CPL_proc_extents
 !!  - ncells (optional)
 !!   - number of cells on processor (integer) 
 !!
-!! @author David Trevelyan
+!! .. sectionauthor:: David Trevelyan
 subroutine CPL_olap_extents(coord,realm,extents,ncells)
     use mpi
     use coupler_module, only: md_realm,      cfd_realm,      &
@@ -1715,7 +1477,7 @@ end subroutine CPL_olap_extents
 !! - Note: limits(6) and portion(6) are of the form:
 !!   (xmin,xmax,ymin,ymax,zmin,zmax)
 !!
-!! @author David Trevelyan
+!! .. sectionauthor:: David Trevelyan
 
 subroutine CPL_proc_portion(coord,realm,limits,portion,ncells)
     use mpi
@@ -1836,7 +1598,7 @@ end subroutine CPL_my_proc_extents
 !!
 !!  - ierr
 !!   - error flag
-!! @author Edward Smith
+!! .. sectionauthor:: Edward Smith
 
 subroutine CPL_Cart_coords(COMM, rank, realm, maxdims, coords, ierr)
     use coupler_module, only :  CPL_WORLD_COMM, CPL_REALM_COMM, CPL_INTER_COMM, & 
@@ -1992,7 +1754,7 @@ end subroutine CPL_Cart_coords
 !!   - rank of a process within group of comm (integer) 
 !!      NOTE fortran convention rank=1 to nproc
 !!
-!! @author Edward Smith
+!! .. sectionauthor:: Edward Smith
 
 subroutine CPL_get_rank(COMM,rank)
     use coupler_module, only :  CPL_WORLD_COMM, CPL_REALM_COMM, CPL_INTER_COMM, & 
@@ -2052,7 +1814,7 @@ end subroutine CPL_get_rank
 !!   - True if calling processor is in the overlap region
 !!     and false otherwise
 !!
-!! @author Edward Smith
+!! .. sectionauthor:: Edward Smith
 
 
 function CPL_overlap() result(p)
@@ -2092,7 +1854,7 @@ end function CPL_overlap
 !!
 !!  - @see coupler_module
 !!
-!! @author Edward Smith
+!! .. sectionauthor:: Edward Smith
 
 subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  & 
                    kcmax_olap,kcmin_olap,density_cfd,density_md, &
@@ -2484,7 +2246,7 @@ end function CPL_map_coord2cell
 subroutine CPL_get_no_cells(limits, no_cells)
 
    integer, intent(in)  :: limits(6)
-   integer, intent(out) :: no_cells(6)
+   integer, intent(out) :: no_cells(3)
 
    ! TODO: Check for limits
    

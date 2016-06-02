@@ -58,7 +58,27 @@ module CPLC
 
 contains
 
+    !Convert c bool to fortran
+    subroutine C_F_BOOL(cbool, fbool)
+        logical(C_BOOL),intent(in) :: cbool
+        logical,intent(out) :: fbool
+        if (cbool) then
+            fbool = .true.
+        else
+            fbool = .false.
+        endif
+    end subroutine C_F_BOOL
 
+    !Convert fortran to c bool
+    subroutine F_C_BOOL(fbool, cbool)
+        logical,intent(in) :: fbool
+        logical(C_BOOL),intent(out) :: cbool
+        if (fbool) then
+            cbool = .true.
+        else
+            cbool = .false.
+        endif
+    end subroutine F_C_BOOL
 
     subroutine CPLC_init(calling_realm, returned_realm_comm) &
         bind (C, name="CPLC_init")
@@ -191,8 +211,6 @@ contains
                               kTmax_f, xgrid_f, ygrid_f, zgrid_f)
 
     end subroutine CPLC_cfd_init
-
-
 
     subroutine CPLC_test_python(int_p, doub_p, bool_p, int_pptr, doub_pptr, int_pptr_dims, doub_pptr_dims) &
        bind (C, name="CPLC_test_python")
@@ -333,111 +351,84 @@ contains
     end subroutine CPLC_md_init
 
 
-    subroutine CPLC_send(asend, asend_shape, ndims, icmax, icmin, jcmax, &
-                         jcmin, kcmax, kcmin, send_flag) &
+    subroutine CPLC_send(asend, asend_shape, limits, send_flag) &
         bind(C, name="CPLC_send")
         use CPL, only: CPL_send!, CPL_send_4d, CPL_send_3d
         implicit none
 
-        ! Integers
-        integer(C_INT), value :: ndims
-        integer(C_INT), value :: icmax, icmin
-        integer(C_INT), value :: jcmax, jcmin
-        integer(C_INT), value :: kcmax, kcmin
-
         ! Boolean
-        logical(C_BOOL) :: send_flag
+        logical(C_BOOL),intent(out) :: send_flag
 
         ! Inputs
         type(C_PTR), value :: asend
         type(C_PTR), value :: asend_shape
+        type(C_PTR), value :: limits
 
         ! Fortran equivalent array pointers
-        real(kind(0.d0)), dimension(:,:,:,:), pointer :: asend4D_f
-        real(kind(0.d0)), dimension(:,:,:), pointer :: asend3D_f
+        logical :: send_flag_f
+        real(kind(0.d0)), dimension(:,:,:,:), pointer :: asend_f
+        integer, dimension(:), pointer :: limits_f
         integer, dimension(:), pointer :: asend_shape_f
 
         ! Other useful variables internal to this subroutine
         integer :: s1, s2, s3, s4
 
-        send_flag  = .true.
+        call C_F_POINTER(limits, limits_f, [6])
+        limits_f = limits_f + 1
 
-        if (ndims .eq. 3) then
-          call C_F_POINTER(asend_shape, asend_shape_f, [3])
-          s1 = asend_shape_f(1) 
-          s2 = asend_shape_f(2) 
-          s3 = asend_shape_f(3) 
-          call C_F_POINTER(asend, asend3D_f, [s1, s2, s3])
-          call CPL_send(asend3D_f, icmax, icmin, jcmax, jcmin, kcmax, kcmin)
-        elseif (ndims .eq. 4) then
-          call C_F_POINTER(asend_shape, asend_shape_f, [4])
-          s1 = asend_shape_f(1) 
-          s2 = asend_shape_f(2) 
-          s3 = asend_shape_f(3) 
-          s4 = asend_shape_f(4) 
-          call C_F_POINTER(asend, asend4D_f, [s1, s2, s3, s4])
-          call CPL_send(asend4D_f, icmax + 1, icmin + 1, jcmax + 1, jcmin + 1, kcmax + 1, kcmin + 1)
-        else
-          print*, "Error in CPLC_send -- only 3 and 4 is allowed for ndims."
-        end if
-
+        call C_F_POINTER(asend_shape, asend_shape_f, [4])
+        s1 = asend_shape_f(1) 
+        s2 = asend_shape_f(2) 
+        s3 = asend_shape_f(3) 
+        s4 = asend_shape_f(4)
+        call C_F_POINTER(asend, asend_f, [s1, s2, s3, s4])
+        call C_F_BOOL(send_flag, send_flag_f)
+        call CPL_send(asend_f, limits_f, send_flag_f)
+        call F_C_BOOL(send_flag_f,send_flag)
+        limits_f = limits_f - 1
+    
 
     end subroutine CPLC_send
 
 
-    subroutine CPLC_recv(arecv, arecv_shape, ndims, icmax, icmin, jcmax, &
-                         jcmin, kcmax, kcmin, recv_flag) &
+    subroutine CPLC_recv(arecv, arecv_shape, limits, recv_flag) &
         bind(C, name="CPLC_recv")
         use CPL, only: CPL_recv
         implicit none
 
-        ! Integers
-        integer(C_INT), value :: ndims
-        integer(C_INT), value :: icmax, icmin
-        integer(C_INT), value :: jcmax, jcmin
-        integer(C_INT), value :: kcmax, kcmin
-
-
         ! Boolean
-        logical(C_BOOL) :: recv_flag
+        logical(C_BOOL),intent(out) :: recv_flag
 
         ! Inputs
         type(C_PTR), value :: arecv
+        type(C_PTR), value :: limits
         type(C_PTR), value :: arecv_shape
 
         ! Fortran equivalent array pointers
-        real(kind(0.d0)), dimension(:,:,:,:), pointer :: arecv4D_f
-        real(kind(0.d0)), dimension(:,:,:), pointer :: arecv3D_f
+        logical :: recv_flag_f
+        real(kind(0.d0)), dimension(:,:,:,:), pointer :: arecv_f
+        integer, dimension(:), pointer :: limits_f
         integer, dimension(:), pointer :: arecv_shape_f
 
         ! Other useful variables internal to this subroutine
         integer :: s1, s2, s3, s4
 
-        recv_flag = .true.
-        if (ndims .eq. 3) then
-          call C_F_POINTER(arecv_shape, arecv_shape_f, [3])
-          s1 = arecv_shape_f(1) 
-          s2 = arecv_shape_f(2) 
-          s3 = arecv_shape_f(3) 
-          call C_F_POINTER(arecv, arecv3D_f, [s1, s2, s3])
-          call CPL_recv(arecv3D_f, icmax, icmin, jcmax, jcmin, kcmax, kcmin)
-        elseif (ndims .eq. 4) then
-          call C_F_POINTER(arecv_shape, arecv_shape_f, [4])
-          s1 = arecv_shape_f(1) 
-          s2 = arecv_shape_f(2) 
-          s3 = arecv_shape_f(3) 
-          s4 = arecv_shape_f(4) 
-          call C_F_POINTER(arecv, arecv4D_f, [s1, s2, s3, s4])
-          call CPL_recv(arecv4D_f, icmax + 1, icmin + 1, jcmax + 1, jcmin + 1, kcmax + 1, kcmin + 1)
-        else
-          print*, "Error only 3 and 4 is allowed for ndims."
-        end if
+        call C_F_POINTER(limits, limits_f, [6])
+        limits_f = limits_f + 1
 
+        call C_F_POINTER(arecv_shape, arecv_shape_f, [4])
+        s1 = arecv_shape_f(1) 
+        s2 = arecv_shape_f(2) 
+        s3 = arecv_shape_f(3) 
+        s4 = arecv_shape_f(4) 
+        call C_F_POINTER(arecv, arecv_f, [s1, s2, s3, s4])
+
+        call C_F_BOOL(recv_flag, recv_flag_f)
+        call CPL_recv(arecv_f, limits_f, recv_flag_f)
+        call F_C_BOOL(recv_flag_f,recv_flag)
+        limits_f = limits_f - 1
 
     end subroutine CPLC_recv
-
-
-
 
     subroutine CPLC_scatter(scatterarray, scatter_shape, limits, recvarray, &
                             recv_shape) &

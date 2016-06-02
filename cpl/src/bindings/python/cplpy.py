@@ -400,38 +400,30 @@ class CPL:
     py_send.argtypes = \
         [ndpointer(np.float64, flags='aligned, f_contiguous'),
          ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
-         c_int,
-         c_int, c_int,
-         c_int, c_int,
-         c_int, c_int, POINTER(c_bool)]
+         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'), 
+         POINTER(c_bool)]
 
     @abortMPI
-    def send(self, asend, icmin, icmax, jcmin, jcmax, kcmin, kcmax):
+    def send(self, asend, limits):
         asend = self._type_check(asend)
         asend_shape = np.array(asend.shape, order='F', dtype=np.int32)
-        ndims = asend.ndim
         send_flag = c_bool()
-        self.py_send(asend, asend_shape, ndims, icmin, icmax, jcmin, jcmax,
-                     kcmin, kcmax, byref(send_flag))
+        self.py_send(asend, asend_shape, limits, byref(send_flag))
         return send_flag.value
 
     py_recv = _cpl_lib.CPLC_recv
     py_recv.argtypes = \
         [ndpointer(np.float64, flags='aligned, f_contiguous'),
          ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
-         c_int,
-         c_int, c_int,
-         c_int, c_int,
-         c_int, c_int, POINTER(c_bool)]
+         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'), 
+         POINTER(c_bool)]
 
     @abortMPI
-    def recv(self, arecv, icmin, icmax, jcmin, jcmax, kcmin, kcmax):
+    def recv(self, arecv, limits):
         arecv = self._type_check(arecv)
         arecv_shape = np.array(arecv.shape, order='F', dtype=np.int32)
-        ndims = arecv.ndim
         recv_flag = c_bool()
-        self.py_recv(arecv, arecv_shape, ndims, icmin, icmax, jcmin, jcmax,
-                     kcmin, kcmax, byref(recv_flag))
+        self.py_recv(arecv, arecv_shape, limits, byref(recv_flag))
         return arecv, recv_flag.value
 
     py_overlap = _cpl_lib.CPLC_overlap
