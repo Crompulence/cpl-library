@@ -11,7 +11,7 @@
 #
 
 # Get compilers and base flags from platform include file 
-MAKEINCPATH= ../make
+MAKEINCPATH= ./make
 include $(MAKEINCPATH)/platform.inc
 
 
