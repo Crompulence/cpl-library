@@ -503,7 +503,6 @@ contains
 
 
 
-
     subroutine CPLC_gather(gatherarray, gather_shape, limits, recvarray, &
                             recv_shape) &
         bind(C, name="CPLC_gather")
@@ -561,8 +560,6 @@ contains
     end subroutine CPLC_gather
 
 
-
-
     subroutine CPLC_proc_extents(coord, realm, extents) &
         bind(C, name="CPLC_proc_extents")
         use CPL, only: CPL_proc_extents
@@ -587,6 +584,7 @@ contains
         extents_f = extents_f - 1;
 
     end subroutine CPLC_proc_extents
+
 
     subroutine CPLC_my_proc_extents(extents) &
         bind(C, name="CPLC_my_proc_extents")
@@ -830,6 +828,16 @@ contains
         limits_f = limits_f - 1
 
     end subroutine CPLC_get_cnst_limits
+
+
+    logical(C_BOOL) function CPLC_overlap() &
+        bind(C, name="CPLC_overlap")
+        use CPL, only: CPL_overlap
+    
+        CPLC_overlap = CPL_overlap()
+
+    end function CPLC_overlap
+    
     
    
     ! Setters:

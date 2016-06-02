@@ -5,14 +5,18 @@ from mpi4py import MPI
 import numpy as np
 from numpy.ctypeslib import ndpointer, load_library
 from functools import wraps
-import os, time
+import os
+import time
+from subprocess import STDOUT, check_output, CalledProcessError
+import shutil
+import cPickle
 
 
-__all__ = ["CPL", "cart_create"]
+__all__ = ["CPL", "cart_create", "run_test", "prepare_config"]
+
 
 class OpenMPI_Not_Supported(Exception):
     pass
-
 
 # TODO: Raise exception of library not loaded
 _loaded = False
@@ -51,6 +55,7 @@ def abortMPI(func):
         else:
             return retval
     return handleExcepts
+
 
 class CPL:
     # Shared attribute containing the library
@@ -124,8 +129,8 @@ class CPL:
         self.py_test_python(int_p, doub_p, bool_p, int_pptr, doub_pptr,
                             int_pptr_dims, doub_pptr_dims)
 
-
     _py_init = _cpl_lib.CPLC_init
+
     #OpenMPI comm greater than c_int
     if MPI._sizeof(MPI.Comm) == ctypes.sizeof(c_int): 
         _py_init.argtypes = [c_int, POINTER(c_int)]
@@ -152,14 +157,13 @@ class CPL:
         returned_realm_comm = c_int()
         self._py_init(calling_realm, byref(returned_realm_comm))
 
-                # Use an intracomm object as the template and override value
+        # Use an intracomm object as the template and override value
         newcomm = MPI.Intracomm()
         newcomm_ptr = MPI._addressof(newcomm)
         comm_val = MPI_Comm.from_address(newcomm_ptr)
         comm_val.value = returned_realm_comm.value
 
         return newcomm
-
 
     py_setup_cfd = _cpl_lib.CPLC_setup_cfd
 
@@ -430,6 +434,14 @@ class CPL:
                      kcmin, kcmax, byref(recv_flag))
         return arecv, recv_flag.value
 
+    py_overlap = _cpl_lib.CPLC_overlap
+    py_overlap.argtypes = []
+
+    @abortMPI
+    def overlap(self):
+        self.py_overlap.restype = c_bool
+        return self.py_overlap()
+
     @abortMPI
     def get(self, var_name):
         try:
@@ -459,7 +471,12 @@ class CPL:
     @abortMPI
     def _type_check(self, A):
         if type(A) is list:
-            A = np.asfortranarray(A, dtype=np.int32)
+            ndtype = type(A[0])
+            if ndtype == float:
+                ndtype = np.float64
+            elif ndtype == int:
+                ndtype = np.int32
+            A = np.asfortranarray(A, dtype=ndtype)
         if not A.flags["F_CONTIGUOUS"]:
             A = np.require(A, requirements=['F'])
         if not A.flags["ALIGNED"]:
@@ -476,6 +493,59 @@ def cart_create(old_comm, dims, periods, coords):
             print ("Not good!")
             exit()
     return new_cart_comm
+
+
+# -----------------------------TESTING ROUTINES------------------------------ #
+
+
+CONFIG_FILE = "COUPLER.in"
+TEST_DIR = os.path.dirname(os.path.realpath(__file__))
+TEST_NAME = os.path.basename(os.path.realpath(__file__))
+
+
+def parametrizeConfig(template_dir, params):
+    # It assumes is in the temp directory with cpl/ folder accessible
+    # from this level.
+    with open(os.path.join(template_dir,
+                           CONFIG_FILE), "r+") as config_file:
+        lines = config_file.readlines()
+        for (k, v) in params.items():
+            lines = [l.replace("$[" + str(k) + "]", str(v)) for l in lines]
+    with open(os.path.join("cpl/", CONFIG_FILE), "w") as config_file:
+        config_file.writelines(lines)
+
+
+def prepare_config(tmpdir, test_dir, md_fname, cfd_fname):
+    tmpdir.mkdir("cpl")
+    shutil.copy(os.path.join(test_dir, md_fname), tmpdir.strpath)
+    shutil.copy(os.path.join(test_dir, cfd_fname), tmpdir.strpath)
+    os.chdir(tmpdir.strpath)
+
+
+def run_test(template_dir, config_params, md_fname, cfd_fname,
+             md_params, cfd_params, err_msg):
+    parametrizeConfig(template_dir, config_params)
+    cPickle.dump(md_params, open("md_params.dic", "wb"))
+    cPickle.dump(cfd_params, open("cfd_params.dic", "wb"))
+    try:
+        mdprocs = md_params["npx"] * md_params["npy"] * md_params["npz"]
+        cfdprocs = cfd_params["npx"] * cfd_params["npy"] * cfd_params["npz"]
+        cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_fname,
+                        ":", "-n", str(cfdprocs), cfd_fname])
+        print (cmd)
+        check_output(cmd, stderr=STDOUT, shell=True)
+
+    except CalledProcessError as exc:
+        print (exc.output)
+        if err_msg != "":
+            assert err_msg in exc.output
+        else:
+            assert exc.output == ""
+    else:
+        if err_msg != "":
+            assert False
+        else:
+            assert True
 
 
 if __name__ == "__main__":

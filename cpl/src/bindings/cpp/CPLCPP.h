@@ -210,6 +210,8 @@ namespace CPL
         double cfd_coord[]
     );
 
+    bool overlap();
+
     void set_output_mode
     (
         int mode

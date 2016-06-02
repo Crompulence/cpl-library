@@ -209,6 +209,8 @@ extern "C" bool CPLC_map_md2cfd_coord
     double coord_cfd[]
 );
 
+extern "C" bool CPLC_overlap();
+
 
 // Setters
 extern "C" void CPLC_set_output_mode
@@ -247,7 +249,6 @@ extern "C" int CPLC_cpl_cfd_bc_y();
 extern "C" int CPLC_cpl_cfd_bc_z();
 extern "C" int CPLC_cpl_md_bc_slice();
 extern "C" int CPLC_cpl_cfd_bc_slice();
-extern "C" int CPLC_overlap();
 extern "C" double CPLC_density_cfd();
 extern "C" double CPLC_dx();
 extern "C" double CPLC_dy();

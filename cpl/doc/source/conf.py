@@ -12,8 +12,9 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, subprocess
-import os
+import sys
+import subprocess
+
 
 def run_doxygen(folder):
     """Run the doxygen make command in the designated folder"""

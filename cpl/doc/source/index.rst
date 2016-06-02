@@ -28,10 +28,7 @@ Install Sphinx, either from a distribution package or from
 .. toctree::
     :maxdepth: 2
 
-    API index
-    Contento
-
-.. autoclass:: cplpy.cpl.CPL
+.. autoclass:: cplpy.CPL
     :members:
 
 .. doxygennamespace:: CPL
@@ -53,6 +50,7 @@ Install Sphinx, either from a distribution package or from
 .. f:autofunction:: cpl_get_cnst_limits
 .. f:autofunction:: cpl_map_cfd2md_coord
 .. f:autofunction:: cpl_map_md2cfd_coord
+.. f:autofunction:: cpl_overlap
 
 
 Indices and tables

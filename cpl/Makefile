@@ -18,7 +18,7 @@ include $(MAKEINCPATH)/platform.inc
 #                          Definitions
 
 # Directories
-testdir = ./src/bindings/python/cplpy/tests
+testdir = ./test
 objdir = obj
 srcdir = src
 libdir = lib
@@ -120,8 +120,14 @@ $(utilsobjfiles): $(objdir)/%.o : $(utilsdir)/%.cpp
 link: $(objdir) $(libobjfiles) $(utilsobjfiles)
 	$(LINK) $(LSHAREDLIB) -o $(lib) $(allobjfiles) $(LFLAGS) 
 
-test:
+test-all:
 	py.test -v -s $(testdir)
+	
+test-mapping:
+	py.test -v -s $(testdir)/mapping
+
+test-initialisation:
+	py.test -v -s $(testdir)/initialisation
 
 # Clean
 clean:

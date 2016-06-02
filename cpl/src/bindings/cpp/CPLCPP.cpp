@@ -190,6 +190,11 @@ bool CPL::map_md2cfd_coord (double md_coord[], double cfd_coord[])
     return CPLC_map_md2cfd_coord (md_coord, cfd_coord);
 }
 
+bool CPL::overlap()
+{
+    return CPLC_overlap();
+}
+
 // Setters
 void CPL::set_output_mode (int mode)
 {

@@ -10,5 +10,5 @@ else
     else
         export PYTHONPATH="$CPL_PATH/src/bindings/python:$PYTHONPATH"
     fi
-    export CPLPY_PATH="$CPL_PATH/src/bindings/python/cplpy"
+    export CPLPY_PATH="$CPL_PATH/src/bindings/python"
 fi

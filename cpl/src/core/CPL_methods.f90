@@ -98,7 +98,7 @@ module coupler
            CPL_my_proc_extents, CPL_proc_portion, CPL_my_proc_portion, &
            CPL_map_cell2coord, CPL_map_coord2cell, CPL_get_no_cells, &
            CPL_map_glob2loc_cell, CPL_get_olap_limits, CPL_get_cnst_limits, & 
-           CPL_map_cfd2md_coord, CPL_map_md2cfd_coord 
+           CPL_map_cfd2md_coord, CPL_map_md2cfd_coord, CPL_overlap
 
 contains
 

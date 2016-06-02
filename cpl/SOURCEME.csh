@@ -8,5 +8,5 @@ else
     else
         setenv  PYTHONPATH $CPL_PATH/src/bindings/python:$PYTHONPATH
     endif
-    setenv CPLPY_PATH $CPL_PATH/src/bindings/python/cplpy
+    setenv CPLPY_PATH $CPL_PATH/src/bindings/python
 endif
