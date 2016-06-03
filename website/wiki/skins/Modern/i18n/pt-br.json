@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Diego Queiroz",
+			"Cainamarques"
+		]
+	},
+	"modern.css": "/* o código CSS colocado aqui terá efeito nos usuários do tema Modern */",
+	"modern.js": "/* Qualquer JavaScript aqui colocado afetará os usuários do tema Modern */",
+	"skinname-modern": "Moderno",
+	"modern-desc": "Um tema azul/cinza com barras lateral e de topo. Derivado do MonoBook."
+}

@@ -1,0 +1,38 @@
+.developerDiv
+{
+    height: 200px;
+    width: 100%;
+    overflow: hidden;
+}
+
+div#developerImage
+{
+    background: black;
+    float: left;
+    filter: grayscale(100%);
+    mix-blend-mode: multiply;
+    margin-right: 15px;
+    overflow: hidden;
+    width: 200px;
+    height: 100%;
+}
+
+.developerImageText
+{
+    position: absolute;
+    bottom:0;
+    right:0;
+    margin: 10px;
+    color: white;
+    visibility: hidden;
+    font-family: bebas;
+    font-size: 30px;
+}
+
+div#developerImage:hover img {
+    opacity: 0.5;
+}
+div#developerImage:hover .developerImageText {
+    visibility: visible;
+    opacity: 1;
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>Download CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="shortcut icon" href="./cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!--#include virtual="nav.html"-->
+
+        <h2>Downloading CPL Library</h2>
+
+        CPL Library may be downloaded with 
+        <a href="https://github.com/Crompulence/cpl-library">git</a>. 
+        Copy and paste the following command into your Terminal:
+
+        <div class="code">
+            <p>
+		git clone https://github.com/Crompulence/cpl-library.git
+            </p>
+        </div>
+
+        <p>
+            Or see our 
+            <a href="https://github.com/Crompulence/cpl-library">github homepage</a>.
+       Alternatively, a zip file may be downloaded from 
+       <a href="https://github.com/Crompulence/cpl-library/archive/master.zip">here</a>.
+        </p>
+    
+    </div>
+
+</body>
+
+
+</html>

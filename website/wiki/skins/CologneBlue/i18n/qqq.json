@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Meno25",
+			"Umherirrender",
+			"Shirayuki"
+		]
+	},
+	"cologneblue.css": "{{optional}}",
+	"cologneblue.js": "{{optional}}",
+	"skinname-cologneblue": "{{optional}}",
+	"cologneblue-desc": "{{desc|what=skin|name=Cologne Blue|url=https://www.mediawiki.org/wiki/Skin:Cologne_Blue}}"
+}

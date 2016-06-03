@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>CPL Library documentation</title>
+
+<head>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="shortcut icon" href="/cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!--#include virtual="nav.html"-->
+
+        <div class="bigLink"> 
+            <h1><a href='/user-guide/quick-start.shtml'>Quick-start guide</a></h1>
+            <h1><a href='/api/index.html'>API Reference</a><h1>
+            <h1><a
+href='http://www.cpl-library.org/wiki/index.php/Main_Page'>Wiki</a><h1>
+        </div>
+
+    </div>
+
+</body>
+
+
+</html>

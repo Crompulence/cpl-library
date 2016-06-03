@@ -1,0 +1,29 @@
+ 
+.square {
+    float:left;
+    position: relative;
+    width: 13.6857142857%;
+    padding-bottom : 13.6857142857%; /* = width for a
+    1:1 aspect ratio */
+    margin:0.3%;
+    overflow:hidden;
+}
+
+.content {
+    position:absolute;
+    text-align:center;
+    height:80%; /* = 100% - 2*10% padding */
+    width:90%; /* = 100% - 2*5% padding */
+    padding: 10% 5%;
+}
+.table{
+    display:table;
+    height:100%;
+    width:100%;
+}
+.table-cell{
+    display:table-cell;
+    vertical-align:middle;
+    height:100%;
+    width:100%;
+}

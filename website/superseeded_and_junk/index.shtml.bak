@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="shortcut icon" href="./cpl_logo.ico">
+    <meta name="google-site-verification" content="BV_Uf5aV2ISIzgUEWohrYUf28F4TmPYr8NfMuh2K6so" />
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!--#include virtual="nav.html"-->
+
+        <div id="schematic">
+            
+            <img src="drawings/scroll_schematic.svg" alt="schematic">
+
+        </div>
+
+    </div> 
+
+
+
+</body>
+
+
+</html>

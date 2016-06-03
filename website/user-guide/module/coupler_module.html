@@ -1,0 +1,4357 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	 
+	 <meta name="description" content="<p>Details of interfaces and subroutine of the cpl-library including source code</p>">
+    
+    <meta name="author" content="Chris MacMackin" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>coupler_module &ndash; Fortran Program</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+				
+                
+            <li><a href="../lists/files.html">Source Files</a></li>
+				
+				
+            <li><a href="../lists/modules.html">Modules</a></li>
+				
+				
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+				
+								
+				
+          </ul>
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>coupler_module 
+    <small>Module</small>
+    
+    </h1>
+	 
+<div class="row">
+<div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+    <li><i class="fa fa-code"></i><a href="../src/coupler_module.f90"> Source File</a></li>
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+     <li><a href='../sourcefile/coupler_module.f90.html'>coupler_module.f90</a></li>
+  
+     <li class="active">coupler_module</li>
+  </ol>
+  </div>
+</div>
+    
+  </div>
+  
+  <div class="row">
+    <div class="col-lg-3">
+    
+  
+  
+  
+  <div class="panel panel-primary">
+    <div class="panel-heading text-left"><h3 class="panel-title">Variables</h3></div>
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-VOID">VOID</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-cfd_realm">cfd_realm</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-md_realm">md_realm</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-realm_name">realm_name</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-COUPLER_ERROR_REALM">COUPLER_ERROR_REALM</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-COUPLER_ERROR_ONE_REALM">COUPLER_ERROR_ONE_REALM</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-COUPLER_ERROR_INIT">COUPLER_ERROR_INIT</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-COUPLER_ERROR_INPUT_FILE">COUPLER_ERROR_INPUT_FILE</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-COUPLER_ERROR_READ_INPUT">COUPLER_ERROR_READ_INPUT</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-COUPLER_ERROR_CONTINUUM_FORCE">COUPLER_ERROR_CONTINUUM_FORCE</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-COUPLER_ABORT_ON_REQUEST">COUPLER_ABORT_ON_REQUEST</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-COUPLER_ABORT_SEND_CFD">COUPLER_ABORT_SEND_CFD</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-COUPLER_ERROR_CART_COMM">COUPLER_ERROR_CART_COMM</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-ierr">ierr</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-CPL_WORLD_COMM">CPL_WORLD_COMM</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-CPL_REALM_COMM">CPL_REALM_COMM</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-CPL_INTER_COMM">CPL_INTER_COMM</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-CPL_CART_COMM">CPL_CART_COMM</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-CPL_OLAP_COMM">CPL_OLAP_COMM</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-CPL_GRAPH_COMM">CPL_GRAPH_COMM</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-CPL_REALM_INTERSECTION_COMM">CPL_REALM_INTERSECTION_COMM</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-realm">realm</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-myid_world">myid_world</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_world">rank_world</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rootid_world">rootid_world</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-myid_realm">myid_realm</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_realm">rank_realm</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rootid_realm">rootid_realm</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-myid_cart">myid_cart</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_cart">rank_cart</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rootid_cart">rootid_cart</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-myid_olap">myid_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_olap">rank_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-CFDid_olap">CFDid_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-myid_graph">myid_graph</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_graph">rank_graph</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_world2rank_mdrealm">rank_world2rank_mdrealm</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_world2rank_mdcart">rank_world2rank_mdcart</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_world2rank_cfdrealm">rank_world2rank_cfdrealm</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_world2rank_cfdcart">rank_world2rank_cfdcart</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_world2rank_olap">rank_world2rank_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_world2rank_graph">rank_world2rank_graph</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_world2rank_inter">rank_world2rank_inter</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_mdrealm2rank_world">rank_mdrealm2rank_world</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_mdcart2rank_world">rank_mdcart2rank_world</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_cfdrealm2rank_world">rank_cfdrealm2rank_world</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_cfdcart2rank_world">rank_cfdcart2rank_world</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_olap2rank_world">rank_olap2rank_world</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_graph2rank_world">rank_graph2rank_world</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_inter2rank_world">rank_inter2rank_world</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank_olap2rank_realm">rank_olap2rank_realm</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-nproc_md">nproc_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-nproc_cfd">nproc_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-nproc_olap">nproc_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-nproc_world">nproc_world</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-npx_md">npx_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-npy_md">npy_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-npz_md">npz_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-npx_cfd">npx_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-npy_cfd">npy_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-npz_cfd">npz_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-olap_mask">olap_mask</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank2coord_cfd">rank2coord_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-rank2coord_md">rank2coord_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-coord2rank_cfd">coord2rank_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-coord2rank_md">coord2rank_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-iblock_realm">iblock_realm</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-jblock_realm">jblock_realm</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-kblock_realm">kblock_realm</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-ncx">ncx</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-ncy">ncy</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-ncz">ncz</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-icmin">icmin</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-icmax">icmax</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-jcmin">jcmin</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-jcmax">jcmax</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-kcmin">kcmin</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-kcmax">kcmax</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-icmin_olap">icmin_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-icmax_olap">icmax_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-jcmin_olap">jcmin_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-jcmax_olap">jcmax_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-kcmin_olap">kcmin_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-kcmax_olap">kcmax_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-ncx_olap">ncx_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-ncy_olap">ncy_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-ncz_olap">ncz_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-constraint_algo">constraint_algo</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-constraint_CVflag">constraint_CVflag</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-icmin_cnst">icmin_cnst</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-icmax_cnst">icmax_cnst</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-jcmin_cnst">jcmin_cnst</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-jcmax_cnst">jcmax_cnst</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-kcmin_cnst">kcmin_cnst</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-kcmax_cnst">kcmax_cnst</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-cpl_cfd_bc_x">cpl_cfd_bc_x</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-cpl_cfd_bc_y">cpl_cfd_bc_y</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-cpl_cfd_bc_z">cpl_cfd_bc_z</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-cpl_md_bc_slice">cpl_md_bc_slice</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-cpl_cfd_bc_slice">cpl_cfd_bc_slice</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-constraint_off">constraint_off</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-constraint_OT">constraint_OT</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-constraint_NCER">constraint_NCER</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-constraint_Flekkoy">constraint_Flekkoy</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-constraint_CV">constraint_CV</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-icPmin_md">icPmin_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-icPmax_md">icPmax_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-jcPmin_md">jcPmin_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-jcPmax_md">jcPmax_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-kcPmin_md">kcPmin_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-kcPmax_md">kcPmax_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-icPmin_cfd">icPmin_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-icPmax_cfd">icPmax_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-jcPmin_cfd">jcPmin_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-jcPmax_cfd">jcPmax_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-kcPmin_cfd">kcPmin_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-kcPmax_cfd">kcPmax_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-xL_md">xL_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-yL_md">yL_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-zL_md">zL_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-xL_cfd">xL_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-yL_cfd">yL_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-zL_cfd">zL_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-xL_olap">xL_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-yL_olap">yL_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-zL_olap">zL_olap</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-xLl">xLl</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-yLl">yLl</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-zLl">zLl</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-dx">dx</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-dy">dy</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-dz">dz</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-dymin">dymin</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-dymax">dymax</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-xg">xg</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-yg">yg</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-zg">zg</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-cfd_icoord2olap_md_icoords">cfd_icoord2olap_md_icoords</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-cfd_jcoord2olap_md_jcoords">cfd_jcoord2olap_md_jcoords</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-cfd_kcoord2olap_md_kcoords">cfd_kcoord2olap_md_kcoords</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-nsteps_md">nsteps_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-nsteps_cfd">nsteps_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-nsteps_coupled">nsteps_coupled</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-average_period">average_period</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-save_period">save_period</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-dt_md">dt_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-dt_cfd">dt_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-density_md">density_md</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-density_cfd">density_cfd</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-timestep_ratio">timestep_ratio</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-md_cfd_match_cellsize">md_cfd_match_cellsize</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-testval">testval</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-staggered_averages">staggered_averages</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-comm_style">comm_style</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-comm_style_send_recv">comm_style_send_recv</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#var-comm_style_gath_scat">comm_style_gath_scat</a>
+      
+    </div>
+  </div>
+  
+  
+  
+  
+  
+  
+  <div class="panel panel-primary">
+    <div class="panel-heading text-left"><h3 class="panel-title">Interfaces</h3></div>
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/coupler_module.html#intr-error_abort">error_abort</a>
+      
+    </div>
+  </div>
+  
+  
+  
+  
+  
+  <div class="panel panel-primary">
+    <div class="panel-heading text-left"><h3 class="panel-title">Functions</h3></div>
+    <div class="list-group">
+      
+      <a class="list-group-item" href="="../module/coupler_module.html#proc-CPL_new_fileunit">CPL_new_fileunit</a>
+      
+    </div>
+  </div>
+  
+  
+  
+  <div class="panel panel-primary">
+    <div class="panel-heading text-left"><h3 class="panel-title">Subroutines</h3></div>
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-CPL_create_comm">CPL_create_comm</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-read_coupler_input">read_coupler_input</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-CPL_write_header">CPL_write_header</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-coupler_cfd_init">coupler_cfd_init</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-coupler_md_init">coupler_md_init</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-set_coupled_timing">set_coupled_timing</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-CPL_create_map">CPL_create_map</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-CPL_cfd_adjust_domain">CPL_cfd_adjust_domain</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-CPL_rank_map">CPL_rank_map</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-locate">locate</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-messenger_lasterrorcheck">messenger_lasterrorcheck</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-printf">printf</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-write_matrix_int">write_matrix_int</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html#proc-write_matrix">write_matrix</a>
+      
+    </div>
+  </div>
+  
+  
+  
+  
+  
+  <hr>
+  
+  <div class="panel panel-default">
+    <div class="panel-heading text-left"><h3 class="panel-title">All Modules</h3></div>
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/coupler.html">coupler</a>
+      
+      <a class="list-group-item" href="../module/coupler_module.html">coupler_module</a>
+      
+    </div>
+  </div>
+  
+  
+    </div>
+    
+    <div class="col-lg-9" id='text'>
+    
+  
+    <ul class="list-inline">
+      <li><h4>Uses:</h4></li>
+      
+      <li>ISO_C_BINDING</li>
+      
+      <li>mpi</li>
+      
+      <li>mpi</li>
+      
+      <li>mpi</li>
+      
+      <li>mpi</li>
+      
+      <li>mpi</li>
+      
+      <li>mpi</li>
+      
+      <li>mpi</li>
+      
+      <li>mpi</li>
+      
+      <li>mpi</li>
+      
+    </ul>
+  
+
+    <p>(cfd+md) Splits MPI_COMM_WORLD in both the CFD and MD code respectively
+         and create intercommunicator between CFD and MD</p>
+<p>Read Coupler input file</p>
+<p>Establish for all MD processors the mapping (if any) 
+ to coupled CFD processors</p>
+    <br>
+
+    
+    <section>
+    <h2>Variables</h2>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-VOID"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>VOID</strong></td><td> =</td><td>-666</td><td><p>VOID value for data initialisation</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-cfd_realm"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>cfd_realm</strong></td><td> =</td><td>1</td><td><p>CFD realm identifier</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-md_realm"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>md_realm</strong></td><td> =</td><td>2</td><td><p>MD realm identifier</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-realm_name"></a>character(len=*),</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>realm_name</strong>(2)</td><td> =</td><td>(/"CFD","CFD"/)</td><td><p>Used with realm identifier to get name</p>
+<p>error codes</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-COUPLER_ERROR_REALM"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>COUPLER_ERROR_REALM</strong></td><td> =</td><td>1</td><td><p>wrong realm value</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-COUPLER_ERROR_ONE_REALM"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>COUPLER_ERROR_ONE_REALM</strong></td><td> =</td><td>2</td><td><p>one realm missing</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-COUPLER_ERROR_INIT"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>COUPLER_ERROR_INIT</strong></td><td> =</td><td>3</td><td><p>initialisation error</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-COUPLER_ERROR_INPUT_FILE"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>COUPLER_ERROR_INPUT_FILE</strong></td><td> =</td><td>4</td><td><p>wrong value in input file</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-COUPLER_ERROR_READ_INPUT"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>COUPLER_ERROR_READ_INPUT</strong></td><td> =</td><td>5</td><td><p>error in processing input file or data transfers</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-COUPLER_ERROR_CONTINUUM_FORCE"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>COUPLER_ERROR_CONTINUUM_FORCE</strong></td><td> =</td><td>6</td><td><p>the region in which the continuum constrain force is apply spans over two MD domains</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-COUPLER_ABORT_ON_REQUEST"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>COUPLER_ABORT_ON_REQUEST</strong></td><td> =</td><td>7</td><td><p>used in request_abort </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-COUPLER_ABORT_SEND_CFD"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>COUPLER_ABORT_SEND_CFD</strong></td><td> =</td><td>8</td><td><p>error in coupler_cfd_send</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-COUPLER_ERROR_CART_COMM"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>COUPLER_ERROR_CART_COMM</strong></td><td> =</td><td>9</td><td><p>Wrong comm value in CPL_Cart_coords</p>
+<p>MPI error flag</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ierr"></a>integer,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>ierr</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-CPL_WORLD_COMM"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>CPL_WORLD_COMM</strong></td><td></td><td></td><td><p>Copy of MPI_COMM_WORLD, both CFD and MD realms;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-CPL_REALM_COMM"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>CPL_REALM_COMM</strong></td><td></td><td></td><td><p>INTRA communicators within MD/CFD realms;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-CPL_INTER_COMM"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>CPL_INTER_COMM</strong></td><td></td><td></td><td><p>CFD/MD INTER communicator between realm comms;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-CPL_CART_COMM"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>CPL_CART_COMM</strong></td><td></td><td></td><td><p>Comm w/cartesian topology for each realm;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-CPL_OLAP_COMM"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>CPL_OLAP_COMM</strong></td><td></td><td></td><td><p>Local comm between only overlapping MD/CFD procs;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-CPL_GRAPH_COMM"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>CPL_GRAPH_COMM</strong></td><td></td><td></td><td><p>Comm w/ graph topolgy between locally olapg procs;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-CPL_REALM_INTERSECTION_COMM"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>CPL_REALM_INTERSECTION_COMM</strong></td><td></td><td></td><td><p>Intersecting MD/CFD procs in world;</p>
+<p>Simulation realms</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-realm"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>realm</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-myid_world"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>myid_world</strong></td><td></td><td></td><td><p>Processor ID from 0 to nproc_world-1;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_world"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>rank_world</strong></td><td></td><td></td><td><p>Processor rank from 1 to nproc_world;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rootid_world"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>rootid_world</strong></td><td></td><td></td><td><p>Root processor in world;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-myid_realm"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>myid_realm</strong></td><td></td><td></td><td><p>Processor ID from 0 to nproc_realm-1;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_realm"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>rank_realm</strong></td><td></td><td></td><td><p>Processor rank from 1 to nproc_realm;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rootid_realm"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>rootid_realm</strong></td><td></td><td></td><td><p>Root processor in each realm;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-myid_cart"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>myid_cart</strong></td><td></td><td></td><td><p>Processor ID from 0 to nproc_cart-1;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_cart"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>rank_cart</strong></td><td></td><td></td><td><p>Processor rank from 1 to nproc_cart;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rootid_cart"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>rootid_cart</strong></td><td></td><td></td><td><p>Root processor in each cart topology;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-myid_olap"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>myid_olap</strong></td><td></td><td></td><td><p>Processor ID from 0 to nproc_olap-1;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_olap"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>rank_olap</strong></td><td></td><td></td><td><p>Processor rank from 1 to nproc_olap;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-CFDid_olap"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>CFDid_olap</strong></td><td></td><td></td><td><p>Root processor in overlap is the CFD processor;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-myid_graph"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>myid_graph</strong></td><td></td><td></td><td><p>Processor ID from 0 to nproc_graph-1;</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_graph"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>rank_graph</strong></td><td></td><td></td><td><p>Processor rank from 1 to nproc_graph;</p>
+<p>Get rank in CPL_world_COMM from rank in local COMM</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_world2rank_mdrealm"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_world2rank_mdrealm</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_world2rank_mdcart"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_world2rank_mdcart</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_world2rank_cfdrealm"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_world2rank_cfdrealm</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_world2rank_cfdcart"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_world2rank_cfdcart</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_world2rank_olap"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_world2rank_olap</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_world2rank_graph"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_world2rank_graph</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_world2rank_inter"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_world2rank_inter</strong></td><td></td><td></td><td><p>Get rank in local COMM from rank in CPL_world_COMM</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_mdrealm2rank_world"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_mdrealm2rank_world</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_mdcart2rank_world"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_mdcart2rank_world</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_cfdrealm2rank_world"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_cfdrealm2rank_world</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_cfdcart2rank_world"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_cfdcart2rank_world</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_olap2rank_world"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_olap2rank_world</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_graph2rank_world"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_graph2rank_world</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_inter2rank_world"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_inter2rank_world</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank_olap2rank_realm"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>rank_olap2rank_realm</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-nproc_md"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>nproc_md</strong></td><td></td><td></td><td><p>Total number of processor in md</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-nproc_cfd"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>nproc_cfd</strong></td><td></td><td></td><td><p>Total number of processor in cfd</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-nproc_olap"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>nproc_olap</strong></td><td></td><td></td><td><p>Total number of processor in overlap region</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-nproc_world"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>nproc_world</strong></td><td></td><td></td><td><p>Total number of processor in world</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-npx_md"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>npx_md</strong></td><td></td><td></td><td><p>Number of processor in x in the md</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-npy_md"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>npy_md</strong></td><td></td><td></td><td><p>Number of processor in y in the md</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-npz_md"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>npz_md</strong></td><td></td><td></td><td><p>Number of processor in z in the md</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-npx_cfd"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>npx_cfd</strong></td><td></td><td></td><td><p>Number of processor in x in the cfd</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-npy_cfd"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>npy_cfd</strong></td><td></td><td></td><td><p>Number of processor in y in the cfd</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-npz_cfd"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>npz_cfd</strong></td><td></td><td></td><td><p>Number of processor in z in the cfd</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-olap_mask"></a>logical,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>olap_mask</strong></td><td></td><td></td><td><p>Overlap mask specifying which processors overlap using world ranks</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank2coord_cfd"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>rank2coord_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank2coord_md"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>rank2coord_md</strong></td><td></td><td></td><td><p>Array containing coordinates for each cartesian rank </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-coord2rank_cfd"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:,:,:), allocatable</td><td>::</td>
+  <td><strong>coord2rank_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-coord2rank_md"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:,:,:), allocatable</td><td>::</td>
+  <td><strong>coord2rank_md</strong></td><td></td><td></td><td><p>Processor cartesian coords   </p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-iblock_realm"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>iblock_realm</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-jblock_realm"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>jblock_realm</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-kblock_realm"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>kblock_realm</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ncx"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>ncx</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ncy"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>ncy</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ncz"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>ncz</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icmin"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>icmin</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icmax"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>icmax</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-jcmin"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>jcmin</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-jcmax"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>jcmax</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-kcmin"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>kcmin</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-kcmax"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>kcmax</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icmin_olap"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>icmin_olap</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icmax_olap"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>icmax_olap</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-jcmin_olap"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>jcmin_olap</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-jcmax_olap"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>jcmax_olap</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-kcmin_olap"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>kcmin_olap</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-kcmax_olap"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>kcmax_olap</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ncx_olap"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>ncx_olap</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ncy_olap"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>ncy_olap</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ncz_olap"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>ncz_olap</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-constraint_algo"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>constraint_algo</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-constraint_CVflag"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>constraint_CVflag</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icmin_cnst"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>icmin_cnst</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icmax_cnst"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>icmax_cnst</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-jcmin_cnst"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>jcmin_cnst</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-jcmax_cnst"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>jcmax_cnst</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-kcmin_cnst"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>kcmin_cnst</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-kcmax_cnst"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>kcmax_cnst</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-cpl_cfd_bc_x"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>cpl_cfd_bc_x</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-cpl_cfd_bc_y"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>cpl_cfd_bc_y</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-cpl_cfd_bc_z"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>cpl_cfd_bc_z</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-cpl_md_bc_slice"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>cpl_md_bc_slice</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-cpl_cfd_bc_slice"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>cpl_cfd_bc_slice</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-constraint_off"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>constraint_off</strong></td><td> =</td><td>0</td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-constraint_OT"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>constraint_OT</strong></td><td> =</td><td>1</td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-constraint_NCER"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>constraint_NCER</strong></td><td> =</td><td>2</td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-constraint_Flekkoy"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>constraint_Flekkoy</strong></td><td> =</td><td>3</td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-constraint_CV"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>constraint_CV</strong></td><td> =</td><td>4</td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icPmin_md"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>icPmin_md</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icPmax_md"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>icPmax_md</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-jcPmin_md"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>jcPmin_md</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-jcPmax_md"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>jcPmax_md</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-kcPmin_md"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>kcPmin_md</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-kcPmax_md"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>kcPmax_md</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icPmin_cfd"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>icPmin_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icPmax_cfd"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>icPmax_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-jcPmin_cfd"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>jcPmin_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-jcPmax_cfd"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>jcPmax_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-kcPmin_cfd"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>kcPmin_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-kcPmax_cfd"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>kcPmax_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-xL_md"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>xL_md</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-yL_md"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>yL_md</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-zL_md"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>zL_md</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-xL_cfd"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>xL_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-yL_cfd"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>yL_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-zL_cfd"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>zL_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-xL_olap"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>xL_olap</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-yL_olap"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>yL_olap</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-zL_olap"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>zL_olap</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-xLl"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>xLl</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-yLl"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>yLl</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-zLl"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>zLl</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-dx"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>dx</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-dy"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>dy</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-dz"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>dz</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-dymin"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>dymin</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-dymax"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>dymax</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-xg"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected,</td>
+  <td>dimension(:,:), allocatable, target</td><td>::</td>
+  <td><strong>xg</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-yg"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected,</td>
+  <td>dimension(:,:), allocatable, target</td><td>::</td>
+  <td><strong>yg</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-zg"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected,</td>
+  <td>dimension(:), allocatable, target</td><td>::</td>
+  <td><strong>zg</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-cfd_icoord2olap_md_icoords"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>cfd_icoord2olap_md_icoords</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-cfd_jcoord2olap_md_jcoords"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>cfd_jcoord2olap_md_jcoords</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-cfd_kcoord2olap_md_kcoords"></a>integer,</td>
+  
+  <td>protected,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>cfd_kcoord2olap_md_kcoords</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-nsteps_md"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>nsteps_md</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-nsteps_cfd"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>nsteps_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-nsteps_coupled"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>nsteps_coupled</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-average_period"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>average_period</strong></td><td> =</td><td>1</td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-save_period"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>save_period</strong></td><td> =</td><td>10</td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-dt_md"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>dt_md</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-dt_cfd"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>dt_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-density_md"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>density_md</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-density_cfd"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>density_cfd</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-timestep_ratio"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>timestep_ratio</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-md_cfd_match_cellsize"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>md_cfd_match_cellsize</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-testval"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>testval</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-staggered_averages"></a>logical,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>staggered_averages</strong>(3)</td><td> =</td><td>(/.false.,.false.,.false./)</td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-comm_style"></a>integer,</td>
+  
+  <td>protected</td>
+  <td></td><td>::</td>
+  <td><strong>comm_style</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-comm_style_send_recv"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>comm_style_send_recv</strong></td><td> =</td><td>0</td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-comm_style_gath_scat"></a>integer,</td>
+  
+  <td>public,</td>
+  <td>parameter</td><td>::</td>
+  <td><strong>comm_style_gath_scat</strong></td><td> =</td><td>1</td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+    </section>
+    <br>
+    
+    
+    
+	 <h2>Interfaces</h2>
+	 
+	   
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="intr-error_abort"></a><h3>public interface <a href='../interface/error_abort.html'>error_abort</a>
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+  
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private  subroutine error_abort_s(msg)
+</h3>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-msg"></a>character(len=*),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>msg</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+    </li>
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+private  subroutine error_abort_si(msg, i)
+</h3>
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-msg"></a>character(len=*),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>msg</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-i"></a>integer,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>i</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+    </li>
+  
+  
+  </ul>
+</div>
+
+    
+    </section>
+	 <br>
+    
+
+    
+    
+    
+    
+     
+    <section>
+    <h2>Functions</h2>
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-CPL_new_fileunit"></a><h3>
+public  function <a href='../proc/cpl_new_fileunit.html'>CPL_new_fileunit</a>()
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      <em>None</em>
+    
+    
+
+  
+  
+  
+  
+     <h4>Return Value <small><a class="anchor" name="var-f"></a>integer
+  </small></h4>
+  
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+  </div>
+  </div>
+
+    
+    </section>
+    <br>
+    
+
+
+    
+    <section>
+    <h2>Subroutines</h2>
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-CPL_create_comm"></a><h3>
+public  subroutine <a href='../proc/cpl_create_comm.html'>CPL_create_comm</a>(callingrealm, RETURNED_REALM_COMM, ierror)
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-callingrealm"></a>integer,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>callingrealm</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-RETURNED_REALM_COMM"></a>integer,</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>RETURNED_REALM_COMM</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ierror"></a>integer,</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>ierror</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-read_coupler_input"></a><h3>
+public  subroutine <a href='../proc/read_coupler_input.html'>read_coupler_input</a>()
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      <em>None</em>
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-CPL_write_header"></a><h3>
+public  subroutine <a href='../proc/cpl_write_header.html'>CPL_write_header</a>(header_filename)
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-header_filename"></a>character(len=*),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>header_filename</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       <p>Writes header information to specified filename in the format
+ Variable description ; variable name ; variable</p>
+        
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-coupler_cfd_init"></a><h3>
+public  subroutine <a href='../proc/coupler_cfd_init.html'>coupler_cfd_init</a>(nsteps, dt, icomm_grid, icoord, npxyz_cfd, xyzL, ncxyz, density, ijkcmax, ijkcmin, iTmin, iTmax, jTmin, jTmax, kTmin, kTmax, xgrid, ygrid, zgrid)
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-nsteps"></a>integer,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>nsteps</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-dt"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icomm_grid"></a>integer,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>icomm_grid</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icoord"></a>integer,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:,:)</td><td>::</td>
+  <td><strong>icoord</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-npxyz_cfd"></a>integer,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(3)</td><td>::</td>
+  <td><strong>npxyz_cfd</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-xyzL"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(3)</td><td>::</td>
+  <td><strong>xyzL</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ncxyz"></a>integer,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(3)</td><td>::</td>
+  <td><strong>ncxyz</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-density"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>density</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ijkcmax"></a>integer,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(3)</td><td>::</td>
+  <td><strong>ijkcmax</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ijkcmin"></a>integer,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(3)</td><td>::</td>
+  <td><strong>ijkcmin</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-iTmin"></a>integer,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>iTmin</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-iTmax"></a>integer,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>iTmax</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-jTmin"></a>integer,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>jTmin</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-jTmax"></a>integer,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>jTmax</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-kTmin"></a>integer,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>kTmin</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-kTmax"></a>integer,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>kTmax</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-xgrid"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:,:)</td><td>::</td>
+  <td><strong>xgrid</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ygrid"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:,:)</td><td>::</td>
+  <td><strong>ygrid</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-zgrid"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:  )</td><td>::</td>
+  <td><strong>zgrid</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       <p>Initialisation routine for coupler module - Every variable is sent and stored
+ to ensure both md and cfd region have an identical list of parameters</p>
+        
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-coupler_md_init"></a><h3>
+public  subroutine <a href='../proc/coupler_md_init.html'>coupler_md_init</a>(nsteps, initialstep, dt, icomm_grid, icoord, npxyz_md, globaldomain, density)
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-nsteps"></a>integer,</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>nsteps</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-initialstep"></a>integer,</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>initialstep</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-dt"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>dt</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icomm_grid"></a>integer,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>icomm_grid</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-icoord"></a>integer,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:,:)</td><td>::</td>
+  <td><strong>icoord</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-npxyz_md"></a>integer,</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(3)</td><td>::</td>
+  <td><strong>npxyz_md</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-globaldomain"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(3)</td><td>::</td>
+  <td><strong>globaldomain</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-density"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>density</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       <p>Initialisation routine for coupler module - Every variable is sent and stored
+ to ensure both md and cfd region have an identical list of parameters</p>
+        
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-set_coupled_timing"></a><h3>
+public  subroutine <a href='../proc/set_coupled_timing.html'>set_coupled_timing</a>(initialstep, Nsteps)
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-initialstep"></a>integer,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>initialstep</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-Nsteps"></a>integer,</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>Nsteps</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-CPL_create_map"></a><h3>
+public  subroutine <a href='../proc/cpl_create_map.html'>CPL_create_map</a>()
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      <em>None</em>
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-CPL_cfd_adjust_domain"></a><h3>
+public  subroutine <a href='../proc/cpl_cfd_adjust_domain.html'>CPL_cfd_adjust_domain</a>(xL, yL, zL, nx, ny, nz, density_output)
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-xL"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(inout),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>xL</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-yL"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(inout),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>yL</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-zL"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(inout),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>zL</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-nx"></a>integer,</td>
+  <td>intent(inout),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>nx</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ny"></a>integer,</td>
+  <td>intent(inout),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>ny</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-nz"></a>integer,</td>
+  <td>intent(inout),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>nz</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-density_output"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(inout),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>density_output</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-CPL_rank_map"></a><h3>
+public  subroutine <a href='../proc/cpl_rank_map.html'>CPL_rank_map</a>(COMM, rank, nproc, comm2world, world2comm, ierr)
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-COMM"></a>integer,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>COMM</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-rank"></a>integer,</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>rank</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-nproc"></a>integer,</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>nproc</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-comm2world"></a>integer,</td>
+  <td>intent(out),</td>
+  <td></td>
+  
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>comm2world</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-world2comm"></a>integer,</td>
+  <td>intent(out),</td>
+  <td></td>
+  
+  <td>dimension(:), allocatable</td><td>::</td>
+  <td><strong>world2comm</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-ierr"></a>integer,</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>ierr</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-locate"></a><h3>
+public  subroutine <a href='../proc/locate.html'>locate</a>(fileid, keyword, have_data)
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-fileid"></a>integer,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>fileid</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-keyword"></a>character(len=*),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>keyword</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-have_data"></a>logical,</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>have_data</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-messenger_lasterrorcheck"></a><h3>
+public  subroutine <a href='../proc/messenger_lasterrorcheck.html'>messenger_lasterrorcheck</a>()
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      <em>None</em>
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-printf"></a><h3>
+public  subroutine <a href='../proc/printf.html'>printf</a>(buf, dplaces_in)
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-buf"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(in),</td>
+  <td></td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>buf</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-dplaces_in"></a>integer,</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>dplaces_in</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-write_matrix_int"></a><h3>
+public  subroutine <a href='../proc/write_matrix_int.html'>write_matrix_int</a>(a, varname, fh)
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-a"></a>integer,</td>
+  <td>intent(inout),</td>
+  <td></td>
+  
+  <td>dimension(:,:)</td><td>::</td>
+  <td><strong>a</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-varname"></a>character(len=*),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>varname</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-fh"></a>integer,</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>fh</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+  </div>
+  </div>
+
+    
+    
+  <div class="panel panel-default">
+  <div class="panel-heading codesum"><a class="anchor" name="proc-write_matrix"></a><h3>
+public  subroutine <a href='../proc/write_matrix.html'>write_matrix</a>(a, varname, fh)
+</h3></div>
+  <div class="panel-body">
+       
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-a"></a>real(kind=kind(0.d0)),</td>
+  <td>intent(inout),</td>
+  <td></td>
+  
+  <td>dimension(:,:)</td><td>::</td>
+  <td><strong>a</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-varname"></a>character(len=*),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>varname</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-fh"></a>integer,</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>fh</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+    
+    <h4>Description</h4>
+       
+
+
+       
+        
+
+  </div>
+  </div>
+
+    
+    </section>    
+    
+    
+    </div>
+  </div>
+
+    <hr>
+    <footer>
+        <div class="row">
+        <div class="col-md-6">&copy; 2015 Fortran Program was written by Edward Smith
+David Trevelyan. </div>
+        <div class="col-md-6"><span class="pull-right">Documentation generated by <a href="https://github.com/cmacmackin/ford">FORD</a>.</span></div>
+        </div>
+        <br>
+    </footer>
+    </div> <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js'],
+        'HTML-CSS': { 
+           styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: '#000000 ! important'} }
+        }
+      });
+    </script>
+    <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  </body>
+</html>

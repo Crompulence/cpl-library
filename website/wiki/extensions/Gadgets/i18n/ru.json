@@ -1,0 +1,42 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ahonc",
+			"Eleferen",
+			"Ignatus",
+			"Illusion",
+			"Kaganer",
+			"MaxSem",
+			"VasilievVV",
+			"Александр Сигачёв",
+			"Okras",
+			"NBS"
+		]
+	},
+	"gadgets-desc": "Позволяет участникам выбирать в своих [[Special:Preferences#mw-prefsection-gadgets|настройках]] те или иные [[Special:Gadgets|CSS- и JavaScript-гаджеты]]",
+	"prefs-gadgets": "Гаджеты",
+	"gadgets-prefstext": "Ниже приведён список специальных гаджетов, которые вы можете включить для своей учётной записи.\nЭти гаджеты преимущественно основаны на JavaScript, поэтому вы должны включить JavaScript в своём браузере для того, чтобы они работали.\nУчтите, что эти гаджеты не работают на странице настроек.\n\nТакже учтите, что эти гаджеты не являются частью MediaWiki и обычно разрабатываются и обслуживаются участниками вашей локальной вики.\nАдминистраторы могут изменять список гаджетов с помощью страниц [[MediaWiki:Gadgets-definition|определений]] и [[Special:Gadgets|описаний]].",
+	"gadgets": "Гаджеты",
+	"gadgets-title": "Гаджеты",
+	"gadgets-pagetext": "Ниже приведён список гаджетов, которые участники могут включить на своей странице настроек, в соответствии со списком на странице [[MediaWiki:Gadgets-definition|определений]].\nЭтот список позволяет легко получить доступ к страницам системных сообщений, определяющих описания и исходные коды гаджетов.",
+	"gadgets-uses": "Использует",
+	"gadgets-required-rights": "{{PLURAL:$2|1=Требуется право|Требуются права}}:\n\n$1",
+	"gadgets-required-skins": "Доступен в {{PLURAL:$2|1=теме оформления «$1»|следующих темах оформления: $1}}.",
+	"gadgets-default": "Включён для всех по умолчанию.",
+	"gadgets-export": "Экспортировать",
+	"gadgets-export-title": "Экспорт гаджета",
+	"gadgets-not-found": "Гаджет «$1» не найден.",
+	"gadgets-export-text": "Для экспорта гаджета $1, нажмите кнопку «{{int:gadgets-export-download}}», сохраните загруженный файл,\nперейдите на страницу Special:Import целевой вики и загрузите файл. Затем добавьте следующие строки на страницу MediaWiki:Gadgets-definition:\n<pre>$2</pre>\nВы должны иметь соответствующие разрешения в целевой вики (в том числе право на редактирование системных сообщений), также на сервере должна быть включена настройка импорта из файлов.",
+	"gadgets-export-download": "Скачать",
+	"apihelp-query+gadgetcategories-description": "Возвращает список категорий гаджетов.",
+	"apihelp-query+gadgetcategories-param-names": "Названия возвращаемых категорий.",
+	"apihelp-query+gadgetcategories-example-1": "Получить список существующих категорий гаджетов",
+	"apihelp-query+gadgetcategories-example-2": "Получить всю информацию о категориях с названиями «Foo» и «Bar»",
+	"apihelp-query+gadgets-description": "Возвращает список гаджетов, используемых в этой вики.",
+	"apihelp-query+gadgets-param-ids": "Идентификаторы гаджетов для получения.",
+	"apihelp-query+gadgets-example-3": "Получить список гаджетов в категории «foo»",
+	"apihelp-query+gadgets-example-4": "Получить информацию о гаджетах «foo» и «bar»",
+	"apihelp-query+gadgets-example-5": "Получить список гаджетов, включённых у данного участника",
+	"right-gadgets-edit": "правка JavaScript- и CSS-страниц гаджетов",
+	"right-gadgets-definition-edit": "правка обсуждений гаджетов"
+}

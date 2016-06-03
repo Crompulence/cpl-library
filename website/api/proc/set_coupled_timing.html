@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	 
+	 <meta name="description" content="<p>Details of interfaces and subroutine of the cpl-library including source code</p>">
+    
+    <meta name="author" content="Chris MacMackin" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>set_coupled_timing &ndash; Fortran Program</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+				
+                
+            <li><a href="../lists/files.html">Source Files</a></li>
+				
+				
+            <li><a href="../lists/modules.html">Modules</a></li>
+				
+				
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+				
+								
+				
+          </ul>
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>set_coupled_timing
+    <small>Subroutine</small>
+    
+    </h1>
+	 
+<div class="row">
+<div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+    <li><i class="fa fa-code"></i><a href="../src/coupler_module.f90"> Source File</a></li>
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+     <li><a href='../sourcefile/coupler_module.f90.html'>coupler_module.f90</a></li>
+  
+     <li><a href='../module/coupler_module.html'>coupler_module</a></li>
+  
+     <li class="active">set_coupled_timing</li>
+  </ol>
+  </div>
+</div>
+    
+  </div>
+  
+  <div class="row">
+    <div class="col-lg-3">
+    
+  
+  
+  
+  <div class="panel panel-primary">
+    <div class="panel-heading text-left"><h3 class="panel-title">Variables</h3></div>
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../proc/set_coupled_timing.html#var-elapsedtime">elapsedtime</a>
+      
+      <a class="list-group-item" href="../proc/set_coupled_timing.html#var-Nsteps_MDperCFD">Nsteps_MDperCFD</a>
+      
+    </div>
+  </div>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <hr>
+  
+  <div class="panel panel-default">
+    <div class="panel-heading text-left"><h3 class="panel-title">All Procedures</h3></div>
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../proc/coupler_cfd_init.html">coupler_cfd_init</a>
+      
+      <a class="list-group-item" href="../proc/coupler_md_get_average_period.html">coupler_md_get_average_period</a>
+      
+      <a class="list-group-item" href="../proc/coupler_md_get_dt_cfd.html">coupler_md_get_dt_cfd</a>
+      
+      <a class="list-group-item" href="../proc/coupler_md_get_md_steps_per_cfd_dt.html">coupler_md_get_md_steps_per_cfd_dt</a>
+      
+      <a class="list-group-item" href="../proc/coupler_md_get_nsteps.html">coupler_md_get_nsteps</a>
+      
+      <a class="list-group-item" href="../proc/coupler_md_get_save_period.html">coupler_md_get_save_period</a>
+      
+      <a class="list-group-item" href="../proc/coupler_md_init.html">coupler_md_init</a>
+      
+      <a class="list-group-item" href="../proc/cpl_cart_coords.html">CPL_Cart_coords</a>
+      
+      <a class="list-group-item" href="../proc/cpl_cfd_adjust_domain.html">CPL_cfd_adjust_domain</a>
+      
+      <a class="list-group-item" href="../proc/cpl_comm_style.html">CPL_comm_style</a>
+      
+      <a class="list-group-item" href="../proc/cpl_create_comm.html">CPL_create_comm</a>
+      
+      <a class="list-group-item" href="../proc/cpl_create_map.html">CPL_create_map</a>
+      
+      <a class="list-group-item" href="../proc/cpl_gather.html">CPL_gather</a>
+      
+      <a class="list-group-item" href="../proc/cpl_get.html">CPL_get</a>
+      
+      <a class="list-group-item" href="../proc/cpl_get_rank.html">CPL_get_rank</a>
+      
+      <a class="list-group-item" href="../proc/cpl_new_fileunit.html">CPL_new_fileunit</a>
+      
+      <a class="list-group-item" href="../proc/cpl_olap_extents.html">CPL_olap_extents</a>
+      
+      <a class="list-group-item" href="../proc/cpl_overlap.html">CPL_overlap</a>
+      
+      <a class="list-group-item" href="../proc/cpl_pack.html">CPL_pack</a>
+      
+      <a class="list-group-item" href="../proc/cpl_proc_extents.html">CPL_proc_extents</a>
+      
+      <a class="list-group-item" href="../proc/cpl_proc_portion.html">CPL_proc_portion</a>
+      
+      <a class="list-group-item" href="../proc/cpl_rank_map.html">CPL_rank_map</a>
+      
+      <a class="list-group-item" href="../proc/cpl_realm.html">CPL_realm</a>
+      
+      <a class="list-group-item" href="../interface/cpl_recv.html">CPL_recv</a>
+      
+      <a class="list-group-item" href="../proc/cpl_scatter.html">CPL_scatter</a>
+      
+      <a class="list-group-item" href="../interface/cpl_send.html">CPL_send</a>
+      
+      <a class="list-group-item" href="../proc/cpl_unpack.html">CPL_unpack</a>
+      
+      <a class="list-group-item" href="../proc/cpl_write_header.html">CPL_write_header</a>
+      
+      <a class="list-group-item" href="../interface/error_abort.html">error_abort</a>
+      
+      <a class="list-group-item" href="../proc/globalise.html">globalise</a>
+      
+      <a class="list-group-item" href="../proc/localise.html">localise</a>
+      
+      <a class="list-group-item" href="../proc/locate.html">locate</a>
+      
+      <a class="list-group-item" href="../proc/map_cfd2md_global.html">map_cfd2md_global</a>
+      
+      <a class="list-group-item" href="../proc/map_md2cfd_global.html">map_md2cfd_global</a>
+      
+      <a class="list-group-item" href="../proc/messenger_lasterrorcheck.html">messenger_lasterrorcheck</a>
+      
+      <a class="list-group-item" href="../proc/printf.html">printf</a>
+      
+      <a class="list-group-item" href="../proc/read_coupler_input.html">read_coupler_input</a>
+      
+      <a class="list-group-item" href="../proc/set_coupled_timing.html">set_coupled_timing</a>
+      
+      <a class="list-group-item" href="../proc/write_matrix.html">write_matrix</a>
+      
+      <a class="list-group-item" href="../proc/write_matrix_int.html">write_matrix_int</a>
+      
+    </div>
+  </div>
+  
+  
+    </div>
+    
+    <div class="col-lg-9" id='text'>
+    <h2>
+public  subroutine set_coupled_timing(initialstep, Nsteps)
+</h2>
+    
+  
+
+
+
+    <h3>Arguments</h3>
+    
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-initialstep"></a>integer,</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>initialstep</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-Nsteps"></a>integer,</td>
+  <td>intent(out)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>Nsteps</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+    
+    
+    
+    <br>
+    
+    <section>
+    <h2>Variables</h2>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-elapsedtime"></a>real(kind=kind(0.d0)),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>elapsedtime</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><a class="anchor" name="var-Nsteps_MDperCFD"></a>integer,</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>Nsteps_MDperCFD</strong></td><td></td><td></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+    </section>
+    <br>
+    
+    
+    
+
+    
+    
+    
+    
+    
+
+
+    
+    
+    
+    
+    </div>
+  </div>
+
+    <hr>
+    <footer>
+        <div class="row">
+        <div class="col-md-6">&copy; 2015 Fortran Program was written by Edward Smith
+David Trevelyan. </div>
+        <div class="col-md-6"><span class="pull-right">Documentation generated by <a href="https://github.com/cmacmackin/ford">FORD</a>.</span></div>
+        </div>
+        <br>
+    </footer>
+    </div> <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js'],
+        'HTML-CSS': { 
+           styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: '#000000 ! important'} }
+        }
+      });
+    </script>
+    <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  </body>
+</html>

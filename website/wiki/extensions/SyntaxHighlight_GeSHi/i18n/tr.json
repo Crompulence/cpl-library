@@ -1,0 +1,9 @@
+{
+	"@metadata": {
+		"authors": [
+			"Erkan Yilmaz",
+			"Joseph"
+		]
+	},
+	"syntaxhighlight-desc": "[http://pygments.org/ Pygments] kullanarak <code>&lt;syntaxhighlight&gt;</code> sözdizimi vurgulamasını sağlar"
+}

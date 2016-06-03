@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+
+
+<body>
+
+    <div class="center">
+
+        <!--#include virtual="nav.html"-->
+
+        <h1>Quick-start guide: coupling with CPL Library</h1>
+        The aim of the following text is to lead the user, by example, from the
+        start to the end; from downloading CPL Library, all the way through to
+        running and analysing a coupled simulation. 
+
+        Please <a href="/contact.shtml">get in touch</a> if something is
+        unclear or just plain wrong!
+
+        <p>
+        Guide contents:
+        </p>
+
+        <ul>
+            <a href=#prerequisites><li> Pre-requisites</li></a>
+            <a href=#download ><li>Download</li></a>
+            <a href=#compilation ><li>Compilation</li></a>
+        </ul>
+        <p>
+        The following sections of this guide are currently being written and
+        will appear soon:
+        </p>
+        <ul>
+            <a href=#linking><li>Linking MD and CFD codes with CPL Library</li></a>
+            <a href=#running><li>Running a coupled simulation</li></a>
+            <a href=#analysing><li>Analysing a coupled simulation</li></a>
+        </ul>
+
+        <h2 id="prerequisites">Pre-requisites</h2></a>
+        Before you begin, make sure you have the following installed on your
+        system:
+        <ul>
+            <li>A C/C++ compiler that supports the C++14 standard, </li>
+            <li>A Fortran compiler that supports the F2008 standard, and</li>
+            <li>An MPI library</li>
+        </ul>
+
+        CPL Library was developed and tested using the
+        <a href="https://gcc.gnu.org/">GCC compiler collection </a>
+        and <a href="https//www.mpich.org">MPICH</a>,
+        which are both free and open-source. The
+        following guide assumes that you're working with a Unix-like operating
+        system like Linux or OS X. Please <a href="/contact.shtml">email us</a>
+        if you'd like some help getting it to work on Windows.
+
+        <h2 id="download">Download</h2></a>
+
+        <p>
+            To keep up-to-date with bug-fixes and future developments, the
+            user is encouraged to download the library using the git version
+            control system:
+            <div class="code">
+                <p>
+                    $  git clone https://github.com/Crompulence/cpl-library.git
+                </p>
+            </div>
+
+            which will download to a new folder in the current directory named
+            "cpl-library".
+        </p>
+
+
+        <p> 
+            If you don't want to use git, a snapshot of the latest code can
+            also be downloaded in a zip file from the <a
+            href="/download.shtml">download page</a>. Unzip the file and rename
+            the folder "cpl-library": 
+            <div class="code"> $  unzip cpl-library-master.zip </div> 
+            <div class="code"> $  mv cpl-library-master cpl-library</div> 
+        </p>
+
+
+        <!--<div class="code">
+            wget https://github.com/Crompulence/cpl-library/archive/master.zip
+        </div>
+
+        <p>
+            Next, we want to unzip the file into a folder called cpl-library
+        </p>
+
+        <div class="code">
+            unzip ./master.zip
+        </div>
+
+        <p>
+            If you have problems with this, you may need to download
+            unzip. For ubuntu, this can be obtained with 
+            sudo apt-get install unzip or equivalent for 
+            you distribution.
+            Once you've unzipped the file, change directory to the
+            cpl build directory ready to compile.
+        </p>-->
+
+
+
+        <h2 id="compilation">Compilation</h2>
+
+        <p>
+            Compiling CPL Library itself, as a statically-linked library, is
+            likely to work with Gnu make:
+
+            <div class="code"> $  cd cpl-library/cpl</div>
+            <div class="code"> $  make </div>
+
+        </p>
+
+        <p>
+            where the library will be created at the path,
+        </p>
+
+        <div class="code"> cpl-library/cpl/lib/libcpl.a </div>
+    
+        <p>
+            C++ headers and Fortran use-modules are placed in
+        </p>
+            
+        <div class="code"> cpl-library/cpl/include/ </div>
+
+
+        <p>
+            This build has been verified for the GCC compiler collection and
+            MPICH. Support for Intel (R)
+            compiler suites is in development. For
+            more specific build requirements, the user should copy and change
+            the compiler template file as outlined in cpl-library/README.
+        </p>
+
+        <!--<div class="code">
+            make PLATFORM=template cpl_
+        </div>
+
+        <p>
+            where "template" refers to the name of the included file /make/template.inc, in
+            which the compilers and flags are defined. The template provided is likely to
+            work for most machines, but the user is advised to create their own version.
+        </p>-->
+
+    </div>
+
+</body>
+
+</html>

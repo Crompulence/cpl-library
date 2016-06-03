@@ -1,0 +1,29 @@
+<!-- generated using http://tohtml.com/ -->
+<pre style='color:#000000;'><span style='color:#004a43;
+'>#</span><span style='color:#004a43; '>include </span><span
+style='color:#800000; '>"</span><span style='color:#40015a; '>mpi.h</span><span
+style='color:#800000; '>"</span>
+<span style='color:#004a43; '>#</span><span style='color:#004a43; '>include</span> <span style='color:#800000; '>"</span><span style='color:#40015a; '>CPL.h</span> <span style='color:#800000; '>"</span>
+
+<span style='color:#800000; font-weight:bold; '>int</span> <span
+style='color:#400000; '>main</span> <span style='color:#808030; '>(</span><span
+style='color:#800000; font-weight:bold; '>int</span> argc<span
+style='color:#808030; '>,</span> <span style='color:#800000; font-weight:bold;
+'>char</span><span style='color:#808030; '>*</span><span style='color:#808030;
+'>*</span> argv<span style='color:#808030; '>)</span>
+<span style='color:#800080; '>{</span>
+    MPI_Init <span style='color:#808030; '>(</span><span style='color:#808030;
+'>&amp;</span>argc<span style='color:#808030; '>,</span> <span
+style='color:#808030; '>&amp;</span>argv<span style='color:#808030;
+'>)</span><span style='color:#800080; '>;</span>
+
+    MPI_Comm realmComm<span style='color:#800080; '>;</span>
+    CPL<span style='color:#800080; '>::</span>create_comm <span
+style='color:#808030; '>(</span>CPL<span style='color:#800080;
+'>::</span>cfd_realm<span style='color:#808030; '>,</span> realmComm<span
+style='color:#808030; '>)</span><span style='color:#800080; '>;</span>
+
+    MPI_Finalize<span style='color:#808030; '>(</span><span
+style='color:#808030; '>)</span><span style='color:#800080; '>;</span>
+<span style='color:#800080; '>}</span>
+</pre>

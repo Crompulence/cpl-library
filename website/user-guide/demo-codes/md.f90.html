@@ -1,0 +1,20 @@
+<!-- generated using http://tohtml.com/ -->
+<pre style='color:#000000;'><span style='color:#800000;
+            font-weight:bold; '>program</span> main
+    use mpi
+    use cpl<span style='color:#808030; '>,</span> only <span style='color:#808030; '>:</span> md_realm<span style='color:#808030; '>,</span> CPL_create_comm
+    implicit none
+
+    <span style='color:#bb7977; '>integer</span> <span style='color:#808030;
+'>:</span><span style='color:#808030; '>:</span> rank<span
+style='color:#808030; '>,</span> ierror<span style='color:#808030; '>,</span> MD_COMM
+
+    call MPI_Init<span style='color:#808030; '>(</span>ierror<span
+style='color:#808030; '>)</span>
+    call CPL_create_comm<span style='color:#808030; '>(</span>md_realm<span
+style='color:#808030; '>,</span> MD_COMM<span style='color:#808030; '>,</span> ierror<span style='color:#808030; '>)</span>
+    call MPI_Finalize<span style='color:#808030; '>(</span>ierror<span style='color:#808030; '>)</span>
+
+<span style='color:#800000; font-weight:bold '>end</span> <span style='color:#800000; font-weight:bold;
+'>program</span> main
+</pre>

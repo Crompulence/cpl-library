@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
+
+<url>
+  <loc>http://www.cpl-library.org/</loc>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/index.shtml</loc>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/about.shtml</loc>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/download.shtml</loc>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/documentation.shtml</loc>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/faq.shtml</loc>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/contact.shtml</loc>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/user-guide/index.shtml</loc>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/index.html</loc>
+  <lastmod>2015-07-29T15:44:38+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/lists/files.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/lists/modules.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/lists/procedures.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/sourcefile/coupler.f90.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/sourcefile/coupler_module.f90.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/module/coupler.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/module/coupler_module.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/coupler_cfd_init.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/coupler_md_get_average_period.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/coupler_md_get_dt_cfd.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/coupler_md_get_md_steps_per_cfd_dt.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/coupler_md_get_nsteps.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/coupler_md_get_save_period.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/coupler_md_init.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_cart_coords.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_cfd_adjust_domain.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_comm_style.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_create_comm.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_create_map.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_gather.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_get.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_get_rank.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_new_fileunit.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_olap_extents.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_overlap.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_pack.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_proc_extents.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_proc_portion.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_rank_map.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_realm.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/interface/cpl_recv.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_scatter.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/interface/cpl_send.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_unpack.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/cpl_write_header.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/interface/error_abort.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/globalise.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/localise.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/locate.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/map_cfd2md_global.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/map_md2cfd_global.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/messenger_lasterrorcheck.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/printf.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/read_coupler_input.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/set_coupled_timing.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/write_matrix.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+<url>
+  <loc>http://www.cpl-library.org/api/proc/write_matrix_int.html</loc>
+  <lastmod>2015-07-29T15:38:35+00:00</lastmod>
+</url>
+</urlset>

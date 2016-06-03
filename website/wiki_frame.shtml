@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>CPL Library Wiki</title>
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="shortcut icon" href="./cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!--#include virtual="nav.html"-->
+
+        <p>
+            Welcome to the cpl-library wiki page, please click here to 
+            <a href="http://www.cpl-library.org/wiki">view Wiki
+full_screen</a>.
+        </p>
+
+        <p>
+            <iframe id="media-wiki-frame" src="wiki"
+                    width=100% height=800 border=0 
+            />  
+
+
+$(document).onload(function(){       
+        $('#media-wiki-frame').contents().find('a').click(function(event) {
+            alert("demo only");
+
+            event.preventDefault();
+
+        }); 
+});
+        </p>
+    
+    </div>
+
+</body>
+
+
+</html>

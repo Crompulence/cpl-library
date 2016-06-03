@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+
+
+        <!--#include virtual="nav.html"-->
+
+        <h2>Introduction to CPL library</h2>
+        <!-- <div width=80%; align="center"> -->
+            <iframe sandbox="allow-popups allow-scripts allow-forms allow-same-origin"
+                    src="/flow_diagram.html" marginwidth="0" width=300
+                    style="float:right; margin:30px"
+                    height=300 marginheight="0" scrolling="no"></iframe>
+        <!-- </div> -->
+
+        <p> 
+            CPL Library is a communications and topology management system for
+            coupling <i>any</i> continuum fluid dynamics (CFD) solver to
+            <i>any</i> molecular dynamics (MD) code. CPL Library is free and
+            open-source. <a href="download.shtml">Download</a> the library
+            today!
+        </p>
+
+        <p>
+            A full tutorial and example codes written in modern C++ and Fortran
+            are under development and will come bundled with CPL Library very
+            soon. Their purpose will be to provide templates that are easily 
+            replaced by the user with any CFD or MD code of their choice.
+        </p>
+
+        <!--
+        <div width=80%; align="center">
+            
+            <img src="drawings/codes.svg" alt="codes">
+
+        </div>
+        -->
+  
+ 
+
+        <!--
+        <div width=80%; align="center">
+        
+            <iframe id="flow_diagram" src="flow_diagram.html"
+                    width=500 height=220 border=0 >  
+            $(document).onload(function()
+            {       
+                $('#flow_diagram').contents().find('a').click(function(event) 
+                {
+                    alert("demo only");
+                    event.preventDefault();
+                }); 
+            });
+        </div>
+        -->
+
+        <p>
+            If you'd like more details, or want to get started before the
+            example codes are available, please get in touch with us on the <a
+            href="/contact.shtml">contact</a> page; we'd love to hear from you
+            and will help however we can.
+        </p>
+
+
+        <h2>The coupling approach with CPL Library</h2>
+
+
+        <!-- <div width=80%; align="center"; style="float:right";> -->
+            <img style="float:left; margin:30px"; width=30% src="./drawings/coupler_schematic.png" alt="codes">
+        <!-- </div> -->
+
+        <p> 
+            CPL Library currently facilitates a domain-decomposition style of
+            coupling. With this approach, a CFD program solves the continuum
+            equations of motion in the upper region of a domain, and an MD
+            simulation solves discrete-particle equations of motion in the
+            lower region. The two programs exchange data (in this case with
+            CPL Library) to ensure selected field variables are consistent
+            where the MD and CFD domains overlap.  
+        </p>
+            
+
+        <p> 
+            Some results of an example coupled simulation of planar-Couette
+            flow (simple shear of a Newtonian fluid between two flat plates)
+            can be seen in the videos below. The molecules have been
+            coloured by their local streamwise velocity, and the velocity of
+            the continuum field is shown by the colour of the solid plane at
+            the edge of the domain.
+        </p>          
+
+
+        <!--<div width=80%; align="center">-->
+            <iframe style="float:right; margin:30px" width="300" height="350" src="https://www.youtube.com/embed/KeGW7T0L_Ro" frameborder="0" allowfullscreen></iframe>
+            <!-- 
+		<iframe width="500" height="630" src="https://www.youtube.com/embed/KeGW7T0L_Ro" frameborder="0" allowfullscreen></iframe>
+            -->
+        <!--</div>-->
+
+        <p> 
+            The temporal evolution of the velocity field
+            is consistent with the expected analytical solution for
+            planar-Couette flow:
+        </p>          
+
+        <div width=80%; align="center">
+            
+            <img src="images/couette_coupled.png" width=40% alt="codes">
+
+        </div>
+
+        <p> 
+            The possibilities for performing simulations beyond this canonical
+            flow configuration are vast. For example, coupled simulations may
+            be used to model the effect of complex wall textures in turbulent
+            flows:
+        </p>
+
+
+        <div width=100%; align="center">
+	    <iframe width=100% height=400px src="https://www.youtube.com/embed/4nQEu1haCMw" frameborder="0" allowfullscreen></iframe>>
+        </div>
+
+
+        <h2>Supported Configurations</h2>
+
+        <p>
+            CPL Library is written in Fortran with a C/C++ wrapper and is not 
+            expected to change much from its current form.
+            The CFD and MD code are assumed to be massively parallel, running 
+            on a number of processors communicating through the message 
+            passing interface (MPI).
+            The supported setup is a domain decomposition, with MD near the 
+            wall and CFD further away.
+
+        </p>
+
+        <div width=80%; align="center">
+            <img width=100% src="images/CPL_setup.png">
+        </div>
+
+
+
+        <p>
+
+            Currently this is the only case which is officially supported.
+            In addition, the topological mapping assumes there is always at 
+            least one CFD processor to each MD and that processor boundaries 
+            align between the two codes
+            (i.e. 2 CFD and 3 MD would not be supported).
+            This setup is general enough to support, as a special case, 
+            complete overlap between the two codes.
+        </p>
+
+
+        <div width=80%; align="center">
+            <img width=100% src="images/CPL_setup_overlap.png">
+        </div>
+
+        <p>
+            Despite this limitation, the design of the coupling software means
+            that more complex cases, (e.g. non-uniform grids, 
+            multiple MD or CFD domains) can be accommodated by simply changing 
+            the mapping module of the coupler.
+
+        </p>
+
+    </div>
+
+</body>
+
+
+</html>

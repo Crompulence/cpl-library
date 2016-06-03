@@ -1,0 +1,28 @@
+DirectoryIndex index.html index.htm index.php index.shtml index.shtm
+
+<IfModule mod_deflate.c>
+	AddOutputFilterByType DEFLATE text/text text/html text/plain text/xml text/css application/x-javascript application/javascript
+</IfModule>
+
+SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png)$" no-gzip
+
+#Options -MultiViews
+#RewriteEngine On
+#RewriteCond %{REQUEST_FILENAME} !-f
+#RewriteCond %{REQUEST_FILENAME} !-d
+#RewriteRule ^(.*)\.shtml$ /$1 [L,R=301]
+
+#Options -MultiViews
+#RewriteEngine On
+#RewriteCond %{REQUEST_FILENAME} !-f
+#RewriteCond %{REQUEST_FILENAME} !-d
+#RewriteRule ^(.*)\.html$ /$1 [L,R=301]
+
+#    AuthType Basic
+#    AuthName "secured pages"
+#    LDAP_Server unixldap.cc.ic.ac.uk
+#    Base_DN "ou=everyone,dc=ic,dc=ac,dc=uk"
+#    LDAP_StartTLS On
+#    LDAP_Debug On
+#    require valid-user
+

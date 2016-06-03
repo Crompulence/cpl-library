@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>Contact CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="contact.css">
+    <link rel="shortcut icon" href="./cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!--#include virtual="nav.html"-->
+
+        <h2>General enquiries</h2>
+        <p>
+            CPL Library is developed and maintained by 
+	    <a href="https://uk.linkedin.com/pub/david-trevelyan/90/481/495">David Trevelyan</a>
+            and 
+	    <a href="http://www.imperial.ac.uk/people/edward.smith05">Edward Smith</a>, 
+            who are currently based at Imperial College London. 
+            We're happy to help in any way we can. General comments and 
+            questions are best by email: send your message to 
+            <a href="mailto:info@cpl-library.org">info@cpl-library.org</a>, and
+            one of us will get back to you as soon as possible.
+
+        <h2>Technical support</h2>
+        <p>
+            Right now we're working on putting together (a) some more comprehensive
+            documentation and (b) a users' forum. For now, please direct support requests to 
+            <a href="mailto:info@cpl-library.org">info@cpl-library.org</a> or
+            one of the developers below.
+        </p>
+
+        <h2>Email the developers</h2>
+
+        <div class="developerDiv">
+            <div id="developerImage">
+                <a href="mailto:es205@imperial.ac.uk">
+                    <img src="images/Ed.jpeg" style="filter: brightness(120%)" 
+                         width=200px/>
+                </a>
+                <div class="developerImageText">
+                    Edward Smith
+                </div>
+            </div>
+            <div id="developerImage">
+                <a href="mailto:d.trevelyan@imperial.ac.uk">
+                    <img src="images/Dave.jpg" style="filter: brightness(105%)
+contrast(105%)" width=300px/>
+                </a>
+                <div class="developerImageText"> 
+                    David Trevelyan
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+</body>
+
+
+</html>

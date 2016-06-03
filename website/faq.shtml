@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>CPL Library FAQ</title>
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="shortcut icon" href="./cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!--#include virtual="nav.html"-->
+
+        <h2>Some Common Questions and Answers</h2> 
+
+        Below are a selection of common questions but
+        please feel free to email the developers if you have a
+        quesiton not covered below. If you find a bug in the code, 
+        please submit this on the github page.
+
+
+        <p>
+            <b>Q.</b> When I compile cpl-library, 
+                      I get the following error message:
+        <p>
+
+        <div class="code">
+            g++: error: unrecognized command line option '-std=c++14' 
+        </div> 
+
+
+        <p>
+            <b>A.</b> gcc version does not support the c++ 14 standard 
+                      (which is turned on with the -std=c++14 flag) 
+                      see
+                      <a href="https://gcc.gnu.org/projects/cxx1y.html">
+                               https://gcc.gnu.org/projects/cxx1y.html</a>.
+                      The version of gcc from your linux distribution package
+                      manager should be fine if you have a recent kernal 
+                      (e.g. Ubuntu 14.04)
+                      For older kernals, such as Ubuntu 12.04 you can get
+                      later version from the ubuntu-toolchain-r repo as
+                      folllows:
+
+        <p>
+
+        <div class="code">
+            sudo add-apt-repository ppa:ubuntu-toolchain-r/test <br>
+            sudo apt-get update <br>
+            sudo apt-get install gcc-5 g++-5 <br>
+        </div>
+
+
+        <p>
+                      
+                      or build the latest gcc from source. 
+                      Version 5.2.0 of gcc is known to work correctly but
+                      we are currently working on backwards compatibility to
+                      older versions of the c++ standard.
+        <p>
+
+
+        <p>
+            <b>Q.</b> Why am I getting some strange assertion fault 
+                      or other error from the internals of mpi
+         </p>
+
+        <p>
+            <b>A.</b> Different version of mpi do not play well together,
+                      openmpi and mpich will be very unlikely to work together 
+                      and even different version of the same package are non 
+                      guaranteed to interoperate. For example, if
+                      you have compiled one code (e.g. you CFD code) with mpich 
+                      3.0 while cpl-library and your MD code are both complied 
+                      with mpich 3.2, you could get unexpected
+                      behaviour when they try to communicate. In fact, even if 
+                      your versions of mpi are the same but are compiled with 
+                      different compilers this can cause compatibility 
+                      problems at the linking stage. Call
+        </p>
+
+            <div class="code">
+                $ ldd ./CFD_executable <br>
+                $ ldd ./MD_executable <br>
+                $ ldd libcpl.so <br>
+            </div>
+
+        <p>
+            and check that the versions of libmpich, (as well as libgcc, 
+            libgfortran, libstdc++, etc) are consistent. The build/run may 
+            work with mixed libraries but this can lead to some very 
+            odd and difficult to debug errors. <br>
+
+            You are therefore strongly advised to install gcc-5 and
+            gfortran-5 (or later) compilers, use these to build the latest 
+            version of mpi and then build cpl-library and the two codes 
+            you plan to couple with this version of mpi. 
+        </p>
+
+
+
+
+        <p>
+            <b>Q.</b> 
+                When you exchange data with cpl_send(), 
+                for a specified region, do you have to fill the asend 
+                array with the data of the whole region 
+                (the entire overlap region) or just the data of
+                the portion of the processor?
+        <p>
+
+
+       <p>
+            <b>A.</b> The idea is to allocate a 4D buffer array based on 
+                      EXTENTS, copy data into the buffer
+                      and pass. Optional limits can also be 
+                      set when calling cpl_send/cpl_rec
+                      This goes as follows:  <br>
+
+                      <OL>
+                         <LI> Allocate a buffer array to the size of 
+                              the number of <b> OVERLAP </b>  cells on a 
+                              processor as follows:  <br>
+                         <OL type="a">
+                            <LI> Get extents from CPL_proc_extents 
+                                 which takes the minimum limit based 
+                                 on the total number of cells,
+                                 cells on the calling processor 
+                                 and cells in the overlap region, i.e.
+                                 <div class="code">
+                                    min(globalcell_limit, <br>
+                                        processorcell_limit, <br>
+                                        overlapcell_limit))  <br>
+                                </div>
+                            <LI> Define array size, e.g. in x: 
+                                nclx = extents(2)-extents(1)+1  <br>
+                            <LI> Allocate memory/array to size of all cells on
+                                processor, <br>
+                                e.g. 
+                                allocate(A(nrecs, nclx, ncly, nclz))  <br>
+                        </OL>
+
+                        <LI> If you pass array A into cpl_send/cpl_recv it will
+                             send everything on that processor in the 
+                             overlap region (the EXTENTS). 
+                             However, often you want to only pass a subsection 
+                             of the overlapping processor cells 
+                             (e.g. the CFD halo or MD constraint region). 
+                             To do this: <br>
+                         <OL type="a">
+                            <LI>You load values in the region you want to send 
+                                (although you could load whatever you want into
+                                the send buffer as you only send the limits 
+                                passed to send). <br>
+                            <LI>You then specify the limits of the array 
+                                to use in cpl_send through <br>
+                                icmin_send, icmax_send, <br>
+                                jcmin_send, jcmax_send, <br>
+                                kcmin_send, kcmax_send. <br>
+                                These can be obtained from 
+                                CPL_get( icmin_cnst = icmin_send )
+                                to specify the constraint region 
+                                passed from CFD to MD,
+                                hardwired based on the section of the array you
+                                want to send (e.g. a fixed value of 
+                                -1 for the CFD halo) or the minimum of 
+                                the overlap such as
+                                cpl_get(jcmin_olap=icmin_send). <br>
+                         </OL>
+                         <LI> The cell limits to send/recv must be identical 
+                              and consistent in both codes that exchange.  <br>
+                      </OL>
+
+                      Note that all indexing for limits specified in
+                      send/recv/gather/scatter (e.g. icmin_send)
+                      are in the coupled grid global coordinates.  <br>
+
+            <p>
+
+            <p>  
+                     An example may make it clearer:  <br>
+
+
+                    With a domain with global cell limits in the form <br>
+                    [xmin xmax ymin ymax zmin zmax] = [1 6 1 2 1 1] <br>
+                    split into 3 by 3 by 1 processors, the extents called 
+                    on each processor would look like: <br>
+
+        <div class="code">
+
+                        [1 2 V V 1 1] [3 4 V V 1 1] [5 6 V V 1 1] <br>
+                        [1 2 V V 1 1] [3 4 V V 1 1] [5 6 V V 1 1] <br>
+                        [1 2 1 2 1 1] [3 4 1 2 1 1] [5 6 1 2 1 1] <br>
+
+        </div> <br>
+
+                    Where V is void and should be checked and exchange skipped
+                    on these processors (although no harm if you don't).
+
+                    Working through the steps 1., 2. and 3. above
+
+                <OL>
+                    <LI>  On processor 1,2 (Fortran numbering) <br>
+                    <OL type="a">
+                        <LI> the CPL_proc_extents() would return 
+                             extents = [3 4 1 2 1 1]. <br>
+                        <LI> nclx = 3-4+1; ncly = 2-1+1; nclz = 1-1+1 <br>
+                        <LI> allocate(A(1,2,2,1)) <br>
+                    </OL>
+                    <LI> If we pass cpl_send(A) this will send all 4 
+                         values on proc 1,2. To specify constraint limits 
+                         (e.g. if only cell 1 in y was constrained) <br>
+                    <OL type="a">
+                       <LI> CPL_get( jcmin_cnst) is 1 and 
+                            CPL_get( jcmax_cnst) is also 1 <br>
+                       <LI> CPL_send(A, jcmin_send=1, icmax_send=1) will send 
+                            all x and z but limit in y to just 1 <br>
+                    </OL>
+
+                Note that all indexing for limits specified in
+                send/recv/gather/scatter (e.g. icmin_send) are in the 
+                coupled grid global coordinates, e.g. run from [1 6 1 2 1 1]
+                and so the cpl_send/recv 
+                only does something if it has that bit of the global domain.
+                This may seem confusing as the allocated 
+                array are based on the size in local cell coordinates (size
+                [1,2,1,2,1,1] so 4 cells). 
+                The alternative would require the user to allocate global
+                arrays of size 12 on each processor, which would not scale 
+                well for large system sizes.  <br>
+
+                <LI> On the recieving side you need to match the recv with the
+                     same global limits jcmin_recv/jcmax_recv 
+                     and allocate an array based on extent.
+                     which is the number of cells on the CFD processor, assumed
+                     to be equal or greater than the coupled MD processor.
+                     CPL_get( jcmin_cnst) is 1 and CPL_get( jcmax_cnst) 
+                     is also 1
+                     CPL_recv(A, jcmin_recv=1, jcmax_recv=1)
+                     The limits for extents should then be handled correctly by
+                     the cpl_send/recv.  <br>
+
+            </OL>
+        <p>
+
+        <p>
+            <b>Q.</b> 
+                When I attempt to compile cpl-library with 'make', I get
+                the following error message:
+        <p>
+
+        <div class="code">
+
+            mpif90 -fno-underscoring -O3 -Jinclude -fPIC -c src/bindings/c/CPLC.f90 -o obj/CPLC.o  <br>
+            src/bindings/c/CPLC.f90:405.39:  <br>
+            CPLC_map_cfd2md_global = C_LOC(r_md_f)  <br>
+        <br>
+            Error: Argument 'r_md_f' to 'c_loc' at (1) 
+            must be an associated scalar POINTER  <br>
+            make: *** [obj/CPLC.o] Error 1   <br>
+        </div> 
+
+        <p>
+            <b>A.</b>  The error is related to differences in versions 
+                       of the gfortran compiler. 
+                       The line should be: C_LOC(r_md_f(1)). 
+                       This has been fixed in the latest version. 
+        </p>
+
+    </div>
+
+</body>
+
+
+</html>
