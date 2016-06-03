@@ -31,7 +31,6 @@ before_install:
 
 install:
     - export PATH=$MPI_DIR/bin:$PATH
-    - cd ./cpl
     - make
 
 before_script:

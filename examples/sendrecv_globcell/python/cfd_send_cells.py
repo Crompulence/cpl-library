@@ -1,5 +1,5 @@
 from mpi4py import MPI
-from cplpy.cpl import CPL 
+from cplpy import CPL
 import numpy as np
 
 CPL = CPL()
@@ -30,22 +30,22 @@ cart_comm = realm_comm.Create_cart([NPx, NPy, NPz])
 CPL.setup_cfd(nsteps, dt, cart_comm, xyzL, xyz_orig, ncxyz, density)
 
 cart_rank = cart_comm.Get_rank()
-limits = CPL.get_olap_limits()
-portion = CPL.my_proc_portion(limits)
+olap_limits = CPL.get_olap_limits()
+portion = CPL.my_proc_portion(olap_limits)
 [ncxl, ncyl, nczl] = CPL.get_no_cells(portion)
-send_array = np.ones((3, ncxl, ncyl, nczl), order='F', dtype=np.float64)
+send_array = np.zeros((3, ncxl, ncyl, nczl), order='F', dtype=np.float64)
 
-for i in range(portion[0],portion[1]+1):
-    for j in range(portion[2],portion[3]+1):
-        for k in range(portion[4],portion[5]+1):
-            ii = i - portion[0]
-            jj = j - portion[2]
-            kk = k - portion[4]
+for i in range(0, ncxl):
+    for j in range(0, ncyl):
+        for k in range(0, nczl):
+            ii = i + portion[0]
+            jj = j + portion[2]
+            kk = k + portion[4]
 
-            send_array[0,ii,jj,kk] = i+1
-            send_array[1,ii,jj,kk] = j+1
-            send_array[2,ii,jj,kk] = k+1
+            send_array[0, i, j, k] = ii
+            send_array[1, i, j, k] = jj
+            send_array[2, i, j, k] = kk
 
-ierr = CPL.send(send_array, limits)
+ierr = CPL.send(send_array, olap_limits)
 
 MPI.COMM_WORLD.Barrier()

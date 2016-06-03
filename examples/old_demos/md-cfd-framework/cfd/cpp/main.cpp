@@ -6,7 +6,7 @@ int main (int argc, char** argv)
     MPI_Init (&argc, &argv);
 
     MPI_Comm realmComm;
-    CPL::create_comm (CPL::cfd_realm, realmComm);
+    CPL::init(CPL::cfd_realm, realmComm);
 
     MPI_Finalize();
 }
