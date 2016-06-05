@@ -12,7 +12,7 @@
 
 #                    Compilers and flags 
 # Get compilers and base flags from platform include file 
-MAKEINCPATH= $(CPL_PATH)/../make
+MAKEINCPATH= $(CPL_PATH)/make
 include $(MAKEINCPATH)/platform.inc
 
 #                          Definitions
@@ -34,8 +34,6 @@ CPL_INC = -I$(CPL_PATH)/include
 CPL_LIB = -L$(CPL_LIBRARY_PATH) -Wl,-rpath=$(CPL_LIBRARY_PATH) -lcpl
 LAMMPS_INC = -I$(LAMMPSSRCDIR)
 LAMMPS_LIB = -L$(LAMMPSSRCDIR) -llammps_cpl
-MPI_LIB = -lmpifort
-FORTRAN_LIB = -lgfortran
 LIBS = $(CPL_LIB) $(LAMMPS_LIB) $(FORTRAN_LIB) $(MPI_LIB)
 
 #                         Targets

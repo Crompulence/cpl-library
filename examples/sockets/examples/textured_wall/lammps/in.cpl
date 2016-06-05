@@ -1,0 +1,65 @@
+# LAMMPS fundamentals
+variable	x index 1
+variable	y index 1
+variable	z index 1
+variable	Lx equal 96*$x
+variable	Ly equal 24*$y
+variable	Lz equal 24*$z
+units		lj
+atom_style	atomic
+lattice		fcc 1.0
+region		box block 0 ${Lx} 0 ${Ly} 0 ${Lz} 
+boundary p f p
+create_box	2 box
+mass		* 1.0
+pair_style	lj/cut 1.12246204830937
+pair_coeff	* * 1.0 1.0 1.12246204830937
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes 
+
+# Variables for setting up textured wall 
+variable fluiddensity equal 0.5
+variable bottomwallgap equal 1*$x # gap between bottom of lower wall and
+                                  # bottom edge of the simulation box
+variable bottomwallwidth equal 8*$x
+variable waveHeight equal 0.5*${bottomwallwidth}
+variable nWaves equal 8.0
+variable xx equal 0.0
+variable yy equal 0.0
+variable xlatsolid equal $(xlat) # $(var) for no re-defining (i.e. immediate variable)
+variable ylatsolid equal $(ylat)
+
+# Create fluid above empty wall region
+variable v equal "v_yy > v_waveHeight*sin(2.0*v_xx*PI*v_nWaves/(v_Lx*v_xlatsolid)) + v_bottomwallwidth + v_bottomwallgap"
+create_atoms 1 box var v set x xx set y yy 
+delete_atoms porosity box ${fluiddensity} 12345 compress yes
+group fluidatoms region box
+
+# Higher density wall at the bottom
+variable v equal "v_yy < v_waveHeight*sin(2.0*v_xx*PI*v_nWaves/(v_Lx*v_xlatsolid)) + v_bottomwallwidth + v_bottomwallgap"
+create_atoms 2 box var v set x xx set y yy
+region wallgapregion block 0 ${Lx} 0 ${bottomwallgap} 0 ${Lz}
+delete_atoms region wallgapregion compress yes
+group wallatoms subtract all fluidatoms 
+
+# Upper and lower wall fixes 
+fix lowerwallfix wallatoms spring/self 30.0
+fix upperspecular all wall/reflect yhi EDGE ylo EDGE 
+
+# Setup initial microstate velocities
+velocity all create 1.0 87287 loop geom
+
+# Field output computations
+variable dx equal 4*$x
+variable dy equal 2*$x 
+variable dz equal 2*$x 
+compute vfieldcompute all chunk/atom bin/3d  x lower ${dx} y lower ${dy} z lower ${dz}
+fix vfieldfix all ave/chunk 10 50 5000 vfieldcompute density/number vx vy vz norm all file lammps/cplchunk
+
+# Other output
+thermo 20
+restart 5000 cpl.restart
+dump vmd-dump all dcd 5000 lammps/traj.dcd
+
+# Run is called by lmp_cpl
+fix 1 all nve

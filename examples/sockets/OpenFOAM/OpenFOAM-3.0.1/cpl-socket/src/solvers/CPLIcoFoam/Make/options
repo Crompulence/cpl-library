@@ -9,7 +9,7 @@ EXE_INC = \
 
 MPILIBS = -L$(MPI_ARCH_PATH)/lib -lmpifort -lmpicxx -Wl,-rpath -Wl,$(MPI_ARCH_PATH)/lib -Wl,--enable-new-dtags -lmpi
 FORTRANLIBS = -lgfortran 
-CPLLIBS = -L$(FOAM_CPL_SOCKET_LIBBIN) -lCPLSocket 
+CPLLIBS = -L$(FOAM_CPL_SOCKET_LIBBIN) -lCPLSocket -L$(CPL_LIBRARY_PATH) -Wl,-rpath=$(CPL_LIBRARY_PATH) -lcpl
 
 EXE_LIBS = \
     -lfiniteVolume \

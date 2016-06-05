@@ -49,82 +49,97 @@ Author(s)
 #include "mpi.h"
 #include "lammps.h"
 #include "CPL.h"
+#include "fix_cpl_force.h"
 
-namespace CPL
+typedef CPL::ndArray<double> arrayDoub;
+typedef std::shared_ptr<arrayDoub> shaPtrArrayDoub;
+
+
+class SocketLAMMPS
 {
 
-    class SocketLAMMPS
-    {
-
-    public:
-        
-        // Construct from no arguments
-        SocketLAMMPS();
-        //~SocketLAMMPS();
-
-        // Timesteps and timestep ratio
-        int nsteps;
-        int timestep_ratio;
-        
-        // Initialisation routines 
-        void initComms (int argc, char **argv);
-        void initMD (LAMMPS_NS::LAMMPS *lammps);
-
-        // Data preparation and communication 
-        void pack (const LAMMPS_NS::LAMMPS *lammps);
-        void unpack (const LAMMPS_NS::LAMMPS *lammps);
-        void send();
-        void receive();
-
-        // Useful information for main level program
-        const MPI_Comm realmCommunicator() {return realmComm;}
-        const MPI_Comm cartCommunicator() {return cartComm;}
-        const bool isRootProcess() {return (rankRealm == 0);}
-
-        // Clean up MPI/CPL communicators
-        void finalizeComms();
-
-    private:
-
-        // Communicators for use with CPL_Library
-        MPI_Comm realmComm;
-        MPI_Comm cartComm;
-
-        // Rank of this processor in realm and cartComm
-        int rankRealm;
-        int rankCart;
-
-        // Coordinates of own and all processor(s)
-        std::vector<int> myCoords;
-        CPL::ndArray<int> allCoords;
-        // Also store with Fortran indexing convention (start at 1, not 0)
-        std::vector<int> myFCoords;
-        CPL::ndArray<int> allFCoords;
-        
-        // Data to be sent/received with CPL-Library
-        CPL::ndArray<double> sendVelocity;
-        CPL::ndArray<double> sendStress;
-        CPL::ndArray<double> recvVelocity;
-        CPL::ndArray<double> recvStress;
+public:
     
-        // Minimum and maximum CPL cell indices on this processor
-        std::vector<int> extents;
-        // Minimum and maximum CPL cell indices of global overlap region
-        std::vector<int> olap_limits;
+    // Construct from no arguments
+    SocketLAMMPS() : myCoords(3), olapRegion(6), velBCRegion(6), cnstFRegion(6),
+                     velBCPortion(6), cnstFPortion(6) {}
+    //~SocketLAMMPS();
 
-        // Number of CPL cells on this processor in each direction
-        int ncxl;
-        int ncyl;
-        int nczl;
+    // Timesteps and timestep ratio
+    int nsteps;
+    int timestep_ratio;
+    
+    // Initialisation routines 
+    void initComms (int argc, char **argv);
+    void initMD (LAMMPS_NS::LAMMPS *lammps);
 
-        // Internal routines
-        void getTimestepRatio();
-        void getCellTopology();
-        void setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps); 
-        void setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps); 
-        void map_cfd_to_lammps(double *coord, LAMMPS_NS::LAMMPS *lammps);
+    // Data preparation and communication 
+    void packVelocity(const LAMMPS_NS::LAMMPS *lammps);
+    void sendVelocity();
+    void unpackStress(const LAMMPS_NS::LAMMPS *lammps);
+    void recvStress();
 
-    };
+    // Useful information for main level program
+    const MPI_Comm realmCommunicator() {return realmComm;}
+    const MPI_Comm cartCommunicator() {return cartComm;}
+    const bool isRootProcess() {return (rankRealm == 0);}
 
-}
+    // Clean up MPI/CPL communicators
+    void finalizeComms();
+
+private:
+    
+    double VELBC_BELOW = 0.0;
+    double VELBC_ABOVE = 0.0;
+
+    // Cartesian coordinates of the processor
+    std::vector<int> myCoords;
+
+    // Communicators for use with CPL_Library
+    MPI_Comm realmComm;
+    MPI_Comm cartComm;
+
+    // Rank of this processor in realm and cartComm
+    int rankRealm;
+    int rankCart;
+
+    // Communication regions in the overlap
+    std::vector<int> olapRegion;
+    std::vector<int> velBCRegion;
+    std::vector<int> cnstFRegion;
+
+    // Portions of the regions in the local processor
+    std::vector<int> velBCPortion;
+    std::vector<int> cnstFPortion;
+
+    // Number of cells in the portion for each region
+    int velBCCells[3];
+    int cnstFCells[3];
+
+    // Data to be sent/received with CPL-Library
+    arrayDoub sendVelocityBuff;
+    arrayDoub sendStressBuff;
+    arrayDoub recvVelocityBuff;
+    arrayDoub recvStressBuff;
+
+
+    // Cell sizes
+    int dx, dy, dz;
+    
+    // Fix that applies the momentum constrain
+    FixCPLForce* cplfix;
+
+    // Internal grid
+    arrayDoub cfd_xg; 
+    arrayDoub cfd_yg;
+    arrayDoub cfd_zg;
+
+    // Internal routines
+    void getCellTopology();
+    void allocateBuffers();
+    void setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps); 
+    void setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps); 
+
+};
+
 #endif // CPL_SOCKET_H_INCLUDED

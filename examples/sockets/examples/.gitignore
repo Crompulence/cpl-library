@@ -1,0 +1,25 @@
+# Output files
+*.out
+*.out_err
+
+# LAMMPS (everything but input file and softlink)
+log.lammps
+lammps/*
+!lammps/in.cpl
+!lammps/lmp_cpl
+
+# OpenFOAM (everything but necessary files)
+openfoam/*
+!openfoam/0
+!openfoam/constant
+!openfoam/system
+!openfoam/clean.py
+
+# CPL folder
+cpl/*
+!cpl/COUPLER.in
+
+# Post processing
+post_proc/*
+!post_proc/*.py
+!post_proc/*.sh
