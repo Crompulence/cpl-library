@@ -1,0 +1,270 @@
+#!/bin/bash
+
+# --------------------------------------------------------------------------
+# Set the default values of all variables.
+#
+# Directory locations: Fixed for any cpl implementation.
+# during make install?? 
+prefix=/home/es205/codes/cpl/cpl-library/
+CPL_VERSION=0.4
+
+exec_prefix=${prefix}/bin
+sysconfdir=${prefix}/etc
+includedir=${prefix}/include
+libdir=${prefix}/lib
+modincdir=${prefix}/include
+
+
+# Default settings for compiler, flags, and libraries
+# Determined by a combination of environment variables and tests within
+# configure (e.g., determining whehter -lsocket is needee)
+FC="mpif90"
+
+#
+# Fortran 90 Compiler characteristics
+FCINC="-I"
+FCEXT="f90"
+
+enable_wrapper_rpath="yes"
+
+# How to pass a linker flag through the compiler.
+wl="-Wl,"
+
+# Format of library name prefix.
+libname_spec="lib\$name"
+
+# Library names that the linker finds when passed -lNAME.
+library_names_spec="\$libname\$shrext"
+
+# Flag to hardcode $libdir into a binary during linking.
+# This must work even if $libdir does not exist.
+hardcode_libdir_flag_spec="\${wl}-rpath \${wl}\$libdir"
+
+# Internal variables
+# Show is set to echo to cause the compilation command to be echoed instead 
+# of executed.
+Show=
+
+# ------------------------------------------------------------------------
+# Argument processing.
+# This is somewhat awkward because of the handling of arguments within
+# the shell.  We want to handle arguments that include spaces without 
+# loosing the spacing (an alternative would be to use a more powerful
+# scripting language that would allow us to retain the array of values, 
+# which the basic (rather than enhanced) Bourne shell does not.  
+#
+# Look through the arguments for arguments that indicate compile only.
+# If these are *not* found, add the library options
+
+linking=yes
+allargs=("$@")
+argno=0
+cppflags=()
+for arg in "$@" ; do
+    # Set addarg to no if this arg should be ignored by the C compiler
+    addarg=yes
+    case "$arg" in 
+ 	# ----------------------------------------------------------------
+	# Compiler options that affect whether we are linking or no
+    -c|-S|-E|-M|-MM)
+    # The compiler links by default
+    linking=no
+    ;;
+	# ----------------------------------------------------------------
+	# Options that control how we use mpif90 (e.g., -show, 
+	# -f90=* -config=*
+    -echo)
+    addarg=no
+    set -x
+    ;;
+    -f90=*)
+    FC=`echo A$arg | sed -e 's/A-f90=//g'`
+    addarg=no
+    ;;
+    -fc=*)
+    FC=`echo A$arg | sed -e 's/A-fc=//g'`
+    addarg=no
+    ;;
+    -show)
+    addarg=no
+    Show=echo
+    ;;
+    -config=*)
+    addarg=no
+    FCname=`echo A$arg | sed -e 's/A-config=//g'`
+    if [ -s "$sysconfdir/mpif90-$FCname.conf" ] ; then
+        . "$sysconfdir/mpif90-$FCname.conf"
+    else
+	echo "Configuration file mpif90-$FCname.conf not found"
+    fi
+    ;;
+    -compile-info|-compile_info)
+    # -compile_info included for backward compatibility
+    Show=echo
+    addarg=no
+    ;;
+    -link-info|-link_info)
+    # -link_info included for backward compatibility
+    Show=echo
+    addarg=no
+    ;;
+    -v)
+    # Pass this argument to the compiler as well.
+    echo "cplf90 for cpl-library version $CPL_VERSION"
+    # if there is only 1 argument, it must be -v.
+    if [ "$#" -eq "1" ] ; then
+        linking=no
+    fi
+    ;;
+    -profile=*)
+    # Pass the name of a profiling configuration.  As
+    # a special case, lib<name>.so or lib<name>.la may be used
+    # if the library is in $libdir
+    profConf=`echo A$arg | sed -e 's/A-profile=//g'`
+    addarg=no
+    # Loading the profConf file is handled below
+    ;;
+    -nativelinking)
+    # Internal option to use native compiler for linking without MPI libraries
+    nativelinking=yes
+    addarg=no
+    ;;
+    -help)
+    NC=`echo "$FC" | sed 's%\/% %g' | awk '{print $NF}' -`
+    if [ -f "$sysconfdir/cplxxx_opts.conf" ] ; then
+        . $sysconfdir/mpixxx_opts.conf
+        echo "    -f90=xxx      - Reset the native compiler to xxx."
+        echo "    -fc=xxx       - Reset the native compiler to xxx."
+    else
+        if [ -f "./cplxxx_opts.conf" ] ; then
+            . ./mpixxx_opts.conf
+            echo "    -f90=xxx      - Reset the native compiler to xxx."
+            echo "    -fc=xxx       - Reset the native compiler to xxx."
+        fi
+    fi
+    exit 0
+    ;;
+    # The following are special args used to handle .F files when the
+    # Fortran compiler itself does not handle these options
+    -I*)
+    cppflags[${#cppflags}]="$arg"
+    ;;
+    -D*)
+    cppflags[${#cppflags}]="$arg"
+    ;;
+    *.F|*.F90|.fpp|.FPP)
+# If FCCPP is not empty, then we need to do the following:
+#    If any input files have the .F or .F90 extension, then    
+#        If FCCPP = false, then
+#            generate an error message and exit
+#        Use FCCPP to convert the file from .F to .f, using 
+#            $TMPDIR/f$$-$count.f as the output file name
+#            Replace the input file with this name in the args
+# This is needed only for very broken systems
+#     
+    if [ -n "$FCCPP" ] ; then
+        if [ "$FCCPP" = "false" ] ; then
+            echo "This Fortran compiler does not accept .F or .F90 files"
+	    exit 1
+        fi
+        addarg=no
+	# Remove and directory names and extension
+	$ext=`expr "$arg" : '.*\(\..*\)'`
+        bfile=`basename $arg $ext`
+	# 
+	TMPDIR=${TMPDIR:-/tmp}
+	# Make sure that we use a valid extension for the temp file.
+        tmpfile=$TMPDIR/f$$-$bfile.$FCEXT
+        if $FCCPP "${cppflags[@]}" $arg > $tmpfile ; then
+            # Add this file to the commandline list
+	    count=`expr $count + 1`
+	    allargs[${#allargs}]="$tmpfile"
+	    rmfiles="$rmfiles $tmpfile"
+        else
+	    echo "Aborting compilation because of failure in preprocessing step"
+	    echo "for file $arg ."
+	    exit 1
+        fi
+    fi
+    # Otherwise, just accept the argument
+    ;;
+    # - end of special handling for .F files
+
+    esac
+    if [ $addarg = no ] ; then
+        unset allargs[$argno]
+    fi
+    # Some versions of bash do not accept ((argno++))
+    argno=`expr $argno + 1`
+done
+
+if [ $# -eq 0 ] ; then
+    echo "Error: Command line argument is needed!"
+    "$0" -help
+    exit 1
+fi
+
+# Construct the line to add the include directory (not all compilers 
+# use -I, unfortunately)
+if [ -z "${FCINC}" ] ; then
+    # If there is no path, add a link to the cpl.h file.
+    # There *must* be a way to provide the path the any modules (there
+    # may be too many to link)
+    if [ ! -r cpl.h ] ; then
+        #echo "Adding a symbolic link for cpl.h"
+	trap "$Show rm -f cpl.h" 0
+	# This should really be the (related) f77includedir (see cpl77).
+	$Show ln -s ${includedir}/mpif.h mpif.h
+	# Remember to remove this file
+	rmfiles="$rmfiles cpl.h"
+    fi
+    FCINCDIRS=
+else
+    # Normally, FCINC is just -I, but some compilers have used different
+    # command line arguments
+    FCINCDIRS=${FCINC}${includedir}
+fi
+
+#
+# A temporary statement to invoke the coler
+# Place the -L before any args incase there are any cpl libraries in there.
+# Eventually, we'll want to move this after any non-cpl implementation 
+# libraries
+
+if [ "$linking" = yes ] ; then
+    # Attempt to encode rpath info into the executable if the user has not
+    # disabled rpath usage and some flavor of rpath makes sense on this
+    # platform.
+    # TODO configure and config.rpath are computing more sophisticated rpath
+    # schemes than this simple one.  Consider updating this logic accordingly.
+    if test "X$enable_wrapper_rpath" = "Xyes" ; then
+        # prepend the path for the shared libraries to the library list
+        eval rpath_flags=\"${hardcode_libdir_flag_spec}\"
+    else
+	rpath_flags=""
+    fi
+
+    if [ "$nativelinking" = yes ] ; then
+        $Show $FC $PROFILE_INCPATHS      "${allargs[@]}"
+        rc=$?
+    else
+        $Show $FC $PROFILE_INCPATHS      "${allargs[@]}" $FCINCDIRS -L$libdir $rpath_flags -lcpl
+    fi
+else
+    $Show $FC $PROFILE_INCPATHS   "${allargs[@]}" $FCINCDIRS
+    rc=$?
+fi
+if [ -n "$rmfiles" ] ; then
+    for file in $rmfiles ; do
+        objfile=`basename $file .f`
+	if [ -s "${objfile}.o" ] ; then
+	    # Rename 
+	    destfile=`echo $objfile | sed -e "s/.*$$-//"`
+	    mv -f ${objfile}.o ${destfile}.o
+	fi
+        rm -f $file
+    done
+    rm -f $rmfiles
+fi
+exit $rc
+
