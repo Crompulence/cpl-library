@@ -1,3 +1,0 @@
-
-    1. Develop a custom fix so that lammps doesn't need to do 
-       a global reduce with fix ave/chunk?

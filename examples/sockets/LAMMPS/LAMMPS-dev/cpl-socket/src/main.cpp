@@ -62,14 +62,13 @@ Author(s)
 int main(int narg, char **arg)
 {
     // Create socket and initialise MPI/CPL communicators
-    CPL::SocketLAMMPS cpl;
+    SocketLAMMPS cpl;
     cpl.initComms (narg, arg);
 
     // Create lammps instance on socket realm communicator
-    auto lmp = std::make_unique <LAMMPS_NS::LAMMPS>
-    (
-        1, arg, cpl.realmCommunicator()
-    );
+//    auto lmp = std::make_unique <LAMMPS_NS::LAMMPS> (1, arg, 
+//                                                     cpl.realmCommunicator());
+    LAMMPS_NS::LAMMPS *lmp = new LAMMPS_NS::LAMMPS(1, arg, cpl.realmCommunicator());
 
     // Open LAMMPS input script and perform setup line-by-line
     std::ifstream inputFile (arg[1]);
@@ -86,15 +85,15 @@ int main(int narg, char **arg)
         lmp->input->one (line.c_str());
     }
 
-    cpl.initMD (lmp.get());
+    cpl.initMD (lmp);
 
     for (int step = 0; step < cpl.nsteps; step += cpl.timestep_ratio)
     {
         // Communications
-        cpl.pack (lmp.get());
-        cpl.receive();
-        cpl.send();
-        cpl.unpack (lmp.get());
+        cpl.recvStress();
+        cpl.unpackStress(lmp);
+        cpl.packVelocity(lmp);
+        cpl.sendVelocity();
 
         // Continue LAMMPS 
         line = "run " + std::to_string(cpl.timestep_ratio);
@@ -103,6 +102,7 @@ int main(int narg, char **arg)
     }
 
     // Finalize MPI
+    delete lmp;
     cpl.finalizeComms();
 
 }

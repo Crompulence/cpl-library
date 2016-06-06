@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 
     CPLSocket socket;
     socket.initComms(argc, argv);
-
+    
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
@@ -57,14 +57,13 @@ int main(int argc, char *argv[])
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info<< "\nStarting time loop\n" << endl;
-
     while (runTime.loop())
     {
 
-        socket.pack(U, nu, mesh);
-        socket.send();
-        socket.receive();
-        socket.unpack(U, mesh);
+        socket.packStress(U, nu, mesh);
+        socket.sendStress();
+        socket.recvVelocity();
+        socket.unpackVelocity(U, mesh);
 
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
@@ -133,7 +132,6 @@ int main(int argc, char *argv[])
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"
             << nl << endl;
     }
-
     Info<< "End\n" << endl;
 
     return 0;

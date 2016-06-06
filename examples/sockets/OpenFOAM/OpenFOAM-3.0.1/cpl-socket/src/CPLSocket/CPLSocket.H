@@ -55,48 +55,44 @@ int nint(double d)
 
 class CPLSocket
 {   
+
 public:
     
     // Construct from no arguments 
-    CPLSocket();
+    CPLSocket() : olapRegion(6), velBCRegion(6), cnstFRegion(6),
+                  velBCPortion(6), cnstFPortion(6) {}
     
     // Invoke CPL_Library and store CFD realm communicator
     void initComms(int& argc, char**& argv);
 
     // Analyse topology and perform CFD-side initialisation
-    void initCFD
-    (
-        const Foam::Time &time, 
-        const Foam::fvMesh &mesh
-    );
+    void initCFD (const Foam::Time &runTime, const Foam::fvMesh &mesh);
+
+    void getCellTopology();
+    void allocateBuffers();
 
     // Pack and unpack data into CPL-Library formats
-    void pack(volVectorField &U, dimensionedScalar &nu, fvMesh &mesh);
-    void unpack(volVectorField &U, fvMesh &mesh);
+    void packStress(volVectorField &U, dimensionedScalar &nu, fvMesh &mesh);
+    double unpackVelocity(volVectorField &U, fvMesh &mesh);
 
     // Send and receive the data with CPL-Library
-    void send();
-    void receive();
+    void sendStress();
+    void recvVelocity();
+
 
 private:
 
-    // Number of spatial dimensions (fixed to three for CPL_Library)
-    static const int ndims=3;
 
     // Number of processors in x, y and z directions, and periodicity
-    int npxyz[ndims]; 
+    int npxyz[3]; 
     int nprocs;
-    int periods[ndims];
+    int periods[3];
 
-    // Number of cells on a local processor
-    int ncxl;
-    int ncyl;
-    int nczl;
+    // Domain dimensions
+    double xyzL[3];
 
     // Number of cells globally in CFD domain 
-    int ncxg;
-    int ncyg;
-    int nczg;
+    int ncxyz[3];
 
     // Size of the cells in each direction
     double dx;
@@ -106,10 +102,6 @@ private:
     // Density of the fluid assumed by CPL
     double CPLDensity;
 
-    // Cell extents in each direction local to processor
-    std::vector<int> iTmax, jTmax, kTmax;
-    std::vector<int> iTmin, jTmin, kTmin;
-    
     // Communicators for use with CPL_Library 
     MPI_Comm realmComm; 
     MPI_Comm cartComm; 
@@ -118,22 +110,28 @@ private:
     int rankRealm;
     int rankCart;
 
-    // Coordinates of own and all processor(s)
-    std::vector<int> myCoords;        
-    CPL::ndArray<int> allCoords;        
-    void allReduceProcCoords();
-    
-    // Indices of cells by x, y, z coordinates (3D) (ncxl, ncyl, nczl)
-    CPL::ndArray<int> cellIndex;
+    // Coordinates of the local processor
+    std::vector<int> myCoords;
+
 
     // Data to be sent/received with CPL-Library
-    CPL::ndArray<double> sendVelocity;
-    CPL::ndArray<double> sendStress;
-    CPL::ndArray<double> recvVelocity;
-    CPL::ndArray<double> recvStress;
+    CPL::ndArray<double> sendVelocityBuff;
+    CPL::ndArray<double> sendStressBuff;
+    CPL::ndArray<double> recvVelocityBuff;
+    CPL::ndArray<double> recvStressBuff;
 
-    // Overlap limits
-    std::vector<int> olap_limits;
+    // Region cell limits
+    std::vector<int> olapRegion;
+    std::vector<int> velBCRegion;
+    std::vector<int> cnstFRegion;
+
+    // Portions of the region in the local processor
+    std::vector<int> velBCPortion;
+    std::vector<int> cnstFPortion;
+    
+    // Number of cells in the portion in a region
+    int velBCCells[3];
+    int cnstFCells[3];
 
     // Some utility functions
     Foam::Vector<double> maxPoints (Foam::pointField points)
@@ -163,11 +161,15 @@ private:
         double ymin=std::numeric_limits<double>::max();
         double zmin=std::numeric_limits<double>::max();
         double x, y, z;
+        int count = 0;
         forAll(points, i)
         {
+
             x = points[i].x();
             y = points[i].y();
             z = points[i].z();
+                count++;
+        //        std::cout << "mincoord: " << x << " " << y << " " << z << std::endl;
             if (x < xmin) xmin = x;
             if (y < ymin) ymin = y;
             if (z < zmin) zmin = z;
