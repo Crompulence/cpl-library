@@ -514,18 +514,24 @@ def prepare_config(tmpdir, test_dir, md_fname, cfd_fname):
     os.chdir(tmpdir.strpath)
 
 
-def run_test(template_dir, config_params, md_fname, cfd_fname,
-             md_params, cfd_params, err_msg):
+def run_test(template_dir, config_params, md_exec, md_fname, cfd_exec,
+             cfd_fname, md_params, cfd_params, err_msg):
     parametrizeConfig(template_dir, config_params)
     cPickle.dump(md_params, open("md_params.dic", "wb"))
     cPickle.dump(cfd_params, open("cfd_params.dic", "wb"))
     try:
         mdprocs = md_params["npx"] * md_params["npy"] * md_params["npz"]
         cfdprocs = cfd_params["npx"] * cfd_params["npy"] * cfd_params["npz"]
-        cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_fname,
-                        ":", "-n", str(cfdprocs), cfd_fname])
-        print (cmd)
-        check_output(cmd, stderr=STDOUT, shell=True)
+        if os.path.isfile(md_fname) and os.path.isfile(cfd_fname):
+            cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_fname,
+                            ":", "-n", str(cfdprocs), cfd_exec, cfd_fname])
+            print ("\nMPI run: " + cmd)
+            check_output(cmd, stderr=STDOUT, shell=True)
+        else:
+            print (md_fname + " or " + cfd_fname + " are not found.")
+            assert False
+            return False
+            
 
     except CalledProcessError as exc:
         print (exc.output)
@@ -538,6 +544,7 @@ def run_test(template_dir, config_params, md_fname, cfd_fname,
             assert False
         else:
             assert True
+    return True
 
 
 if __name__ == "__main__":

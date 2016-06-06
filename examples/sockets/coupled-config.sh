@@ -15,7 +15,7 @@ DOWNLOAD_CFD=( ["OpenFOAM-3.0.1"]=wget )
 declare -A DECOMPRESS_CFD
 DECOMPRESS_CFD=( ["OpenFOAM-3.0.1"]=tgz )
 declare -A CPL_SOCKET_CFD
-CPL_SOCKET_CFD=( ["OpenFOAM-3.0.1"]="$CPL_PATH/../demo/sockets/OpenFOAM/OpenFOAM-3.0.1" )
+CPL_SOCKET_CFD=( ["OpenFOAM-3.0.1"]="$CPL_PATH/examples/sockets/OpenFOAM/OpenFOAM-3.0.1" )
 
 # MD software
 SUPPORTED_MD=( "LAMMPS-dev" )
@@ -28,13 +28,13 @@ DOWNLOAD_MD=( ["LAMMPS-dev"]=git )
 declare -A DECOMPRESS_MD
 DECOMPRESS_MD=( ["LAMMPS-dev"]="")
 declare -A CPL_SOCKET_MD
-CPL_SOCKET_MD=( ["LAMMPS-dev"]="$CPL_PATH/../demo/sockets/LAMMPS/LAMMPS-dev" )
+CPL_SOCKET_MD=( ["LAMMPS-dev"]="$CPL_PATH/examples/sockets/LAMMPS/LAMMPS-dev" )
 declare -A URLS_LAMMPS_PACKAGE
 URLS_LAMMPS_PACKAGE=( ["USER-CPL"]="https://edu159@bitbucket.org/edu159/lammps-user-cpl.git" )
 
 
 # Path to examples
-EXAMPLES_PATH=$CPL_PATH/../demo/sockets/examples
+EXAMPLES_PATH=$CPL_PATH/examples/sockets/examples
 
 
 
@@ -189,6 +189,7 @@ create)
     example_name="${example_md}-${example_cfd}"
     pprint "[3]" info
     download "examples" "${EXAMPLES_PATH}/${example_name}/" cp "" ""
+
 
     pprint "[Success!]\n" info
     ;;
