@@ -19,7 +19,7 @@ include $(MAKEINCPATH)/platform.inc
 
 # Useful source and build definitions
 EXE = lmp_cpl
-SRC = main.cpp socket.cpp
+SRC = main.cpp CPLSocketLAMMPS.cpp
 OBJ = $(SRC:.cpp=.o)
 OBJDIR = ./obj
 SRCDIR = ./src

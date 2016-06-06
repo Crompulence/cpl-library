@@ -8,9 +8,9 @@ import os
 # EXPLANATION:
 
 MD_FNAME = "lammps_vels.in"
-MD_RUN = "lmp_cpl " + MD_FNAME
+MD_EXEC = "lmp_cpl"
 CFD_FNAME = "dummyCFD.py"
-CFD_RUN = "python " + CFD_FNAME
+CFD_EXEC = "python"
 TEST_TEMPLATE_DIR = os.path.join(os.environ["CPL_PATH"], "test/templates")
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -88,6 +88,7 @@ def test_velocitiesP2C(prepare_config_fix, cfdprocs, mdprocs, err_msg):
                      "cnst_zlo": 1, "cnst_zhi": 15,
                      "tstep_ratio": 1, }
 
-    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_RUN, CFD_RUN, MD_PARAMS,
-             CFD_PARAMS, err_msg)
-    compare_vels(1e-6)
+    correct = run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME,
+                       CFD_EXEC, CFD_FNAME, MD_PARAMS, CFD_PARAMS, err_msg)
+    if correct:
+        compare_vels(1e-6)

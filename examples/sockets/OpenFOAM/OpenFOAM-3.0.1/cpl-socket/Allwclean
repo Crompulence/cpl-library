@@ -1,5 +1,5 @@
 wclean src/CPLPstream
-wclean src/CPLSocket 
+wclean src/CPLSocketFOAM
 
 wclean src/solvers/CPLIcoFoam
 

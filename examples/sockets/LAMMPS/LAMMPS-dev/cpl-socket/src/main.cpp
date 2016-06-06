@@ -57,12 +57,12 @@ Author(s)
 
 // CPL
 #include "CPL.h"
-#include "socket.h"
+#include "CPLSocketLAMMPS.h"
 
 int main(int narg, char **arg)
 {
     // Create socket and initialise MPI/CPL communicators
-    SocketLAMMPS cpl;
+    CPLSocketLAMMPS cpl;
     cpl.initComms (narg, arg);
 
     // Create lammps instance on socket realm communicator

@@ -63,7 +63,7 @@ export WM_COMPILE_OPTION=Opt
 # Modify the MPI_ROOT to the root folder of your mpi library i.e /opt/mpich3.2
 export MPI_ROOT=
 export MPI_ARCH_INC="-I$MPI_ROOT/include"
-export MPI_ARCH_LIBS="-L$MPI_ROOT/lib -Wl,-rpath -Wl,/opt/mpich3.2-gcc4.9/lib -Wl,--enable-new-dtags -lmpi"
+export MPI_ARCH_LIBS="-L$MPI_ROOT/lib -Wl,-rpath -Wl,$MPI_ROOT/lib -Wl,--enable-new-dtags -lmpi"
 export MPI_ARCH_FLAGS=
 export WM_MPLIB=SYSTEMMPI
 

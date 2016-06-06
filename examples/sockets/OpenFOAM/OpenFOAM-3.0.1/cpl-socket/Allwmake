@@ -1,4 +1,4 @@
 wmake libso src/CPLPstream
-wmake libso src/CPLSocket
+wmake libso src/CPLSocketFOAM
 
 wmake src/solvers/CPLIcoFoam

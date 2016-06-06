@@ -31,7 +31,7 @@ Description
 
 #include "fvCFD.H"
 #include "pisoControl.H"
-#include "CPLSocket.H"
+#include "CPLSocketFOAM.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 {
 
 
-    CPLSocket socket;
+    CPLSocketFOAM socket;
     socket.initComms(argc, argv);
     
     #include "setRootCase.H"
