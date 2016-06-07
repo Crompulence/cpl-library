@@ -125,6 +125,8 @@ module coupler_module
     integer,protected :: &
         CPL_OLAP_COMM !!  Local comm between only overlapping MD/CFD procs;
     integer,protected :: &
+        CPL_REALM_OLAP_COMM !!  Local CFD/MD in overlapping region;
+    integer,protected :: &
         CPL_GRAPH_COMM !!  Comm w/ graph topolgy between locally olapg procs;
     integer,protected :: &
         CPL_REALM_INTERSECTION_COMM !!  Intersecting MD/CFD procs in world;
@@ -374,20 +376,119 @@ contains
 !                                        |_|    
 !=============================================================================
 
-!=============================================================================
-!                           coupler_create_comm         
-!! (cfd+md) Splits MPI_COMM_WORLD in both the CFD and MD code respectively
-!!         and create intercommunicator between CFD and MD
-!-----------------------------------------------------------------------------
+
+
+
+
 
 subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
+! ----------------------------------------------------------------------------
+!(cfd+md) Splits MPI_COMM_WORLD in both the CFD and MD code respectively 
+!and create intercommunicator between CFD and MD
+!
+!**Remarks**
+!
+!Assumes MPI has been initialised `MPI_init` and communicator MPI_COMM_WORLD exists
+!and contains all processors in both CFD and MD regions
+!
+!
+!**Synopsis**
+!
+!.. code-block:: c
+!
+!  CPL_init(
+!           callingrealm, 
+!           RETURNED_REALM_COMM, 
+!           ierror
+!           )    
+!
+!**Inputs**
+!
+! - *callingrealm*
+!
+!   - Should identify calling processor as either CFD_REALM (integer with value 1) or MD_REALM (integer with value 2).
+! 
+!
+!**Outputs**
+!
+! - RETURNED_REALM_COMM 
+!
+!   - Communicator based on callingrealm value local to CFD or MD processor and resulting from the split of MPI_COMM_WORLD
+!
+! - ierror
+!
+!   - Error flag
+!
+!**Example**
+!
+!.. code-block:: guess
+!
+!   program main_CFD
+!      use cpl, only : CPL_init
+!      use mpi
+!      implicit none
+!
+!      integer :: rank, nprocs, ierr
+!      integer :: CFD_COMM
+!      integer, parameter :: CFD_realm=1
+!
+!      !Initialise MPI
+!      call MPI_Init(ierr)
+!
+!      !Create MD Comm by spliting world
+!      call CPL_init(CFD_realm, CFD_COMM, ierr)
+!
+!      !get local processor rank and print
+!      call MPI_comm_size(CFD_COMM, nprocs, ierr)
+!      call MPI_comm_rank(CFD_COMM, rank, ierr)
+!
+!      print*, "CFD code processor ", rank, " of ", nprocs
+!
+!      !No need for seperate CPL finalise as MPI finalise takes care of this
+!      call MPI_finalize(ierr)
+!
+!   end program main_CFD
+!
+!
+!.. code-block:: guess
+!
+!   program main_MD
+!      use cpl, only : CPL_init
+!      use mpi
+!      implicit none
+!
+!      integer :: rank, nprocs, ierr
+!      integer :: MD_COMM
+!      integer, parameter :: MD_realm=1
+!
+!      !Initialise MPI
+!      call MPI_Init(ierr)
+!
+!      !Create MD Comm by spliting world
+!      call CPL_init(MD_realm, MD_COMM, ierr)
+!
+!      call MPI_comm_size(MD_COMM, nprocs, ierr)
+!      call MPI_comm_rank(MD_COMM, rank, ierr)
+!
+!      print*, "MD code processor ", rank, " of ", nprocs
+!
+!      !No need for seperate CPL finalise as MPI finalise takes care of this
+!      call MPI_finalize(ierr)
+!
+!   end program main_MD
+!
+!**Errors**
+!
+!    COUPLER_ERROR_REALM  = 1       ! wrong realm value
+!    COUPLER_ERROR_ONE_REALM = 2    ! one realm missing
+!    COUPLER_ERROR_INIT = 3         ! initialisation error
+!
+! .. sectionauthor::Edward Smith, David Trevelyan, Eduardo Ramos Fernandez
+! ------------------------------------
     use mpi
-    !use coupler_module, only : rank_world,myid_world,rootid_world,nproc_world,&
-    !                           realm, rank_realm,myid_realm,rootid_realm,ierr,& 
-    !                           CPL_WORLD_COMM, CPL_REALM_COMM, CPL_INTER_COMM
     implicit none
 
-    integer, intent(in)   :: callingrealm ! CFD or MD
+    integer, intent(in)   :: callingrealm ! CFD_REALM=1 or MD_REALM=2
     integer, intent(out)  :: RETURNED_REALM_COMM, ierror
 
     !Get processor id in world across both realms
@@ -738,7 +839,54 @@ end subroutine  CPL_write_header
 
 
 subroutine CPL_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density)
-
+! ----------------------------------------------------------------------------
+!Initialisation routine for coupler module - Every variable is sent and stored
+!to ensure both md and cfd region have an identical list of parameters
+!
+!**Remarks**
+!
+!Assumes CPL has been initialised `CPL_init` and communicator MD_REALM exists
+!
+!**Synopsis**
+!
+!.. code-block:: c
+!
+!  coupler_cfd_init(
+!                  nsteps,
+!                  dt_cfd,
+!                  icomm_grid,
+!                  xyzL,
+!                  xyz_orig,
+!                  ncxyz,
+!                  density
+!                  )
+!
+!**Inputs**
+!
+! - *nsteps (inout)*
+!
+!   - Number of steps in CFD simulation.
+! - *dt_cfd (inout)*
+!
+!   - Timestep in CFD simulation.
+! - *icomm_grid*
+!
+!   - Communicator based on CFD processor topology returned from a call to MPI_CART_CREATE.
+! - *xyzL*
+!
+!   - CFD domain size.
+! - *xyz_orig*
+!
+!   - CFD origin.
+! - *ncxyz*
+!
+!   - Number of CFD cells in global domain.
+! - *density*
+!
+!   - Density used in CFD code (still required when working with non-dimensionalised units in CFD as MD has an actual value of density based on domain.).
+!
+! .. sectionauthor::Edward Smith, David Trevelyan, Eduardo Ramos Fernandez
+! ------------------------------------
     use mpi
     implicit none           
     
@@ -1203,6 +1351,54 @@ end subroutine coupler_cfd_init
 
 
 subroutine CPL_setup_md(nsteps, initialstep, dt, icomm_grid, xyzL, xyz_orig, density)
+! ----------------------------------------------------------------------------
+!Initialisation routine for coupler module - Every variable is sent and stored
+!to ensure both md and cfd region have an identical list of parameters
+!
+!**Remarks**
+!
+!Assumes CPL has been initialised `CPL_init` and communicator MD_REALM exists
+!
+!**Synopsis**
+!
+!.. code-block:: c
+!
+!  coupler_md_init(
+!                  nsteps,
+!                  initialstep,
+!                  dt,
+!                  icomm_grid,
+!                  xyzL,
+!                  xyz_orig,
+!                  density
+!                  )
+!
+!**Inputs**
+!
+! - *nsteps*
+!
+!   - Number of steps in MD simulation.
+! - *initialstep*
+!
+!   - Initial steps in MD simulation.
+! - *dt*
+!
+!   - Timestep in MD simulation.
+! - *icomm_grid*
+!
+!   - Communicator based on MD processor topology returned from a call to MPI_CART_CREATE.
+! - *xyzL*
+!
+!   - MD domain size.
+! - *xyz_orig*
+!
+!   - MD origin.
+! - *density*
+!
+!   - Density of molecules in MD code.
+!
+! .. sectionauthor::Edward Smith, David Trevelyan, Eduardo Ramos Fernandez
+! ------------------------------------
     use mpi
     implicit none
 

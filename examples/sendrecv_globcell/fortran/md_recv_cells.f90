@@ -102,4 +102,7 @@ program md_cpl_example
         print'(a,a,i2,a)', "MD -- ", "(rank=", rank, ") CELLS HAVE BEEN RECEIVED CORRECTLY."
     endif
     call MPI_Barrier(MPI_COMM_WORLD, ierr)
+
+    call MPI_finalize(ierr)
+
 end program

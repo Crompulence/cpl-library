@@ -129,6 +129,9 @@ test-mapping:
 test-initialisation:
 	py.test -v -s $(testdir)/initialisation
 
+test-examples:
+	./examples/sendrecv_globcell/test_all.sh
+
 # Clean
 clean:
 	rm -rf $(objdir) $(libdir) $(includedir)

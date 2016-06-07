@@ -77,4 +77,7 @@ program cfd_cpl_example
 
     !Block before checking if successful
     call MPI_Barrier(MPI_COMM_WORLD, ierr)
+
+    call MPI_finalize(ierr)
+
 end program cfd_cpl_example

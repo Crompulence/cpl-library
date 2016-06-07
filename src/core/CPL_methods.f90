@@ -1443,43 +1443,55 @@ end subroutine CPL_olap_extents
 !-------------------------------------------------------------------
 !                   CPL_proc_portion                  -
 !-------------------------------------------------------------------
-!>
-!! Get maximum and minimum cell indices, i.e. the 'portion', of the
-!! input cell extents 'limits' that is contributed by the current
-!! overlapping processor. 
-!!
-!! - Synopsis
-!!  - CPL_proc_portion(coord,realm,limits,portion,ncells)
-!!
-!! - Input
-!!
-!!  - coord
-!!   - processor cartesian coordinate (3 x integer) 
-!!
-!!  - realm
-!!   - cfd_realm (1) or md_realm (2) (integer) 
-!!
-!!  - limits(6)
-!!   - Array of cell extents that specify the input region. 
-!!
-!! - Input/Output
-!!  - NONE
-!!
-!! - Output
-!!
-!!  - portion(6) 
-!!   - Array of cell extents that define the local processor's
-!!     contribution to the input region 'limits'.
-!!
-!!   - ncells (optional)
-!!    - number of cells in portion (integer) 
-!!
-!! - Note: limits(6) and portion(6) are of the form:
-!!   (xmin,xmax,ymin,ymax,zmin,zmax)
-!!
-!! .. sectionauthor:: David Trevelyan
+subroutine CPL_proc_portion(coord, realm, limits, portion, ncells)
+!Get maximum and minimum cell indices, i.e. the 'portion', of the
+!input cell extents 'limits' that is contributed by the processor
+!specified by processor coord. 
+!
+!**Remarks**
+!
+!Assumes the coupler has been initialised with `CPL_init <#f/_/cpl_init>`_ and 
+!topological mapping has been setup using either `CPL_setup_md <#f/_/cpl_setup_md>`_ 
+!or `CPL_setup_cfd <#f/_/cpl_setup_cfd>`_ as appropriate.
+! - Note: limits(6) and portion(6) are of the form: (xmin,xmax,ymin,ymax,zmin,zmax)
+!
+!**Synopsis**
+!
+!.. code-block:: c
+!
+!  CPL_proc_portion(
+!                   coord,
+!                   realm,
+!                   limits,
+!                   portion,
+!                   ncells
+!                   )
+!
+!**Inputs**
+!
+! - *coord*
+!
+!   - processor cartesian coordinate (3 x integer) 
+! - *realm*
+!
+!   - cfd_realm (1) or md_realm (2) (integer) 
+! - *limits*
+!
+!   - Array of cell extents that specify the input region. 
+!
+!
+!**Outputs**
+!
+! - *portion*
+!   - Array of cell extents that define the local processor's
+!     contribution to the input region 'limits'.
+!
+! - *ncells (optional)*
+!    - number of cells in portion (integer) 
+!
+!
+! .. sectionauthor:: David Trevelyan
 
-subroutine CPL_proc_portion(coord,realm,limits,portion,ncells)
     use mpi
     use coupler_module, only: VOID
     implicit none
@@ -1521,6 +1533,38 @@ end subroutine CPL_proc_portion
 
 
 subroutine CPL_my_proc_portion(limits, portion)
+!Get maximum and minimum cell indices, i.e. the 'portion', of the
+!input cell extents 'limits' that is contributed by calling processor.
+!
+!**Remarks**
+!
+!Assumes the coupler has been initialised with `CPL_init <#f/_/cpl_init>`_ and 
+!topological mapping has been setup using either `CPL_setup_md <#f/_/cpl_setup_md>`_ 
+!or `CPL_setup_cfd <#f/_/cpl_setup_cfd>`_ as appropriate.
+! - Note: limits(6) and portion(6) are of the form: (xmin,xmax,ymin,ymax,zmin,zmax)
+!
+!**Synopsis**
+!
+!.. code-block:: c
+!
+!  CPL_proc_portion(
+!                   limits,
+!                   portion,
+!                   )
+!
+!**Inputs**
+!
+! - *limits*
+!
+!   - Array of cell extents that specify the input region. 
+!
+!**Outputs**
+!
+! - *portion*
+!   - Array of cell extents that define the local processor's
+!     contribution to the input region 'limits'.
+!
+! .. sectionauthor:: Eduardo Ramos Fernandez
     use coupler_module, only: rank_cart, realm, md_realm, &
                               cfd_realm, rank2coord_cfd, &
                               rank2coord_md
@@ -1567,40 +1611,56 @@ end subroutine CPL_my_proc_extents
 !                   CPL_Cart_coords                                -
 !-------------------------------------------------------------------
 
-!>
-!! Determines process coords in appropriate realm's cartesian topology 
-!! given a rank in any communicator
-!!
-!! - Synopsis
-!!
-!!  - CPL_Cart_coords(COMM, rank, realm, maxdims, coords, ierr)
-!!
-!! - Input Parameters
-!!
-!!  - comm
-!!   - communicator with cartesian structure (handle) 
-!!
-!!  - realm
-!!   - cfd_realm (1) or md_realm (2) (integer) 
-!!
-!!  - rank
-!!   - rank of a process within group of comm (integer) 
-!!      NOTE fortran convention rank=1 to nproc
-!!
-!!  - maxdims
-!!   - length of vector coords in the calling program (integer) 
-!!
-!! - Output Parameter
-!!
-!!  - coords
-!!   - integer array (of size ndims) containing the Cartesian coordinates 
-!!     of specified process (integer) 
-!!
-!!  - ierr
-!!   - error flag
-!! .. sectionauthor:: Edward Smith
-
 subroutine CPL_Cart_coords(COMM, rank, realm, maxdims, coords, ierr)
+! Determines process coords in appropriate realm's cartesian topology 
+! given a rank in any communicator
+!
+!**Remarks**
+!
+!Assumes the coupler has been initialised with `CPL_init <#f/_/cpl_init>`_ and 
+!topological mapping has been setup using either `CPL_setup_md <#f/_/cpl_setup_md>`_ 
+!or `CPL_setup_cfd <#f/_/cpl_setup_cfd>`_ as appropriate.
+!
+!
+!**Synopsis**
+!
+!.. code-block:: c
+!
+!  CPL_Cart_coords(
+!                  COMM, 
+!                  rank, 
+!                  realm, 
+!                  maxdims, 
+!                  coords, 
+!                  ierr
+!                  )
+!
+!**Inputs**
+!
+! - *comm*
+!
+!   - communicator with cartesian structure (handle) 
+! - *realm*
+!
+!   - cfd_realm (1) or md_realm (2) (integer) 
+! - *rank*
+!
+!   - rank of a process within group of comm (integer) 
+!      NOTE fortran convention rank=1 to nproc
+! - *maxdims*
+!
+!   - length of vector coords in the calling program (integer) 
+!
+!**Outputs**
+!
+! - *coords*
+!
+!   - integer array (of size ndims) containing the Cartesian coordinates 
+!     of specified process (integer) 
+! - *ierr*
+!
+!   - error flag
+! .. sectionauthor:: Edward Smith
     use coupler_module, only :  CPL_WORLD_COMM, CPL_REALM_COMM, CPL_INTER_COMM, & 
                                 CPL_CART_COMM, CPL_OLAP_COMM, CPL_GRAPH_COMM,   &
                                 CPL_REALM_INTERSECTION_COMM, md_realm,cfd_realm, &
@@ -1736,27 +1796,38 @@ end subroutine CPL_Cart_coords
 !-------------------------------------------------------------------
 !                   CPL_get_rank                       -
 !-------------------------------------------------------------------
-!>
-!! Return rank of current processor in specified COMM 
-!!
-!! - Synopsis
-!!
-!!  - CPL_get_rank(COMM, rank)
-!!
-!! - Input Parameters
-!!
-!!  - comm
-!!   - communicator with cartesian structure (handle) 
-!!
-!! - Output Parameter
-!!
-!!  - rank
-!!   - rank of a process within group of comm (integer) 
-!!      NOTE fortran convention rank=1 to nproc
-!!
-!! .. sectionauthor:: Edward Smith
+subroutine CPL_get_rank(COMM, rank)
+! Return rank of current processor in specified COMM 
+!
+!**Remarks**
+!
+!Assumes the coupler has been initialised with `CPL_init <#f/_/cpl_init>`_ and 
+!topological mapping has been setup using either `CPL_setup_md <#f/_/cpl_setup_md>`_ 
+!or `CPL_setup_cfd <#f/_/cpl_setup_cfd>`_ as appropriate.
+!
+!
+!**Synopsis**
+!
+!.. code-block:: c
+!
+!  CPL_get_rank(
+!               COMM, 
+!               rank
+!               )
+!
+!**Inputs**
+!
+! - *comm*
+!   - communicator with cartesian structure (handle) 
+!
+!**Outputs**
+!
+! - *rank*
+!   - rank of a process within group of comm (integer) 
+!      NOTE fortran convention rank=1 to nproc
+!
+! .. sectionauthor:: Edward Smith
 
-subroutine CPL_get_rank(COMM,rank)
     use coupler_module, only :  CPL_WORLD_COMM, CPL_REALM_COMM, CPL_INTER_COMM, & 
                                 CPL_CART_COMM,  CPL_OLAP_COMM,  CPL_GRAPH_COMM, &
                                 CPL_REALM_INTERSECTION_COMM,rank_world,         &
@@ -1837,25 +1908,6 @@ end function CPL_overlap
 !-------------------------------------------------------------------
 !                   CPL_get                                        -
 !-------------------------------------------------------------------
-!>
-!! Wrapper to retrieve (read only) parameters from the coupler_module 
-!! Note - this ensures all variable in the coupler are protected
-!! from corruption by either CFD or MD codes
-!!
-!! - Synopsis
-!!
-!!  - CPL_get([see coupler_module])
-!!
-!! - Input Parameters
-!!
-!!  - NONE
-!!
-!! - Output Parameter
-!!
-!!  - @see coupler_module
-!!
-!! .. sectionauthor:: Edward Smith
-
 subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  & 
                    kcmax_olap,kcmin_olap,density_cfd,density_md, &
                    dt_cfd,dt_MD,dx,dy,dz,ncx,ncy,ncz,xg,yg,zg,   &
@@ -1872,6 +1924,24 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
                    cpl_cfd_bc_slice, cpl_md_bc_slice,            &
                    cpl_cfd_bc_x, cpl_cfd_bc_y, cpl_cfd_bc_z,     &
                    timestep_ratio, comm_style)
+! Wrapper to retrieve (read only) parameters from the coupler_module 
+! Note - this ensures all variable in the coupler are protected
+! from corruption by either CFD or MD codes
+!
+!**Synopsis**
+!
+!  - CPL_get([see coupler_module])
+!
+!**Input**
+!
+!  - NONE
+!
+!**Output**
+!
+!  - See below
+!
+! .. sectionauthor:: Edward Smith
+
     use coupler_module, only :  icmax_olap_=>icmax_olap,         &
                                 icmin_olap_=>icmin_olap,         &
                                 jcmax_olap_=>jcmax_olap,         &
