@@ -68,5 +68,14 @@ $(BINDIR):
 $(OBJFILES): $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CPP) $(CFLAGS) $(LAMMPS_INC) $(CPL_INC) -c $< -o $@
 
+test-all:
+	py.test -v -s ./test
+	
+test-velcities:
+	py.test -v -s ./test/velocityP-C
+
+test-forces:
+	py.test -v -s ./test/forcesC-P
+
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)
