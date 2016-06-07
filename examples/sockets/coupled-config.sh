@@ -1,5 +1,10 @@
 #!/bin/bash
 
+
+# Path to examples
+SOCKETS_PATH=$CPL_PATH/examples/sockets
+EXAMPLES_PATH=$SOCKETS_PATH/examples
+
 # CFD software 
 SUPPORTED_CFD=( "OpenFOAM-3.0.1" )
 declare -A URLS_CFD
@@ -28,13 +33,12 @@ DOWNLOAD_MD=( ["LAMMPS-dev"]=git )
 declare -A DECOMPRESS_MD
 DECOMPRESS_MD=( ["LAMMPS-dev"]="")
 declare -A CPL_SOCKET_MD
-CPL_SOCKET_MD=( ["LAMMPS-dev"]="$CPL_PATH/examples/sockets/LAMMPS/LAMMPS-dev" )
+CPL_SOCKET_MD=( ["LAMMPS-dev"]="$SOCKETS_PATH/LAMMPS/LAMMPS-dev" )
 declare -A URLS_LAMMPS_PACKAGE
-URLS_LAMMPS_PACKAGE=( ["USER-CPL"]="https://edu159@bitbucket.org/edu159/lammps-user-cpl.git" )
+URLS_LAMMPS_PACKAGE=( ["USER-CPL"]="$SOCKETS_PATH/LAMMPS/LAMMPS-dev/cpl-socket/lammps_packages/USER-CPL")
 
 
-# Path to examples
-EXAMPLES_PATH=$CPL_PATH/examples/sockets/examples
+
 
 
 
@@ -65,8 +69,9 @@ download() {
     fname=$2
     fname=${fname##*/}
     download_m=$3
-    md5_hash=$4
-    decompress_m=$5
+	# Optional parameters
+    md5_hash=${4:-""}
+    decompress_m=${5:-""}
 
     # Download version according to the specified method
     if [ $download_m == wget ]; then
@@ -138,10 +143,10 @@ create)
     pprint "[---[Downloading Sockets]---]\n" info2
     echo
     pprint "[1]" info
-    download $MD_DIR ${CPL_SOCKET_MD[$md_name]} cp "" ""
+    download $MD_DIR ${CPL_SOCKET_MD[$md_name]} cp
     echo
     pprint "[2]" info
-    download $CFD_DIR ${CPL_SOCKET_CFD[$cfd_name]} cp "" ""
+    download $CFD_DIR ${CPL_SOCKET_CFD[$cfd_name]} cp
 
     cd $CFD_DIR
     echo
@@ -176,7 +181,7 @@ create)
         cd $md_name/src
         echo 
         pprint "[2.2]" info
-        download "USER-CPL" ${URLS_LAMMPS_PACKAGE["USER-CPL"]} git "" ""
+        download "USER-CPL" ${URLS_LAMMPS_PACKAGE["USER-CPL"]} cp
         cd ../..
     fi
     cd ..
@@ -188,7 +193,7 @@ create)
     example_cfd=$(echo $cfd_name | cut -f 1 -d '-')
     example_name="${example_md}-${example_cfd}"
     pprint "[3]" info
-    download "examples" "${EXAMPLES_PATH}/${example_name}/" cp "" ""
+    download "examples" "${EXAMPLES_PATH}/${example_name}/" cp
 
 
     pprint "[Success!]\n" info
