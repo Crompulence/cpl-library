@@ -515,7 +515,7 @@ def prepare_config(tmpdir, test_dir, md_fname, cfd_fname):
 
 
 def run_test(template_dir, config_params, md_exec, md_fname, cfd_exec,
-             cfd_fname, md_params, cfd_params, err_msg):
+             cfd_fname, md_params, cfd_params, err_msg, debug=False):
     parametrizeConfig(template_dir, config_params)
     cPickle.dump(md_params, open("md_params.dic", "wb"))
     cPickle.dump(cfd_params, open("cfd_params.dic", "wb"))
@@ -525,7 +525,8 @@ def run_test(template_dir, config_params, md_exec, md_fname, cfd_exec,
         if os.path.isfile(md_fname) and os.path.isfile(cfd_fname):
             cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_fname,
                             ":", "-n", str(cfdprocs), cfd_exec, cfd_fname])
-            print ("\nMPI run: " + cmd)
+            if debug:
+	        print ("\nMPI run: " + cmd)
             check_output(cmd, stderr=STDOUT, shell=True)
         else:
             print (md_fname + " or " + cfd_fname + " are not found.")
