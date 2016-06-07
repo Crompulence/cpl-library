@@ -47,7 +47,7 @@ before_script:
 
 script:
     - make test-all
-#    - $MPIEXEC -n 8 ./md/mdProgram : -n 4 ./cfd/cfdProgram -v -f --no-builddir --exclude=spawn
+    - make test-examples
 
 after_success:
      - echo "Build Success"
