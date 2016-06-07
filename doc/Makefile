@@ -51,7 +51,7 @@ help:
 
 .PHONY: clean
 clean:
-	rm -rf $(BUILDDIR)/*
+	rm -rf $(BUILDDIR)
 	rm -rf ./cpp_doxy/xml
 
 .PHONY: html
