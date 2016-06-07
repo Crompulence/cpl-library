@@ -5,8 +5,8 @@
 #
 # Directory locations: Fixed for any cpl implementation.
 # during make install?? 
-prefix=/tmp/cpl-library/cpl
-CPL_VERSION=0.4
+prefix=/home/es205/codes/cpl/cpl-library/
+CPL_VERSION=1.0
 
 exec_prefix=${prefix}/bin
 sysconfdir=${prefix}/etc
@@ -102,7 +102,7 @@ for arg in "$@" ; do
     ;;
     -v)
     # Pass this argument to the compiler as well.
-    echo "mpicxx for MPICH version $MPICH_VERSION"
+    echo "cplf90 for cpl-library version $CPL_VERSION"
     # if there is only 1 argument, it must be -v.
     if [ "$#" -eq "1" ] ; then
         linking=no
@@ -151,13 +151,29 @@ if [ $# -eq 0 ] ; then
     exit 1
 fi
 
-# -----------------------------------------------------------------------
-# Derived variables.  These are assembled from variables set from the
-# default, environment, configuration file (if any) and command-line
-# options (if any)
+# Construct the line to add the include directory (not all compilers 
+# use -I, unfortunately)
+if [ -z "${FCINC}" ] ; then
+    # If there is no path, add a link to the cpl.h file.
+    # There *must* be a way to provide the path the any modules (there
+    # may be too many to link)
+    if [ ! -r cpl.h ] ; then
+        #echo "Adding a symbolic link for cpl.h"
+	trap "$Show rm -f cpl.h" 0
+	# This should really be the (related) f77includedir (see cpl77).
+	$Show ln -s ${includedir}/mpif.h mpif.h
+	# Remember to remove this file
+	rmfiles="$rmfiles cpl.h"
+    fi
+    FCINCDIRS=
+else
+    # Normally, FCINC is just -I, but some compilers have used different
+    # command line arguments
+    FCINCDIRS=${FCINC}${includedir}
+fi
 
 # A temporary statement to invoke the compiler
-# Place the -L before any args incase there are any mpi libraries in there.
+# Place the -L before any args incase there are any cpl libraries in there.
 # Eventually, we'll want to move this after any non-MPI implementation 
 # libraries
 if [ "$linking" = yes ] ; then
@@ -167,6 +183,7 @@ if [ "$linking" = yes ] ; then
     # TODO configure and config.rpath are computing more sophisticated rpath
     # schemes than this simple one.  Consider updating this logic accordingly.
     if test "X$enable_wrapper_rpath" = "Xyes" ; then
+        # prepend the path for the shared libraries to the library list
         eval rpath_flags=\"${hardcode_libdir_flag_spec}\"
     else
 	rpath_flags=""

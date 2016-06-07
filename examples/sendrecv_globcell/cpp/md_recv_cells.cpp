@@ -87,4 +87,5 @@ int main() {
    if (CPL::overlap() && no_error)
        printf("MD -- (rank=%2d) CELLS HAVE BEEN RECEIVED CORRECTLY.\n", rank);
    MPI_Barrier(MPI_COMM_WORLD);
+   MPI_Finalize();
 }

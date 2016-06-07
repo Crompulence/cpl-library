@@ -6,7 +6,7 @@
 # Directory locations: Fixed for any cpl implementation.
 # during make install?? 
 prefix=/home/es205/codes/cpl/cpl-library/
-CPL_VERSION=0.4
+CPL_VERSION=1.0
 
 exec_prefix=${prefix}/bin
 sysconfdir=${prefix}/etc
@@ -226,7 +226,7 @@ else
 fi
 
 #
-# A temporary statement to invoke the coler
+# A temporary statement to invoke the compiler
 # Place the -L before any args incase there are any cpl libraries in there.
 # Eventually, we'll want to move this after any non-cpl implementation 
 # libraries

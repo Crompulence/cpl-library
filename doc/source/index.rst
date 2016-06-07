@@ -60,6 +60,7 @@ CPL Fortran Bindings
 .. f:autofunction:: cpl_map_cfd2md_coord
 .. f:autofunction:: cpl_map_md2cfd_coord
 .. f:autofunction:: cpl_overlap
+.. f:autofunction:: cpl_get
 
 
 Indices and tables
