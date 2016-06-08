@@ -38,16 +38,15 @@ before_script:
     - export CPL_PATH=`pwd`
     - source $CPL_PATH/SOURCEME.sh
     - pushd .
-#    - cd ../demo/md-cfd-framework/
     - popd
     - MPIEXEC='mpiexec'
-    - echo "Make demo here"
-#    - make cpp-fortran
-
+    - sudo apt-get -qq update
+    - sudo apt-get install -qq valgrind
 
 script:
     - make test-all
     - make test-examples
+    - make test-valgrind
 
 after_success:
      - echo "Build Success"

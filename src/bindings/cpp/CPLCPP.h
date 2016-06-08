@@ -59,6 +59,7 @@ namespace CPL
     static const int md_realm = 2;
 
     void init ( int  calling_realm, int& returned_realm_comm); 
+    void finalize(); 
 
     // All the info (plus some, need to streamline!) from cfd for mapping
     void setup_cfd

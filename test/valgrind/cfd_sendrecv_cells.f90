@@ -2,7 +2,8 @@ program cfd_cpl_example
     use cpl, only : CPL_init, CPL_setup_cfd, & 
                     CPL_get_olap_limits, CPL_my_proc_portion, &
                     CPL_get_no_cells, CPL_send, CPL_recv, &
-					CPL_finalize
+					CPL_finalize, CPL_overlap
+    use array_stuff
     use mpi
     implicit none
 
@@ -17,7 +18,7 @@ program cfd_cpl_example
     double precision :: dt, density
     double precision, dimension(3)  :: xyzL, xyz_orig
     double precision, dimension(:,:,:,:), & 
-         allocatable  :: send_array
+        allocatable  :: send_array, recv_array
 
     !Initialise MPI
     call MPI_Init(ierr)
@@ -31,10 +32,8 @@ program cfd_cpl_example
     nsteps = 100
 
     ! Parameters of the cpu topology (cartesian grid)
-    xyzL = (/10.d0, 10.d0, 10.d0/)
-    xyz_orig = (/0.d0, 0.d0, 0.d0/)
-    npxyz = (/ 2, 2, 1/)
-    ncxyz = (/ 64, 18, 64 /)
+    call read_input(xyzL=xyzL, xyz_orig=xyz_orig, & 
+                    npxyz_CFD=npxyz, ncxyz=ncxyz)
 
     ! Create communicators and check that number of processors is consistent
     call MPI_Comm_size(CFD_COMM, nprocs_realm, ierr) 
@@ -57,34 +56,32 @@ program cfd_cpl_example
     call CPL_my_proc_portion(limits, portion)
     call CPL_get_no_cells(portion, Ncells)
 
-    ! Pack send_array with cell coordinates. Each cell in the array carries
-    ! its global cell number within the overlap region.
-    allocate(send_array(3, Ncells(1), Ncells(2), Ncells(3)))
-    do i = 1,Ncells(1)
-    do j = 1,Ncells(2)
-    do k = 1,Ncells(3)
-        ! -2 indices to match c++ and python indexing in portion and i,j,k
-        ii = i + portion(1) - 2
-        jj = j + portion(3) - 2
-        kk = k + portion(5) - 2
-
-        send_array(1,i,j,k) = ii
-        send_array(2,i,j,k) = jj
-        send_array(3,i,j,k) = kk
-    enddo
-    enddo
-    enddo
-
+    !Pack array with cell data
+    call fill_array(send_array)
     call CPL_send(send_array, limits, send_flag)
 
     !Block before checking if successful
     call MPI_Barrier(MPI_COMM_WORLD, ierr)
 
+    !Coupled Recieve and print
+    allocate(recv_array(3, Ncells(1), Ncells(2), Ncells(3)))
+    recv_array = 0.d0
+    call CPL_recv(recv_array, limits, recv_flag)
+    call print_array(recv_array, rank, no_error)
+
+    !Block before checking if successful
+    call MPI_Barrier(MPI_COMM_WORLD, ierr)
+    if (CPL_overlap() .and. no_error) then
+        print'(a,a,i2,a)', "CFD -- ", "(rank=", rank, ") CELLS HAVE BEEN RECEIVED CORRECTLY."
+    endif
+
     !Release all coupler comms 
     call CPL_finalize(ierr)
 
     !Deallocate arrays and finalise MPI
-    deallocate(send_array)
+    deallocate(send_array, recv_array)
+	call MPI_COMM_FREE(CART_COMM, ierr)
+	call MPI_COMM_FREE(CFD_COMM, ierr)
     call MPI_finalize(ierr)
 
 end program cfd_cpl_example

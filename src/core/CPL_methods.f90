@@ -733,7 +733,8 @@ subroutine CPL_send(asend, limits, send_flag)
     use coupler_module, only : md_realm,cfd_realm, & 
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
                                rank_world, realm, rank_realm,rank_olap, & 
-                               iblock_realm,jblock_realm,kblock_realm,ierr, VOID
+                               iblock_realm,jblock_realm,kblock_realm,ierr, VOID, &
+							   CPL_setup_complete, REALM_NAME, realm
     implicit none
 
     
@@ -755,6 +756,11 @@ subroutine CPL_send(asend, limits, send_flag)
     integer,dimension(3)                :: pcoords, Ncell
     integer,dimension(6)                :: portion, myportion, portion_CFD
     real(kind=kind(0.d0)), allocatable  :: vbuf(:)
+
+	!Check setup is complete
+	if (CPL_setup_complete .ne. 1) then
+		call error_abort("Error CPL_send called before CPL_setup_"//REALM_NAME(realm))
+	endif
 
     ! This local CFD domain is outside MD overlap zone 
     if (olap_mask(rank_world) .eqv. .false.) return
@@ -907,7 +913,8 @@ subroutine CPL_recv(arecv, limits, recv_flag)
                                rank_graph, &
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
                                rank_world, realm, rank_realm, rank_olap, & 
-                               iblock_realm,jblock_realm,kblock_realm,VOID,ierr
+                               iblock_realm,jblock_realm,kblock_realm,VOID,ierr, &
+							   CPL_setup_complete, REALM_NAME, realm
     implicit none
 
     logical, intent(out), optional  :: recv_flag  !Flag set if processor has received data
@@ -929,6 +936,11 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     integer,dimension(:),allocatable   :: req
     integer,dimension(:,:),allocatable :: status
     real(kind(0.d0)),dimension(:), allocatable ::  vbuf
+
+	!Check setup is complete
+	if (CPL_setup_complete .ne. 1) then
+		call error_abort("Error CPL_recv called before CPL_setup_"//REALM_NAME(realm))
+	endif
  
     ! This local CFD domain is outside MD overlap zone 
     if (olap_mask(rank_world).eqv. .false.) return
@@ -1286,7 +1298,7 @@ end subroutine CPL_recv
 !!
 !! .. sectionauthor:: David Trevelyan
 !! .. sectionauthor:: Edward Smith
-subroutine CPL_proc_extents(coord,realm,extents,ncells)
+subroutine CPL_proc_extents(coord, realm, extents, ncells)
     use mpi
     use coupler_module, only: md_realm,      cfd_realm,      &
                               icPmin_md,     icPmax_md,      &
@@ -1295,13 +1307,19 @@ subroutine CPL_proc_extents(coord,realm,extents,ncells)
                               icPmin_cfd,    icPmax_cfd,     &
                               jcPmin_cfd,    jcPmax_cfd,     &
                               kcPmin_cfd,    kcPmax_cfd,     &
-                              error_abort
+                              error_abort!, & 
+                              !CPL_setup_complete, REALM_NAME
     implicit none
 
     character(250)       :: strng
     integer, intent(in)  :: coord(3), realm
     integer, intent(out) :: extents(6)
     integer, optional, intent(out) :: ncells
+
+	!Check setup is complete
+	!if (CPL_setup_complete .ne. 1) then
+	!	call error_abort("Error CPL_extents/portion called before CPL_setup_"//REALM_NAME(realm))
+	!endif
 
     select case(realm)
     case(md_realm)

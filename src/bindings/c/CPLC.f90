@@ -94,7 +94,16 @@ contains
 
     end subroutine CPLC_init
 
+    subroutine CPLC_finalize() &
+        bind (C, name="CPLC_finalize")
+        use CPL, only: CPL_finalize
+        implicit none
+               
+        integer :: ierror
 
+        call CPL_finalize(ierror)
+
+    end subroutine CPLC_finalize
 
     subroutine CPLC_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density) &
         bind (C, name="CPLC_setup_cfd")

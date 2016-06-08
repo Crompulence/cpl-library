@@ -2,7 +2,8 @@ program md_cpl_example
     use cpl, only : CPL_init, CPL_setup_md, & 
                     CPL_get_olap_limits, CPL_my_proc_portion, &
                     CPL_get_no_cells, CPL_send, CPL_recv, &
-					CPL_overlap, CPL_finalize
+					CPL_overlap, CPL_finalize, CPL_overlap
+    use array_stuff
     use mpi
     implicit none
 
@@ -15,7 +16,8 @@ program md_cpl_example
     integer, dimension(6) :: portion, limits
     double precision :: dt, density
     double precision, dimension(3)  :: xyzL, xyz_orig
-    double precision, dimension(:,:,:,:), allocatable  :: recv_array
+    double precision, dimension(:,:,:,:), & 
+        allocatable  :: recv_array, send_array
 
     !Initialise MPI
     call MPI_Init(ierr)
@@ -30,9 +32,8 @@ program md_cpl_example
 	initialstep = 0
 
     ! Parameters of the cpu topology (cartesian grid)
-    xyzL = (/10.d0, 10.d0, 10.d0/)
-    xyz_orig = (/0.d0, 0.d0, 0.d0/)
-    npxyz = (/ 4, 2, 2/)
+    call read_input(xyzL=xyzL, xyz_orig=xyz_orig, & 
+                    npxyz_MD=npxyz)
 
     ! Create communicators and check that number of processors is consistent
     call MPI_Comm_size(MD_COMM, nprocs_realm, ierr) 
@@ -61,54 +62,26 @@ program md_cpl_example
     allocate(recv_array(3, Ncells(1), Ncells(2), Ncells(3)))
     recv_array = 0.d0
     call CPL_recv(recv_array, limits, recv_flag)
-
-    ! Check that every processor inside the overlap region receives correctly the cell
-    ! number.  
-    if (CPL_overlap()) then
-        no_error = .true.
-        do i = 1, Ncells(1)
-        do j = 1, Ncells(2)
-        do k = 1, Ncells(3)
-            ! -2 indices to match c++ and python indexing in portion and i,j,k
-            ii = i + portion(1) - 2
-            jj = j + portion(3) - 2
-            kk = k + portion(5) - 2
-
-            if ((dble(ii) - recv_array(1,i,j,k)) .gt. 1e-8) then 
-                print'(a,2i5,a,i5,a,i6,a,f10.5)', "ERROR -- portion in x: ", portion(1:2), & 
-                       " MD rank: ", rank, " cell i: ",ii, & 
-                       " recv_array: ", recv_array(1,i,j,k)
-                no_error = .false.
-            endif
-            if ((dble(jj) - recv_array(2,i,j,k)) .gt. 1e-8) then 
-                print'(a,2i5,a,i5,a,i6,a,f10.5)', "ERROR -- portion in y: ", portion(3:4), & 
-                       " MD rank: ", rank, " cell j: ", jj , & 
-                       " recv_array: ", recv_array(2,i,j,k)
-                no_error = .false.  
-            endif
-            if ((dble(kk) - recv_array(3,i,j,k)) .gt. 1e-8) then 
-                print'(a,2i5,a,i5,a,i6,a,f10.5)', "ERROR -- portion in z: ", portion(5:6), & 
-                       " MD rank: ", rank, " cell k: ", kk , & 
-                       " recv_array: ", recv_array(3,i,j,k)
-                no_error = .false.
-            endif
-        enddo
-        enddo
-        enddo
-    endif
+    call print_array(recv_array, rank, no_error)
 
     !Block before checking if successful
-    call MPI_Barrier(MD_COMM, ierr)
+    call MPI_Barrier(MPI_COMM_WORLD, ierr)
     if (CPL_overlap() .and. no_error) then
         print'(a,a,i2,a)', "MD -- ", "(rank=", rank, ") CELLS HAVE BEEN RECEIVED CORRECTLY."
     endif
-	call MPI_Barrier(MPI_COMM_WORLD, ierr)
+
+    !Coupled Send
+    call fill_array(send_array)
+    call CPL_send(send_array, limits, send_flag)
 
     !Release all coupler comms 
+    call MPI_Barrier(MPI_COMM_WORLD, ierr)
     call CPL_finalize(ierr)
 
     !Deallocate arrays and finalise MPI
-    deallocate(recv_array)
+    deallocate(recv_array, send_array)
+	call MPI_COMM_FREE(CART_COMM, ierr)
+	call MPI_COMM_FREE(MD_COMM, ierr)
     call MPI_finalize(ierr)
 
 end program

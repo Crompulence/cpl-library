@@ -49,3 +49,6 @@ for i in range(0, ncxl):
 ierr = CPL.send(send_array, olap_limits)
 
 MPI.COMM_WORLD.Barrier()
+
+CPL.finalize()
+MPI.Finalize()

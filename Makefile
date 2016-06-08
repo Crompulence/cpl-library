@@ -132,6 +132,12 @@ test-initialisation:
 test-examples:
 	./examples/sendrecv_globcell/test_all.sh
 
+test-valgrind:
+	./test/valgrind/debug_all.sh
+
+# Clean
+clean:
+	rm -rf $(objdir) $(libdir) $(includedir)
 # Clean
 clean:
 	rm -rf $(objdir) $(libdir) $(includedir)

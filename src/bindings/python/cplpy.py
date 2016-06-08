@@ -165,6 +165,12 @@ class CPL:
 
         return newcomm
 
+    _py_finalize = _cpl_lib.CPLC_finalize
+
+    @abortMPI
+    def finalize(self):
+        self._py_finalize()
+
     py_setup_cfd = _cpl_lib.CPLC_setup_cfd
 
     py_setup_cfd.argtypes = \

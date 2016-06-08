@@ -45,6 +45,12 @@ void CPL::init(int calling_realm, int& returned_realm_comm)
     CPLC_init(calling_realm, &returned_realm_comm);
 }
 
+
+void CPL::finalize()
+{
+    CPLC_finalize();
+}
+
 void CPL::setup_cfd(int nsteps, double dt, int icomm_grid, double xyzL[],
                     double xyz_orig[], int ncxyz[], double density)
 {

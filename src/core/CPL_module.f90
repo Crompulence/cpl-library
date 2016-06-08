@@ -106,6 +106,8 @@ module coupler_module
         COUPLER_ABORT_SEND_CFD   = 8    !! error in coupler_cfd_send
     integer, parameter :: & 
         COUPLER_ERROR_CART_COMM   = 9   !! Wrong comm value in CPL_Cart_coords
+    integer, parameter :: & 
+        COUPLER_ERROR_SETUP_INCOMPLETE   = 10   !! CPL_setup_md or CPL_setup_cfd
 
     !! Output mode flag
     integer :: output_mode = NORMAL
@@ -261,6 +263,10 @@ module coupler_module
         cpl_cfd_bc_x, &
         cpl_cfd_bc_y, &
         cpl_cfd_bc_z
+
+	!Flag to check if setup has completed successfully
+	integer :: CPL_setup_complete = 0
+ 
     
     ! Coupling constrained regions, average MD quantities 
     ! in spanwise direction (flags)
@@ -275,6 +281,7 @@ module coupler_module
         constraint_NCER = 2,         &
         constraint_Flekkoy = 3,      &
         constraint_CV = 4   
+
     ! Processor cell ranges 
     integer,protected, dimension(:), allocatable :: &
         icPmin_md,        &
@@ -441,9 +448,9 @@ subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
     integer, intent(out)  :: RETURNED_REALM_COMM, ierror
 
     !Get processor id in world across both realms
-    call MPI_comm_rank(MPI_COMM_WORLD,myid_world,ierr)
+    call MPI_comm_rank(MPI_COMM_WORLD, myid_world, ierr)
     rank_world = myid_world + 1; rootid_world = 0
-    call MPI_comm_size(MPI_COMM_WORLD,nproc_world,ierr)
+    call MPI_comm_size(MPI_COMM_WORLD, nproc_world, ierr)
 
     if (myid_world .eq. rootid_world .and. (output_mode .ne. QUIET)) call print_cplheader
 
@@ -496,7 +503,8 @@ subroutine test_realms
     else
         allocate(realm_list(0))
     endif
-    call MPI_gather(callingrealm,1,MPI_INTEGER,realm_list,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+    call MPI_gather(callingrealm, 1, MPI_INTEGER, realm_list, &
+					1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
 
     !Check through array of processors on both realms
     !and return error if wrong values or either is missing
@@ -510,14 +518,14 @@ subroutine test_realms
             else
                 ierror = COUPLER_ERROR_REALM
                 write(*,*) "wrong realm value in coupler_create_comm"
-                call MPI_abort(MPI_COMM_WORLD,ierror,ierr)
+                call MPI_abort(MPI_COMM_WORLD, ierror, ierr)
             endif
         enddo
 
         if ( ncfd .eq. 0 .or. nmd .eq. 0) then 
             ierror = COUPLER_ERROR_ONE_REALM
             write(*,*) "CFD or MD realm is missing in MPI_COMM_WORLD"
-            call MPI_abort(MPI_COMM_WORLD,ierror,ierr)
+            call MPI_abort(MPI_COMM_WORLD, ierror, ierr)
         endif
 
     endif
@@ -528,7 +536,7 @@ end subroutine test_realms
 ! Create communicators for each realm and inter-communicator
 !-----------------------------------------------------------------------------
 
-subroutine create_comm
+subroutine create_comm()
     implicit none
 
     integer ::  callingrealm, ibuf(2), jbuf(2), remote_leader, comm_size
@@ -539,7 +547,7 @@ subroutine create_comm
     ! 2) An inter-communicator which allows communication between  
     ! the 'groups' of processors in MD and the group in the CFD
     callingrealm = realm
-    call MPI_comm_dup(MPI_COMM_WORLD,CPL_WORLD_COMM,ierr)
+    call MPI_comm_dup(MPI_COMM_WORLD, CPL_WORLD_COMM, ierr)
     RETURNED_REALM_COMM = MPI_COMM_NULL
     CPL_REALM_COMM      = MPI_COMM_NULL
 
@@ -547,15 +555,15 @@ subroutine create_comm
     ! Split MPI_COMM_WORLD into an intra-communicator for each realm 
     ! (used for any communication within each realm - e.g. broadcast from 
     !  an md process to all other md processes)
-    call MPI_comm_split(CPL_WORLD_COMM,callingrealm,myid_world,RETURNED_REALM_COMM,ierr)
+    call MPI_comm_split(CPL_WORLD_COMM, callingrealm, myid_world, RETURNED_REALM_COMM, ierr)
 
     !------------ create realm inter-communicators -----------------------
     ! Create intercommunicator between the group of processor on each realm
     ! (used for any communication between realms - e.g. md group rank 2 sends
     ! to cfd group rank 5). inter-communication is by a single processor on each group
     ! Split duplicate of MPI_COMM_WORLD
-    call MPI_comm_split(CPL_WORLD_COMM,callingrealm,myid_world,CPL_REALM_COMM,ierr)
-    call MPI_comm_rank(CPL_REALM_COMM,myid_realm,ierr)
+    call MPI_comm_split(CPL_WORLD_COMM, callingrealm, myid_world, CPL_REALM_COMM, ierr)
+    call MPI_comm_rank(CPL_REALM_COMM, myid_realm, ierr)
     rank_realm = myid_realm + 1; rootid_realm = 0
 
     ! Get the MPI_comm_world ranks that hold the largest ranks in cfd_comm and md_comm
@@ -579,11 +587,11 @@ subroutine create_comm
 
     !print*,color, jbuf, remote_leader
 
-    call MPI_intercomm_create(CPL_REALM_COMM, comm_size - 1, CPL_WORLD_COMM,&
+    call MPI_intercomm_create(CPL_REALM_COMM, comm_size - 1, CPL_WORLD_COMM, &
                                     remote_leader, 1, CPL_INTER_COMM, ierr)
 
     if (output_mode .ne. QUIET) then
-        print*, 'Completed CPL communicator setup for ', realm_name(realm), &
+        print*, 'Completed CPL communicator init for ', realm_name(realm), &
                 ' , CPL_WORLD_COMM ID:', myid_world
     endif
 
@@ -591,12 +599,43 @@ end subroutine create_comm
 
 end subroutine CPL_init
 
+
+subroutine CPL_finalize(ierr)
+	use mpi, only : MPI_COMM_NULL, MPI_Barrier, MPI_COMM_WORLD
+    implicit none
+
+	integer, intent(out) :: ierr
+
+	!Comminicators setup by CPL_init()
+	if (CPL_INTER_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_INTER_COMM, ierr)
+	if (CPL_REALM_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_REALM_COMM, ierr)
+
+	!Free communicators setup by CPL_setup
+	if (CPL_setup_complete .eq. 1) then
+        if (CPL_OLAP_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_OLAP_COMM, ierr)
+	    !print*, "free CPL_OLAP_COMM in ", REALM_NAME(realm), " realm"
+		if (CPL_WORLD_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_WORLD_COMM, ierr)
+	    !print*, "free CPL_WORLD_COMM in ", REALM_NAME(realm), " realm"
+		if (CPL_CART_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_CART_COMM, ierr)
+	    !print*, "free CPL_CART_COMM in ", REALM_NAME(realm), " realm"
+    	if (CPL_GRAPH_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_GRAPH_COMM, ierr)
+	    !print*, "free CPL_GRAPH_COMM in ", REALM_NAME(realm), " realm"
+		!select case(realm)
+		!case(CFD_realm)
+ 		!case(MD_realm)
+		!end select
+	endif
+
+    !Barrier over both CFD and MD realms
+    call MPI_Barrier(MPI_COMM_WORLD, ierr)
+
+end subroutine CPL_finalize
+
 !=============================================================================
 !! Read Coupler input file
 !-----------------------------------------------------------------------------
 
-subroutine read_coupler_input
-    !use coupler_module
+subroutine read_coupler_input()
     implicit none
 
     integer :: infileid
@@ -927,6 +966,9 @@ subroutine CPL_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density)
     deallocate(xgrid)
     deallocate(ygrid)
     deallocate(zgrid)
+
+	!Set flag to register setup is complete correctly
+	CPL_setup_complete = 1
  
 end subroutine CPL_setup_cfd
 
@@ -1022,11 +1064,11 @@ subroutine coupler_cfd_init(nsteps,dt,icomm_grid,icoord,npxyz_cfd,xyzL, xyz_orig
     real(kind=kind(0.d0)),dimension(:),allocatable  :: rbuf
 
     ! Read COUPLER.in input file
-    call read_coupler_input     
+    call read_coupler_input()
 
     ! Duplicate grid communicator for coupler use
-    call MPI_comm_dup(icomm_grid,CPL_CART_COMM,ierr)
-    call MPI_comm_rank(CPL_CART_COMM,myid_cart,ierr) 
+    call MPI_comm_dup(icomm_grid, CPL_CART_COMM, ierr)
+    call MPI_comm_rank(CPL_CART_COMM, myid_cart, ierr) 
     rank_cart = myid_cart + 1; rootid_cart = 0
     !Send only from root processor
     if (myid_realm .eq. rootid_realm ) then
@@ -1237,10 +1279,10 @@ subroutine coupler_cfd_init(nsteps,dt,icomm_grid,icoord,npxyz_cfd,xyzL, xyz_orig
     call MPI_bcast(ncy_olap,1,MPI_INTEGER,source,CPL_INTER_COMM,ierr)
 
     ! Establish mapping between MD and CFD
-    call CPL_create_map
+    call CPL_create_map()
 
     !Check for grid strectching and terminate process if found
-    call check_mesh
+    call check_mesh()
 
 contains
 
@@ -1375,17 +1417,12 @@ subroutine CPL_setup_md(nsteps, initialstep, dt, icomm_grid, xyzL, xyz_orig, den
         icoord(1:3, rank + 1) = cart_coords + 1
     enddo
 
-
-!    if (myid_realm .eq. 0) then
-!        print*, 'cart_nprocs=',cart_nprocs, 'npx= ', npxyz_md(1) , 'npy= ', npxyz_md(2), 'npz= ', npxyz_md(3)  
-!        do i=1,3
-!         write(*,'(20G12.4)') icoord(i,:)
-!        enddo
-!    endif
-
     call coupler_md_init(Nsteps, initialstep, dt, icomm_grid, & 
                          icoord, npxyz_md, xyzL, xyz_orig, density)
-    deallocate(icoord) 
+    deallocate(icoord)
+
+	!Set flag to register setup is complete correctly
+	CPL_setup_complete = 1
 
 end subroutine CPL_setup_md
 
@@ -1452,8 +1489,8 @@ subroutine coupler_md_init(Nsteps, initialstep, dt, icomm_grid, &
     call read_coupler_input()
 
     ! Duplicate grid communicator for coupler use
-    call MPI_comm_dup(icomm_grid,CPL_CART_COMM,ierr)
-    call MPI_comm_rank(CPL_CART_COMM,myid_cart,ierr) 
+    call MPI_comm_dup(icomm_grid, CPL_CART_COMM, ierr)
+    call MPI_comm_rank(CPL_CART_COMM, myid_cart, ierr) 
     rank_cart = myid_cart + 1; rootid_cart = 0  
     !Send only from root processor
     if ( myid_realm .eq. rootid_realm ) then
@@ -1658,6 +1695,9 @@ end subroutine coupler_md_init
 
 ! DT: This routine seems to me that it's unique to flowmol. I'll have a look
 !     at making it general when I do the LAMMPS socket. TODO(djt06@ic.ac.uk)
+!
+! ES: I'm not sure you will...
+!
 subroutine set_coupled_timing(initialstep, Nsteps)
     implicit none
 
@@ -2301,7 +2341,7 @@ subroutine prepare_overlap_comms
     if (olap_mask(rank_world).eqv..false.) then
         myid_olap = olap_null
         rank_olap = olap_null
-        CPL_OLAP_COMM = MPI_COMM_NULL
+        call MPI_COMM_FREE(CPL_OLAP_COMM, ierr)
     end if
 
     !Setup overlap map
@@ -2356,14 +2396,14 @@ subroutine CPL_overlap_topology
         enddo
 
         !Create graph topology for overlap region
-        call MPI_Graph_create(CPL_OLAP_COMM, nproc_olap,index,edges,reorder,CPL_GRAPH_COMM,ierr)
+        call MPI_Graph_create(CPL_OLAP_COMM, nproc_olap, index, edges, reorder, CPL_GRAPH_COMM, ierr)
     else
         CPL_GRAPH_COMM = MPI_COMM_NULL
     endif
 
     ! Setup graph map
-    call CPL_rank_map(CPL_GRAPH_COMM,rank_graph,nproc_olap, & 
-                     rank_graph2rank_world,rank_world2rank_graph,ierr)
+    call CPL_rank_map(CPL_GRAPH_COMM, rank_graph, nproc_olap, & 
+                     rank_graph2rank_world, rank_world2rank_graph, ierr)
     myid_graph = rank_graph - 1
 
 end subroutine CPL_overlap_topology
@@ -2575,7 +2615,7 @@ end subroutine CPL_cfd_adjust_domain
 !    error flag
 
 
-subroutine CPL_rank_map(COMM,rank,nproc,comm2world,world2comm,ierr)
+subroutine CPL_rank_map(COMM, rank, nproc, comm2world, world2comm, ierr)
     !use coupler_module, only : rank_world, nproc_world, CPL_WORLD_COMM, VOID
     use mpi
     implicit none
@@ -2610,7 +2650,7 @@ end subroutine CPL_rank_map
 !---------------------------------------------------
 ! Locate file in input
 
-subroutine locate(fileid,keyword,have_data)
+subroutine locate(fileid, keyword, have_data)
     implicit none
     
     integer,intent(in)          :: fileid               ! File unit number

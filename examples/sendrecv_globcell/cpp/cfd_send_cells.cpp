@@ -71,6 +71,9 @@ int main() {
    // Block before checking if successful
    MPI_Barrier(MPI_COMM_WORLD);
 
+   // Release all coupler comms 
+   CPL::finalize();
+
    MPI_Finalize();
    
 }
