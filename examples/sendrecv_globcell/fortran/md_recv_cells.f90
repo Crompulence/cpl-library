@@ -101,6 +101,7 @@ program md_cpl_example
     if (CPL_overlap() .and. no_error) then
         print'(a,a,i2,a)', "MD -- ", "(rank=", rank, ") CELLS HAVE BEEN RECEIVED CORRECTLY."
     endif
+    deallocate(recv_array)
     call MPI_Barrier(MPI_COMM_WORLD, ierr)
 
     call MPI_finalize(ierr)

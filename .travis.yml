@@ -37,17 +37,13 @@ before_script:
     - export PATH=$MPI_DIR/bin:$PATH
     - export CPL_PATH=`pwd`
     - source $CPL_PATH/SOURCEME.sh
-    - pushd .
-#    - cd ../demo/md-cfd-framework/
-    - popd
-    - MPIEXEC='mpiexec'
     - echo "Make demo here"
-#    - make cpp-fortran
 
 
 script:
     - make test-all
     - make test-examples
+    - make webdocs-all
 
 after_success:
      - echo "Build Success"

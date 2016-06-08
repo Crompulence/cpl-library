@@ -1,5 +1,5 @@
 
-CPL Fortran Bindings
+Fortran Bindings
 ==================
 
 .. f:autofunction:: CPL_init

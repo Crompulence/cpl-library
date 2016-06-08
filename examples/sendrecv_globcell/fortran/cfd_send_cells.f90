@@ -74,6 +74,7 @@ program cfd_cpl_example
     enddo
 
     call CPL_send(send_array, limits, send_flag)
+    deallocate(send_array)
 
     !Block before checking if successful
     call MPI_Barrier(MPI_COMM_WORLD, ierr)

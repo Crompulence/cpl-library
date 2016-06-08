@@ -1,4 +1,4 @@
-CPL C++ Bindings
+C++ Bindings
 ==================
 
 .. doxygennamespace:: CPL

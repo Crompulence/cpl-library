@@ -132,6 +132,16 @@ test-initialisation:
 test-examples:
 	./examples/sendrecv_globcell/test_all.sh
 
+webdocs-api:
+	bash ./utils/update-webdocs-api.sh
+
+webdocs-examples:
+	bash ./utils/update-webdocs-examples.sh
+
+webdocs-all:
+	bash ./utils/update-webdocs-api.sh
+	bash ./utils/update-webdocs-examples.sh
+
 # Clean
 clean:
 	rm -rf $(objdir) $(libdir) $(includedir)

@@ -1,4 +1,4 @@
-CPL python Bindings
+Python Bindings
 ====================
 
 .. autoclass:: cplpy.CPL

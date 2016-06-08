@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>CPL C++ Bindings &mdash; cpl 1.0.0 documentation</title>
+    <title>C++ Bindings &mdash; cpl 1.0.0 documentation</title>
 	<link rel="stylesheet" href="/styles.css"> 
 	<link rel="shortcut icon" href="/cpl_logo.ico">
     
@@ -27,7 +27,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="cpl 1.0.0 documentation" href="index.html" />
-    <link rel="next" title="CPL Fortran Bindings" href="fortran_api.html" />
+    <link rel="next" title="Fortran Bindings" href="fortran_api.html" />
     <link rel="prev" title="&lt;no title&gt;" href="index.html" /> 
   </head>
   <body role="document">
@@ -40,8 +40,8 @@
       <div class="content">
         
         
-  <div class="section" id="cpl-c-bindings">
-<h1>CPL C++ Bindings<a class="headerlink" href="#cpl-c-bindings" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="c-bindings">
+<h1>C++ Bindings<a class="headerlink" href="#c-bindings" title="Permalink to this headline">¶</a></h1>
 <dl class="type">
 <dt id="_CPPv23CPL">
 <span id="CPL"></span><span class="target" id="cpp_cplnamespaceCPL"></span><em class="property">namespace </em><code class="descclassname"></code><code class="descname">CPL</code><a class="headerlink" href="#_CPPv23CPL" title="Permalink to this definition">¶</a></dt>
