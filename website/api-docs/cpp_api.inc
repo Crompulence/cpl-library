@@ -1,0 +1,195 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CPL C++ Bindings &mdash; cpl 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="cpl 1.0.0 documentation" href="index.html" />
+    <link rel="next" title="CPL Fortran Bindings" href="fortran_api.html" />
+    <link rel="prev" title="&lt;no title&gt;" href="index.html" /> 
+  </head>
+  <body role="document">
+     <div class="topnav" role="navigation" aria-label="top navigation">
+      
+
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="cpl-c-bindings">
+<h1>CPL C++ Bindings<a class="headerlink" href="#cpl-c-bindings" title="Permalink to this headline">¶</a></h1>
+<dl class="type">
+<dt id="_CPPv23CPL">
+<span id="CPL"></span><span class="target" id="cpp_cplnamespaceCPL"></span><em class="property">namespace </em><code class="descclassname"></code><code class="descname">CPL</code><a class="headerlink" href="#_CPPv23CPL" title="Permalink to this definition">¶</a></dt>
+<dd><div class="breathe-sectiondef container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv2N3CPL4initEiRi">
+<span id="CPL::init__i.iR"></span><span class="target" id="cpp_cplnamespaceCPL_1ad4d75a46cb7304ef48d44a34bddc0337"></span>void <code class="descname">init</code><span class="sig-paren">(</span>int <em>calling_realm</em>, int &amp;<em>returned_realm_comm</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL4initEiRi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL9setup_cfdEidiA_dA_dA_id">
+<span id="CPL::setup_cfd__i.double.i.doubleA.doubleA.iA.double"></span><span class="target" id="cpp_cplnamespaceCPL_1ae6e030ba528996e6a73b586897be80ec"></span>void <code class="descname">setup_cfd</code><span class="sig-paren">(</span>int <em>nsteps</em>, double <em>dt</em>, int <em>icomm_grid</em>, double <em>xyzL</em>[], double <em>xyz_orig</em>[], int <em>ncxyz</em>[], double <em>density</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL9setup_cfdEidiA_dA_dA_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL8setup_mdERiRidiA_dA_dd">
+<span id="CPL::setup_md__iR.iR.double.i.doubleA.doubleA.double"></span><span class="target" id="cpp_cplnamespaceCPL_1ac8ae709e722566943976e336c62d1354"></span>void <code class="descname">setup_md</code><span class="sig-paren">(</span>int &amp;<em>nsteps</em>, int &amp;<em>initialstep</em>, double <em>dt</em>, int <em>icomm_grid</em>, double <em>xyzL</em>[], double <em>xyz_orig</em>[], double <em>density</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL8setup_mdERiRidiA_dA_dd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL4sendEPdPiPi">
+<span id="CPL::send__doubleP.iP.iP"></span><span class="target" id="cpp_cplnamespaceCPL_1a4a915f89d05dad930a2166b8883604f9"></span>bool <code class="descname">send</code><span class="sig-paren">(</span>double *<em>asend</em>, int *<em>asend_shape</em>, int *<em>limits</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL4sendEPdPiPi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL4recvEPdPiPi">
+<span id="CPL::recv__doubleP.iP.iP"></span><span class="target" id="cpp_cplnamespaceCPL_1a60f31d1581d677efe993f10d308ade0e"></span>bool <code class="descname">recv</code><span class="sig-paren">(</span>double *<em>arecv</em>, int *<em>arecv_shape</em>, int *<em>limits</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL4recvEPdPiPi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL7scatterEPdPiPiPdPi">
+<span id="CPL::scatter__doubleP.iP.iP.doubleP.iP"></span><span class="target" id="cpp_cplnamespaceCPL_1a2af4132541cd7609a6a3599cda3300af"></span>void <code class="descname">scatter</code><span class="sig-paren">(</span>double *<em>scatterarray</em>, int *<em>scatter_shape</em>, int *<em>limits</em>, double *<em>recvarray</em>, int *<em>recv_shape</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL7scatterEPdPiPiPdPi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL6gatherEPdPiPiPdPi">
+<span id="CPL::gather__doubleP.iP.iP.doubleP.iP"></span><span class="target" id="cpp_cplnamespaceCPL_1ace58b63e62bdffb596bb20a248f0ed81"></span>void <code class="descname">gather</code><span class="sig-paren">(</span>double *<em>gatherarray</em>, int *<em>gather_shape</em>, int *<em>limits</em>, double *<em>recvarray</em>, int *<em>recv_shape</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL6gatherEPdPiPiPdPi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL12proc_extentsEA_iiA_i">
+<span id="CPL::proc_extents__iA.i.iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a5c17c020148e385df1e58fe5889d21d3"></span>void <code class="descname">proc_extents</code><span class="sig-paren">(</span>int <em>coord</em>[], int <em>realm</em>, int <em>extents</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL12proc_extentsEA_iiA_i" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL15my_proc_extentsEA_i">
+<span id="CPL::my_proc_extents__iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a30e0920ca21c6570349b9ef3e6a8732d"></span>void <code class="descname">my_proc_extents</code><span class="sig-paren">(</span>int <em>extents</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL15my_proc_extentsEA_i" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL12proc_portionEA_iiA_iA_i">
+<span id="CPL::proc_portion__iA.i.iA.iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a449fb23b029bff3acd6dfc3d0a78a9f9"></span>void <code class="descname">proc_portion</code><span class="sig-paren">(</span>int <em>coord</em>[], int <em>realm</em>, int <em>limits</em>[], int <em>portion</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL12proc_portionEA_iiA_iA_i" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL15my_proc_portionEA_iA_i">
+<span id="CPL::my_proc_portion__iA.iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a0e63a259c8c6790666308fffb49e8ab3"></span>void <code class="descname">my_proc_portion</code><span class="sig-paren">(</span>int <em>limits</em>[], int <em>portion</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL15my_proc_portionEA_iA_i" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL14map_cell2coordEiiiA_d">
+<span id="CPL::map_cell2coord__i.i.i.doubleA"></span><span class="target" id="cpp_cplnamespaceCPL_1a29a186308a3457f8bfa82a799e09aafc"></span>void <code class="descname">map_cell2coord</code><span class="sig-paren">(</span>int <em>i</em>, int <em>j</em>, int <em>k</em>, double <em>coord_xyz</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL14map_cell2coordEiiiA_d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL14map_coord2cellEdddA_i">
+<span id="CPL::map_coord2cell__double.double.double.iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a667987ec612b42bb2d09c7227e53c36b"></span>bool <code class="descname">map_coord2cell</code><span class="sig-paren">(</span>double <em>x</em>, double <em>y</em>, double <em>z</em>, int <em>cell_ijk</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL14map_coord2cellEdddA_i" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL12get_no_cellsEA_iA_i">
+<span id="CPL::get_no_cells__iA.iA"></span><span class="target" id="cpp_cplnamespaceCPL_1ad7758485fafb33d9280c3155edd2d551"></span>void <code class="descname">get_no_cells</code><span class="sig-paren">(</span>int <em>limits</em>[], int <em>no_cells</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL12get_no_cellsEA_iA_i" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL17map_glob2loc_cellEA_iA_iA_i">
+<span id="CPL::map_glob2loc_cell__iA.iA.iA"></span><span class="target" id="cpp_cplnamespaceCPL_1aaa031537fcd69614650bba24caf52396"></span>bool <code class="descname">map_glob2loc_cell</code><span class="sig-paren">(</span>int <em>limits</em>[], int <em>glob_cell</em>[], int <em>loc_cell</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL17map_glob2loc_cellEA_iA_iA_i" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL15get_olap_limitsEA_i">
+<span id="CPL::get_olap_limits__iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a2e249f42126d5ac3871207abcd44508f"></span>void <code class="descname">get_olap_limits</code><span class="sig-paren">(</span>int <em>limits</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL15get_olap_limitsEA_i" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL15get_cnst_limitsEA_i">
+<span id="CPL::get_cnst_limits__iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a13a6700ca71e56cdd2a8dae97d8a8375"></span>void <code class="descname">get_cnst_limits</code><span class="sig-paren">(</span>int <em>limits</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL15get_cnst_limitsEA_i" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL16map_cfd2md_coordEA_dA_d">
+<span id="CPL::map_cfd2md_coord__doubleA.doubleA"></span><span class="target" id="cpp_cplnamespaceCPL_1accbfb53b73a10ed4d43a873aaaa46b6b"></span>bool <code class="descname">map_cfd2md_coord</code><span class="sig-paren">(</span>double <em>cfd_coord</em>[], double <em>md_coord</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL16map_cfd2md_coordEA_dA_d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL16map_md2cfd_coordEA_dA_d">
+<span id="CPL::map_md2cfd_coord__doubleA.doubleA"></span><span class="target" id="cpp_cplnamespaceCPL_1a12dc0de5f3ae711f3620f83574e62d54"></span>bool <code class="descname">map_md2cfd_coord</code><span class="sig-paren">(</span>double <em>md_coord</em>[], double <em>cfd_coord</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL16map_md2cfd_coordEA_dA_d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL7overlapEv">
+<span id="CPL::overlap"></span><span class="target" id="cpp_cplnamespaceCPL_1acee7624e8b93aa9d776a555419bd1846"></span>bool <code class="descname">overlap</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL7overlapEv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL15set_output_modeEi">
+<span id="CPL::set_output_mode__i"></span><span class="target" id="cpp_cplnamespaceCPL_1a65e047db16b69f0fad5215369f638166"></span>void <code class="descname">set_output_mode</code><span class="sig-paren">(</span>int <em>mode</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL15set_output_modeEi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;<em class="property">class</em> T&gt;</dt>
+<dt id="_CPPv2N3CPL3getENSt6stringE">
+<span id="CPL::get__ss"></span><span class="target" id="cpp_cplnamespaceCPL_1af6caf5ca546acced3fd351c00bddb0a9"></span>T <code class="descname">get</code><span class="sig-paren">(</span>std::string <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL3getENSt6stringE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N3CPL11density_cfdEv">
+<span id="CPL::density_cfd"></span><span class="target" id="cpp_cplnamespaceCPL_1afe824021abc7022cec8c9f3450bc2fe6"></span>double <code class="descname">density_cfd</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL11density_cfdEv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef container">
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="member">
+<dt id="_CPPv2N3CPL9cfd_realmE">
+<span id="CPL::cfd_realm__iC"></span><span class="target" id="cpp_cplnamespaceCPL_1a769aaa349d2c5fcbe171303e273004c3"></span><em class="property">const</em> int <code class="descname">cfd_realm</code><a class="headerlink" href="#_CPPv2N3CPL9cfd_realmE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv2N3CPL8md_realmE">
+<span id="CPL::md_realm__iC"></span><span class="target" id="cpp_cplnamespaceCPL_1a48c7a7628ef85643232d0d5fe9aa0afa"></span><em class="property">const</em> int <code class="descname">md_realm</code><a class="headerlink" href="#_CPPv2N3CPL8md_realmE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, E. Smith, E. Ramos, D. Trevelyan.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.3.
+    </div>
+  </body>
+</html>

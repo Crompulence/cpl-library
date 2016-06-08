@@ -13,6 +13,7 @@
 # serve to show the default.
 
 import sys
+import os
 import subprocess
 
 
@@ -31,7 +32,7 @@ run_doxygen("cpp_doxy")
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('.'))
 
 # -- General configuration ------------------------------------------------
 
@@ -134,7 +135,8 @@ todo_include_todos = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#html_theme = 'alabaster' #'bizstyle'
+html_theme = 'cpl_api' #'bizstyle'
+###html_theme = 'alabaster' #'bizstyle'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -142,7 +144,7 @@ todo_include_todos = True
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
+html_theme_path = ['./themes']
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.

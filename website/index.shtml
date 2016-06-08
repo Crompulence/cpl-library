@@ -27,9 +27,7 @@ href="https://github.com/Crompulence/cpl-library/archive/master.zip"/>
 <body>
 
     <div class="center">
-
         <!--#include virtual="nav.html"-->
-
         <div id="schematic">
    <div class="square" style="background-color:#7f3f3f;">
        <div class="content">

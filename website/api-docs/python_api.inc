@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CPL python Bindings &mdash; cpl 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="cpl 1.0.0 documentation" href="index.html" />
+    <link rel="prev" title="CPL Fortran Bindings" href="fortran_api.html" /> 
+  </head>
+  <body role="document">
+     <div class="topnav" role="navigation" aria-label="top navigation">
+      
+
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="cpl-python-bindings">
+<h1>CPL python Bindings<a class="headerlink" href="#cpl-python-bindings" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="cplpy.CPL">
+<em class="property">class </em><code class="descclassname">cplpy.</code><code class="descname">CPL</code><a class="reference internal" href="_modules/cplpy.html#CPL"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cplpy.CPL" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="cplpy.CPL.setup_cfd">
+<code class="descname">setup_cfd</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cplpy.html#CPL.setup_cfd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cplpy.CPL.setup_cfd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Keyword arguments:
+real &#8211; the real part (default 0.0)
+imag &#8211; the imaginary part (default 0.0)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cplpy.CPL.setup_md">
+<code class="descname">setup_md</code><span class="sig-paren">(</span><em>self</em>, <em>dt</em>, <em>icom_grid</em>, <em>xyzL</em>, <em>xyz_orig</em>, <em>density=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cplpy.html#CPL.setup_md"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cplpy.CPL.setup_md" title="Permalink to this definition">¶</a></dt>
+<dd><p>Keyword arguments:
+real &#8211; the real part (default 0.0)
+imag &#8211; the imaginary part (default 0.0)</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, E. Smith, E. Ramos, D. Trevelyan.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.3.
+    </div>
+  </body>
+</html>
