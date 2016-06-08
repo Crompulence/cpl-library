@@ -1,0 +1,769 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CPL Fortran Bindings &mdash; cpl 1.0.0 documentation</title>
+	<link rel="stylesheet" href="/styles.css"> 
+	<link rel="shortcut icon" href="/cpl_logo.ico">
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="cpl 1.0.0 documentation" href="index.html" />
+    <link rel="next" title="CPL python Bindings" href="python_api.html" />
+    <link rel="prev" title="CPL C++ Bindings" href="cpp_api.html" /> 
+  </head>
+  <body role="document">
+	 <!--#include virtual="/nav.html"-->
+     <div class="topnav" role="navigation" aria-label="top navigation">
+      
+
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="cpl-fortran-bindings">
+<h1>CPL Fortran Bindings<a class="headerlink" href="#cpl-fortran-bindings" title="Permalink to this headline">¶</a></h1>
+<dl class="subroutine">
+<dt id="f/_/cpl_init">
+<em class="property">subroutine  </em><code class="descname">cpl_init</code><span class="sig-paren">(</span><em>callingrealm</em>, <em>returned_realm_comm</em>, <em>ierror</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/cpl_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>(cfd+md) Splits MPI_COMM_WORLD in both the CFD and MD code respectively
+and create intercommunicator between CFD and MD</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes MPI has been initialised <cite>MPI_init</cite> and communicator MPI_COMM_WORLD exists
+and contains all processors in both CFD and MD regions</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span></span><span class="n">CPL_init</span><span class="p">(</span>
+         <span class="n">callingrealm</span><span class="p">,</span>
+         <span class="n">RETURNED_REALM_COMM</span><span class="p">,</span>
+         <span class="n">ierror</span>
+         <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><em>callingrealm</em><ul>
+<li>Should identify calling processor as either CFD_REALM (integer with value 1) or MD_REALM (integer with value 2).</li>
+</ul>
+</li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li>RETURNED_REALM_COMM<ul>
+<li>Communicator based on callingrealm value local to CFD or MD processor and resulting from the split of MPI_COMM_WORLD</li>
+</ul>
+</li>
+<li>ierror<ul>
+<li>Error flag</li>
+</ul>
+</li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="highlight-guess"><div class="highlight"><pre><span></span>program main_CFD
+   use cpl, only : CPL_init
+   use mpi
+   implicit none
+
+   integer :: rank, nprocs, ierr
+   integer :: CFD_COMM
+   integer, parameter :: CFD_realm=1
+
+   !Initialise MPI
+   call MPI_Init(ierr)
+
+   !Create MD Comm by spliting world
+   call CPL_init(CFD_realm, CFD_COMM, ierr)
+
+   !get local processor rank and print
+   call MPI_comm_size(CFD_COMM, nprocs, ierr)
+   call MPI_comm_rank(CFD_COMM, rank, ierr)
+
+   print*, &quot;CFD code processor &quot;, rank, &quot; of &quot;, nprocs
+
+   !No need for seperate CPL finalise as MPI finalise takes care of this
+   call MPI_finalize(ierr)
+
+end program main_CFD
+</pre></div>
+</div>
+<div class="highlight-guess"><div class="highlight"><pre><span></span>program main_MD
+   use cpl, only : CPL_init
+   use mpi
+   implicit none
+
+   integer :: rank, nprocs, ierr
+   integer :: MD_COMM
+   integer, parameter :: MD_realm=1
+
+   !Initialise MPI
+   call MPI_Init(ierr)
+
+   !Create MD Comm by spliting world
+   call CPL_init(MD_realm, MD_COMM, ierr)
+
+   call MPI_comm_size(MD_COMM, nprocs, ierr)
+   call MPI_comm_rank(MD_COMM, rank, ierr)
+
+   print*, &quot;MD code processor &quot;, rank, &quot; of &quot;, nprocs
+
+   !No need for seperate CPL finalise as MPI finalise takes care of this
+   call MPI_finalize(ierr)
+
+end program main_MD
+</pre></div>
+</div>
+<p><strong>Errors</strong></p>
+<blockquote>
+<div>COUPLER_ERROR_REALM  = 1       ! wrong realm value
+COUPLER_ERROR_ONE_REALM = 2    ! one realm missing
+COUPLER_ERROR_INIT = 3         ! initialisation error</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>callingrealm</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: CFD_REALM=1 or MD_REALM=2</li>
+<li><strong>returned_realm_comm</strong><em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>ierror</strong><em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_setup_md">
+<em class="property">subroutine  </em><code class="descname">cpl_setup_md</code><span class="sig-paren">(</span><em>nsteps</em>, <em>initialstep</em>, <em>dt</em>, <em>icomm_grid</em>, <em>xyzl</em>, <em>xyz_orig</em>, <em>density</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/cpl_setup_md" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialisation routine for coupler module - Every variable is sent and stored
+to ensure both md and cfd region have an identical list of parameters</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes CPL has been initialised <cite>CPL_init</cite> and communicator MD_REALM exists</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span></span><span class="n">coupler_md_init</span><span class="p">(</span>
+                <span class="n">nsteps</span><span class="p">,</span>
+                <span class="n">initialstep</span><span class="p">,</span>
+                <span class="n">dt</span><span class="p">,</span>
+                <span class="n">icomm_grid</span><span class="p">,</span>
+                <span class="n">xyzL</span><span class="p">,</span>
+                <span class="n">xyz_orig</span><span class="p">,</span>
+                <span class="n">density</span>
+                <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><em>nsteps</em><ul>
+<li>Number of steps in MD simulation.</li>
+</ul>
+</li>
+<li><em>initialstep</em><ul>
+<li>Initial steps in MD simulation.</li>
+</ul>
+</li>
+<li><em>dt</em><ul>
+<li>Timestep in MD simulation.</li>
+</ul>
+</li>
+<li><em>icomm_grid</em><ul>
+<li>Communicator based on MD processor topology returned from a call to MPI_CART_CREATE.</li>
+</ul>
+</li>
+<li><em>xyzL</em><ul>
+<li>MD domain size.</li>
+</ul>
+</li>
+<li><em>xyz_orig</em><ul>
+<li>MD origin.</li>
+</ul>
+</li>
+<li><em>density</em><ul>
+<li>Density of molecules in MD code.</li>
+</ul>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nsteps</strong><em> [</em><em>integer</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>initialstep</strong><em> [</em><em>integer</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>icomm_grid</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xyzl</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xyz_orig</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>density</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_setup_cfd">
+<em class="property">subroutine  </em><code class="descname">cpl_setup_cfd</code><span class="sig-paren">(</span><em>nsteps</em>, <em>dt</em>, <em>icomm_grid</em>, <em>xyzl</em>, <em>xyz_orig</em>, <em>ncxyz</em>, <em>density</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/cpl_setup_cfd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialisation routine for coupler module - Every variable is sent and stored
+to ensure both md and cfd region have an identical list of parameters</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes CPL has been initialised <cite>CPL_init</cite> and communicator MD_REALM exists</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span></span><span class="n">coupler_cfd_init</span><span class="p">(</span>
+                <span class="n">nsteps</span><span class="p">,</span>
+                <span class="n">dt_cfd</span><span class="p">,</span>
+                <span class="n">icomm_grid</span><span class="p">,</span>
+                <span class="n">xyzL</span><span class="p">,</span>
+                <span class="n">xyz_orig</span><span class="p">,</span>
+                <span class="n">ncxyz</span><span class="p">,</span>
+                <span class="n">density</span>
+                <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><em>nsteps (inout)</em><ul>
+<li>Number of steps in CFD simulation.</li>
+</ul>
+</li>
+<li><em>dt_cfd (inout)</em><ul>
+<li>Timestep in CFD simulation.</li>
+</ul>
+</li>
+<li><em>icomm_grid</em><ul>
+<li>Communicator based on CFD processor topology returned from a call to MPI_CART_CREATE.</li>
+</ul>
+</li>
+<li><em>xyzL</em><ul>
+<li>CFD domain size.</li>
+</ul>
+</li>
+<li><em>xyz_orig</em><ul>
+<li>CFD origin.</li>
+</ul>
+</li>
+<li><em>ncxyz</em><ul>
+<li>Number of CFD cells in global domain.</li>
+</ul>
+</li>
+<li><em>density</em><ul>
+<li>Density used in CFD code (still required when working with non-dimensionalised units in CFD as MD has an actual value of density based on domain.).</li>
+</ul>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nsteps</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>icomm_grid</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xyzl</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xyz_orig</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncxyz</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>density</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_send">
+<em class="property">subroutine  </em><code class="descname">cpl_send</code><span class="sig-paren">(</span><em>asend</em>, <em>limits</em><span class="optional">[</span>, <em>send_flag</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#f/_/cpl_send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send four dimensional array <em>asend</em> of data from all processors in the
+current realm with data between global cell array <em>limits</em> to the
+corresponding processors from the other realm.</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes the coupler has been initialised with <a class="reference external" href="#f/_/cpl_init">CPL_init</a> and
+topological mapping has been setup using either <a class="reference external" href="#f/_/cpl_setup_md">CPL_setup_md</a>
+or <a class="reference external" href="#f/_/cpl_setup_cfd">CPL_setup_cfd</a> as appropriate.</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span></span><span class="n">CPL_send</span><span class="p">(</span>
+         <span class="n">asend</span><span class="p">,</span>
+         <span class="n">limits</span><span class="p">,</span>
+         <span class="n">send_flag</span>
+         <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><em>asend</em><ul>
+<li>Array of data to send. Should be a four dimensional array allocated using the number of cells on the current processor between the limits. Size should be be obtained from <a class="reference external" href="#f/_/cpl_my_proc_portion">CPL_my_proc_portion(limits, portion)</a>.</li>
+</ul>
+</li>
+<li>limits<ul>
+<li>Limits in global cell coordinates, must be the same as corresponding recieve</li>
+</ul>
+</li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li>send_flag<ul>
+<li>Returned flag which indicates success or failure of send process</li>
+</ul>
+</li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="highlight-guess"><div class="highlight"><pre><span></span>call CPL_get_olap_limits(limits)
+call CPL_my_proc_portion(limits, portion)
+call CPL_get_no_cells(portion, Ncells)
+
+!Coupled Send array
+allocate(A(3, Ncells(1), Ncells(2), Ncells(3)))
+
+do i =portion(1),portion(2)
+do j =portion(3),portion(4)
+do k =portion(5),portion(6)
+   ii = i-portion(1)+1; jj = j-portion(3)+1; kk = k-portion(5)+1
+   A(1,ii,jj,kk) = dble(i)
+   A(2,ii,jj,kk) = dble(j)
+   A(3,ii,jj,kk) = dble(k)
+enddo
+enddo
+enddo
+call CPL_send(A, limits, send_flag)
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>asend</strong> (*,*,*,*)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em> :: Array containing data to send</li>
+<li><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: Global cell indices with minimum and maximum values to send</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first last"><strong>send_flag</strong><em> [</em><em>logical</em><em>,</em><em>out,optional</em><em>]</em> :: Flag set if processor has passed data</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_recv">
+<em class="property">subroutine  </em><code class="descname">cpl_recv</code><span class="sig-paren">(</span><em>arecv</em>, <em>limits</em><span class="optional">[</span>, <em>recv_flag</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#f/_/cpl_recv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive data from to local grid from the associated ranks from the other
+realm</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes the coupler has been initialised with <a class="reference external" href="#f/_/cpl_init">CPL_init</a> and
+topological mapping has been setup using either <a class="reference external" href="#f/_/cpl_setup_md">CPL_setup_md</a>
+or <a class="reference external" href="#f/_/cpl_setup_cfd">CPL_setup_cfd</a> as appropriate.</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span></span><span class="n">CPL_send</span><span class="p">(</span>
+         <span class="n">arecv</span><span class="p">,</span>
+         <span class="n">limits</span><span class="p">,</span>
+         <span class="n">recv_flag</span>
+         <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><em>arecv</em><ul>
+<li>Array of data to recv. Should be a four dimensional array allocated using the number of cells on the current processor between the limits. Size should be be obtained from <a class="reference external" href="#f/_/cpl_my_proc_portion">CPL_my_proc_portion(limits, portion)</a>.</li>
+</ul>
+</li>
+<li>limits<ul>
+<li>Limits in global cell coordinates, must be the same as corresponding send</li>
+</ul>
+</li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li>recv_flag<ul>
+<li>Returned flag which indicates success or failure of recv process</li>
+</ul>
+</li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="highlight-guess"><div class="highlight"><pre><span></span>call CPL_get_olap_limits(limits)
+call CPL_my_proc_portion(limits, portion)
+call CPL_get_no_cells(portion, Ncells)
+
+!Coupled Recieve
+allocate(A(3, Ncells(1), Ncells(2), Ncells(3)))
+call CPL_recv(A, limits, recv_flag)
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>arecv</strong> (*,*,*,*)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em> :: Pre allocated array that recieves data</li>
+<li><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: Global cell indices with minimum and maximum values to recv</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first last"><strong>recv_flag</strong><em> [</em><em>logical</em><em>,</em><em>out,optional</em><em>]</em> :: Flag set if processor has received data</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/('_/cpl_proc_extents', None)">
+<em class="property">subroutine  </em><code class="descname">cpl_proc_extents</code><span class="sig-paren">(</span><em>coord</em>, <em>realm</em>, <em>extents</em><span class="optional">[</span>, <em>ncells</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#f/('_/cpl_proc_extents', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>realm</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>extents</strong> (6)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first last"><strong>ncells</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/('_/cpl_my_proc_extents', None)">
+<em class="property">subroutine  </em><code class="descname">cpl_my_proc_extents</code><span class="sig-paren">(</span><em>extents</em><span class="sig-paren">)</span><a class="headerlink" href="#f/('_/cpl_my_proc_extents', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>extents</strong> (6)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_proc_portion">
+<em class="property">subroutine  </em><code class="descname">cpl_proc_portion</code><span class="sig-paren">(</span><em>coord</em>, <em>realm</em>, <em>limits</em>, <em>portion</em><span class="optional">[</span>, <em>ncells</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#f/_/cpl_proc_portion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get maximum and minimum cell indices, i.e. the &#8216;portion&#8217;, of the
+input cell extents &#8216;limits&#8217; that is contributed by the processor
+specified by processor coord.</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes the coupler has been initialised with <a class="reference external" href="#f/_/cpl_init">CPL_init</a> and
+topological mapping has been setup using either <a class="reference external" href="#f/_/cpl_setup_md">CPL_setup_md</a>
+or <a class="reference external" href="#f/_/cpl_setup_cfd">CPL_setup_cfd</a> as appropriate.</p>
+<blockquote>
+<div><ul class="simple">
+<li>Note: limits(6) and portion(6) are of the form: (xmin,xmax,ymin,ymax,zmin,zmax)</li>
+</ul>
+</div></blockquote>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span></span><span class="n">CPL_proc_portion</span><span class="p">(</span>
+                 <span class="n">coord</span><span class="p">,</span>
+                 <span class="n">realm</span><span class="p">,</span>
+                 <span class="n">limits</span><span class="p">,</span>
+                 <span class="n">portion</span><span class="p">,</span>
+                 <span class="n">ncells</span>
+                 <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><em>coord</em><ul>
+<li>processor cartesian coordinate (3 x integer)</li>
+</ul>
+</li>
+<li><em>realm</em><ul>
+<li>cfd_realm (1) or md_realm (2) (integer)</li>
+</ul>
+</li>
+<li><em>limits</em><ul>
+<li>Array of cell extents that specify the input region.</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+<p><strong>Outputs</strong></p>
+<blockquote>
+<div><ul>
+<li><p class="first"><em>portion</em>
+- Array of cell extents that define the local processor&#8217;s</p>
+<blockquote>
+<div><p>contribution to the input region &#8216;limits&#8217;.</p>
+</div></blockquote>
+</li>
+<li><dl class="first docutils">
+<dt><em>ncells (optional)</em></dt>
+<dd><ul class="first last simple">
+<li>number of cells in portion (integer)</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>realm</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>portion</strong> (6)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first last"><strong>ncells</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_my_proc_portion">
+<em class="property">subroutine  </em><code class="descname">cpl_my_proc_portion</code><span class="sig-paren">(</span><em>limits</em>, <em>portion</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/cpl_my_proc_portion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get maximum and minimum cell indices, i.e. the &#8216;portion&#8217;, of the
+input cell extents &#8216;limits&#8217; that is contributed by calling processor.</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes the coupler has been initialised with <a class="reference external" href="#f/_/cpl_init">CPL_init</a> and
+topological mapping has been setup using either <a class="reference external" href="#f/_/cpl_setup_md">CPL_setup_md</a>
+or <a class="reference external" href="#f/_/cpl_setup_cfd">CPL_setup_cfd</a> as appropriate.</p>
+<blockquote>
+<div><ul class="simple">
+<li>Note: limits(6) and portion(6) are of the form: (xmin,xmax,ymin,ymax,zmin,zmax)</li>
+</ul>
+</div></blockquote>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span></span><span class="n">CPL_proc_portion</span><span class="p">(</span>
+                 <span class="n">limits</span><span class="p">,</span>
+                 <span class="n">portion</span><span class="p">,</span>
+                 <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><em>limits</em><ul>
+<li>Array of cell extents that specify the input region.</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+<p><strong>Outputs</strong></p>
+<blockquote>
+<div><ul>
+<li><p class="first"><em>portion</em>
+- Array of cell extents that define the local processor&#8217;s</p>
+<blockquote>
+<div><p>contribution to the input region &#8216;limits&#8217;.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>portion</strong> (6)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/('_/cpl_map_coord2cell', None)">
+<em class="property">function  </em><code class="descname">cpl_map_coord2cell</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em>, <em>cell_ijk</em><span class="sig-paren">)</span><a class="headerlink" href="#f/('_/cpl_map_coord2cell', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>y</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>z</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>cell_ijk</strong> (3)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first last"><strong>ret</strong><em> [</em><em>logical</em><em>]</em></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/('_/cpl_map_cell2coord', None)">
+<em class="property">subroutine  </em><code class="descname">cpl_map_cell2coord</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>k</em>, <em>coord_xyz</em><span class="sig-paren">)</span><a class="headerlink" href="#f/('_/cpl_map_cell2coord', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>i</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>j</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>coord_xyz</strong> (3)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/('_/cpl_get_no_cells', None)">
+<em class="property">subroutine  </em><code class="descname">cpl_get_no_cells</code><span class="sig-paren">(</span><em>limits</em>, <em>no_cells</em><span class="sig-paren">)</span><a class="headerlink" href="#f/('_/cpl_get_no_cells', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>no_cells</strong> (3)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/('_/cpl_map_glob2loc_cell', None)">
+<em class="property">function  </em><code class="descname">cpl_map_glob2loc_cell</code><span class="sig-paren">(</span><em>limits</em>, <em>glob_cell</em>, <em>loc_cell</em><span class="sig-paren">)</span><a class="headerlink" href="#f/('_/cpl_map_glob2loc_cell', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>glob_cell</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>loc_cell</strong> (3)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first last"><strong>ret</strong><em> [</em><em>logical</em><em>]</em></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/('_/cpl_get_olap_limits', None)">
+<em class="property">subroutine  </em><code class="descname">cpl_get_olap_limits</code><span class="sig-paren">(</span><em>limits</em><span class="sig-paren">)</span><a class="headerlink" href="#f/('_/cpl_get_olap_limits', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/('_/cpl_get_cnst_limits', None)">
+<em class="property">subroutine  </em><code class="descname">cpl_get_cnst_limits</code><span class="sig-paren">(</span><em>limits</em><span class="sig-paren">)</span><a class="headerlink" href="#f/('_/cpl_get_cnst_limits', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/('_/cpl_map_cfd2md_coord', None)">
+<em class="property">function  </em><code class="descname">cpl_map_cfd2md_coord</code><span class="sig-paren">(</span><em>coord_cfd</em>, <em>coord_md</em><span class="sig-paren">)</span><a class="headerlink" href="#f/('_/cpl_map_cfd2md_coord', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord_cfd</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>coord_md</strong> (3)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first last"><strong>valid_coord</strong><em> [</em><em>logical</em><em>]</em></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/('_/cpl_map_md2cfd_coord', None)">
+<em class="property">function  </em><code class="descname">cpl_map_md2cfd_coord</code><span class="sig-paren">(</span><em>coord_md</em>, <em>coord_cfd</em><span class="sig-paren">)</span><a class="headerlink" href="#f/('_/cpl_map_md2cfd_coord', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord_md</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>coord_cfd</strong> (3)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first last"><strong>valid_coord</strong><em> [</em><em>logical</em><em>]</em></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/('_/cpl_overlap', None)">
+<em class="property">function  </em><code class="descname">cpl_overlap</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#f/('_/cpl_overlap', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return:</th><td class="field-body"><strong>p</strong><em> [</em><em>logical</em><em>]</em></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+
+
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, E. Smith, E. Ramos, D. Trevelyan.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.3.
+    </div>
+  </body>
+</html>

@@ -34,7 +34,7 @@ body {
     font-family: "DejaVu Sans", Arial, Helvetica, sans-serif;
     min-width: 400px;
     max-width: 800px;
-    color: {{ theme_textcolor }};
+    color: #333333;
 }
 
 div.footer {
@@ -64,22 +64,22 @@ a:hover, a:active {
 
 h1 a:hover, a:active {
     text-decoration: none;
-    color: {{ theme_headingcolor }};
+    color: #0c3762;
 }
 
 h2 a:hover, a:active {
     text-decoration: none;
-    color: {{ theme_headingcolor }};
+    color: #0c3762;
 }
 
 h3 a:hover, a:active {
     text-decoration: none;
-    color: {{ theme_headingcolor }};
+    color: #0c3762;
 }
 
 h4 a:hover, a:active {
     text-decoration: none;
-    color: {{ theme_headingcolor }};
+    color: #0c3762;
 }
 
 a.headerlink {
@@ -115,14 +115,14 @@ div.header h1 {
     font-size: 1.6em;
     font-weight: normal;
     letter-spacing: 1px;
-    color: {{ theme_headingcolor }};
+    color: #0c3762;
     border: 0;
     margin: 0;
     padding-top: 15px;
 }
 div.header h1 a {
     font-weight: normal;
-    color: {{ theme_headingcolor }};
+    color: #0c3762;
 }
 div.header h2 {
     font-size: 1.3em;
@@ -143,7 +143,7 @@ div.header img.rightlogo {
 div.title {
     font-size: 1.3em;
     font-weight: bold;
-    color: {{ theme_headingcolor }};
+    color: #0c3762;
     border-bottom: dotted thin #e0e0e0;
     margin-bottom: 25px;
 }
@@ -197,11 +197,11 @@ table.index td {
 table.index a:link, table.index a:visited {
     font-weight: normal;
     text-decoration: none;
-    color: {{ theme_linkcolor }};
+    color: #dc3c01;
 }
 table.index a:hover, table.index a:active {
     text-decoration: underline;
-    color: {{ theme_hoverlinkcolor }};
+    color: #ff4500;
 }
 
 
@@ -239,7 +239,7 @@ div.seealso {
 h1 {
     font-size: 1.3em;
     font-weight: bold;
-    color: {{ theme_headingcolor }};
+    color: #0c3762;
     border-bottom: dotted thin #e0e0e0;
     margin-top: 30px;
 }
@@ -247,7 +247,7 @@ h1 {
 h2 {
     font-size: 1.2em;
     font-weight: normal;
-    color: {{ theme_headingcolor }};
+    color: #0c3762;
     border-bottom: dotted thin #e0e0e0;
     margin-top: 30px;
 }
@@ -255,14 +255,14 @@ h2 {
 h3 {
     font-size: 1.1em;
     font-weight: normal;
-    color: {{ theme_headingcolor }};
+    color: #0c3762;
     margin-top: 30px;
 }
 
 h4 {
     font-size: 1.0em;
     font-weight: normal;
-    color: {{ theme_headingcolor }};
+    color: #0c3762;
     margin-top: 30px;
 }
 

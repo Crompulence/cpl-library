@@ -7,6 +7,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>CPL python Bindings &mdash; cpl 1.0.0 documentation</title>
+	<link rel="stylesheet" href="/styles.css"> 
+	<link rel="shortcut icon" href="/cpl_logo.ico">
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -28,6 +30,7 @@
     <link rel="prev" title="CPL Fortran Bindings" href="fortran_api.html" /> 
   </head>
   <body role="document">
+	 <!--#include virtual="/nav.html"-->
      <div class="topnav" role="navigation" aria-label="top navigation">
       
 

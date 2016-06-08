@@ -8,8 +8,10 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>Index &mdash; cpl 1.0.0 documentation</title>
+	<link rel="stylesheet" href="/styles.css"> 
+	<link rel="shortcut icon" href="/cpl_logo.ico">
     
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -25,52 +27,74 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="cpl 1.0.0 documentation" href="index.html" />
-   
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
+    <link rel="top" title="cpl 1.0.0 documentation" href="index.html" /> 
   </head>
   <body role="document">
-  
+	 <!--#include virtual="/nav.html"-->
+     <div class="topnav" role="navigation" aria-label="top navigation">
+      
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
+
+      </div>
+      <div class="content">
+        
+        
 
 <h1 id="index">Index</h1>
 
 <div class="genindex-jumpbox">
  <a href="#Symbols"><strong>Symbols</strong></a>
  | <a href="#C"><strong>C</strong></a>
+ | <a href="#S"><strong>S</strong></a>
  
 </div>
 <h2 id="Symbols">Symbols</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#f/('_/cpl_get_cnst_limits', None)"><strong>(&#39;_/cpl_get_cnst_limits&#39;, None)() (fortran subroutine)</strong></a>
+  <dt><a href="fortran_api.html#f/('_/cpl_get_cnst_limits', None)"><strong>(&#39;_/cpl_get_cnst_limits&#39;, None)() (fortran subroutine)</strong></a>
   </dt>
 
       
-  <dt><a href="index.html#f/('_/cpl_get_no_cells', None)"><strong>(&#39;_/cpl_get_no_cells&#39;, None)() (fortran subroutine)</strong></a>
+  <dt><a href="fortran_api.html#f/('_/cpl_get_no_cells', None)"><strong>(&#39;_/cpl_get_no_cells&#39;, None)() (fortran subroutine)</strong></a>
   </dt>
 
       
-  <dt><a href="index.html#f/('_/cpl_get_olap_limits', None)"><strong>(&#39;_/cpl_get_olap_limits&#39;, None)() (fortran subroutine)</strong></a>
+  <dt><a href="fortran_api.html#f/('_/cpl_get_olap_limits', None)"><strong>(&#39;_/cpl_get_olap_limits&#39;, None)() (fortran subroutine)</strong></a>
+  </dt>
+
+      
+  <dt><a href="fortran_api.html#f/('_/cpl_map_cell2coord', None)"><strong>(&#39;_/cpl_map_cell2coord&#39;, None)() (fortran subroutine)</strong></a>
+  </dt>
+
+      
+  <dt><a href="fortran_api.html#f/('_/cpl_map_cfd2md_coord', None)"><strong>(&#39;_/cpl_map_cfd2md_coord&#39;, None)() (fortran function)</strong></a>
+  </dt>
+
+      
+  <dt><a href="fortran_api.html#f/('_/cpl_map_coord2cell', None)"><strong>(&#39;_/cpl_map_coord2cell&#39;, None)() (fortran function)</strong></a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#f/('_/cpl_overlap', None)"><strong>(&#39;_/cpl_overlap&#39;, None)() (fortran function)</strong></a>
+  <dt><a href="fortran_api.html#f/('_/cpl_map_glob2loc_cell', None)"><strong>(&#39;_/cpl_map_glob2loc_cell&#39;, None)() (fortran function)</strong></a>
   </dt>
 
       
-  <dt><a href="index.html#f/('_/cpl_proc_extents', None)"><strong>(&#39;_/cpl_proc_extents&#39;, None)() (fortran subroutine)</strong></a>
+  <dt><a href="fortran_api.html#f/('_/cpl_map_md2cfd_coord', None)"><strong>(&#39;_/cpl_map_md2cfd_coord&#39;, None)() (fortran function)</strong></a>
+  </dt>
+
+      
+  <dt><a href="fortran_api.html#f/('_/cpl_my_proc_extents', None)"><strong>(&#39;_/cpl_my_proc_extents&#39;, None)() (fortran subroutine)</strong></a>
+  </dt>
+
+      
+  <dt><a href="fortran_api.html#f/('_/cpl_overlap', None)"><strong>(&#39;_/cpl_overlap&#39;, None)() (fortran function)</strong></a>
+  </dt>
+
+      
+  <dt><a href="fortran_api.html#f/('_/cpl_proc_extents', None)"><strong>(&#39;_/cpl_proc_extents&#39;, None)() (fortran subroutine)</strong></a>
   </dt>
 
   </dl></td>
@@ -80,161 +104,159 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#_CPPv23CPL">CPL (C++ type)</a>
+  <dt><a href="cpp_api.html#_CPPv23CPL">CPL (C++ type)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="python_api.html#cplpy.CPL">(class in cplpy)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="cpp_api.html#_CPPv2N3CPL9cfd_realmE">CPL::cfd_realm (C++ member)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL9cfd_realmE">CPL::cfd_realm (C++ member)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL11density_cfdEv">CPL::density_cfd (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL11density_cfdEv">CPL::density_cfd (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL6gatherEPdPiPiPdPi">CPL::gather (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL6gatherEPdPiPiPdPi">CPL::gather (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL3getENSt6stringE">CPL::get (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL3getENSt6stringE">CPL::get (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL15get_cnst_limitsEA_i">CPL::get_cnst_limits (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL15get_cnst_limitsEA_i">CPL::get_cnst_limits (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL12get_no_cellsEA_iA_i">CPL::get_no_cells (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL12get_no_cellsEA_iA_i">CPL::get_no_cells (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL15get_olap_limitsEA_i">CPL::get_olap_limits (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL15get_olap_limitsEA_i">CPL::get_olap_limits (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL4initEiRi">CPL::init (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL4initEiRi">CPL::init (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL14map_cell2coordEiiiA_d">CPL::map_cell2coord (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL14map_cell2coordEiiiA_d">CPL::map_cell2coord (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL16map_cfd2md_coordEA_dA_d">CPL::map_cfd2md_coord (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL16map_cfd2md_coordEA_dA_d">CPL::map_cfd2md_coord (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL14map_coord2cellEdddA_i">CPL::map_coord2cell (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL14map_coord2cellEdddA_i">CPL::map_coord2cell (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL17map_glob2loc_cellEA_iA_iA_i">CPL::map_glob2loc_cell (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL17map_glob2loc_cellEA_iA_iA_i">CPL::map_glob2loc_cell (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL16map_md2cfd_coordEA_dA_d">CPL::map_md2cfd_coord (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL16map_md2cfd_coordEA_dA_d">CPL::map_md2cfd_coord (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL8md_realmE">CPL::md_realm (C++ member)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL8md_realmE">CPL::md_realm (C++ member)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL15my_proc_extentsEA_i">CPL::my_proc_extents (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL15my_proc_extentsEA_i">CPL::my_proc_extents (C++ function)</a>
-  </dt>
-
-      
-  <dt><a href="index.html#_CPPv2N3CPL15my_proc_portionEA_iA_i">CPL::my_proc_portion (C++ function)</a>
-  </dt>
-
-      
-  <dt><a href="index.html#_CPPv2N3CPL7overlapEv">CPL::overlap (C++ function)</a>
-  </dt>
-
-      
-  <dt><a href="index.html#_CPPv2N3CPL12proc_extentsEA_iiA_i">CPL::proc_extents (C++ function)</a>
-  </dt>
-
-      
-  <dt><a href="index.html#_CPPv2N3CPL12proc_portionEA_iiA_iA_i">CPL::proc_portion (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL15my_proc_portionEA_iA_i">CPL::my_proc_portion (C++ function)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#_CPPv2N3CPL4recvEPdPiPi">CPL::recv (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL7overlapEv">CPL::overlap (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL7scatterEPdPiPiPdPi">CPL::scatter (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL12proc_extentsEA_iiA_i">CPL::proc_extents (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL4sendEPdPiPi">CPL::send (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL12proc_portionEA_iiA_iA_i">CPL::proc_portion (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL15set_output_modeEi">CPL::set_output_mode (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL4recvEPdPiPi">CPL::recv (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL9setup_cfdEidiA_dA_dA_id">CPL::setup_cfd (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL7scatterEPdPiPiPdPi">CPL::scatter (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#_CPPv2N3CPL8setup_mdERiRidiA_dA_dd">CPL::setup_md (C++ function)</a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL4sendEPdPiPi">CPL::send (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#f/_/cpl_init"><strong>cpl_init() (fortran subroutine)</strong></a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL15set_output_modeEi">CPL::set_output_mode (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#f/_/cpl_map_cell2coord"><strong>cpl_map_cell2coord() (fortran subroutine)</strong></a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL9setup_cfdEidiA_dA_dA_id">CPL::setup_cfd (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#f/_/cpl_map_cfd2md_coord"><strong>cpl_map_cfd2md_coord() (fortran function)</strong></a>
+  <dt><a href="cpp_api.html#_CPPv2N3CPL8setup_mdERiRidiA_dA_dd">CPL::setup_md (C++ function)</a>
   </dt>
 
       
-  <dt><a href="index.html#f/_/cpl_map_coord2cell"><strong>cpl_map_coord2cell() (fortran function)</strong></a>
+  <dt><a href="fortran_api.html#f/_/cpl_init"><strong>cpl_init() (fortran subroutine)</strong></a>
   </dt>
 
       
-  <dt><a href="index.html#f/_/cpl_map_glob2loc_cell"><strong>cpl_map_glob2loc_cell() (fortran function)</strong></a>
+  <dt><a href="fortran_api.html#f/_/cpl_my_proc_portion"><strong>cpl_my_proc_portion() (fortran subroutine)</strong></a>
   </dt>
 
       
-  <dt><a href="index.html#f/_/cpl_map_md2cfd_coord"><strong>cpl_map_md2cfd_coord() (fortran function)</strong></a>
+  <dt><a href="fortran_api.html#f/_/cpl_proc_portion"><strong>cpl_proc_portion() (fortran subroutine)</strong></a>
   </dt>
 
       
-  <dt><a href="index.html#f/_/cpl_my_proc_extents"><strong>cpl_my_proc_extents() (fortran subroutine)</strong></a>
+  <dt><a href="fortran_api.html#f/_/cpl_recv"><strong>cpl_recv() (fortran subroutine)</strong></a>
   </dt>
 
       
-  <dt><a href="index.html#f/_/cpl_my_proc_portion"><strong>cpl_my_proc_portion() (fortran subroutine)</strong></a>
+  <dt><a href="fortran_api.html#f/_/cpl_send"><strong>cpl_send() (fortran subroutine)</strong></a>
   </dt>
 
       
-  <dt><a href="index.html#f/_/cpl_proc_portion"><strong>cpl_proc_portion() (fortran subroutine)</strong></a>
+  <dt><a href="fortran_api.html#f/_/cpl_setup_cfd"><strong>cpl_setup_cfd() (fortran subroutine)</strong></a>
   </dt>
 
       
-  <dt><a href="index.html#f/_/cpl_recv"><strong>cpl_recv() (fortran subroutine)</strong></a>
+  <dt><a href="fortran_api.html#f/_/cpl_setup_md"><strong>cpl_setup_md() (fortran subroutine)</strong></a>
   </dt>
 
+  </dl></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#f/_/cpl_send"><strong>cpl_send() (fortran subroutine)</strong></a>
+  <dt><a href="python_api.html#cplpy.CPL.setup_cfd">setup_cfd() (cplpy.CPL method)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="index.html#f/_/cpl_setup_cfd"><strong>cpl_setup_cfd() (fortran subroutine)</strong></a>
-  </dt>
-
-      
-  <dt><a href="index.html#f/_/cpl_setup_md"><strong>cpl_setup_md() (fortran subroutine)</strong></a>
+  <dt><a href="python_api.html#cplpy.CPL.setup_md">setup_md() (cplpy.CPL method)</a>
   </dt>
 
   </dl></td>
@@ -242,45 +264,16 @@
 
 
 
-          </div>
-        </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
 
-   <div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-  </ul></li>
-</ul>
-</div>
 
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2016, E. Smith, E. Ramos, D. Trevelyan.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
-      
-    </div>
 
-    
-
-    
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, E. Smith, E. Ramos, D. Trevelyan.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.3.
+    </div>
   </body>
 </html>

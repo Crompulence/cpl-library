@@ -104,14 +104,15 @@ hr
 /* Navigation bar */
 div#nav
 {
-    clear: both;
-    text-align: center;
-    width: 100%;
-    margin-bottom: 1cm;
+    clear: both !important;
+    text-align: center !important;
+    line-height: 1.5 !important;
+    width: 100% !important;
+    margin-bottom: 1cm !important;
 }
 div#nav a
 {
-    font-weight: normal;
+    font-weight: normal !important;
 }
 div#nav table
 {
@@ -119,27 +120,27 @@ div#nav table
 }
 div#nav td
 {
-    vertical-align: bottom;
+    vertical-align: bottom !important;
 }
 div#nav ul
 {
-    font-family: futura-condensedlight;
-    list-style-type: none;
-    font-size: 20px;
-    text-transform: uppercase;
+    font-family: futura-condensedlight !important;
+    list-style-type: none !important;
+    font-size: 20px !important;
+    text-transform: uppercase !important;
 }
 div#nav ul li
 {
-    display: inline;
-    padding-left: 10px;
+    display: inline !important;
+    padding-left: 10px !important;
 }
 div#nav homebutton
 {
-    font-family: bebas; 
-    font-size: 80px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding-bottom: 20px;
+    font-family: bebas !important; 
+    font-size: 80px !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase !important;
+    padding-bottom: 20px !important;
 }
 
 
