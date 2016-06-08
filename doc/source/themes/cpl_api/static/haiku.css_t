@@ -29,12 +29,11 @@ html {
 }
 
 body {
-    line-height: 1.5;
     margin: auto;
     padding: 0px;
     font-family: "DejaVu Sans", Arial, Helvetica, sans-serif;
-    min-width: 59em;
-    max-width: 70em;
+    min-width: 400px;
+    max-width: 800px;
     color: {{ theme_textcolor }};
 }
 
@@ -50,18 +49,15 @@ div.footer {
 a:link {
     font-weight: bold;
     text-decoration: none;
-    color: {{ theme_linkcolor }};
 }
 
 a:visited {
     font-weight: bold;
     text-decoration: none;
-    color: {{ theme_visitedlinkcolor }};
 }
 
 a:hover, a:active {
     text-decoration: underline;
-    color: {{ theme_hoverlinkcolor }};
 }
 
 /* Some headers act as anchors, don't give them a hover effect */

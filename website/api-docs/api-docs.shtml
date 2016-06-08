@@ -12,13 +12,12 @@
 
     <div class="center">
 
-        <!--#include virtual="nav.html"-->
+        <!--#include virtual="/nav.html"-->
 
         <div class="bigLink"> 
-			<ul>
-            <li><a href='/api-docs/fortran_api.html'>Fortran API</a></>
-            <h1><a href='/api-docs/cpp_api.html'>C++ API</a><h1>
-            <h1><a href='/api-docs/python_api.html'>Python API</a><h1>
+			<h1><a href='/api-docs/fortran_api.shtml'>Fortran API</a></h1>
+            <h1><a href='/api-docs/cpp_api.shtml'>C++ API</a></h1>
+            <h1><a href='/api-docs/python_api.shtml'>Python API</a></h1>
         </div>
 
     </div>

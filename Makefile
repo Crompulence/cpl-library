@@ -135,9 +135,16 @@ test-examples:
 test-valgrind:
 	./test/valgrind/debug_all.sh
 
-# Clean
-clean:
-	rm -rf $(objdir) $(libdir) $(includedir)
+webdocs-api:
+	bash ./utils/update-webdocs-api.sh
+
+webdocs-examples:
+	bash ./utils/update-webdocs-examples.sh
+
+webdocs-all:
+	bash ./utils/update-webdocs-api.sh
+	bash ./utils/update-webdocs-examples.sh
+
 # Clean
 clean:
 	rm -rf $(objdir) $(libdir) $(includedir)

@@ -15,7 +15,7 @@ program md_cpl_example
     integer, dimension(6) :: portion, limits
     double precision :: dt, density
     double precision, dimension(3)  :: xyzL, xyz_orig
-    double precision, dimension(:,:,:,:), allocatable  :: recv_array
+    double precision, dimension(:,:,:,:), allocatable  :: recv_array, send_array
 
     !Initialise MPI
     call MPI_Init(ierr)
@@ -33,6 +33,7 @@ program md_cpl_example
     xyzL = (/10.d0, 10.d0, 10.d0/)
     xyz_orig = (/0.d0, 0.d0, 0.d0/)
     npxyz = (/ 4, 2, 2/)
+
 
     ! Create communicators and check that number of processors is consistent
     call MPI_Comm_size(MD_COMM, nprocs_realm, ierr) 
@@ -102,7 +103,7 @@ program md_cpl_example
     if (CPL_overlap() .and. no_error) then
         print'(a,a,i2,a)', "MD -- ", "(rank=", rank, ") CELLS HAVE BEEN RECEIVED CORRECTLY."
     endif
-	call MPI_Barrier(MPI_COMM_WORLD, ierr)
+    call MPI_Barrier(MPI_COMM_WORLD, ierr)
 
     !Release all coupler comms 
     call CPL_finalize(ierr)
