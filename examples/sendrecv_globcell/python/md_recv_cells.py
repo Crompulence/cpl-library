@@ -41,9 +41,9 @@ if (nprocs_realm != NProcs):
 
 cart_comm = MD_COMM.Create_cart([NPx, NPy, NPz])
 
-nsteps, initialstep = CPL.setup_md(dt, cart_comm, xyzL, xyz_orig, 1.0)
+CPL.setup_md(cart_comm, xyzL, xyz_orig)
 
-# Send test
+# recv test
 olap_limits = CPL.get_olap_limits()
 portion = CPL.my_proc_portion(olap_limits)
 [ncxl, ncyl, nczl] = CPL.get_no_cells(portion)

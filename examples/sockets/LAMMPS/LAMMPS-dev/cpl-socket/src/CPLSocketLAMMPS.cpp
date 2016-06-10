@@ -95,8 +95,7 @@ initMD (LAMMPS_NS::LAMMPS *lammps) {
     //TODO: get the origin from LAMMPS 
     double xyz_orig[3] = {0.0 ,0.0, 0.0};
     // Call MD init, this->nsteps will be reset to correct value
-    CPL::setup_md (nsteps, initialstep, dt, icomm_grid, globaldomain,
-                   xyz_orig, dummydensity);
+    CPL::setup_md (icomm_grid, globaldomain, xyz_orig);
 
     // Setup
     timestep_ratio = CPL::get<int> ("timestep_ratio");

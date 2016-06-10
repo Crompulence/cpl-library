@@ -64,24 +64,17 @@ namespace CPL
     // All the info (plus some, need to streamline!) from cfd for mapping
     void setup_cfd
     (
-        int nsteps,
-        double dt,
         int icomm_grid,
         double xyzL[],
         double xyz_orig[],
-        int ncxyz[],
-        double density
+        int ncxyz[]
     );
 
     void setup_md
     (
-        int& nsteps,
-        int& initialstep,
-        double dt,
         int icomm_grid,
         double xyzL[],
-        double xyz_orig[],
-        double density
+        double xyz_orig[]
     );
 
 

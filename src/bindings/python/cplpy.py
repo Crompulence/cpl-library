@@ -175,50 +175,41 @@ class CPL:
 
     py_setup_cfd.argtypes = \
         [c_int,
-         c_double,
-         c_int,
          ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
          ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
-         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),
-         c_double]
+         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous')]
 
     @abortMPI
-    def setup_cfd(self, nsteps, dt, icomm_grid, xyzL, xyz_orig,
-                  ncxyz, density):
+    def setup_cfd(self, icomm_grid, xyzL, 
+                        xyz_orig, ncxyz):
         """
         Keyword arguments:
         real -- the real part (default 0.0)
         imag -- the imaginary part (default 0.0)
         """
 
-        self.py_setup_cfd(nsteps, dt, MPI._handleof(icomm_grid), xyzL,
-                          xyz_orig, ncxyz, density)
+        self.py_setup_cfd(MPI._handleof(icomm_grid), xyzL,
+                          xyz_orig, ncxyz)
 
 
     py_setup_md = _cpl_lib.CPLC_setup_md
 
     py_setup_md.argtypes = \
-        [POINTER(c_int),
-         POINTER(c_int),
-         c_double,
-         c_int,
+        [c_int,
          ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
-         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
-         c_double]
+         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous')]
 
     @abortMPI
-    def setup_md(self, dt, icom_grid, xyzL, xyz_orig, density=1.0):
+    def setup_md(self, icomm_grid, xyzL, xyz_orig):
         """
-        setup_md(self, dt, icom_grid, xyzL, xyz_orig, density=1.0)
+        setup_md(self, dt, icomm_grid, xyzL, xyz_orig)
         Keyword arguments:
         real -- the real part (default 0.0)
         imag -- the imaginary part (default 0.0)
         """
         nsteps = c_int()
         initialstep = c_int()
-        self.py_setup_md(byref(nsteps), byref(initialstep), dt,
-                         MPI._handleof(icom_grid), xyzL, xyz_orig, density)
-        return (nsteps.value, initialstep.value)
+        self.py_setup_md(MPI._handleof(icomm_grid), xyzL, xyz_orig)
 
     py_gather = _cpl_lib.CPLC_gather
 

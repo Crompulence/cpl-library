@@ -165,7 +165,7 @@ void CPLSocketFOAM::\
     double xyz_orig[3] = {0.0, 0.0, 0.0};
 
     // Initialise CPL library
-    CPL::setup_cfd (nsteps, dt_cfd, cartComm, xyzL, xyz_orig, ncxyz, dummyDensity);
+    CPL::setup_cfd (cartComm, xyzL, xyz_orig, ncxyz);
 
     getCellTopology();
     allocateBuffers();

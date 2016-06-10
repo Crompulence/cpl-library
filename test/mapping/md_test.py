@@ -11,8 +11,6 @@ CPL = CPL()
 # Do not show any info to the stdin
 CPL.set("output_mode", 0)
 
-dt = 0.1
-
 # Load parameters for the run
 params = cPickle.load(open("md_params.dic", "rb"))
 
@@ -59,7 +57,7 @@ if (nprocs_realm != NProcs):
 
 cart_comm = realm_comm.Create_cart([NPx, NPy, NPz])
 
-nsteps, initialstep = CPL.setup_md(dt, cart_comm, xyzL, xyz_orig, 1.0)
+CPL.setup_md(cart_comm, xyzL, xyz_orig)
 lines = ""
 test_passed = True
 

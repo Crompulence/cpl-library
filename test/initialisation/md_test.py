@@ -50,4 +50,4 @@ if (nprocs_realm != NProcs):
 
 cart_comm = realm_comm.Create_cart([NPx, NPy, NPz])
 
-nsteps, initialstep = CPL.setup_md(dt, cart_comm, xyzL, xyz_orig, 1.0)
+CPL.setup_md(cart_comm, xyzL, xyz_orig)

@@ -469,7 +469,7 @@ contains
 !   Test if CFD and MD realms are assigned correctly
 !-----------------------------------------------------------------------------
 
-subroutine print_cplheader
+subroutine print_cplheader()
     implicit none
 
     print*, "                                                                 "
@@ -488,7 +488,7 @@ subroutine print_cplheader
 
 end subroutine print_cplheader
 
-subroutine test_realms
+subroutine test_realms()
     implicit none
 
     integer              :: i, root, nproc, ncfd, nmd
@@ -613,17 +613,9 @@ subroutine CPL_finalize(ierr)
 	!Free communicators setup by CPL_setup
 	if (CPL_setup_complete .eq. 1) then
         if (CPL_OLAP_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_OLAP_COMM, ierr)
-	    !print*, "free CPL_OLAP_COMM in ", REALM_NAME(realm), " realm"
 		if (CPL_WORLD_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_WORLD_COMM, ierr)
-	    !print*, "free CPL_WORLD_COMM in ", REALM_NAME(realm), " realm"
 		if (CPL_CART_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_CART_COMM, ierr)
-	    !print*, "free CPL_CART_COMM in ", REALM_NAME(realm), " realm"
     	if (CPL_GRAPH_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_GRAPH_COMM, ierr)
-	    !print*, "free CPL_GRAPH_COMM in ", REALM_NAME(realm), " realm"
-		!select case(realm)
-		!case(CFD_realm)
- 		!case(MD_realm)
-		!end select
 	endif
 
     !Barrier over both CFD and MD realms
@@ -826,7 +818,7 @@ subroutine CPL_write_header(header_filename)
 end subroutine  CPL_write_header
 
 
-subroutine CPL_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density)
+subroutine CPL_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
 ! ----------------------------------------------------------------------------
 !Initialisation routine for coupler module - Every variable is sent and stored
 !to ensure both md and cfd region have an identical list of parameters
@@ -840,23 +832,14 @@ subroutine CPL_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density)
 !.. code-block:: c
 !
 !  coupler_cfd_init(
-!                  nsteps,
-!                  dt_cfd,
 !                  icomm_grid,
 !                  xyzL,
 !                  xyz_orig,
 !                  ncxyz,
-!                  density
 !                  )
 !
 !**Inputs**
 !
-! - *nsteps (inout)*
-!
-!   - Number of steps in CFD simulation.
-! - *dt_cfd (inout)*
-!
-!   - Timestep in CFD simulation.
 ! - *icomm_grid*
 !
 !   - Communicator based on CFD processor topology returned from a call to MPI_CART_CREATE.
@@ -869,9 +852,6 @@ subroutine CPL_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density)
 ! - *ncxyz*
 !
 !   - Number of CFD cells in global domain.
-! - *density*
-!
-!   - Density used in CFD code (still required when working with non-dimensionalised units in CFD as MD has an actual value of density based on domain.).
 !
 ! .. sectionauthor::Edward Smith, David Trevelyan, Eduardo Ramos Fernandez
 ! ------------------------------------
@@ -879,9 +859,8 @@ subroutine CPL_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density)
     implicit none           
     
     ! Params
-    integer, intent(in)                           :: nsteps, icomm_grid 
+    integer, intent(in)                           :: icomm_grid 
     integer, dimension(3), intent(in)             :: ncxyz
-    real(kind(0.d0)), intent(in)                  :: dt, density
     real(kind(0.d0)), dimension(3),  intent(in)   :: xyzL, xyz_orig
 
     ! Vars
@@ -952,8 +931,8 @@ subroutine CPL_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density)
     enddo
 
 
-    call coupler_cfd_init(nsteps, dt, icomm_grid, icoord, npxyz_cfd, xyzL, &
-                          xyz_orig, ncxyz, density, ijkcmax, ijkcmin, iTmin, &
+    call coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, &
+                          xyz_orig, ncxyz, ijkcmax, ijkcmin, iTmin, &
                           iTmax, jTmin, jTmax, kTmin, kTmax, xgrid, ygrid, &
                           zgrid)
     deallocate(icoord)
@@ -983,16 +962,12 @@ end subroutine CPL_setup_cfd
 !!
 !! - Synopsis
 !!
-!!  - coupler_cfd_init(nsteps,dt_cfd,icomm_grid,icoord,npxyz_cfd,xyzL,ncxyz,
-!!                             density,ijkcmax,ijkcmin,iTmin,iTmax,jTmin,
-!!                             jTmax,kTmin,kTmax,xg,yg,zg)
+!!  - coupler_cfd_init(icomm_grid,icoord,npxyz_cfd,xyzL,ncxyz,
+!!                     ijkcmax,ijkcmin,iTmin,iTmax,jTmin,
+!!                     jTmax,kTmin,kTmax,xg,yg,zg)
 !!
 !! - Input
 !!
-!!  - nsteps
-!!   - Number of time steps the CFD code is expected to run for (integer)
-!!  - dt_cfd
-!!   - CFD timestep (dp real)
 !!  - icomm_grid
 !!   - The MPI communicator setup by the MPI_CART_CREATE command in the 
 !!     CFD region (integer)
@@ -1004,8 +979,6 @@ end subroutine CPL_setup_cfd
 !!   - Size of domain in each cartesian dimension (dp real array 3)
 !!  - ncxyz
 !!   - Global number of cells in each cartesian dimension (integer array 3)
-!!  - density
-!!   - Density of the CFD simulation (dp_real)
 !!  - ijkcmax
 !!   - Global maximum cell in each cartesian dimension (integer array 3)
 !!  - ijkcmin
@@ -1042,17 +1015,16 @@ end subroutine CPL_setup_cfd
 ! ----------------------------------------------------------------------------
 
 
-subroutine coupler_cfd_init(nsteps,dt,icomm_grid,icoord,npxyz_cfd,xyzL, xyz_orig, ncxyz, &
-                            density,ijkcmax,ijkcmin,iTmin,iTmax,jTmin, & 
-                            jTmax,kTmin,kTmax,xgrid,ygrid,zgrid)
+subroutine coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, ncxyz, &
+                            ijkcmax, ijkcmin, iTmin, iTmax, jTmin, & 
+                            jTmax, kTmin, kTmax, xgrid, ygrid, zgrid)
     use mpi
     implicit none           
 
-    integer,                        intent(in)  :: nsteps,icomm_grid 
+    integer,                        intent(in)  :: icomm_grid 
     integer,dimension(3),           intent(in)  :: ijkcmin,ijkcmax,npxyz_cfd,ncxyz
     integer,dimension(:),           intent(in)  :: iTmin,iTmax,jTmin,jTmax,kTmin,kTmax
     integer,dimension(:,:),         intent(in)  :: icoord
-    real(kind(0.d0)),               intent(in)  :: dt,density
     real(kind(0.d0)),dimension(3),  intent(in)  :: xyzL, xyz_orig
     real(kind(0.d0)),dimension(:  ),intent(in)  :: zgrid
     real(kind(0.d0)),dimension(:,:),intent(in)  :: xgrid,ygrid
@@ -1100,12 +1072,6 @@ subroutine coupler_cfd_init(nsteps,dt,icomm_grid,icoord,npxyz_cfd,xyzL, xyz_orig
 
     ! Store & Send CFD processor rank to coord
     allocate(rank2coord_cfd(3,nproc_cfd),stat=ierr); rank2coord_cfd = icoord
-
-    !do ib=1,size(icoord,1)
-    !do jb=1,size(icoord,2)
-    !    print('(i1, a, i1, a, i1, a, i1)'), myid_world, ': icoord(', ib, ', ', jb, ') = ', icoord(ib,jb)
-    !end do 
-    !end do 
     
     iblock_realm=icoord(1,rank_realm) 
     jblock_realm=icoord(2,rank_realm)
@@ -1183,25 +1149,7 @@ subroutine coupler_cfd_init(nsteps,dt,icomm_grid,icoord,npxyz_cfd,xyzL, xyz_orig
     allocate(rank_mdcart2rank_world(nproc_md))
     call MPI_bcast(rank_mdcart2rank_world,nproc_md,MPI_integer,0,CPL_INTER_COMM,ierr)   !Receive
 
-    ! ------------------ Timesteps and iterations ------------------------------
-    ! Store & send CFD nsteps and dt_cfd
-    nsteps_cfd = nsteps
-    call MPI_bcast(nsteps,1,MPI_integer,source,CPL_INTER_COMM,ierr)         !Send
-    dt_cfd = dt
-    call MPI_bcast(dt,1,MPI_double_precision,source,CPL_INTER_COMM,ierr)    !Send
-
-    ! Receive & store MD timestep dt_md
-    call MPI_bcast(dt_md,1,MPI_double_precision,0,CPL_INTER_COMM,ierr)      !Receive
-    call MPI_bcast(nsteps_md,1,MPI_integer,     0,CPL_INTER_COMM,ierr)      !Receive
-
     ! ------------------ Send CFD grid extents ------------------------------
-
-    ! Store & send CFD density
-    !density_cfd = density
-    !call MPI_bcast(density_cfd,1,MPI_double_precision,source,CPL_INTER_COMM,ierr)  !Send
-
-    ! Receive & store MD density
-    !call MPI_bcast(density_md,1,MPI_double_precision,0,CPL_INTER_COMM,ierr)        !Receive
 
     ! Store & send CFD domain size
     xL_cfd = xyzL(1); yL_cfd = xyzL(2); zL_cfd = xyzL(3)
@@ -1244,10 +1192,6 @@ subroutine coupler_cfd_init(nsteps,dt,icomm_grid,icoord,npxyz_cfd,xyzL, xyz_orig
     call MPI_bcast(xgrid,size(xgrid),MPI_double_precision,source,CPL_INTER_COMM,ierr) !Send
     call MPI_bcast(ygrid,size(ygrid),MPI_double_precision,source,CPL_INTER_COMM,ierr) !Send
     call MPI_bcast(zgrid,size(zgrid),MPI_double_precision,source,CPL_INTER_COMM,ierr) !Send
-
-    !call write_matrix(xg,'cfd side, xg=',50+rank_realm)
-    !call write_matrix(yg,'cfd side, yg=',50+rank_realm)
-    !write(50+rank_realm,*), 'CFD side',rank_realm,'zg',zg
 
     ! Store & Send local (processor) CFD grid extents
     allocate(icPmin_cfd(npx_cfd),stat=ierr); icPmin_cfd(:) = iTmin(:)
@@ -1341,7 +1285,7 @@ contains
 end subroutine coupler_cfd_init
 
 
-subroutine CPL_setup_md(nsteps, initialstep, dt, icomm_grid, xyzL, xyz_orig, density)
+subroutine CPL_setup_md(icomm_grid, xyzL, xyz_orig)
 ! ----------------------------------------------------------------------------
 !Initialisation routine for coupler module - Every variable is sent and stored
 !to ensure both md and cfd region have an identical list of parameters
@@ -1355,26 +1299,13 @@ subroutine CPL_setup_md(nsteps, initialstep, dt, icomm_grid, xyzL, xyz_orig, den
 !.. code-block:: c
 !
 !  coupler_md_init(
-!                  nsteps,
-!                  initialstep,
-!                  dt,
 !                  icomm_grid,
 !                  xyzL,
 !                  xyz_orig,
-!                  density
 !                  )
 !
 !**Inputs**
 !
-! - *nsteps*
-!
-!   - Number of steps in MD simulation.
-! - *initialstep*
-!
-!   - Initial steps in MD simulation.
-! - *dt*
-!
-!   - Timestep in MD simulation.
 ! - *icomm_grid*
 !
 !   - Communicator based on MD processor topology returned from a call to MPI_CART_CREATE.
@@ -1394,9 +1325,7 @@ subroutine CPL_setup_md(nsteps, initialstep, dt, icomm_grid, xyzL, xyz_orig, den
     implicit none
 
     !Params
-    integer, intent(inout)                          :: nsteps, initialstep
     integer, intent(in)                             :: icomm_grid
-    real(kind(0.d0)), intent(in)                    :: dt, density
     real(kind=kind(0.d0)), dimension(3), intent(in) :: xyzL, xyz_orig
     
     !Vars
@@ -1417,8 +1346,7 @@ subroutine CPL_setup_md(nsteps, initialstep, dt, icomm_grid, xyzL, xyz_orig, den
         icoord(1:3, rank + 1) = cart_coords + 1
     enddo
 
-    call coupler_md_init(Nsteps, initialstep, dt, icomm_grid, & 
-                         icoord, npxyz_md, xyzL, xyz_orig, density)
+    call coupler_md_init(icomm_grid, icoord, npxyz_md, xyzL, xyz_orig)
     deallocate(icoord)
 
 	!Set flag to register setup is complete correctly
@@ -1435,14 +1363,10 @@ end subroutine CPL_setup_md
 !!
 !! - Synopsis
 !!
-!!  - coupler_mf_init(nsteps,dt_md,icomm_grid,icoord,npxyz_md,globaldomain,density)
+!!  - coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain)
 !!
 !! - Input
 !!
-!!  - nsteps
-!!   - Number of time steps the MD code is expected to run for (integer)
-!!  - dt_md
-!!   - MD timestep (dp real)
 !!  - icomm_grid
 !!   - The MPI communicator setup by the MPI_CART_CREATE command in the 
 !!     CFD region (integer)
@@ -1469,16 +1393,13 @@ end subroutine CPL_setup_md
 ! Initialisation routine for coupler - Every variable is sent and stored
 ! to ensure both md and cfd region have an identical list of parameters
 
-subroutine coupler_md_init(Nsteps, initialstep, dt, icomm_grid, & 
-                           icoord, npxyz_md, globaldomain, xyz_orig, density)
+subroutine coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain, xyz_orig)
     use mpi
     implicit none
 
-    integer, intent(inout)                          :: nsteps,initialstep
     integer, intent(in)                             :: icomm_grid
     integer, dimension(3), intent(in)               :: npxyz_md
     integer, dimension(:,:), intent(in)             :: icoord
-    real(kind(0.d0)),intent(in)                     :: dt,density
     real(kind=kind(0.d0)),dimension(3),intent(in)   :: globaldomain, xyz_orig
 
     integer                                         :: i,ib,jb,kb,pcoords(3),source,nproc
@@ -1590,24 +1511,7 @@ subroutine coupler_md_init(Nsteps, initialstep, dt, icomm_grid, &
     ! Send MD mapping from cart to local rank to CFD
     call MPI_bcast(rank_mdcart2rank_world,nproc_md,MPI_integer,source,CPL_INTER_COMM,ierr)   !send
 
-    ! ------------------ Timesteps and iterations ------------------------------
-    ! Receive & store CFD nsteps and dt_cfd
-    call MPI_bcast(nsteps_cfd,1,MPI_integer,0,CPL_INTER_COMM,ierr)              !Receive
-    call MPI_bcast(dt_cfd,1,MPI_double_precision,0,CPL_INTER_COMM,ierr)     !Receive
-
-    ! Store & send MD timestep to dt_md
-    dt_MD = dt
-    call MPI_bcast(dt,1,MPI_double_precision,source,CPL_INTER_COMM,ierr)    !Send
-    nsteps_MD = nsteps
-    call MPI_bcast(nsteps,1,MPI_integer,source,CPL_INTER_COMM,ierr) !Send
-
     ! ------------------ Receive CFD grid extents ------------------------------
-    ! Receive & store CFD density
-    !call MPI_bcast(density_cfd,1,MPI_double_precision,0,CPL_INTER_COMM,ierr)       !Receive
-
-    ! Store & send MD density
-    !density_md = density 
-    !call MPI_bcast(density,1,MPI_double_precision,source,CPL_INTER_COMM,ierr)  !Send
 
     ! Receive & store CFD domain size
     allocate(rbuf(3))
@@ -1620,8 +1524,6 @@ subroutine coupler_md_init(Nsteps, initialstep, dt, icomm_grid, &
     call MPI_bcast(rbuf,3,MPI_double_precision,0,CPL_INTER_COMM,ierr)               !Receive
     x_orig_cfd = rbuf(1); y_orig_cfd = rbuf(2); z_orig_cfd = rbuf(3)
     deallocate(rbuf)
-
-
 
     ! Store & send MD domain size
     xL_md = globaldomain(1); yL_md = globaldomain(2); zL_md = globaldomain(3) 
@@ -1674,38 +1576,59 @@ subroutine coupler_md_init(Nsteps, initialstep, dt, icomm_grid, &
 
     ! Establish mapping between MD an CFD
     call CPL_create_map()
-   
-    !if ( nsteps_md <= 0 ) then
-    !    write(0,*) "Number of MD steps per dt interval <= 0"
-    !    write(0,*) "Coupler will not work, quitting ..."
-    !    call MPI_Abort(MPI_COMM_WORLD,COUPLER_ERROR_INIT,ierr)
-    !endif
-
-    ! Setup timesteps and simulation timings based on CFD/coupler
-    call set_coupled_timing(initialstep, Nsteps)
 
 end subroutine coupler_md_init
 
 !-----------------------------------------------------------------------------
-! Lucian(?):
-!   This routine should be part of the initialisation of the coupler.
-!   The initial times (stime for cfd & elapsedtime for md) are
-!   compared to see if restart is consistent and number of steps on
-!   both sides of the coupler are calculated and stored
 
-! DT: This routine seems to me that it's unique to flowmol. I'll have a look
-!     at making it general when I do the LAMMPS socket. TODO(djt06@ic.ac.uk)
+subroutine CPL_set_timing(initialstep, Nsteps, dt)
+! - *nsteps*
 !
-! ES: I'm not sure you will...
+!   - Number of steps in MD simulation.
+! - *initialstep*
 !
-subroutine set_coupled_timing(initialstep, Nsteps)
+!   - Initial steps in MD simulation.
+! - *dt*
+!
+!   - Timestep in MD simulation.
+    use mpi
     implicit none
 
-    integer, intent(in) :: initialstep
-    integer, intent(out) :: Nsteps
+    integer, intent(inout) :: initialstep, Nsteps
+    real(kind=kind(0.d0)), intent(in) :: dt
+
+    integer :: Nsteps_MDperCFD, source
     real(kind=kind(0.d0)) :: elapsedtime
 
-    integer :: Nsteps_MDperCFD
+    if ( myid_realm .eq. rootid_realm ) then
+        source=MPI_ROOT
+    else
+        source=MPI_PROC_NULL
+    endif
+
+    ! ------------------ Timesteps and iterations ------------------------------
+    if (realm .eq. md_realm) then
+        ! Receive & store CFD nsteps and dt_cfd
+        call MPI_bcast(nsteps_cfd,1,MPI_integer,0,CPL_INTER_COMM,ierr)              !Receive
+        call MPI_bcast(dt_cfd,1,MPI_double_precision,0,CPL_INTER_COMM,ierr)     !Receive
+
+        ! Store & send MD timestep to dt_md
+        dt_MD = dt
+        call MPI_bcast(dt,1,MPI_double_precision,source,CPL_INTER_COMM,ierr)    !Send
+        nsteps_MD = nsteps
+        call MPI_bcast(nsteps,1,MPI_integer,source,CPL_INTER_COMM,ierr) !Send
+    elseif (realm .eq. cfd_realm) then
+    ! ------------------ Timesteps and iterations ------------------------------
+        ! Store & send CFD nsteps and dt_cfd
+        nsteps_cfd = nsteps
+        call MPI_bcast(nsteps,1,MPI_integer,source,CPL_INTER_COMM,ierr)         !Send
+        dt_cfd = dt
+        call MPI_bcast(dt,1,MPI_double_precision,source,CPL_INTER_COMM,ierr)    !Send
+
+        ! Receive & store MD timestep dt_md
+        call MPI_bcast(dt_md,1,MPI_double_precision,0,CPL_INTER_COMM,ierr)      !Receive
+        call MPI_bcast(nsteps_md,1,MPI_integer,     0,CPL_INTER_COMM,ierr)      !Receive
+    endif
 
     !Set number of MD timesteps per CFD using ratio of timestep or coupler value
     if (timestep_ratio .eq. VOID) then
@@ -1726,9 +1649,9 @@ subroutine set_coupled_timing(initialstep, Nsteps)
     endif 
 
     !Set corrected nsteps returned to MD
-    Nsteps = Nsteps_md
+    if (realm .eq. md_realm) Nsteps = Nsteps_md
 
-end subroutine set_coupled_timing
+end subroutine CPL_set_timing
 
 
 !=============================================================================
@@ -1753,11 +1676,11 @@ subroutine CPL_create_map
     call prepare_overlap_comms()
 
     ! Setup graph topology
-    call CPL_overlap_topology()
+    call set_overlap_topology()
 
 contains
 
-subroutine check_config_feasibility
+subroutine check_config_feasibility()
     implicit none
 
     integer :: ival
@@ -1970,16 +1893,6 @@ subroutine get_md_cell_ranges()
         jcPmin_md(n) = jcPmax_md(n) - ncyP_md + 1
         if (jcPmin_md(n).le.0) jcPmin_md(n) = 1
     end do  
-!    if (realm .eq. cfd_realm) then
-!        if (jcPmin_cfd(jblock_realm) .gt. jcmax_olap) then
-!            jcPmin_md(:) = VOID
-!            jcPmax_md(:) = VOID
-!        endif
-!        !print*, realm, rank_realm, jblock_realm, jcmax_olap, jcPmin_cfd()!, cfd_jcoord2olap_md_jcoords(rank_realm,:)
-!    endif
-
-    !print'(a,10i8)','summary', ncy_md, ncy_mdonly, ncy_olap, ncyP_md,  npy_md, ceiling(dble(ncy_olap)/dble(ncyP_md)), & 
-    !                 olap_jmin_mdproc, jblock_realm, jcPmin_md(1), jcPmax_md(1)
 
     ! - - z - -
     nczl = ceiling(dble(ncz)/dble(npz_md))
@@ -2067,7 +1980,7 @@ end subroutine get_md_cell_ranges
 !!  - NONE 
 !! 
 !! .. sectionauthor:: David Trevelyan
-subroutine get_overlap_blocks
+subroutine get_overlap_blocks()
     implicit none
 
     integer             :: i,n,endproc,nolapsx,nolapsy,nolapsz
@@ -2110,8 +2023,9 @@ subroutine get_overlap_blocks
     yLl_cfd = yL_cfd/npy_cfd
     endproc = ceiling(yL_olap/yLl_cfd)
     if (endproc .gt. npy_cfd) then
-        print*, "get_overlap_blocks warning - in get_overlap_blocks -- top processor in CFD greater than number"
-        print*,  "  of processors. This may be correct if some MD domain exists above CFD."
+        print*, "get_overlap_blocks warning - in get_overlap_blocks"
+        print*, "-- top processor in CFD greater than number of processors."
+        print*, "This may be correct if some MD domain exists above CFD."
         endproc = npy_cfd
         nolapsy = 1
         print*, endproc, nolapsy
@@ -2240,7 +2154,7 @@ end subroutine get_overlap_blocks
 !! - Output
 !!  - NONE 
 !! 
-subroutine prepare_overlap_comms
+subroutine prepare_overlap_comms()
     use mpi
     implicit none
 
@@ -2360,7 +2274,7 @@ end subroutine prepare_overlap_comms
 !=========================================================================
 !Setup topology graph of overlaps between CFD & MD processors
 
-subroutine CPL_overlap_topology
+subroutine set_overlap_topology()
     use mpi
     implicit none
 
@@ -2406,7 +2320,7 @@ subroutine CPL_overlap_topology
                      rank_graph2rank_world, rank_world2rank_graph, ierr)
     myid_graph = rank_graph - 1
 
-end subroutine CPL_overlap_topology
+end subroutine set_overlap_topology
 
 
 subroutine print_overlap_comms
@@ -2439,148 +2353,6 @@ subroutine print_overlap_comms
 end subroutine print_overlap_comms
 
 end subroutine CPL_create_map
-
-!=============================================================================
-!   Adjust CFD domain size to an integer number of lattice units used by  
-!   MD if sizes are given in sigma units
-!-----------------------------------------------------------------------------
-
-subroutine CPL_cfd_adjust_domain(xL, yL, zL, nx, ny, nz, density_output)
-    use mpi
-    !use coupler_module, only : density_cfd,CPL_REALM_COMM, rank_realm, ierr
-    implicit none
-
-    integer, optional, intent(inout)            :: nx, ny, nz
-    real(kind(0.d0)), optional, intent(inout)   :: xL,yL,zL
-    real(kind(0.d0)), optional, intent(inout)   :: density_output
-
-    ! Internal variables
-    integer                                     :: ierror, root
-    !character(1)                                :: direction
-    logical                                     :: changed
-
-    !Define root processes
-    root = 1
-
-    density_output = density_cfd
-
-    ! Check CFD domain and MD domain are compatible sizes to allow a
-    ! stable initial MD lattice structure - resize if possible or
-    ! stop code and demand a regeneration of grid if vary by more than 0.01
-    changed = .false.
-    if (present(xL)) then
-        call init_length(xL,resize=.true.,direction='x', &
-                         print_warning=changed)
-    endif
-
-    ! No need to adjust y because we can adjust DY in MD to
-    ! have an integer number of FCC units. ??????? What
-
-    if (present(zL)) then
-        call init_length(zL,resize=.true.,direction='z', &
-                         print_warning=changed)
-    endif
-
-    if ( changed ) then
-        print*, "CPL_cfd_adjust_domain error - Regenerate Grid with corrected sizes as above"
-        call MPI_Abort(MPI_COMM_WORLD,ierror,ierr)
-    endif
-
-    ! check id CFD cell sizes are larger than 2*sigma 
-    call test_cfd_cell_sizes
-
-contains
-
-!-----------------------------------------------------------------------------
-
-subroutine init_length(rout,resize,direction,print_warning)
-    !use coupler_module, only: dx,dy,dz,error_abort
-    implicit none
-            
-    real(kind=kind(0.d0)), intent(inout) :: rout
-    logical, intent(in)                  :: resize
-    character(*),intent(in)              :: direction
-    logical,intent(out)                  :: print_warning
-
-    real(kind(0.d0)) :: dxyz  ! dx, dy or dz
-    real(kind(0.d0)) :: rinit ! initial val of rout or rin for print
-
-    print_warning=.false.
-
-    select case (direction)
-    case('x','X')
-        dxyz = dx
-    case('y','Y')
-        dxyz = dy
-    case('z','Z')
-        dxyz = dz
-    case default
-        call error_abort('Wrong direction specified in init_length')
-    end select
-
-    if ( resize ) then
-
-        rinit = rout
-        rout = real(nint(rout/dxyz),kind(0.d0))*dxyz
-        print_warning = .true.
-        print*, direction, 'dxyz = ', dxyz 
-
-    endif
-
-    if (print_warning) then 
-
-        !if (rank_realm .eq. root) then 
-
-            write(*,'(3(a,/),3a,/,2(a,f20.10),/a,/,a)') &
-                    "*********************************************************************",    &
-                    "WARNING - this is a coupled run which resets CFD domain size         ",    &
-                    " to an integer number of MD initial cells:                           ",    &
-                    "   Domain resized in the ", direction, " direction                   ",    &
-                    " inital size =", rinit, " resized ", rout,                                 &
-                    "                                                                     ",    & 
-                    "*********************************************************************"   
-        !endif
-
-        !If resize is insignificant then return flag print_warning as false
-        if (abs(rinit-rout) .lt. 0.01) print_warning = .false.
-
-    end if
-    
-end subroutine init_length
-
-!-----------------------------------------------------------------------------
-
-subroutine test_cfd_cell_sizes
-    implicit none
-
-    if (rank_realm .eq. root) then
-        if (present(xL) .and. present(nx)) then
-            if (xL/nx < 2.0d0) then
-                write(0,*)" WARNING: CFD cell size in x direction is less that 2 * sigma. Does this make sense?" 
-                write(0,*)"          xL=",xL,"nx=",nx
-            endif
-        endif
-
-        if (present(yL) .and. present(ny)) then
-            if (yL/ny < 2.0d0) then
-                write(0,*)" WARNING: CFD cell size in y direction is less that 2 * sigma. Does this make sense?" 
-                write(0,*)"          yL=",yL,"nx=",ny
-            endif
-        endif
-
-        if (present(zL) .and. present(nz)) then
-            if (zL/nz < 2.0d0) then
-                write(0,*)" WARNING: CFD cell size in z direction is less that 2 * sigma. Does this make sense?" 
-                write(0,*)"          zL=",zL,"nx=",nz
-            endif
-        endif
-    end if
-        
-end subroutine test_cfd_cell_sizes
-            
-end subroutine CPL_cfd_adjust_domain
-
-
 
 !-------------------------------------------------------------------
 !                   CPL_rank_map                                   -
@@ -2891,3 +2663,159 @@ subroutine set_output_mode(mode)
 end subroutine
 
 end module coupler_module
+
+
+
+
+!!=============================================================================
+!!   Adjust CFD domain size to an integer number of lattice units used by  
+!!   MD if sizes are given in sigma units
+!!-----------------------------------------------------------------------------
+
+!subroutine CPL_cfd_adjust_domain(xL, yL, zL, nx, ny, nz, density_output)
+!    use mpi
+!    !use coupler_module, only : density_cfd,CPL_REALM_COMM, rank_realm, ierr
+!    implicit none
+
+!    integer, optional, intent(inout)            :: nx, ny, nz
+!    real(kind(0.d0)), optional, intent(inout)   :: xL,yL,zL
+!    real(kind(0.d0)), optional, intent(inout)   :: density_output
+
+!    ! Internal variables
+!    integer                                     :: ierror, root
+!    !character(1)                                :: direction
+!    logical                                     :: changed
+
+!    !Define root processes
+!    root = 1
+
+!    density_output = density_cfd
+
+!    ! Check CFD domain and MD domain are compatible sizes to allow a
+!    ! stable initial MD lattice structure - resize if possible or
+!    ! stop code and demand a regeneration of grid if vary by more than 0.01
+!    changed = .false.
+!    if (present(xL)) then
+!        call init_length(xL,resize=.true.,direction='x', &
+!                         print_warning=changed)
+!    endif
+
+!    ! No need to adjust y because we can adjust DY in MD to
+!    ! have an integer number of FCC units. ??????? What
+
+!    if (present(zL)) then
+!        call init_length(zL,resize=.true.,direction='z', &
+!                         print_warning=changed)
+!    endif
+
+!    if ( changed ) then
+!        print*, "CPL_cfd_adjust_domain error - Regenerate Grid with corrected sizes as above"
+!        call MPI_Abort(MPI_COMM_WORLD,ierror,ierr)
+!    endif
+
+!    ! check id CFD cell sizes are larger than 2*sigma 
+!    call test_cfd_cell_sizes
+
+!contains
+
+!!-----------------------------------------------------------------------------
+
+!subroutine init_length(rout,resize,direction,print_warning)
+!    !use coupler_module, only: dx,dy,dz,error_abort
+!    implicit none
+!            
+!    real(kind=kind(0.d0)), intent(inout) :: rout
+!    logical, intent(in)                  :: resize
+!    character(*),intent(in)              :: direction
+!    logical,intent(out)                  :: print_warning
+
+!    real(kind(0.d0)) :: dxyz  ! dx, dy or dz
+!    real(kind(0.d0)) :: rinit ! initial val of rout or rin for print
+
+!    print_warning=.false.
+
+!    select case (direction)
+!    case('x','X')
+!        dxyz = dx
+!    case('y','Y')
+!        dxyz = dy
+!    case('z','Z')
+!        dxyz = dz
+!    case default
+!        call error_abort('Wrong direction specified in init_length')
+!    end select
+
+!    if ( resize ) then
+
+!        rinit = rout
+!        rout = real(nint(rout/dxyz),kind(0.d0))*dxyz
+!        print_warning = .true.
+!        print*, direction, 'dxyz = ', dxyz 
+
+!    endif
+
+!    if (print_warning) then 
+
+!        !if (rank_realm .eq. root) then 
+
+!            write(*,'(3(a,/),3a,/,2(a,f20.10),/a,/,a)') &
+!                    "*********************************************************************",    &
+!                    "WARNING - this is a coupled run which resets CFD domain size         ",    &
+!                    " to an integer number of MD initial cells:                           ",    &
+!                    "   Domain resized in the ", direction, " direction                   ",    &
+!                    " inital size =", rinit, " resized ", rout,                                 &
+!                    "                                                                     ",    & 
+!                    "*********************************************************************"   
+!        !endif
+
+!        !If resize is insignificant then return flag print_warning as false
+!        if (abs(rinit-rout) .lt. 0.01) print_warning = .false.
+
+!    end if
+!    
+!end subroutine init_length
+
+!!-----------------------------------------------------------------------------
+
+!subroutine test_cfd_cell_sizes
+!    implicit none
+
+!    if (rank_realm .eq. root) then
+!        if (present(xL) .and. present(nx)) then
+!            if (xL/nx < 2.0d0) then
+!                write(0,*)" WARNING: CFD cell size in x direction is less that 2 * sigma. Does this make sense?" 
+!                write(0,*)"          xL=",xL,"nx=",nx
+!            endif
+!        endif
+
+!        if (present(yL) .and. present(ny)) then
+!            if (yL/ny < 2.0d0) then
+!                write(0,*)" WARNING: CFD cell size in y direction is less that 2 * sigma. Does this make sense?" 
+!                write(0,*)"          yL=",yL,"nx=",ny
+!            endif
+!        endif
+
+!        if (present(zL) .and. present(nz)) then
+!            if (zL/nz < 2.0d0) then
+!                write(0,*)" WARNING: CFD cell size in z direction is less that 2 * sigma. Does this make sense?" 
+!                write(0,*)"          zL=",zL,"nx=",nz
+!            endif
+!        endif
+!    end if
+!        
+!end subroutine test_cfd_cell_sizes
+!            
+!end subroutine CPL_cfd_adjust_domain
+
+
+
+
+
+
+
+
+
+
+
+
+

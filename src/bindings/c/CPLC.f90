@@ -105,19 +105,16 @@ contains
 
     end subroutine CPLC_finalize
 
-    subroutine CPLC_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density) &
+    subroutine CPLC_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz) &
         bind (C, name="CPLC_setup_cfd")
         use CPL, only: CPL_setup_cfd
         implicit none
 
         ! Integers
-        integer(C_INT), value :: nsteps
         integer(C_INT), value :: icomm_grid
         type(C_PTR), value :: ncxyz ! (3)
 
         ! Reals
-        real(C_DOUBLE), value :: dt
-        real(C_DOUBLE), value :: density
         type(C_PTR), value :: xyzL, xyz_orig ! (3)
 
         ! Fortran equivalent array pointers
@@ -131,21 +128,20 @@ contains
         call C_F_POINTER(xyzL, xyzL_f, [3])
         call C_F_POINTER(xyz_orig, xyz_orig_f, [3])
 
-        call CPL_setup_cfd(nsteps, dt, icomm_grid, xyzL_f, xyz_orig_f, ncxyz_f, density)
+        call CPL_setup_cfd(icomm_grid, xyzL_f, xyz_orig_f, ncxyz_f)
 
 
     end subroutine CPLC_setup_cfd
 
 
-    subroutine CPLC_cfd_init(nsteps, dt, icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, &
-                             ncxyz, density, ijkcmax, ijkcmin, iTmin, iTmax,  &
+    subroutine CPLC_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, &
+                             ncxyz, ijkcmax, ijkcmin, iTmin, iTmax,  &
                              jTmin, jTmax, kTmin, kTmax, xgrid, ygrid, zgrid) &
         bind (C, name="CPLC_cfd_init")
         use CPL, only: coupler_cfd_init
         implicit none
 
         ! Integers
-        integer(C_INT), value :: nsteps
         integer(C_INT), value :: icomm_grid
         type(C_PTR), value :: ijkcmin ! (3)
         type(C_PTR), value :: ijkcmax ! (3)
@@ -157,8 +153,6 @@ contains
         type(C_PTR), value :: icoord ! (3, nprocs)
 
         ! Reals
-        real(C_DOUBLE), value :: dt
-        real(C_DOUBLE), value :: density
         type(C_PTR), value :: xyzL ! (3)
         type(C_PTR), value :: xyz_orig ! (3)
         type(C_PTR), value :: xgrid, ygrid ! (ncx, ncy)
@@ -214,8 +208,8 @@ contains
         call C_F_POINTER(zgrid, zgrid_f, [ncz+1])
 
         ! Call the old routine
-        call coupler_cfd_init(nsteps, dt, icomm_grid, icoord_f, npxyz_cfd_f,  &
-                              xyzL_f, xyz_orig_f, ncxyz_f, density, ijkcmax_f, ijkcmin_f, &
+        call coupler_cfd_init(icomm_grid, icoord_f, npxyz_cfd_f,  &
+                              xyzL_f, xyz_orig_f, ncxyz_f, ijkcmax_f, ijkcmin_f, &
                               iTmin_f, iTmax_f, jTmin_f, jTmax_f, kTmin_f,    &
                               kTmax_f, xgrid_f, ygrid_f, zgrid_f)
 
@@ -283,20 +277,15 @@ contains
     end subroutine CPLC_test_python
 
 
-    subroutine CPLC_setup_md(nsteps, initialstep, dt, icomm_grid, &
-                             xyzL, xyz_orig, density) &
+    subroutine CPLC_setup_md(icomm_grid, xyzL, xyz_orig) &
         bind(C, name="CPLC_setup_md")
         use CPL, only: CPL_setup_md
         implicit none
 
         ! Integers
-        integer(C_INT) :: nsteps ! NOT by value, will be modified
-        integer(C_INT) :: initialstep ! NOT by value, will be modified
         integer(C_INT), value :: icomm_grid
        
         ! Reals
-        real(C_DOUBLE), value :: dt
-        real(C_DOUBLE), value :: density
         type(C_PTR), value :: xyzL, xyz_orig! (3)
 
         ! Fortran equivalent arrays
@@ -307,29 +296,24 @@ contains
         call C_F_POINTER(xyz_orig, xyz_orig_f, [3])
 
         ! Call routine
-        call CPL_setup_md(nsteps, initialstep, dt, icomm_grid, xyzL_f, xyz_orig_f, &
-                          density)
+        call CPL_setup_md(icomm_grid, xyzL_f, xyz_orig_f)
     
         
     end subroutine CPLC_setup_md
 
 
-    subroutine CPLC_md_init(nsteps, initialstep, dt, icomm_grid, icoord, &
-                            npxyz_md, globaldomain, xyz_orig, density) &
+    subroutine CPLC_md_init(icomm_grid, icoord, & 
+                            npxyz_md, globaldomain, xyz_orig) &
         bind(C, name="CPLC_md_init")
         use CPL, only: coupler_md_init
         implicit none
        
         ! Integers
-        integer(C_INT) :: nsteps ! NOT by value, will be modified
-        integer(C_INT) :: initialstep ! NOT by value, will be modified
         integer(C_INT), value :: icomm_grid
         type(C_PTR), value :: icoord ! (3, nprocs)
         type(C_PTR), value :: npxyz_md ! (3)
        
         ! Reals
-        real(C_DOUBLE), value :: dt
-        real(C_DOUBLE), value :: density
         type(C_PTR), value :: globaldomain ! (3)
         type(C_PTR), value :: xyz_orig! (3)
 
@@ -354,8 +338,8 @@ contains
         call C_F_POINTER(icoord, icoord_f, [3, nprocs])
 
         ! Call routine
-        call coupler_md_init(nsteps, initialstep, dt, icomm_grid, icoord_f, &
-                             npxyz_md_f, globaldomain_f, xyz_orig_f, density)
+        call coupler_md_init(icomm_grid, icoord_f, npxyz_md_f, & 
+                             globaldomain_f, xyz_orig_f)
     
     end subroutine CPLC_md_init
 

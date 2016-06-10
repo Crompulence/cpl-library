@@ -50,8 +50,7 @@ program md_cpl_example
                          .true., CART_COMM, ierr)
 
     !Coupler setup
-    call CPL_setup_md(nsteps, initialstep, dt, CART_COMM, & 
-                      xyzL, xyz_orig, density)
+    call CPL_setup_md(CART_COMM, xyzL, xyz_orig)
 
     !Get detail for grid
     call CPL_get_olap_limits(limits)

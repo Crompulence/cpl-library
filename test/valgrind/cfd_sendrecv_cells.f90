@@ -26,11 +26,6 @@ program cfd_cpl_example
     !Create MD Comm by spliting world
     call CPL_init(CFD_realm, CFD_COMM, ierr)
 
-    !Parameters
-    dt = 0.1
-    density = 0.8
-    nsteps = 100
-
     ! Parameters of the cpu topology (cartesian grid)
     call read_input(xyzL=xyzL, xyz_orig=xyz_orig, & 
                     npxyz_CFD=npxyz, ncxyz=ncxyz)
@@ -49,7 +44,7 @@ program cfd_cpl_example
                          .true., CART_COMM, ierr)
 
     !Coupler setup
-    call CPL_setup_cfd(nsteps, dt, CART_COMM, xyzL, xyz_orig, ncxyz, density)
+    call CPL_setup_cfd(CART_COMM, xyzL, xyz_orig, ncxyz)
 
     !Get detail for grid
     call CPL_get_olap_limits(limits)

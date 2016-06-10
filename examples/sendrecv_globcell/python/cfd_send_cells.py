@@ -27,7 +27,7 @@ if (nprocs_realm != NProcs):
     MPI.Abort(errorcode=1)
 
 cart_comm = realm_comm.Create_cart([NPx, NPy, NPz])
-CPL.setup_cfd(nsteps, dt, cart_comm, xyzL, xyz_orig, ncxyz, density)
+CPL.setup_cfd(cart_comm, xyzL, xyz_orig, ncxyz)
 
 cart_rank = cart_comm.Get_rank()
 olap_limits = CPL.get_olap_limits()

@@ -46,17 +46,15 @@ Author(s)
 
 extern "C" void CPLC_init(int  calling_realm, int* returned_realm_comm);
 extern "C" void CPLC_finalize();
-extern "C" void CPLC_setup_cfd(int nsteps, double dt, int icomm_grid, 
-                               double xyzL[], double xyz_orig[], 
-                               int ncxyz[], double density);
+extern "C" void CPLC_setup_cfd(int icomm_grid, double xyzL[], 
+                               double xyz_orig[], int ncxyz[]);
 
 extern "C" void CPLC_test_python(int int_p, double doub_p, bool bool_p, 
                                  int* int_pptr, double* doub_pptr, 
                                  int* int_pptr_dims, int* doub_pptr_dims);
 
-extern "C" void CPLC_setup_md(int* nsteps, int* initialstep, double dt, 
-                              int icomm_grid, double xyzL[], 
-                              double xyz_orig[], double density);
+extern "C" void CPLC_setup_md(int icomm_grid, double xyzL[], 
+                              double xyz_orig[]);
 
 extern "C" void CPLC_send(double* asend, int* asend_shape, int* limits, bool *send_flag);
 extern "C" void CPLC_recv(double* arecv, int* arecv_shape, int* limits, bool *recv_flag);

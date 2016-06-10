@@ -23,17 +23,10 @@ program md_cpl_example
     !Create MD Comm by spliting world
     call CPL_init(md_realm, MD_COMM, ierr)
 
-    !Parameters
-    dt = 0.002
-    density = 0.8
-	nsteps = 5000
-	initialstep = 0
-
     ! Parameters of the cpu topology (cartesian grid)
     xyzL = (/10.d0, 10.d0, 10.d0/)
     xyz_orig = (/0.d0, 0.d0, 0.d0/)
     npxyz = (/ 4, 2, 2/)
-
 
     ! Create communicators and check that number of processors is consistent
     call MPI_Comm_size(MD_COMM, nprocs_realm, ierr) 
@@ -50,8 +43,7 @@ program md_cpl_example
                          .true., CART_COMM, ierr)
 
     !Coupler setup
-    call CPL_setup_md(nsteps, initialstep, dt, CART_COMM, & 
-                      xyzL, xyz_orig, density)
+    call CPL_setup_md(CART_COMM, xyzL, xyz_orig)
 
     !Get detail for grid
     call CPL_get_olap_limits(limits)

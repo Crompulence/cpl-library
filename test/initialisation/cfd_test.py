@@ -11,9 +11,6 @@ CPL = CPL()
 # Do not show any info to the stdin
 CPL.set("output_mode", 0)
 
-nsteps = 1
-dt = 0.2
-
 # Load parameters for the run
 params = cPickle.load(open("cfd_params.dic", "rb"))
 
@@ -62,4 +59,4 @@ if (nprocs_realm != NProcs):
 # for the grid topology.
 cart_comm = realm_comm.Create_cart([NPx, NPy, NPz])
 
-CPL.setup_cfd(nsteps, dt, cart_comm, xyzL, xyz_orig, ncxyz, 1.0)
+CPL.setup_cfd(cart_comm, xyzL, xyz_orig, ncxyz)

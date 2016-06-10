@@ -10,11 +10,6 @@ int main() {
    int CFD_realm = 1, CFD_COMM;
    CPL::init(CFD_realm, CFD_COMM);
 
-   // Parameters
-   int dt = 0.1;
-   double density = 0.8;
-   int nsteps = 100;
-
    // Parameters of the cpu topology (cartesian grid)
    double xyzL[3] = {10.0, 10.0, 10.0};
    double xyz_orig[3] = {0.0, 0.0, 0.0};
@@ -38,7 +33,7 @@ int main() {
    MPI_Cart_create(CFD_COMM, 3, npxyz, periods, true, &CART_COMM);
 
    // Coupler setup
-   CPL::setup_cfd(nsteps, dt, CART_COMM, xyzL, xyz_orig, ncxyz, density);
+   CPL::setup_cfd(CART_COMM, xyzL, xyz_orig, ncxyz);
 
    // Get detail for grid
    int Ncells[3];

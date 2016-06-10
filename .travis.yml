@@ -44,7 +44,7 @@ before_script:
 script:
     - make test-all
     - make test-examples
-    - make webdocs-all
+#    - make webdocs-all
     - make test-valgrind
 
 
