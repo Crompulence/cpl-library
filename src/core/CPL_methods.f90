@@ -846,7 +846,7 @@ subroutine CPL_send(asend, limits, send_flag)
 
             ! Send data 
             itag = 0 !mod( ncalls, MPI_TAG_UB) !Attention ncall could go over max tag value for long runs!!
-            call MPI_sSend(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
+            call MPI_send(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
 
         endif
 
@@ -970,7 +970,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     call MPI_Graph_neighbors(CPL_GRAPH_COMM,myid_graph,nneighbors,id_neighbors,ierr )
 
     ! Receive from all attached processors
-    allocate(req(nneighbors))
+    allocate(req(nneighbors)); req = MPI_REQUEST_NULL
     allocate(status(MPI_STATUS_SIZE,nneighbors))
     start_address = 1 
     do nbr = 1, nneighbors
@@ -994,7 +994,9 @@ subroutine CPL_recv(arecv, limits, recv_flag)
         !Only receive if overlapping
         if (any(portion.eq.VOID)) then
             ndata = 0
-            req(nbr) = MPI_REQUEST_NULL
+            if (req(nbr) .ne. MPI_REQUEST_NULL) then
+                call MPI_Request_free(req(nbr), ierr)
+            endif   
             if (present(recv_flag)) recv_flag = .false.
         else
             ! Amount of data to receive
@@ -1008,8 +1010,8 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 
             ! Receive section of data
             itag = 0
-            call MPI_irecv(vbuf(start_address),ndata,MPI_DOUBLE_PRECISION,sourceid,itag,&
-                                    CPL_GRAPH_COMM,req(nbr),ierr)
+            call MPI_irecv(vbuf(start_address), ndata, MPI_DOUBLE_PRECISION, sourceid, itag,&
+                                    CPL_GRAPH_COMM, req(nbr), ierr)
 
         endif
 
@@ -1018,7 +1020,14 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 
     enddo
     call MPI_waitall(nneighbors, req, status, ierr)
-    call MPI_errorcheck(ierr)
+
+    !free all requests
+!    do nbr = 1, nneighbors
+!        if (req(nbr) .ne. MPI_REQUEST_NULL) then
+!            call MPI_Request_free(req(nbr), ierr)
+!        endif
+!    enddo
+!    deallocate(req)
 
     !if (rank_world .eq. 33) then
     !   do n = 1,size(vbuf)

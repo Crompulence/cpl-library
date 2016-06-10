@@ -88,5 +88,9 @@ if CPL.overlap() and no_error:
            ") CELLS HAVE BEEN RECEIVED CORRECTLY.\n", end="")
 MPI.COMM_WORLD.Barrier()
 
+#Free comms and finalise
+MD_COMM.Free()
+cart_comm.Free()
+
 CPL.finalize()
 MPI.Finalize()
