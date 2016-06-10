@@ -68,6 +68,8 @@ int main() {
 
    // Release all coupler comms 
    CPL::finalize();
+    MPI_Comm_free(&CFD_COMM);
+    MPI_Comm_free(&CART_COMM);
    MPI_Finalize();
    
 }

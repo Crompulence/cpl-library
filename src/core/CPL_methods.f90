@@ -846,7 +846,7 @@ subroutine CPL_send(asend, limits, send_flag)
 
             ! Send data 
             itag = 0 !mod( ncalls, MPI_TAG_UB) !Attention ncall could go over max tag value for long runs!!
-            call MPI_send(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
+            call MPI_sSend(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
 
         endif
 
@@ -1018,6 +1018,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 
     enddo
     call MPI_waitall(nneighbors, req, status, ierr)
+    call MPI_errorcheck(ierr)
 
     !if (rank_world .eq. 33) then
     !   do n = 1,size(vbuf)
@@ -2538,5 +2539,18 @@ subroutine test_python (integer_p, double_p, bool_p, integer_pptr, double_pptr)
  end subroutine
 
 !------------------------------------------------------------------------------
+
+subroutine MPI_errorcheck(ierr)
+	use mpi
+
+    integer, intent(in) :: ierr
+
+	integer             :: resultlen, newierr
+	character(12)       :: err_buffer
+
+	call MPI_Error_string(ierr, err_buffer, resultlen, newierr)
+	print*, err_buffer
+
+end subroutine MPI_errorcheck
 
 end module coupler
