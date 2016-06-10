@@ -85,7 +85,5 @@ int main() {
 
    // Release all coupler comms 
    CPL::finalize();
-   MPI_free_comm(MD_COMM)
-   MPI_free_comm(CART_COMM)
    MPI_Finalize();
 }

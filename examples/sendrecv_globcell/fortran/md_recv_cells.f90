@@ -101,8 +101,8 @@ program md_cpl_example
 
     !Deallocate arrays and finalise MPI
     deallocate(recv_array)
-    call MPI_free_comm(MD_COMM, ierr)
-    call MPI_free_comm(CART_COMM, ierr)
+    call MPI_Comm_free(MD_COMM, ierr)
+    call MPI_Comm_free(CART_COMM, ierr)
     call MPI_finalize(ierr)
 
 end program

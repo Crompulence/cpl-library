@@ -79,8 +79,8 @@ program cfd_cpl_example
 
     !Deallocate arrays, free comms and finalise MPI
     deallocate(send_array)
-    call MPI_free_comm(CFD_COMM, ierr)
-    call MPI_free_comm(CART_COMM, ierr)
+    call MPI_Comm_free(CFD_COMM, ierr)
+    call MPI_Comm_free(CART_COMM, ierr)
     call MPI_finalize(ierr)
 
 end program cfd_cpl_example
