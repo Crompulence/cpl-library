@@ -32,13 +32,14 @@
             <a href=#compilation ><li>Compilation</li></a>
             <a href=#MLE><li>Demo: a minimal linking example</li></a>
             <a href=#linking><li>Demo: a minimum send/recv example</li></a>
+            <a href=#analysing><li>Demo: visualising a coupled simulation</li></a>
         </ul>
         <p>
         The following sections of this guide are currently being written and
         will appear soon:
         </p>
         <ul>
-            <a href=#analysing><li>Analysing a coupled simulation</li></a>
+            <a href=#MD_CFD><li>Minimal CFD and MD code with coupling</li></a>
         </ul>
 
         <h2 id="prerequisites">Pre-requisites</h2></a>
@@ -449,6 +450,48 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             which the compilers and flags are defined. The template provided is likely to
             work for most machines, but the user is advised to create their own version.
         </p>-->
+        <h2 id="analysing">Demo: visualising a coupled simulation</h2>
+
+        <p>
+            The previous section, although an important test is not particularly exciting.
+            In this section, a more interesting visual example is presented which uses
+            the python interface and matplotlib to plot results. A fortran
+            and c++ example MD code specifies a test sinusoidal function in x, y and z of the form
+            and sends this to a python CFD code which plots the results. The fortran and
+            c++ codes are almost indentical to the <a href=#linking><li>previous example</li></a> , 
+            although this time the MD code sends to the CFD. 
+        </p>
+
+        <details>
+            <summary> MD fortran send code </summary>
+             <!--#include virtual="demo-codes/md_send_topo_fortran.html"-->
+        </details>
+
+        <details>
+            <summary> MD c++ send code </summary>
+             <!--#include virtual="demo-codes/md_send_topo_cpp.html"-->
+        </details> 
+
+        <p>
+            The python code requires matplotlib to be <a href=http://matplotlib.org/users/installing.html><li>installed</li></a>,
+            which for debian based systems uses,
+            <div class="code">
+                sudo apt-get build-dep python-matplotlib
+            </div>
+            please see the <a href=http://matplotlib.org/index.html><li>official website </li></a> for more information.
+            The python CFD code which uses matplotlib to display the data recieved is as follows:
+        </p> 
+
+        <details>
+            <summary> CFD python recieve and plot </summary>
+             <!--#include virtual="demo-codes/cfd_recv_topo_python.html"-->
+        </details>
+
+        <p>
+            This plots a figure of the form,
+        </p> 
+
+        <img width=80% src="./topology_plot.png" >
 
     </div>
 
