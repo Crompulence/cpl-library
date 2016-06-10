@@ -9,12 +9,11 @@ program cfd_cpl_example
     logical :: recv_flag, send_flag, NO_ERROR
     integer :: i,j,k,ii,jj,kk,ierr
     integer :: NPx, NPy, NPz, NProcs, rank
-    integer :: nprocs_realm, nsteps, initialstep
+    integer :: nprocs_realm
     integer :: CART_COMM, CFD_COMM
     integer, parameter :: cfd_realm=1
     integer, dimension(3) :: npxyz, Ncells, ncxyz
     integer, dimension(6) :: portion, limits
-    double precision :: dt, density
     double precision, dimension(3)  :: xyzL, xyz_orig
     double precision, dimension(:,:,:,:), & 
          allocatable  :: send_array
@@ -78,8 +77,10 @@ program cfd_cpl_example
     !Release all coupler comms 
     call CPL_finalize(ierr)
 
-    !Deallocate arrays and finalise MPI
+    !Deallocate arrays, free comms and finalise MPI
     deallocate(send_array)
+    call MPI_free_comm(CFD_COMM, ierr)
+    call MPI_free_comm(CART_COMM, ierr)
     call MPI_finalize(ierr)
 
 end program cfd_cpl_example

@@ -8,12 +8,11 @@ program md_cpl_example
 
     logical :: recv_flag,send_flag, NO_ERROR
     integer :: i,j,k,ii,jj,kk,ierr,errorcode
-    integer :: rank, nprocs_realm, nsteps, initialstep
+    integer :: rank, nprocs_realm
     integer :: CART_COMM, MD_COMM
     integer, parameter :: md_realm=2
     integer, dimension(3) :: npxyz, Ncells
     integer, dimension(6) :: portion, limits
-    double precision :: dt, density
     double precision, dimension(3)  :: xyzL, xyz_orig
     double precision, dimension(:,:,:,:), allocatable  :: recv_array, send_array
 
@@ -102,6 +101,8 @@ program md_cpl_example
 
     !Deallocate arrays and finalise MPI
     deallocate(recv_array)
+    call MPI_free_comm(MD_COMM, ierr)
+    call MPI_free_comm(CART_COMM, ierr)
     call MPI_finalize(ierr)
 
 end program
