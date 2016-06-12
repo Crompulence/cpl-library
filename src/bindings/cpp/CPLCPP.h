@@ -217,6 +217,12 @@ namespace CPL
         if (name == "cpl_cfd_bc_z") fp = reinterpret_cast<T(*)()> (&CPLC_cpl_cfd_bc_z);
         if (name == "cpl_md_bc_slice") fp = reinterpret_cast<T(*)()> (&CPLC_cpl_md_bc_slice);
         if (name == "cpl_cfd_bc_slice") fp = reinterpret_cast<T(*)()> (&CPLC_cpl_cfd_bc_slice);
+        if (name == "cpl_x_orig_cfd") fp = reinterpret_cast<T(*)()> (&CPLC_x_orig_cfd);
+        if (name == "cpl_y_orig_cfd") fp = reinterpret_cast<T(*)()> (&CPLC_y_orig_cfd);
+        if (name == "cpl_z_orig_cfd") fp = reinterpret_cast<T(*)()> (&CPLC_z_orig_cfd);
+        if (name == "cpl_x_orig_md") fp = reinterpret_cast<T(*)()> (&CPLC_x_orig_md);
+        if (name == "cpl_y_orig_md") fp = reinterpret_cast<T(*)()> (&CPLC_y_orig_md);
+        if (name == "cpl_z_orig_md") fp = reinterpret_cast<T(*)()> (&CPLC_z_orig_md);
 
         T got = fp();
 

@@ -1205,6 +1205,61 @@ contains
         
     end function CPLC_zl_cfd
 
+    real(C_DOUBLE) function CPLC_x_orig_cfd() &
+        bind(C, name="CPLC_x_orig_cfd")
+        use CPL, only: x_orig_cfd
+        implicit none
+
+        CPLC_x_orig_cfd = x_orig_cfd
+        
+    end function CPLC_x_orig_cfd
+
+    real(C_DOUBLE) function CPLC_y_orig_cfd() &
+        bind(C, name="CPLC_y_orig_cfd")
+        use CPL, only: y_orig_cfd
+        implicit none
+
+        CPLC_y_orig_cfd = y_orig_cfd
+        
+    end function CPLC_y_orig_cfd
+
+    real(C_DOUBLE) function CPLC_z_orig_cfd() &
+        bind(C, name="CPLC_z_orig_cfd")
+        use CPL, only: z_orig_cfd
+        implicit none
+
+        CPLC_z_orig_cfd = z_orig_cfd
+        
+    end function CPLC_z_orig_cfd
+
+    real(C_DOUBLE) function CPLC_x_orig_md() &
+        bind(C, name="CPLC_x_orig_md")
+        use CPL, only: x_orig_md
+        implicit none
+
+        CPLC_x_orig_md = x_orig_md
+        
+    end function CPLC_x_orig_md
+
+    real(C_DOUBLE) function CPLC_y_orig_md() &
+        bind(C, name="CPLC_y_orig_md")
+        use CPL, only: y_orig_md
+        implicit none
+
+        CPLC_y_orig_md = y_orig_md
+        
+    end function CPLC_y_orig_md
+
+    real(C_DOUBLE) function CPLC_z_orig_md() &
+        bind(C, name="CPLC_z_orig_md")
+        use CPL, only: z_orig_md
+        implicit none
+
+        CPLC_z_orig_md = z_orig_md
+        
+    end function CPLC_z_orig_md
+
+
     !Getters: pointers
     
     type(C_PTR) function CPLC_xg() &

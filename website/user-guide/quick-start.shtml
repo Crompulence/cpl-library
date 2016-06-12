@@ -458,7 +458,7 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             the python interface and matplotlib to plot results. A fortran
             and c++ example MD code specifies a test sinusoidal function in x, y and z of the form
             and sends this to a python CFD code which plots the results. The fortran and
-            c++ codes are almost indentical to the <a href=#linking><li>previous example</li></a> , 
+            c++ codes are almost indentical to the <a href=#linking>previous example</a> , 
             although this time the MD code sends to the CFD. 
         </p>
 
@@ -473,12 +473,12 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
         </details> 
 
         <p>
-            The python code requires matplotlib to be <a href=http://matplotlib.org/users/installing.html><li>installed</li></a>,
+            The python code requires matplotlib to be <a href=http://matplotlib.org/users/installing.html>installed</a>,
             which for debian based systems uses,
             <div class="code">
                 sudo apt-get build-dep python-matplotlib
             </div>
-            please see the <a href=http://matplotlib.org/index.html><li>official website </li></a> for more information.
+            please see the <a href=http://matplotlib.org/index.html>official website </a> for more information.
             The python CFD code which uses matplotlib to display the data recieved is as follows:
         </p> 
 

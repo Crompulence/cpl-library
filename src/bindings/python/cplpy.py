@@ -34,7 +34,10 @@ _CPL_GET_VARS = {"icmin_olap": c_int, "jcmin_olap": c_int, "kcmin_olap": c_int,
                  "npx_cfd": c_int, "npy_cfd": c_int, "npz_cfd": c_int,
                  "overlap": c_int, "xl_md": c_double, "yl_md": c_double,
                  "zl_md": c_double, "xl_cfd": c_double, "yl_cfd": c_double,
-                 "zl_cfd": c_double}
+                 "zl_cfd": c_double,
+                 "x_orig_cfd": c_double,"y_orig_cfd": c_double,"z_orig_cfd": c_double,
+                 "x_orig_md": c_double,"y_orig_md": c_double,"z_orig_md": c_double
+                 }
 
 _CPL_SET_VARS = {"output_mode": c_int}
 
@@ -140,8 +143,6 @@ class CPL:
         excptstr += "(No idea what to do in the Fortran code, maybe MPI_COMM_f2C required)"
         raise OpenMPI_Not_Supported(excptstr)
         _py_init.argtypes = [c_int, POINTER(c_void_p)]
-
-    _py_init.argtypes = [c_int, POINTER(c_int)]
 
     @abortMPI
     def init(self, calling_realm):

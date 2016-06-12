@@ -1,15 +1,15 @@
-from mpi4py import MPI
-from cplpy import CPL
 import numpy as np
 import matplotlib.pyplot as plt
+from mpi4py import MPI
 
+from cplpy import CPL
 from draw_grid import draw_grid
 
 #initialise MPI and CPL
 comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-COMM_size = comm.Get_size()
 CPL = CPL()
+CFD_COMM = CPL.init(CPL.CFD_REALM)
+nprocs_realm = CFD_COMM.Get_size()
 
 # Parameters of the cpu topology (cartesian grid)
 npxyz = np.array([1, 1, 1], order='F', dtype=np.int32)
@@ -17,10 +17,6 @@ NProcs = np.product(npxyz)
 xyzL = np.array([10.0, 10.0, 10.0], order='F', dtype=np.float64)
 xyz_orig = np.array([0.0, 0.0, 0.0], order='F', dtype=np.float64)
 ncxyz = np.array([16, 6, 16], order='F', dtype=np.int32)
-
-# Initialise coupler library
-CFD_COMM = CPL.init(CPL.CFD_REALM)
-nprocs_realm = CFD_COMM.Get_size()
 
 if (nprocs_realm != NProcs):
     print("Non-coherent number of processes in CFD ", nprocs_realm,
@@ -39,7 +35,7 @@ recv_array = np.zeros((1, ncxl, ncyl, nczl), order='F', dtype=np.float64)
 recv_array, ierr = CPL.recv(recv_array, olap_limits)
 
 #Plot output
-fig, ax = plt.subplots(2,1)
+fig, ax = plt.subplots(1,1)
 
 # === Plot both grids ===
 dx = CPL.get("xl_cfd")/float(CPL.get("ncx"))
@@ -52,17 +48,19 @@ xoverlap = ioverlap*dx
 yoverlap = joverlap*dy
 zoverlap = koverlap*dz
 
+print(CPL.get("xl_cfd"))
+
 #Plot CFD and coupler Grid
-draw_grid(ax[0], 
+draw_grid(ax, 
           nx=CPL.get("ncx"),
           ny=CPL.get("ncy"),
           nz=CPL.get("ncz"),
           px=CPL.get("npx_cfd"),
           py=CPL.get("npy_cfd"),
           pz=CPL.get("npz_cfd"),
-          xmin=xyz_orig[0],
-          ymin=xyz_orig[1],
-          zmin=xyz_orig[2],
+          xmin=CPL.get("x_orig_cfd"),
+          ymin=CPL.get("y_orig_cfd"),
+          zmin=CPL.get("z_orig_cfd"),
           xmax=(CPL.get("icmax_olap")+1)*dx,
           ymax=CPL.get("yl_cfd"),
           zmax=(CPL.get("kcmax_olap")+1)*dz,
@@ -70,43 +68,30 @@ draw_grid(ax[0],
           label='CFD')
 
 #Plot MD domain
-draw_grid(ax[0], nx=1, ny=1, nz=1,
+draw_grid(ax, nx=1, ny=1, nz=1,
           px=CPL.get("npx_md"),
           py=CPL.get("npy_md"),
           pz=CPL.get("npz_md"),
-          xmin=CPL.get("icmin_olap")*dx,
+          xmin=CPL.get("x_orig_md"),
           ymin=-CPL.get("yl_md")+yoverlap,
-          zmin=-CPL.get("kcmin_olap")*dz,
+          zmin=CPL.get("z_orig_md"),
           xmax=(CPL.get("icmax_olap")+1)*dx,
           ymax=yoverlap,
           zmax=(CPL.get("kcmax_olap")+1)*dz,
           label='MD')
 
 #Plot some random molecules
-#ax[0].plot(np.random.random(100)*(CPL.get("xl_md")),
-#           np.random.random(100)*(CPL.get("yl_md"))-CPL.get("yl_md")+yoverlap,
-#           'ob',alpha=0.5)
-
-#print(CPL.get("icmin_olap"),CPL.get("icmax_olap")+1,float(CPL.get("ncx")),CPL.get("zl_cfd"),dz)
-#for i in range(CPL.get("icmin_olap"),CPL.get("icmax_olap")+1):
-#    for j in range(CPL.get("jcmin_olap"),CPL.get("jcmax_olap")+1):
-#        #for k in range(CPL.get("kcmin_olap"),CPL.get("kcmax_olap")):
-
-#        ax[0].text(i*dx,j*dy,str(i)+","+str(j))
+ax.plot(np.random.random(100)*(CPL.get("xl_md")),
+           np.random.random(100)*(CPL.get("yl_md"))-CPL.get("yl_md")+yoverlap,
+           'ob',alpha=0.5)
 
 #Plot x component on grid
-x = np.linspace(.5*dx,xoverlap-.5*dx,ioverlap)
-z = np.linspace(.5*dz,zoverlap-.5*dz,koverlap)
+x = np.linspace(CPL.get("x_orig_cfd")+.5*dx,xoverlap-.5*dx,ioverlap)
+z = np.linspace(CPL.get("z_orig_cfd")+.5*dz,zoverlap-.5*dz,koverlap)
 for j in range(joverlap):
-    ax[0].plot(x, 0.5*dy*(recv_array[0,:,j,0]+1.+2*j), 's-')
-ax[0].set_xlabel('$x$')
-ax[0].set_ylabel('$y$')
-
-#Plot xz of bottom cell
-X,Z = np.meshgrid(z,x)
-ax[1].pcolormesh(X,Z,recv_array[0,:,0,:])
-ax[1].set_xlabel('$x$')
-ax[1].set_ylabel('$z$')
+    ax.plot(x, 0.5*dy*(recv_array[0,:,j,0]+1.+2*j), 's-')
+ax.set_xlabel('$x$')
+ax.set_ylabel('$y$')
 plt.show()
 
 CPL.finalize()

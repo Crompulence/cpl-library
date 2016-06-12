@@ -19,5 +19,7 @@ rm -rf md cfd
 source ${CPL_PATH}/SOURCEME.sh
 
 cd ${DIR}
-mpiexec -n 4 ./fortran/md : -n 1 python ./python/CFD_recv_and_plot.py
-mpiexec -n 4 ./cpp/md : -n 1 python ./python/CFD_recv_and_plot.py
+#mpiexec -n 4 ./fortran/md : -n 1 python ./python/CFD_recv_and_plot.py
+#mpiexec -n 4 ./cpp/md : -n 1 python ./python/CFD_recv_and_plot.py
+#mpiexec -n 4 ./fortran/md : -n 1 python ./python/CFD_recv_and_plot_grid.py
+mpiexec -n 4 ./fortran/md : -n 1 python ./python/CFD_recv_and_plot_grid_interactive.py
