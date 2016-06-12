@@ -40,7 +40,7 @@ program cfd_cpl_example
 
     !Setup cartesian topology
     call MPI_comm_rank(CFD_COMM, rank, ierr)
-    call MPI_Cart_create(CFD_COMM, 3, npxyz, (/1, 1, 1/), & 
+    call MPI_Cart_create(CFD_COMM, 3, npxyz, (/.true., .true., .true./), & 
                          .true., CART_COMM, ierr)
 
     !Coupler setup

@@ -1,4 +1,4 @@
-<!-- Generator: GNU source-highlight 3.1.6
+<!-- Generator: GNU source-highlight 3.1.5
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -45,9 +45,9 @@ nprocs_realm <font color="#990000">=</font> MD_COMM<font color="#990000">.</font
 
 cart_comm <font color="#990000">=</font> MD_COMM<font color="#990000">.</font><b><font color="#000000">Create_cart</font></b><font color="#990000">([</font>NPx<font color="#990000">,</font> NPy<font color="#990000">,</font> NPz<font color="#990000">])</font>
 
-nsteps<font color="#990000">,</font> initialstep <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">setup_md</font></b><font color="#990000">(</font>dt<font color="#990000">,</font> cart_comm<font color="#990000">,</font> xyzL<font color="#990000">,</font> xyz_orig<font color="#990000">,</font> <font color="#993399">1.0</font><font color="#990000">)</font>
+CPL<font color="#990000">.</font><b><font color="#000000">setup_md</font></b><font color="#990000">(</font>cart_comm<font color="#990000">,</font> xyzL<font color="#990000">,</font> xyz_orig<font color="#990000">)</font>
 
-<i><font color="#9A1900"># Send test</font></i>
+<i><font color="#9A1900"># recv test</font></i>
 olap_limits <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">get_olap_limits</font></b><font color="#990000">()</font>
 portion <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">my_proc_portion</font></b><font color="#990000">(</font>olap_limits<font color="#990000">)</font>
 <font color="#990000">[</font>ncxl<font color="#990000">,</font> ncyl<font color="#990000">,</font> nczl<font color="#990000">]</font> <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">get_no_cells</font></b><font color="#990000">(</font>portion<font color="#990000">)</font>
@@ -91,4 +91,11 @@ MD_COMM<font color="#990000">.</font><b><font color="#000000">Barrier</font></b>
     <b><font color="#0000FF">print</font></b> <font color="#990000">(</font><font color="#FF0000">"MD -- "</font> <font color="#990000">+</font> <font color="#FF0000">"(rank=%2d"</font> <font color="#990000">%</font> rank <font color="#990000">+</font>
            <font color="#FF0000">") CELLS HAVE BEEN RECEIVED CORRECTLY.\n"</font><font color="#990000">,</font> end<font color="#990000">=</font><font color="#FF0000">""</font><font color="#990000">)</font>
 MPI<font color="#990000">.</font>COMM_WORLD<font color="#990000">.</font><b><font color="#000000">Barrier</font></b><font color="#990000">()</font>
+
+<i><font color="#9A1900">#Free comms and finalise</font></i>
+MD_COMM<font color="#990000">.</font><b><font color="#000000">Free</font></b><font color="#990000">()</font>
+cart_comm<font color="#990000">.</font><b><font color="#000000">Free</font></b><font color="#990000">()</font>
+
+CPL<font color="#990000">.</font><b><font color="#000000">finalize</font></b><font color="#990000">()</font>
+MPI<font color="#990000">.</font><b><font color="#000000">Finalize</font></b><font color="#990000">()</font>
 </tt></pre>
