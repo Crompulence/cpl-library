@@ -147,4 +147,4 @@ webdocs-all:
 
 # Clean
 clean:
-	rm -rf $(objdir) $(libdir) $(includedir)
+	rm -rf $(objdir) $(libdir) $(includedir) ./*.mod

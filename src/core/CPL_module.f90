@@ -609,11 +609,11 @@ subroutine CPL_finalize(ierr)
 	!Comminicators setup by CPL_init()
 	if (CPL_INTER_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_INTER_COMM, ierr)
 	if (CPL_REALM_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_REALM_COMM, ierr)
+	if (CPL_WORLD_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_WORLD_COMM, ierr)
 
 	!Free communicators setup by CPL_setup
 	if (CPL_setup_complete .eq. 1) then
         if (CPL_OLAP_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_OLAP_COMM, ierr)
-		if (CPL_WORLD_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_WORLD_COMM, ierr)
 		if (CPL_CART_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_CART_COMM, ierr)
     	if (CPL_GRAPH_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_GRAPH_COMM, ierr)
 	endif

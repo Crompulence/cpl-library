@@ -2,6 +2,7 @@
 if [ -z "$CPL_PATH" ] 
 then
     echo "CPL_PATH variable is not set."
+    CPL_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 else
     export CPL_LIBRARY_PATH="$CPL_PATH/lib"
     if [ -z "$PYTHONPATH" ] 

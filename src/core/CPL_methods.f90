@@ -37,8 +37,9 @@
 !
 !
 !Author(s)
-! .. codeauthor:: Edward Smith 
-! .. codeauthor:: David Trevelyan September 2012 to De
+! .. codeauthor:: Edward Smith Novemeber 2011 to present
+! .. codeauthor:: Eduardo Ramos Fernandez 2015 to present
+! .. codeauthor:: David Trevelyan September 2012 to December 2015
 ! .. codeauthor:: Lucian Anton, November 2011  
 !
 !! Routines accessible from application ( molecular or continuum ) after
@@ -846,7 +847,7 @@ subroutine CPL_send(asend, limits, send_flag)
 
             ! Send data 
             itag = 0 !mod( ncalls, MPI_TAG_UB) !Attention ncall could go over max tag value for long runs!!
-            call MPI_send(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
+            call MPI_sSend(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
 
         endif
 
@@ -971,7 +972,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 
     ! Receive from all attached processors
     allocate(req(nneighbors)); req = MPI_REQUEST_NULL
-    allocate(status(MPI_STATUS_SIZE,nneighbors))
+    allocate(status(MPI_STATUS_SIZE, nneighbors))
     start_address = 1 
     do nbr = 1, nneighbors
 
@@ -984,7 +985,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
             call CPL_Cart_coords(CPL_GRAPH_COMM, sourceid+1, md_realm, 3, pcoords, ierr) 
         elseif (realm .eq. md_realm) then
             !MD realm receives data as big as own processor domain
-            pcoords = (/iblock_realm,jblock_realm,kblock_realm /)
+            pcoords = (/iblock_realm, jblock_realm, kblock_realm /)
         endif
 
         ! If limits passed to recv routine, use these instead
@@ -1023,6 +1024,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 
     !free all requests
 !    do nbr = 1, nneighbors
+!	print*, req(nbr)
 !        if (req(nbr) .ne. MPI_REQUEST_NULL) then
 !            call MPI_Request_free(req(nbr), ierr)
 !        endif
