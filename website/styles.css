@@ -142,6 +142,8 @@ div#nav homebutton
     text-transform: uppercase !important;
     padding-bottom: 20px !important;
 }
+/* Always include scroll to stop shift */
+html{ overflow-y:scroll; }
 
 
 /* Schematic */
