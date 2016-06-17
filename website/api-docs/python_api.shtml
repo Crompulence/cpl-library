@@ -31,9 +31,7 @@
   </head>
   <body role="document">
 
-    <div class="center">
-	    <!--#include virtual="/nav.html"-->
-    </div>
+     <!--#include virtual="/nav.html"-->
 
      <div class="topnav" role="navigation" aria-label="top navigation">
       

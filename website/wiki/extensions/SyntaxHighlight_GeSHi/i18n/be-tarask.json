@@ -1,9 +1,0 @@
-{
-	"@metadata": {
-		"authors": [
-			"EugeneZelenko",
-			"Jim-by"
-		]
-	},
-	"syntaxhighlight-desc": "Дазваляе выкарыстоўваць тэг  <code>&lt;syntaxhighlight&gt;</code> для падсьветкі сынтаксісу з дапамогай [http://pygments.org/ Pygments]"
-}

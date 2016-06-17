@@ -1,8 +1,0 @@
-{
-	"@metadata": {
-		"authors": [
-			"Meno25"
-		]
-	},
-	"syntaxhighlight-desc": "يوفر تعليم النص <code>&lt;syntaxhighlight&gt;</code> باستخدام [http://pygments.org/ معلم GeSHi]"
-}

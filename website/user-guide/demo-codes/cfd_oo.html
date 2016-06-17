@@ -1,0 +1,158 @@
+<!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><b><font color="#000080">import</font></b> numpy as np
+<b><font color="#000080">import</font></b> matplotlib<font color="#990000">.</font>pyplot as plt
+
+<b><font color="#000080">from</font></b> draw_grid <b><font color="#000080">import</font></b> draw_grid
+
+<b><font color="#0000FF">class</font></b> CFD<font color="#990000">:</font>
+<i><font color="#9A1900">    """</font></i>
+<i><font color="#9A1900">        Solve the diffusion equation</font></i>
+<i><font color="#9A1900">        du/dt = (rho/gamma) * d2u/dx2</font></i>
+<i><font color="#9A1900">    """</font></i>
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">__init__</font></b><font color="#990000">(</font>self<font color="#990000">,</font> dt<font color="#990000">,</font> nu <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">.,</font> 
+                 xsize <font color="#990000">=</font> <font color="#993399">10</font><font color="#990000">,</font> ysize <font color="#990000">=</font> <font color="#993399">10</font><font color="#990000">,</font>
+                 xmin <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">.,</font> xmax <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">.,</font>
+                 ymin <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">.,</font> ymax <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">.,</font>
+                 fig<font color="#990000">=</font>None<font color="#990000">):</font>
+
+        <i><font color="#9A1900">#Define coefficients</font></i>
+        self<font color="#990000">.</font>nu <font color="#990000">=</font> nu
+        self<font color="#990000">.</font>xsize <font color="#990000">=</font> xsize
+        self<font color="#990000">.</font>ysize <font color="#990000">=</font> ysize
+        self<font color="#990000">.</font>xmin <font color="#990000">=</font> xmin
+        self<font color="#990000">.</font>xmax <font color="#990000">=</font> xmax
+        self<font color="#990000">.</font>ymin <font color="#990000">=</font> ymin
+        self<font color="#990000">.</font>ymax <font color="#990000">=</font> ymax
+        self<font color="#990000">.</font>dt <font color="#990000">=</font> dt
+
+        <i><font color="#9A1900">#Define arrays</font></i>
+        self<font color="#990000">.</font>x <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>xmin<font color="#990000">,</font>xmax<font color="#990000">,</font>xsize<font color="#990000">)</font>
+        self<font color="#990000">.</font>dx <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">mean</font></b><font color="#990000">(</font>np<font color="#990000">.</font><b><font color="#000000">diff</font></b><font color="#990000">(</font>self<font color="#990000">.</font>x<font color="#990000">))</font>
+        self<font color="#990000">.</font>y <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>ymin<font color="#990000">,</font>ymax<font color="#990000">,</font>ysize<font color="#990000">)</font>
+        self<font color="#990000">.</font>dy <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">mean</font></b><font color="#990000">(</font>np<font color="#990000">.</font><b><font color="#000000">diff</font></b><font color="#990000">(</font>self<font color="#990000">.</font>y<font color="#990000">))</font>
+
+        <i><font color="#9A1900">#For plotting</font></i>
+        self<font color="#990000">.</font>X<font color="#990000">,</font>self<font color="#990000">.</font>Y <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">meshgrid</font></b><font color="#990000">(</font>self<font color="#990000">.</font>x<font color="#990000">,</font>self<font color="#990000">.</font>y<font color="#990000">)</font>
+
+        <i><font color="#9A1900">#Check CFL stability conditions</font></i>
+        self<font color="#990000">.</font>CFL <font color="#990000">=</font>  <font color="#990000">(</font><font color="#993399">1</font><font color="#990000">./(</font><font color="#993399">2</font><font color="#990000">.*</font>nu<font color="#990000">))*(</font>self<font color="#990000">.</font>dx<font color="#990000">*</font>self<font color="#990000">.</font>dy<font color="#990000">)**</font><font color="#993399">2</font><font color="#990000">/(</font>self<font color="#990000">.</font>dx<font color="#990000">**</font><font color="#993399">2</font><font color="#990000">+</font>self<font color="#990000">.</font>dy<font color="#990000">**</font><font color="#993399">2</font><font color="#990000">)</font>
+        <b><font color="#0000FF">if</font></b> self<font color="#990000">.</font>dt <font color="#990000">&gt;</font> self<font color="#990000">.</font>CFL<font color="#990000">:</font>
+            <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"Stability conditions violated, CFL="</font><font color="#990000">,</font> self<font color="#990000">.</font>CFL <font color="#990000">,</font>
+                  <font color="#FF0000">"&gt; dt="</font><font color="#990000">,</font> self<font color="#990000">.</font>dt<font color="#990000">,</font><font color="#FF0000">" adjust dt, nu or grid spacing"</font><font color="#990000">)</font>
+            <b><font color="#000000">quit</font></b><font color="#990000">()</font>
+        <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+            <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"Timestep dt = "</font><font color="#990000">,</font> self<font color="#990000">.</font>dt<font color="#990000">,</font> <font color="#FF0000">" CFL number= "</font><font color="#990000">,</font> self<font color="#990000">.</font>CFL<font color="#990000">)</font>
+
+        <i><font color="#9A1900">#initial condition</font></i>
+        self<font color="#990000">.</font>u0 <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">([</font>xsize<font color="#990000">,</font>ysize<font color="#990000">])</font>
+
+        <i><font color="#9A1900">#Setup first times</font></i>
+        self<font color="#990000">.</font>u <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">copy</font></b><font color="#990000">(</font>self<font color="#990000">.</font>u0<font color="#990000">)</font>
+        self<font color="#990000">.</font>u_mdt <font color="#990000">=</font>  np<font color="#990000">.</font><b><font color="#000000">copy</font></b><font color="#990000">(</font>self<font color="#990000">.</font>u0<font color="#990000">)</font>
+        self<font color="#990000">.</font>u_m2dt <font color="#990000">=</font>  np<font color="#990000">.</font><b><font color="#000000">copy</font></b><font color="#990000">(</font>self<font color="#990000">.</font>u0<font color="#990000">)</font>
+        self<font color="#990000">.</font>first_time <font color="#990000">=</font> True
+
+        <i><font color="#9A1900">#Setup figure</font></i>
+        <b><font color="#0000FF">if</font></b> fig <font color="#990000">==</font>  None<font color="#990000">:</font>
+            self<font color="#990000">.</font>fig<font color="#990000">,</font> self<font color="#990000">.</font>ax <font color="#990000">=</font> plt<font color="#990000">.</font><b><font color="#000000">subplots</font></b><font color="#990000">(</font><font color="#993399">1</font><font color="#990000">,</font><font color="#993399">1</font><font color="#990000">)</font>
+            plt<font color="#990000">.</font><b><font color="#000000">ion</font></b><font color="#990000">()</font>
+            plt<font color="#990000">.</font><b><font color="#000000">show</font></b><font color="#990000">()</font>
+        <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+            self<font color="#990000">.</font>fig <font color="#990000">=</font> fig
+            self<font color="#990000">.</font>ax <font color="#990000">=</font> fig<font color="#990000">.</font>axes
+
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">set_bc</font></b><font color="#990000">(</font>self<font color="#990000">,</font> topwall<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">.,</font> bottomwall<font color="#990000">=</font><font color="#993399">0</font><font color="#990000">.):</font>
+        <i><font color="#9A1900">#Periodic boundaries</font></i>
+        self<font color="#990000">.</font>u<font color="#990000">[-</font><font color="#993399">1</font><font color="#990000">,</font><font color="#993399">1</font><font color="#990000">:-</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> self<font color="#990000">.</font>u<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">,</font><font color="#993399">1</font><font color="#990000">:-</font><font color="#993399">1</font><font color="#990000">];</font> self<font color="#990000">.</font>u<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">,</font><font color="#993399">1</font><font color="#990000">:-</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> self<font color="#990000">.</font>u<font color="#990000">[-</font><font color="#993399">2</font><font color="#990000">,</font><font color="#993399">1</font><font color="#990000">:-</font><font color="#993399">1</font><font color="#990000">]</font>
+        <i><font color="#9A1900">#Enforce boundary conditions</font></i>
+        self<font color="#990000">.</font>u<font color="#990000">[:,</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">=</font> bottomwall<font color="#990000">;</font> self<font color="#990000">.</font>u<font color="#990000">[:,-</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> topwall
+
+
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">update_time</font></b><font color="#990000">(</font>self<font color="#990000">):</font>
+        <i><font color="#9A1900"># Save previous value</font></i>
+        self<font color="#990000">.</font>u_m2dt <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">copy</font></b><font color="#990000">(</font>self<font color="#990000">.</font>u_mdt<font color="#990000">)</font>
+        self<font color="#990000">.</font>u_mdt <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">copy</font></b><font color="#990000">(</font>self<font color="#990000">.</font>u<font color="#990000">)</font>
+
+        <i><font color="#9A1900">#Solve for new u</font></i>
+        <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font><font color="#993399">1</font><font color="#990000">,</font>self<font color="#990000">.</font>x<font color="#990000">.</font>size<font color="#990000">-</font><font color="#993399">1</font><font color="#990000">):</font>
+            <b><font color="#0000FF">for</font></b> j <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font><font color="#993399">1</font><font color="#990000">,</font>self<font color="#990000">.</font>y<font color="#990000">.</font>size<font color="#990000">-</font><font color="#993399">1</font><font color="#990000">):</font>
+                <i><font color="#9A1900">#Diffusion equation, forward Euler</font></i>
+                self<font color="#990000">.</font>u<font color="#990000">[</font>i<font color="#990000">,</font>j<font color="#990000">]</font> <font color="#990000">=</font> self<font color="#990000">.</font>u_mdt<font color="#990000">[</font>i<font color="#990000">,</font>j<font color="#990000">]</font> <font color="#990000">+</font> self<font color="#990000">.</font>nu<font color="#990000">*</font>self<font color="#990000">.</font>dt<font color="#990000">*(</font>
+                                <font color="#990000">(</font>self<font color="#990000">.</font>u_mdt<font color="#990000">[</font>i<font color="#990000">+</font><font color="#993399">1</font><font color="#990000">,</font>j<font color="#990000">]-</font><font color="#993399">2</font><font color="#990000">.*</font>self<font color="#990000">.</font>u_mdt<font color="#990000">[</font>i<font color="#990000">,</font>j<font color="#990000">]+</font>self<font color="#990000">.</font>u_mdt<font color="#990000">[</font>i<font color="#990000">-</font><font color="#993399">1</font><font color="#990000">,</font>j<font color="#990000">])/</font>self<font color="#990000">.</font>dx<font color="#990000">**</font><font color="#993399">2</font>
+                               <font color="#990000">+(</font>self<font color="#990000">.</font>u_mdt<font color="#990000">[</font>i<font color="#990000">,</font>j<font color="#990000">+</font><font color="#993399">1</font><font color="#990000">]-</font><font color="#993399">2</font><font color="#990000">.*</font>self<font color="#990000">.</font>u_mdt<font color="#990000">[</font>i<font color="#990000">,</font>j<font color="#990000">]+</font>self<font color="#990000">.</font>u_mdt<font color="#990000">[</font>i<font color="#990000">,</font>j<font color="#990000">-</font><font color="#993399">1</font><font color="#990000">])/</font>self<font color="#990000">.</font>dy<font color="#990000">**</font><font color="#993399">2</font><font color="#990000">)</font>
+
+    <i><font color="#9A1900">#Plot graph</font></i>
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">plot</font></b><font color="#990000">(</font>self<font color="#990000">,</font> ax<font color="#990000">=</font>None<font color="#990000">):</font>
+        <b><font color="#0000FF">if</font></b> ax <font color="#990000">==</font> None<font color="#990000">:</font>
+            ax<font color="#990000">=</font>self<font color="#990000">.</font>ax
+
+        sm <font color="#990000">=</font> ax<font color="#990000">.</font><b><font color="#000000">imshow</font></b><font color="#990000">(</font>self<font color="#990000">.</font>u<font color="#990000">.</font>T<font color="#990000">,</font>aspect<font color="#990000">=</font><font color="#FF0000">'auto'</font><font color="#990000">,</font>origin<font color="#990000">=</font><font color="#FF0000">'lower'</font><font color="#990000">,</font>
+                       extent<font color="#990000">=[</font>self<font color="#990000">.</font>xmin<font color="#990000">,</font>self<font color="#990000">.</font>xmax<font color="#990000">,</font>
+                               self<font color="#990000">.</font>ymin<font color="#990000">,</font>self<font color="#990000">.</font>ymax<font color="#990000">],</font>
+                       interpolation<font color="#990000">=</font><font color="#FF0000">"none"</font><font color="#990000">,</font>vmin<font color="#990000">=-</font><font color="#993399">1</font><font color="#990000">.,</font>vmax<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">.,</font>
+                       alpha<font color="#990000">=</font><font color="#993399">0.5</font><font color="#990000">,</font> cmap<font color="#990000">=</font>plt<font color="#990000">.</font>cm<font color="#990000">.</font>RdYlBu_r<font color="#990000">)</font>
+
+<i><font color="#9A1900">#        sm = ax.pcolormesh(self.X,self.Y,self.u.T,vmin=-1.,vmax=1.,alpha=0.5,</font></i>
+<i><font color="#9A1900">#                          cmap=plt.cm.RdYlBu_r)</font></i>
+        <b><font color="#000000">draw_grid</font></b><font color="#990000">(</font>ax<font color="#990000">,</font> nx<font color="#990000">=</font>self<font color="#990000">.</font>x<font color="#990000">.</font>size<font color="#990000">,</font>ny<font color="#990000">=</font>self<font color="#990000">.</font>y<font color="#990000">.</font>size<font color="#990000">,</font> nz<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">,</font>
+                      xmin<font color="#990000">=</font>self<font color="#990000">.</font>xmin<font color="#990000">,</font>xmax<font color="#990000">=</font>self<font color="#990000">.</font>xmax<font color="#990000">,</font>
+                      ymin<font color="#990000">=</font>self<font color="#990000">.</font>ymin<font color="#990000">,</font>ymax<font color="#990000">=</font>self<font color="#990000">.</font>ymax<font color="#990000">)</font>
+
+        <i><font color="#9A1900">#Plot velocity profile offset to the left</font></i>
+        axisloc <font color="#990000">=</font> self<font color="#990000">.</font>xmax<font color="#990000">+</font><font color="#993399">1</font><font color="#990000">.</font>
+
+        ax<font color="#990000">.</font><b><font color="#000000">arrow</font></b><font color="#990000">(</font>axisloc<font color="#990000">,</font> <font color="#993399">0</font><font color="#990000">.,</font> self<font color="#990000">.</font>ymin<font color="#990000">,</font> self<font color="#990000">.</font>ymax<font color="#990000">,</font>  width<font color="#990000">=</font><font color="#993399">0.0015</font><font color="#990000">,</font> color<font color="#990000">=</font><font color="#FF0000">"k"</font><font color="#990000">,</font> 
+                 clip_on<font color="#990000">=</font>False<font color="#990000">,</font> head_width<font color="#990000">=</font><font color="#993399">0.12</font><font color="#990000">,</font> head_length<font color="#990000">=</font><font color="#993399">0.12</font><font color="#990000">)</font>
+        mid <font color="#990000">=</font> <font color="#990000">.</font><font color="#993399">5</font><font color="#990000">*(</font>self<font color="#990000">.</font>ymin<font color="#990000">+</font>self<font color="#990000">.</font>ymax<font color="#990000">)</font>
+        ax<font color="#990000">.</font><b><font color="#000000">arrow</font></b><font color="#990000">(</font>axisloc<font color="#990000">-</font><font color="#993399">1</font><font color="#990000">.,</font> mid<font color="#990000">,</font> <font color="#993399">2.0</font><font color="#990000">,</font> <font color="#993399">0</font><font color="#990000">.,</font> width<font color="#990000">=</font><font color="#993399">0.0015</font><font color="#990000">,</font> color<font color="#990000">=</font><font color="#FF0000">"k"</font><font color="#990000">,</font> 
+                 clip_on<font color="#990000">=</font>False<font color="#990000">,</font> head_width<font color="#990000">=</font><font color="#993399">0.12</font><font color="#990000">,</font> head_length<font color="#990000">=</font><font color="#993399">0.12</font><font color="#990000">)</font>
+        yp <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>self<font color="#990000">.</font>ymin<font color="#990000">+.</font><font color="#993399">5</font><font color="#990000">*</font>self<font color="#990000">.</font>dy<font color="#990000">,</font> self<font color="#990000">.</font>ymax <font color="#990000">-</font> <font color="#993399">0.5</font><font color="#990000">*</font>self<font color="#990000">.</font>dy<font color="#990000">,</font> self<font color="#990000">.</font>y<font color="#990000">.</font>size<font color="#990000">)</font>
+        ax<font color="#990000">.</font><b><font color="#000000">plot</font></b><font color="#990000">(</font>np<font color="#990000">.</font><b><font color="#000000">mean</font></b><font color="#990000">(</font>self<font color="#990000">.</font>u<font color="#990000">,</font><font color="#993399">0</font><font color="#990000">)+</font>axisloc<font color="#990000">,</font>yp<font color="#990000">,</font><font color="#FF0000">'g-x'</font><font color="#990000">)</font>
+        <i><font color="#9A1900">#ax.set_xlim((0.,2.))</font></i>
+
+        <b><font color="#0000FF">if</font></b> self<font color="#990000">.</font>first_time<font color="#990000">:</font>
+            plt<font color="#990000">.</font><b><font color="#000000">colorbar</font></b><font color="#990000">(</font>sm<font color="#990000">)</font>
+            self<font color="#990000">.</font>first_time<font color="#990000">=</font>False
+
+        plt<font color="#990000">.</font><b><font color="#000000">pause</font></b><font color="#990000">(</font><font color="#993399">0.001</font><font color="#990000">)</font>
+        ax<font color="#990000">.</font><b><font color="#000000">cla</font></b><font color="#990000">()</font>
+
+<b><font color="#0000FF">if</font></b> __name__ <font color="#990000">==</font> <font color="#FF0000">"__main__"</font><font color="#990000">:</font>
+
+    t0 <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> tf <font color="#990000">=</font> <font color="#993399">30</font><font color="#990000">.;</font> Nsteps <font color="#990000">=</font> <font color="#993399">10000</font>
+    time <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>t0<font color="#990000">,</font>tf<font color="#990000">,</font>Nsteps<font color="#990000">)</font>
+    dt <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">mean</font></b><font color="#990000">(</font>np<font color="#990000">.</font><b><font color="#000000">diff</font></b><font color="#990000">(</font>time<font color="#990000">))</font>
+    uwall <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">.</font>
+    
+    cfd <font color="#990000">=</font> <b><font color="#000000">CFD</font></b><font color="#990000">(</font>nu<font color="#990000">=</font><font color="#993399">0.575</font><font color="#990000">,</font> dt<font color="#990000">=</font>dt<font color="#990000">,</font> fig<font color="#990000">=</font>fig<font color="#990000">,</font>
+              xsize <font color="#990000">=</font> ncx<font color="#990000">,</font> ysize <font color="#990000">=</font> ncy<font color="#990000">+</font><font color="#993399">2</font><font color="#990000">,</font>
+              xmin <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">.,</font> xmax <font color="#990000">=</font> xl_cfd<font color="#990000">,</font>
+              ymin <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">.,</font> ymax <font color="#990000">=</font> yl_cfd<font color="#990000">)</font>
+
+    <b><font color="#0000FF">for</font></b> n<font color="#990000">,</font>t <b><font color="#0000FF">in</font></b> <b><font color="#000000">enumerate</font></b><font color="#990000">(</font>time<font color="#990000">):</font>
+
+        <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"CFD time = "</font><font color="#990000">,</font> n<font color="#990000">,</font>t<font color="#990000">)</font>
+
+        <i><font color="#9A1900">#===============================================</font></i>
+        <i><font color="#9A1900"># Call to CPL-LIBRARY goes here to</font></i>
+        <i><font color="#9A1900"># recieve u_MD to set bottom boundary</font></i>
+        <i><font color="#9A1900">#===============================================</font></i>
+        <i><font color="#9A1900">#umd = cpl.recv(u)</font></i>
+        <i><font color="#9A1900">#bottomwall = np.mean(umd)</font></i>
+
+        <i><font color="#9A1900">#Update CFD</font></i>
+        cfd<font color="#990000">.</font><b><font color="#000000">set_bc</font></b><font color="#990000">(</font>topwall<font color="#990000">=</font>uwall<font color="#990000">,</font> bottomwall<font color="#990000">=</font><font color="#993399">0</font><font color="#990000">.)</font>
+        cfd<font color="#990000">.</font><b><font color="#000000">update_time</font></b><font color="#990000">()</font>
+        cfd<font color="#990000">.</font><b><font color="#000000">plot</font></b><font color="#990000">()</font>
+
+        <i><font color="#9A1900">#===============================================</font></i>
+        <i><font color="#9A1900"># Call to CPL-LIBRARY goes here to</font></i>
+        <i><font color="#9A1900"># send u_CFD in constraint region</font></i>
+        <i><font color="#9A1900">#===============================================</font></i>
+        <i><font color="#9A1900">#ucnst = cfd.u[:,7]</font></i>
+
+
+</tt></pre>

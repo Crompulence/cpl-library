@@ -28,3 +28,20 @@ PYTHON_DIR=$SENDRECV_DIR/python
 source-highlight --src-lang fortran --out-format html --input $FORT_DIR/md_send_cells.f90 --output $WEBSITE_DEMO_DIR/md_send_topo_fortran.html
 source-highlight --src-lang C --out-format html --input $CPP_DIR/md_send_cells.cpp --output $WEBSITE_DEMO_DIR/md_send_topo_cpp.html
 source-highlight --src-lang python --out-format html --input $PYTHON_DIR/CFD_recv_and_plot.py --output $WEBSITE_DEMO_DIR/cfd_recv_topo_python.html
+source-highlight --src-lang python --out-format html --input $PYTHON_DIR/draw_grid.py --output $WEBSITE_DEMO_DIR/draw_grid_python.html
+
+#generate interactive topology example
+SENDRECV_DIR=$EXAMPLES_DIR/interactive_plot_example
+FORT_DIR=$SENDRECV_DIR/fortran
+CPP_DIR=$SENDRECV_DIR/cpp
+PYTHON_DIR=$SENDRECV_DIR/python
+source-highlight --src-lang fortran --out-format html --input $FORT_DIR/md_send_cells.f90 --output $WEBSITE_DEMO_DIR/Interactive_fortran.html
+source-highlight --src-lang C --out-format html --input $CPP_DIR/md_send_cells.cpp --output $WEBSITE_DEMO_DIR/Interactive_cpp.html
+source-highlight --src-lang python --out-format html --input $PYTHON_DIR/CFD_recv_and_plot_grid_interactive.py --output $WEBSITE_DEMO_DIR/Interactive_python.html
+
+#generate MD CFD example
+SENDRECV_DIR=$EXAMPLES_DIR/MD_CFD
+source-highlight --src-lang python --out-format html --input $SENDRECV_DIR/cfd_oo.py --output $WEBSITE_DEMO_DIR/cfd_oo.html
+source-highlight --src-lang python --out-format html --input $SENDRECV_DIR/md_oo.py --output $WEBSITE_DEMO_DIR/md_oo.html
+source-highlight --src-lang python --out-format html --input $SENDRECV_DIR/cfd_cpl.py --output $WEBSITE_DEMO_DIR/cfd_cpl.html
+source-highlight --src-lang python --out-format html --input $SENDRECV_DIR/md_cpl.py --output $WEBSITE_DEMO_DIR/md_cpl.html

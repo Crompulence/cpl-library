@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 
 from draw_grid import draw_grid
 
+
+
 class MD:
 
     def __init__(self,
@@ -11,6 +13,7 @@ class MD:
                  nd = 2,
                  rcutoff = 2.**(1./6.),
                  dt = 0.005,
+                 Tset = 1.3,               #After equilbirum approx temp of 1
                  forcecalc = "allpairs",
                  wallwidth = [0.,0.],
                  wallslide = [0.,0.],
@@ -27,6 +30,8 @@ class MD:
 
         self.rcutoff2 = rcutoff**2
         self.first_time=True
+        self.tstep = 0
+        self.time = 0.
         self.periodic = [True, True]
         self.spec_wall = [False, False]
 
@@ -44,18 +49,23 @@ class MD:
         self.r = np.zeros((self.N,2))
         self.v = np.zeros((self.N,2))
         self.a = np.zeros((self.N,2))
-        self.v = np.random.randn(self.v.shape[0], self.v.shape[1])
+        self.v = Tset*np.random.randn(self.v.shape[0], self.v.shape[1])
         vsum = np.sum(self.v,0)/self.N
         for i in range(self.N):
             self.v[i,:] -= vsum
 
         #Setup velocity averaging
+        self.veluptodate = 0
         self.xbin = 8; self.ybin = 8
+        self.dx = self.domain[0]/self.xbin
+        self.dy = self.domain[1]/self.ybin
         self.xb = np.linspace(-self.halfdomain[0],
                                self.halfdomain[0], self.xbin)
         self.yb = np.linspace(-self.halfdomain[1],
                                self.halfdomain[1], self.ybin)
         self.Xb, self.Yb = np.meshgrid(self.xb, self.yb)
+        self.mbin = np.zeros([self.xbin, self.ybin])
+        self.velbin = np.zeros([2, self.xbin, self.ybin])
 
         self.setup_crystal()
         self.setup_walls(wallwidth)
@@ -109,16 +119,36 @@ class MD:
         invrij2 = 1./rij2
         return 48.*(invrij2**7-.5*invrij2**4)
 
-    def get_velfield(self, bins):
+    def get_velfield(self, bins, freq=25, plusdt=False, getmbin=False):
 
-        velbin = np.zeros([bins[0],bins[1],2])
-        binsize = self.domain/bins
-        for i in range(self.r.shape[0]):
-            ib = [int((self.r[i,ixyz]+0.5*self.domain[ixyz])
-                       /binsize[ixyz]) for ixyz in range(self.nd)]
-            velbin[ib[0],ib[1],:] += self.v[i,:]
+        #Update velocity if timestep dictates 
+        if ((self.tstep%freq == 0)
+             and (self.tstep != self.veluptodate)):
+            mbin = np.zeros([bins[0], bins[1]])
+            velbin = np.zeros([2, bins[0], bins[1]])
+            binsize = self.domain/bins
+            for i in range(self.r.shape[0]):
+                ib = [int((self.r[i,ixyz]+0.5*self.domain[ixyz])
+                           /binsize[ixyz]) for ixyz in range(self.nd)]
+                mbin[ib[0], ib[1]] += 1
+                if plusdt:
+                    vi = self.v[i,:] + self.dt*self.a[i,:]
+                else:
+                    vi = self.v[i,:]
+                velbin[:, ib[0], ib[1]] += vi
+            self.mbin = mbin
+            self.velbin = velbin
+            self.veluptodate = self.tstep
+        else:
+            mbin = self.mbin
+            velbin = self.velbin
 
-        return velbin
+        u = np.divide(velbin,mbin) 
+        u[np.isnan(u)] = 0.0
+        if getmbin:
+            return u, mbin
+        else:
+            return u
 
     def force(self, showarrows=False, ax=None):
 
@@ -231,26 +261,61 @@ class MD:
                     else:
                         self.r[i,ixyz] += self.domain[ixyz]
 
+        #Increment current time step
+        self.tstep += 1
+        self.time = self.tstep*self.dt 
 
     def constraint_force(self, u_CFD, constraint_cell, alpha=0.1):
 
         #Get the MD velocity field
-        binsize = self.domain/u_CFD.shape[0:2]
+        binsize_CFD = self.domain/u_CFD.shape[1:2]
         binsize_MD = self.domain/[self.xbin,self.ybin]
+        assert binsize_CFD[0] == binsize_MD[0]
+        assert binsize_CFD[1] == binsize_MD[1]
+        #assert binsize_CFD[2] == binsize_MD[2]
+        u_MD, mbin = self.get_velfield([self.xbin,self.ybin], getmbin=True)
 
-        u_MD = self.get_velfield([self.xbin,self.ybin])
-        
+       
         #Extract CFD value
         F = np.zeros(2)
+        ucheck = np.zeros([2,self.xbin])
+        hd = self.halfdomain
         for i in range(self.N):
-            ib = [int((self.r[i,ixyz]+self.halfdomain[ixyz])
-                       /binsize[ixyz]) for ixyz in range(self.nd)]
-            if ib[0] > u_CFD.shape[1]:
-                ib[0] = u_CFD.shape[1]
-            if ib[1] > u_CFD.shape[2]:
-                ib[1] = u_CFD.shape[2]
-            F[:] = alpha*(u_CFD[ib[0],ib[1],:] - u_MD[ib[0],ib[1],:])
-            self.a[i,:] += F[:]
+            ib = [int((self.r[i,ixyz]+hd[ixyz])
+                       /binsize_MD[ixyz]) for ixyz in range(self.nd)]
+            #Ensure within domain
+            if ib[0] > u_MD.shape[1]:
+                ib[0] = u_MD.shape[1]
+            if ib[1] > u_MD.shape[2]:
+                ib[1] = u_MD.shape[2]
+            #only apply to constrained cell
+            if ib[1] == constraint_cell:
+                F[:] = alpha*(u_CFD[:,ib[0],0] - u_MD[:,ib[0],ib[1]])
+                if (mbin[ib[0],ib[1]] != 0):
+                    self.a[i,:] += F[:]/float(mbin[ib[0],ib[1]])
+                else:
+                    pass
+                self.ax.quiver((ib[0]+.5)*self.dx-hd[0],
+                             (ib[1]+.5)*self.dy-hd[1],F[0],F[1],
+                              color='red',angles='xy',scale_units='xy',scale=1)
+
+
+#        ucheck = np.zeros([2,self.xbin])
+#        for i in range(self.N):
+#            ib = [int((self.r[i,ixyz]+hd[ixyz])
+#                       /binsize_MD[ixyz]) 
+#                  for ixyz in range(self.nd)]
+#            #Ensure within domain
+#            if ib[0] > u_MD.shape[1]:
+#                ib[0] = u_MD.shape[1]
+#            if ib[1] > u_MD.shape[2]:
+#                ib[1] = u_MD.shape[2]
+#            if ib[1] == constraint_cell:
+#                ucheck[:,ib[0]] += self.v[i,:] + self.dt*self.a[i,:]
+#                
+
+#        print('ucheck=',ucheck)
+            
 
     #Plot molecules
     def plot(self, ax=None, showarrows=False):
@@ -265,12 +330,12 @@ class MD:
                 ax.plot(self.r[i,0],self.r[i,1],'ro', ms=7.)
 
         #Overlay grid
-        draw_grid(ax, nx=self.xbin+1, ny=self.ybin+1, nz=1,
+        draw_grid(ax, nx=self.xbin, ny=self.ybin, nz=1,
                   xmin=-self.halfdomain[0], xmax=self.halfdomain[0],
                   ymin=-self.halfdomain[1], ymax=self.halfdomain[1])
 
         #Get velocity field
-        self.velbin = self.get_velfield([self.xbin,self.ybin])
+        u = self.get_velfield([self.xbin,self.ybin])
 
         #Plot velocity profile offset to the left
         axisloc = self.halfdomain[0]+1
@@ -278,15 +343,26 @@ class MD:
                  width=0.015, color="k", clip_on=False, head_width=0.12, head_length=0.12)
         ax.arrow(axisloc-1,0., 2.,0.,  width=0.015, 
                  color="k", clip_on=False, head_width=0.12, head_length=0.12)
-        ax.plot(np.mean(self.velbin[:,:,0],0)+axisloc,self.yb,'g-')
 
-    #    cb=ax.imshow(velbin[:,:,0],interpolation="none",
-    #                 extent=[-halfdomain[0],halfdomain[0],
-    #                         -halfdomain[1],halfdomain[1]], 
-    #                cmap=plt.cm.RdYlBu_r,vmin=-3.,vmax=3.)
-    #    if first_time:
-    #        plt.colorbar(cb)
-    #        first_time=False
+        yp = np.linspace(-self.halfdomain[1]+.5*self.dy, self.halfdomain[1] - 0.5*self.dy, self.ybin)
+        ax.plot(np.mean(u[0,:,:],1)+axisloc,yp,'g-x')
+
+        sm = ax.imshow(u[0,:,:].T,aspect='auto',origin='lower',
+                       extent=[-self.halfdomain[0], self.halfdomain[0],
+                               -self.halfdomain[1], self.halfdomain[1]],
+                       interpolation="none",vmin=-1.,vmax=1.,
+                       alpha=0.5, cmap=plt.cm.RdYlBu_r)
+
+#        sm = ax.pcolormesh(self.Xb,self.Yb,u[0,:,:].T,vmin=-1.,vmax=1.,alpha=0.5,
+#                          cmap=plt.cm.RdYlBu_r)
+
+#        cb=ax.imshow(u[0,:,:],interpolation="none",
+#                     extent=[-self.halfdomain[0],self.halfdomain[0],
+#                             -self.halfdomain[1],self.halfdomain[1]], 
+#                    cmap=plt.cm.RdYlBu_r,vmin=-3.,vmax=3.)
+        if self.first_time:
+            plt.colorbar(sm)
+            self.first_time=False
 
         if showarrows:
             #Show velocity of molecules
@@ -299,6 +375,8 @@ class MD:
         plt.pause(0.001)
         plt.cla()
 
+        print("Temperature =", np.sum(self.v[:,0]**2+self.v[:,1]**2)/(2.*self.N))
+
 
 if __name__ == "__main__":
 
@@ -309,7 +387,7 @@ if __name__ == "__main__":
     #Main run
     for step in range(Nsteps):
 
-        print("MD time = ", step, " of ", Nsteps)
+        print("MD time = ", md.tstep, " of ", Nsteps)
 
         md.force()
 

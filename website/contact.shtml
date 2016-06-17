@@ -17,7 +17,7 @@
 
         <h2>General enquiries</h2>
         <p>
-            CPL Library is developed and maintained by 
+            <mark class="CPL">CPL library</mark> is developed and maintained by 
 	    <a href="https://uk.linkedin.com/pub/david-trevelyan/90/481/495">David Trevelyan</a>
             and 
 	    <a href="http://www.imperial.ac.uk/people/edward.smith05">Edward Smith</a>, 
@@ -35,7 +35,7 @@
             one of the developers below.
         </p>
 
-        <h2>Email the developers</h2>
+        <h2>Current developers</h2>
 
         <div class="developerDiv">
             <div id="developerImage">
@@ -47,17 +47,36 @@
                     Edward Smith
                 </div>
             </div>
+
             <div id="developerImage">
-                <a href="mailto:d.trevelyan@imperial.ac.uk">
-                    <img src="images/Dave.jpg" style="filter: brightness(105%)
-contrast(105%)" width=300px/>
+                <a href="mailto:eduardo.ramos-fernandez14@imperial.ac.uk">
+                    <img src="images/Edu.png" style="filter: brightness(120%)" 
+                         width=200px/>
                 </a>
-                <div class="developerImageText"> 
-                    David Trevelyan
+                <div class="developerImageText">
+                    Eduardo Ramos-Fernandez
                 </div>
             </div>
         </div>
 
+
+        <h2>Previous developers</h2>
+
+        <div class="developerDiv">
+            <div id="developerImage">
+                <img src="images/Dave.jpg" style="filter: brightness(105%) contrast(105%)" width=300px/>
+                <div class="developerImageText"> 
+                    David Trevelyan
+                </div>
+            </div>
+
+            <div id="developerImage">
+                <img src="images/Lucian.png" height=100%/>
+                <div class="developerImageText"> 
+                    Lucian Anton
+                </div>
+            </div>
+        </div>
     </div>
 
 

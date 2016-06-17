@@ -81,9 +81,9 @@ draw_grid(ax, nx=1, ny=1, nz=1,
           label='MD')
 
 #Plot some random molecules
-ax.plot(np.random.random(100)*(CPL.get("xl_md")),
-           np.random.random(100)*(CPL.get("yl_md"))-CPL.get("yl_md")+yoverlap,
-           'ob',alpha=0.5)
+#ax.plot(np.random.random(100)*(CPL.get("xl_md")),
+#           np.random.random(100)*(CPL.get("yl_md"))-CPL.get("yl_md")+yoverlap,
+#           'ob',alpha=0.5)
 
 #Plot x component on grid
 x = np.linspace(CPL.get("x_orig_cfd")+.5*dx,xoverlap-.5*dx,ioverlap)

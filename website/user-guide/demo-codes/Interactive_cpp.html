@@ -1,0 +1,88 @@
+<!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><b><font color="#000080">#include</font></b> <font color="#FF0000">"CPL.h"</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">"mpi.h"</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;iostream&gt;</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;math.h&gt;</font>       <i><font color="#9A1900">/* sin */</font></i>
+
+<b><font color="#000080">#define</font></b> pi <font color="#993399">3.14159265359</font>
+
+<b><font color="#0000FF">using</font></b> <b><font color="#0000FF">namespace</font></b> std<font color="#990000">;</font>
+
+<font color="#009900">int</font> <b><font color="#000000">main</font></b><font color="#990000">()</font> <font color="#FF0000">{</font>
+   <b><font color="#000000">MPI_Init</font></b><font color="#990000">(</font>NULL<font color="#990000">,</font> NULL<font color="#990000">);</font> 
+
+   <font color="#009900">int</font> MD_realm <font color="#990000">=</font> <font color="#993399">2</font><font color="#990000">,</font> MD_COMM<font color="#990000">;</font>
+   CPL<font color="#990000">::</font><b><font color="#000000">init</font></b><font color="#990000">(</font>MD_realm<font color="#990000">,</font> MD_COMM<font color="#990000">);</font>
+
+   <i><font color="#9A1900">// Parameters of the cpu topology (cartesian grid)</font></i>
+   <font color="#009900">double</font> xyzL<font color="#990000">[</font><font color="#993399">3</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#FF0000">{</font><font color="#993399">10.0</font><font color="#990000">,</font> <font color="#993399">10.0</font><font color="#990000">,</font> <font color="#993399">10.0</font><font color="#FF0000">}</font><font color="#990000">;</font>
+   <font color="#009900">double</font> xyz_orig<font color="#990000">[</font><font color="#993399">3</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#FF0000">{</font><font color="#993399">0.0</font><font color="#990000">,</font> <font color="#993399">0.0</font><font color="#990000">,</font> <font color="#993399">0.0</font><font color="#FF0000">}</font><font color="#990000">;</font>
+   <font color="#009900">int</font> npxyz<font color="#990000">[</font><font color="#993399">3</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#FF0000">{</font><font color="#993399">2</font><font color="#990000">,</font> <font color="#993399">2</font><font color="#990000">,</font> <font color="#993399">1</font><font color="#FF0000">}</font><font color="#990000">;</font>
+
+   <font color="#009900">int</font> nprocs_realm<font color="#990000">;</font>
+   <b><font color="#000000">MPI_Comm_size</font></b><font color="#990000">(</font>MD_COMM<font color="#990000">,</font> <font color="#990000">&amp;</font>nprocs_realm<font color="#990000">);</font>
+
+   <i><font color="#9A1900">// Create communicators and check that number of processors is consistent</font></i>
+   <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>nprocs_realm <font color="#990000">!=</font> <font color="#990000">(</font>npxyz<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">*</font> npxyz<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">*</font> npxyz<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">]))</font> <font color="#FF0000">{</font>
+      cout <font color="#990000">&lt;&lt;</font> <font color="#FF0000">"Non-coherent number of processes."</font> <font color="#990000">&lt;&lt;</font> endl<font color="#990000">;</font>
+      <b><font color="#000000">MPI_Abort</font></b><font color="#990000">(</font>MPI_COMM_WORLD<font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">);</font>
+   <font color="#FF0000">}</font>
+
+   <i><font color="#9A1900">// Setup cartesian topology</font></i>
+   <font color="#009900">int</font> rank<font color="#990000">;</font>
+   <b><font color="#000000">MPI_Comm_rank</font></b><font color="#990000">(</font>MD_COMM<font color="#990000">,</font> <font color="#990000">&amp;</font>rank<font color="#990000">);</font>
+   <font color="#009900">int</font> periods<font color="#990000">[</font><font color="#993399">3</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#FF0000">{</font><font color="#993399">1</font><font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">,</font> <font color="#993399">1</font><font color="#FF0000">}</font><font color="#990000">;</font>
+   <font color="#009900">int</font> CART_COMM<font color="#990000">;</font>
+   <b><font color="#000000">MPI_Cart_create</font></b><font color="#990000">(</font>MD_COMM<font color="#990000">,</font> <font color="#993399">3</font><font color="#990000">,</font> npxyz<font color="#990000">,</font> periods<font color="#990000">,</font> <b><font color="#0000FF">true</font></b><font color="#990000">,</font> <font color="#990000">&amp;</font>CART_COMM<font color="#990000">);</font>
+
+   <i><font color="#9A1900">// Coupler setup</font></i>
+   CPL<font color="#990000">::</font><b><font color="#000000">setup_md</font></b><font color="#990000">(</font>CART_COMM<font color="#990000">,</font> xyzL<font color="#990000">,</font> xyz_orig<font color="#990000">);</font>
+
+   <i><font color="#9A1900">// Get detail for grid</font></i>
+   <font color="#009900">int</font> Ncells<font color="#990000">[</font><font color="#993399">3</font><font color="#990000">];</font>
+   <font color="#009900">int</font> olap_limits<font color="#990000">[</font><font color="#993399">6</font><font color="#990000">],</font> portion<font color="#990000">[</font><font color="#993399">6</font><font color="#990000">];</font>
+   CPL<font color="#990000">::</font><b><font color="#000000">get_olap_limits</font></b><font color="#990000">(</font>olap_limits<font color="#990000">);</font>
+   CPL<font color="#990000">::</font><b><font color="#000000">my_proc_portion</font></b><font color="#990000">(</font>olap_limits<font color="#990000">,</font> portion<font color="#990000">);</font>
+   CPL<font color="#990000">::</font><b><font color="#000000">get_no_cells</font></b><font color="#990000">(</font>portion<font color="#990000">,</font> Ncells<font color="#990000">);</font>
+
+   <i><font color="#9A1900">// Pack send_array with cell coordinates. Each cell in the array carries</font></i>
+   <i><font color="#9A1900">// its global cell number within the overlap region.</font></i>
+   <font color="#009900">int</font> send_shape<font color="#990000">[</font><font color="#993399">4</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#FF0000">{</font><font color="#993399">1</font><font color="#990000">,</font> Ncells<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> Ncells<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> Ncells<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">]</font><font color="#FF0000">}</font><font color="#990000">;</font>
+   <font color="#009900">int</font> recv_shape<font color="#990000">[</font><font color="#993399">4</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#FF0000">{</font><font color="#993399">1</font><font color="#990000">,</font> Ncells<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> Ncells<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> Ncells<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">]</font><font color="#FF0000">}</font><font color="#990000">;</font>
+   CPL<font color="#990000">::</font><font color="#008080">ndArray&lt;double&gt;</font> <b><font color="#000000">send_array</font></b><font color="#990000">(</font><font color="#993399">4</font><font color="#990000">,</font> send_shape<font color="#990000">);</font>
+   CPL<font color="#990000">::</font><font color="#008080">ndArray&lt;double&gt;</font> <b><font color="#000000">recv_array</font></b><font color="#990000">(</font><font color="#993399">4</font><font color="#990000">,</font> recv_shape<font color="#990000">);</font>
+   <font color="#009900">int</font> ii<font color="#990000">,</font> jj<font color="#990000">,</font> kk<font color="#990000">;</font>
+
+   <b><font color="#0000FF">for</font></b> <font color="#990000">(</font><font color="#009900">int</font> time <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> time <font color="#990000">&lt;</font> <font color="#993399">100000</font><font color="#990000">;</font> time<font color="#990000">++)</font><font color="#FF0000">{</font>
+       <b><font color="#0000FF">for</font></b> <font color="#990000">(</font><font color="#009900">int</font> i <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> i <font color="#990000">&lt;</font> Ncells<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">];</font> i<font color="#990000">++)</font> <font color="#FF0000">{</font>
+           ii <font color="#990000">=</font> i <font color="#990000">+</font> portion<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">];</font>
+           <b><font color="#0000FF">for</font></b> <font color="#990000">(</font><font color="#009900">int</font> j <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> j <font color="#990000">&lt;</font> Ncells<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">];</font> j<font color="#990000">++)</font> <font color="#FF0000">{</font>
+               jj <font color="#990000">=</font> j <font color="#990000">+</font> portion<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">];</font>
+               <b><font color="#0000FF">for</font></b> <font color="#990000">(</font><font color="#009900">int</font> k <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> k <font color="#990000">&lt;</font> Ncells<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">];</font> k<font color="#990000">++)</font> <font color="#FF0000">{</font>
+                   kk <font color="#990000">=</font> k <font color="#990000">+</font> portion<font color="#990000">[</font><font color="#993399">4</font><font color="#990000">];</font>
+
+                   <b><font color="#000000">send_array</font></b><font color="#990000">(</font><font color="#993399">0</font><font color="#990000">,</font> i<font color="#990000">,</font> j<font color="#990000">,</font> k<font color="#990000">)</font> <font color="#990000">=</font> <font color="#990000">(</font><font color="#009900">double</font><font color="#990000">)</font> <b><font color="#000000">sin</font></b><font color="#990000">(</font><b><font color="#000000">recv_array</font></b><font color="#990000">(</font><font color="#993399">0</font><font color="#990000">,</font> i<font color="#990000">,</font> j<font color="#990000">,</font> k<font color="#990000">)*</font><font color="#993399">2.0</font><font color="#990000">*</font>pi<font color="#990000">*</font>ii<font color="#990000">/</font>Ncells<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font>
+                                                         <font color="#990000">-</font><font color="#993399">0.25</font><font color="#990000">*</font>jj<font color="#990000">*</font>pi<font color="#990000">)</font>
+                                                    <font color="#990000">*</font><b><font color="#000000">cos</font></b><font color="#990000">(</font><font color="#993399">2.0</font><font color="#990000">*</font>pi<font color="#990000">*</font>kk<font color="#990000">/</font>Ncells<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">]);</font>
+               <font color="#FF0000">}</font>
+            <font color="#FF0000">}</font>
+        <font color="#FF0000">}</font>
+
+       <i><font color="#9A1900">//Send data</font></i>
+       CPL<font color="#990000">::</font><b><font color="#000000">send</font></b><font color="#990000">(</font>send_array<font color="#990000">.</font><b><font color="#000000">data</font></b><font color="#990000">(),</font> send_array<font color="#990000">.</font><b><font color="#000000">shapeData</font></b><font color="#990000">(),</font> olap_limits<font color="#990000">);</font>
+
+       <i><font color="#9A1900">//Recv array of coefficients</font></i>
+       CPL<font color="#990000">::</font><b><font color="#000000">recv</font></b><font color="#990000">(</font>recv_array<font color="#990000">.</font><b><font color="#000000">data</font></b><font color="#990000">(),</font> recv_array<font color="#990000">.</font><b><font color="#000000">shapeData</font></b><font color="#990000">(),</font> olap_limits<font color="#990000">);</font>
+
+   <font color="#FF0000">}</font>
+
+   <i><font color="#9A1900">// Release all coupler comms </font></i>
+   CPL<font color="#990000">::</font><b><font color="#000000">finalize</font></b><font color="#990000">();</font>
+
+   <b><font color="#000000">MPI_Finalize</font></b><font color="#990000">();</font>
+   
+<font color="#FF0000">}</font>
+</tt></pre>

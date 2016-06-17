@@ -15,7 +15,7 @@ nprocs_realm = CFD_COMM.Get_size()
 # Parameters of the cpu topology (cartesian grid)
 npxyz = np.array([1, 1, 1], order='F', dtype=np.int32)
 NProcs = np.product(npxyz)
-xyzL = np.array([10.0, 16.0, 1.0], order='F', dtype=np.float64)
+xyzL = np.array([6.70820393, 17.88854382, 1.0], order='F', dtype=np.float64)
 xyz_orig = np.array([0.0, 0.0, 0.0], order='F', dtype=np.float64)
 
 if (nprocs_realm != NProcs):
@@ -42,15 +42,15 @@ portion = CPL.my_proc_portion(limits_MD_BC)
 A_recv = np.zeros((2, ncxl, ncyl, nczl), order='F', dtype=np.float64)
 
 # Setup MD simulation object
-t0 = 0; tf = 30.; Nsteps = 10000
-time = np.linspace(t0, tf, Nsteps)
-dt = 0.005
+md_cfd_dt_ratio = 25
+dt = 0.005; Nsteps = 100000; tf = Nsteps*dt
+time = np.arange(0.,tf,dt)
 md = MD(dt=dt, wallwidth=[2.,0.], wallslide=[-1.,0.])
 
 #Main run
 for n,t in enumerate(time):
 
-    print("MD time = ", n,t)
+    print("MD time = ", md.tstep, md.time)
 
     # Calculate force
     md.force()
@@ -61,24 +61,30 @@ for n,t in enumerate(time):
     # and force is applied
     # F = (1/tau)*(u_CFD - u_MD)
     #=======================================================
-    A_recv, ierr = CPL.recv(A_recv, limits_MD_BC)
-    u_CFD = A_recv[0,:,:,:]
-    print(A_recv.shape, u_CFD.shape)
-    md.constraint_force(u_CFD, 8)
+    if n%md_cfd_dt_ratio == 0:        
+        A_recv, ierr = CPL.recv(A_recv, limits_MD_BC)
+        u_CFD = A_recv[:,:,:,0]
+
+    #Cell 7 is constrained
+    md.constraint_force(u_CFD, 7)
 
     # Calculate velocity
     md.verlet()
 
+    #Plot
+    if n%md_cfd_dt_ratio == 0:        
+        md.plot()
+
     #=======================================================
     #Call to CPL-LIBRARY to send u_MD at boundary
     #=======================================================
-    u = md.get_velfield([ncx,ncy])
-    A_send[0,:,0,0] = u[:,6,0] #Cell 6 is 
-    A_send[1,:,0,0] = u[:,6,1]
-    CPL.send(A_send, limits_CFD_BC)
+    if n%md_cfd_dt_ratio == 0:        
+        u = md.get_velfield([ncx,ncy])
+        #Cell 5 is sent
+        A_send[0,:,0,0] = u[0,:,5]
+        A_send[1,:,0,0] = u[1,:,5]
+        CPL.send(A_send, limits_CFD_BC)
 
-    #Plot
-    md.plot()
-    
+
 
 

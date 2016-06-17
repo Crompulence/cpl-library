@@ -1,0 +1,72 @@
+<!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><b><font color="#000080">import</font></b> numpy as np
+<b><font color="#000080">import</font></b> matplotlib<font color="#990000">.</font>pyplot as plt
+
+<b><font color="#0000FF">def</font></b> <b><font color="#000000">draw_lines</font></b><font color="#990000">(</font>ax<font color="#990000">,</font> x<font color="#990000">,</font> y<font color="#990000">,</font> lc<font color="#990000">,</font> lw<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">.,</font> XKCD_plots<font color="#990000">=</font>False<font color="#990000">):</font>
+
+    <b><font color="#0000FF">if</font></b> XKCD_plots<font color="#990000">:</font>
+        <b><font color="#000080">from</font></b> XKCD_plot_generator <b><font color="#000080">import</font></b> xkcd_line
+
+    <b><font color="#0000FF">for</font></b> n <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>x<font color="#990000">.</font>size<font color="#990000">):</font>
+        <b><font color="#0000FF">if</font></b> XKCD_plots<font color="#990000">:</font>
+            xp<font color="#990000">,</font> yp <font color="#990000">=</font> <b><font color="#000000">xkcd_line</font></b><font color="#990000">([</font>x<font color="#990000">[</font>n<font color="#990000">],</font> x<font color="#990000">[</font>n<font color="#990000">]],</font>  <font color="#990000">[</font>y<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> y<font color="#990000">[-</font><font color="#993399">1</font><font color="#990000">]])</font>
+        <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+            xp<font color="#990000">,</font> yp <font color="#990000">=</font> <font color="#990000">[</font>x<font color="#990000">[</font>n<font color="#990000">],</font> x<font color="#990000">[</font>n<font color="#990000">]],</font>  <font color="#990000">[</font>y<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> y<font color="#990000">[-</font><font color="#993399">1</font><font color="#990000">]]</font>      
+        ax<font color="#990000">.</font><b><font color="#000000">plot</font></b><font color="#990000">(</font>xp<font color="#990000">,</font> yp<font color="#990000">,</font> <font color="#FF0000">'-'</font><font color="#990000">+</font>lc<font color="#990000">,</font>lw<font color="#990000">=</font>lw<font color="#990000">,</font>alpha<font color="#990000">=</font><font color="#993399">0.5</font><font color="#990000">)</font>
+    <b><font color="#0000FF">for</font></b> n <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>y<font color="#990000">.</font>size<font color="#990000">):</font>
+        <b><font color="#0000FF">if</font></b> XKCD_plots<font color="#990000">:</font>
+            xp<font color="#990000">,</font> yp <font color="#990000">=</font> <b><font color="#000000">xkcd_line</font></b><font color="#990000">([</font>x<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> x<font color="#990000">[-</font><font color="#993399">1</font><font color="#990000">]],</font> <font color="#990000">[</font>y<font color="#990000">[</font>n<font color="#990000">],</font> y<font color="#990000">[</font>n<font color="#990000">]])</font>
+        <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+            xp<font color="#990000">,</font> yp <font color="#990000">=</font> <font color="#990000">[</font>x<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> x<font color="#990000">[-</font><font color="#993399">1</font><font color="#990000">]],</font> <font color="#990000">[</font>y<font color="#990000">[</font>n<font color="#990000">],</font> y<font color="#990000">[</font>n<font color="#990000">]]</font>
+        ax<font color="#990000">.</font><b><font color="#000000">plot</font></b><font color="#990000">(</font>xp<font color="#990000">,</font> yp<font color="#990000">,</font> <font color="#FF0000">'-'</font><font color="#990000">+</font>lc<font color="#990000">,</font>lw<font color="#990000">=</font>lw<font color="#990000">,</font>alpha<font color="#990000">=</font><font color="#993399">0.5</font><font color="#990000">)</font>
+
+
+<b><font color="#0000FF">def</font></b> <b><font color="#000000">draw_grid</font></b><font color="#990000">(</font>ax<font color="#990000">,</font> nx<font color="#990000">,</font> ny<font color="#990000">,</font> nz<font color="#990000">,</font>
+              px<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">,</font> py<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">,</font> pz<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">,</font>
+              xmin<font color="#990000">=</font><font color="#993399">0</font><font color="#990000">.,</font>ymin<font color="#990000">=</font><font color="#993399">0</font><font color="#990000">.,</font>zmin<font color="#990000">=</font><font color="#993399">0</font><font color="#990000">.,</font>
+              xmax<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">.,</font>ymax<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">.,</font>zmax<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">.,</font>
+              ind<font color="#990000">=</font><font color="#993399">0</font><font color="#990000">.,</font> fc<font color="#990000">=</font><font color="#FF0000">'r'</font><font color="#990000">,</font> lc<font color="#990000">=</font><font color="#FF0000">'k'</font><font color="#990000">,</font>
+              offset<font color="#990000">=</font><font color="#993399">0</font><font color="#990000">.,</font> label<font color="#990000">=</font><font color="#FF0000">""</font><font color="#990000">,</font>
+              nodes<font color="#990000">=</font>False<font color="#990000">,</font>
+              XKCD_plots<font color="#990000">=</font>False<font color="#990000">,</font> <font color="#990000">**</font>kwargs<font color="#990000">):</font>
+
+    ymin <font color="#990000">+=</font> offset
+    ymax <font color="#990000">+=</font> offset
+
+    x <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>xmin<font color="#990000">,</font> xmax<font color="#990000">,</font> nx<font color="#990000">+</font><font color="#993399">1</font><font color="#990000">)</font>
+    y <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>ymin<font color="#990000">,</font> ymax<font color="#990000">,</font> ny<font color="#990000">+</font><font color="#993399">1</font><font color="#990000">)</font>
+    z <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>zmin<font color="#990000">,</font> zmax<font color="#990000">,</font> nz<font color="#990000">+</font><font color="#993399">1</font><font color="#990000">)</font>
+    <b><font color="#0000FF">if</font></b> nodes<font color="#990000">:</font>
+        X<font color="#990000">,</font>Y<font color="#990000">,</font>Z <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">meshgrid</font></b><font color="#990000">(</font>x<font color="#990000">,</font>y<font color="#990000">,</font>z<font color="#990000">)</font>
+        self<font color="#990000">.</font>ax<font color="#990000">.</font><b><font color="#000000">plot</font></b><font color="#990000">(</font>X<font color="#990000">[:,:,</font>ind<font color="#990000">],</font>Y<font color="#990000">[:,:,</font>ind<font color="#990000">],</font><font color="#FF0000">'s'</font><font color="#990000">+</font>fc<font color="#990000">,</font>alpha<font color="#990000">=</font><font color="#993399">0.5</font><font color="#990000">)</font>
+
+    <b><font color="#000000">draw_lines</font></b><font color="#990000">(</font>ax<font color="#990000">,</font> x<font color="#990000">,</font> y<font color="#990000">,</font> lc<font color="#990000">=</font>lc<font color="#990000">,</font>XKCD_plots<font color="#990000">=</font>XKCD_plots<font color="#990000">)</font>
+
+    xp <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>xmin<font color="#990000">,</font> xmax<font color="#990000">,</font> px<font color="#990000">+</font><font color="#993399">1</font><font color="#990000">)</font>
+    yp <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>ymin<font color="#990000">,</font> ymax<font color="#990000">,</font> py<font color="#990000">+</font><font color="#993399">1</font><font color="#990000">)</font>
+    zp <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>zmin<font color="#990000">,</font> zmax<font color="#990000">,</font> pz<font color="#990000">+</font><font color="#993399">1</font><font color="#990000">)</font>
+    <b><font color="#0000FF">if</font></b> nodes<font color="#990000">:</font>
+        X<font color="#990000">,</font>Y<font color="#990000">,</font>Z <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">meshgrid</font></b><font color="#990000">(</font>xp<font color="#990000">,</font>yp<font color="#990000">,</font>zp<font color="#990000">)</font>
+        ax<font color="#990000">.</font><b><font color="#000000">plot</font></b><font color="#990000">(</font>X<font color="#990000">[:,:,</font>ind<font color="#990000">],</font>Y<font color="#990000">[:,:,</font>ind<font color="#990000">],</font><font color="#FF0000">'s'</font><font color="#990000">+</font>fc<font color="#990000">,</font>alpha<font color="#990000">=</font><font color="#993399">0.5</font><font color="#990000">)</font>
+
+    <b><font color="#000000">draw_lines</font></b><font color="#990000">(</font>ax<font color="#990000">,</font> xp<font color="#990000">,</font> yp<font color="#990000">,</font> lc<font color="#990000">=</font><font color="#FF0000">'k'</font><font color="#990000">,</font>lw<font color="#990000">=</font><font color="#993399">2</font><font color="#990000">,</font>XKCD_plots<font color="#990000">=</font>XKCD_plots<font color="#990000">)</font>
+
+    <i><font color="#9A1900">#Annotate the processors</font></i>
+    dxp <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">mean</font></b><font color="#990000">(</font>np<font color="#990000">.</font><b><font color="#000000">diff</font></b><font color="#990000">(</font>xp<font color="#990000">))</font>
+    dyp <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">mean</font></b><font color="#990000">(</font>np<font color="#990000">.</font><b><font color="#000000">diff</font></b><font color="#990000">(</font>yp<font color="#990000">))</font>
+    <i><font color="#9A1900">#Make some effort to ensure the text fits on a normal screen</font></i>
+    <b><font color="#0000FF">if</font></b> px <font color="#990000">&gt;</font> <font color="#993399">8</font> <b><font color="#0000FF">or</font></b> py <font color="#990000">&gt;</font> <font color="#993399">8</font><font color="#990000">:</font>
+        fontsize <font color="#990000">=</font> <font color="#993399">8</font>
+    <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+        fontsize <font color="#990000">=</font> <font color="#993399">12</font>
+    <b><font color="#0000FF">for</font></b> i<font color="#990000">,</font>px <b><font color="#0000FF">in</font></b> <b><font color="#000000">enumerate</font></b><font color="#990000">(</font>xp<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">:]):</font>
+        <b><font color="#0000FF">for</font></b> j<font color="#990000">,</font>py <b><font color="#0000FF">in</font></b> <b><font color="#000000">enumerate</font></b><font color="#990000">(</font>yp<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">:]):</font>
+            ax<font color="#990000">.</font><b><font color="#000000">text</font></b><font color="#990000">(</font>px<font color="#990000">-.</font><font color="#993399">5</font><font color="#990000">*</font>dxp<font color="#990000">,</font>py<font color="#990000">-.</font><font color="#993399">5</font><font color="#990000">*</font>dyp<font color="#990000">,</font>
+                    label<font color="#990000">+</font><font color="#FF0000">"$ Proc ["</font> <font color="#990000">+</font> <b><font color="#000000">str</font></b><font color="#990000">(</font>i<font color="#990000">)</font> <font color="#990000">+</font> <font color="#FF0000">","</font> <font color="#990000">+</font> <b><font color="#000000">str</font></b><font color="#990000">(</font>j<font color="#990000">)</font> <font color="#990000">+</font> <font color="#FF0000">"]$"</font><font color="#990000">,</font>
+                    horizontalalignment<font color="#990000">=</font><font color="#FF0000">"center"</font><font color="#990000">,</font>color<font color="#990000">=</font>lc<font color="#990000">,</font>
+                    fontsize<font color="#990000">=</font>fontsize<font color="#990000">)</font>
+
+</tt></pre>

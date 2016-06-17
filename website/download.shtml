@@ -14,23 +14,37 @@
 
         <!--#include virtual="nav.html"-->
 
-        <h2>Downloading CPL Library</h2>
+        <h2>Downloading the latest releases of CPL Library</h2>
+            
+        <p>
+            Version 1.0.0 of <mark class="CPL">CPL library</mark> is now avialable
+            to download from . This includes a remodelling of the interface
+            from version 0.9.0 so will break backward compatibility.
+            The interface has been greatly simplified so moving to the new
+            version should hopefully be fairly straightforward.
+        </p>
 
-        CPL Library may be downloaded with 
-        <a href="https://github.com/Crompulence/cpl-library">git</a>. 
-        Copy and paste the following command into your Terminal:
+
+        <h2>Bleeding edge CPL Library</h2>
+
+        <p>
+            The latest version of <mark class="CPL">CPL library</mark> may also be downloaded from github
+            <a href="https://github.com/Crompulence/cpl-library">git</a>. 
+            Copy and paste the following command into your Terminal:
+        </p>
 
         <div class="code">
-            <p>
-		git clone https://github.com/Crompulence/cpl-library.git
-            </p>
+		    git clone https://github.com/Crompulence/cpl-library.git
         </div>
 
         <p>
             Or see our 
             <a href="https://github.com/Crompulence/cpl-library">github homepage</a>.
-       Alternatively, a zip file may be downloaded from 
-       <a href="https://github.com/Crompulence/cpl-library/archive/master.zip">here</a>.
+           Alternatively, a zip file may be downloaded from 
+           <a href="https://github.com/Crompulence/cpl-library/archive/master.zip">here</a>.
+           There is a master and dev branch, the master branch is tested using Travis CI
+            and should be free from basic bugs while the dev will often be unstable and
+            used for testing new features.
         </p>
     
     </div>

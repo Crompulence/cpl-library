@@ -61,10 +61,11 @@ class CFD:
             self.ax = fig.axes
 
     def set_bc(self, topwall=1., bottomwall=0.):
+        #Periodic boundaries
+        self.u[-1,1:-1] = self.u[1,1:-1]; self.u[0,1:-1] = self.u[-2,1:-1]
         #Enforce boundary conditions
         self.u[:,0] = bottomwall; self.u[:,-1] = topwall
-        #Periodic boundaries
-        self.u[-1,:] = self.u[1,:]; self.u[0,:] = self.u[-2,:]
+
 
     def update_time(self):
         # Save previous value
@@ -84,25 +85,35 @@ class CFD:
         if ax == None:
             ax=self.ax
 
-        sm = ax.pcolormesh(self.X,self.Y,self.u.T,vmin=0.,vmax=1.,alpha=0.5)
-        draw_grid(ax, nx=self.x.size-1,ny=self.y.size-1, nz=1,
+        sm = ax.imshow(self.u.T,aspect='auto',origin='lower',
+                       extent=[self.xmin,self.xmax,
+                               self.ymin,self.ymax],
+                       interpolation="none",vmin=-1.,vmax=1.,
+                       alpha=0.5, cmap=plt.cm.RdYlBu_r)
+
+#        sm = ax.pcolormesh(self.X,self.Y,self.u.T,vmin=-1.,vmax=1.,alpha=0.5,
+#                          cmap=plt.cm.RdYlBu_r)
+        draw_grid(ax, nx=self.x.size,ny=self.y.size, nz=1,
                       xmin=self.xmin,xmax=self.xmax,
                       ymin=self.ymin,ymax=self.ymax)
 
         #Plot velocity profile offset to the left
-        axisloc = self.xmax
-        ax.arrow(axisloc,0., 0., 1.,  width=0.0015, color="k", 
-                 clip_on=False, head_width=0.012, head_length=0.012)
-        ax.arrow(axisloc,0., 1., 0.,  width=0.0015, color="k", 
-                 clip_on=False, head_width=0.012, head_length=0.012)
-        ax.plot(np.mean(self.u,0)+axisloc,self.y,'g-')
+        axisloc = self.xmax+1.
+
+        ax.arrow(axisloc, 0., self.ymin, self.ymax,  width=0.0015, color="k", 
+                 clip_on=False, head_width=0.12, head_length=0.12)
+        mid = .5*(self.ymin+self.ymax)
+        ax.arrow(axisloc-1., mid, 2.0, 0., width=0.0015, color="k", 
+                 clip_on=False, head_width=0.12, head_length=0.12)
+        yp = np.linspace(self.ymin+.5*self.dy, self.ymax - 0.5*self.dy, self.y.size)
+        ax.plot(np.mean(self.u,0)+axisloc,yp,'g-x')
         #ax.set_xlim((0.,2.))
 
         if self.first_time:
             plt.colorbar(sm)
             self.first_time=False
 
-        plt.pause(0.01)
+        plt.pause(0.001)
         ax.cla()
 
 if __name__ == "__main__":
