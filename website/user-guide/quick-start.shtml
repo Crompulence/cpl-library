@@ -23,7 +23,7 @@
         unclear or just plain wrong!
 
         <p>
-        Guide contents:
+            Guide contents:
         </p>
 
         <ul>
@@ -36,6 +36,13 @@
             <a href=#interactive><li>Demo: Interactive GUI using CPL library</li></a>
             <a href=#MD_CFD><li>Minimal CFD and MD code with coupling</li></a>
         </ul>
+
+        <p>
+            These examples are all included in the /cpl-library/examples folder
+            with the <mark class="CPL">CPL library</mark> software.
+            Once the code has been successfully compiled, the 
+        </p>
+
 
         <h2 id="prerequisites">Pre-requisites</h2>
         Before you begin, make sure you have the following installed on your
@@ -149,15 +156,9 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             and the CFD code in C++. Both programs may run with any number of
             processes.  
         </p>
-        <p>
-            The first step is to navigate to the demo directory:            
-        </p>
-
-        <div class="code"> $  cd cpl-library/demo/ </div>
 
         <p>
-            Take a look at the simple Fortran example code in
-            <code>md/md.f90</code>:
+            Take a look at the simple Fortran example code:
         </p>
 
 
@@ -168,13 +169,7 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
         <p>
             This code initialises MPI, and gets the MD communicator from
             <mark class="CPL">CPL library</mark>. It must, therefore, linked to both the MPI and CPL
-            libraries when it is compiled. On running: 
-        </p>
-       
-        <div class="code"> $  make </div> 
-        
-        <p>
-            you'll notice that the compilation (proper) is
+            libraries when it is compiled. The compilation (proper) is
             performed with a call to mpif90 of the form:
         </p>
  
@@ -212,8 +207,7 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
         <!--<div class="code"> cplf90 ./md/md.f90 -o run/md/mdProgram </div>-->
 
         <p>
-            For an equivalent CFD demo program written in C++, take a look at
-            <code>cfd/cfd.cpp</code>:
+            For an equivalent CFD demo program written in C++:
         </p>
 
         <div class="code">
@@ -244,22 +238,33 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             <code>mpif90</code> compiler wrappers.
         </p>
 
-        <!--p>
-            Which can be complied as follows,
+        <p>
+            For a python code, there is no need to compile, instead the
+            path must be correctly set. This can be done using,
+            
         </p>
-
-        <div class="code"> cplc++ ./cfd/cfd.cpp -o run/cfd/cfdProgram  </div>
+ 
+        <div class="code"> $  source SOURCEME.sh</div>
 
         <p>
-            Which can now be run simply by using,
-        </p-->
+            Note if you want to specify the cpl path to a different directory than the location
+            of SOURCEME.sh, you need to set
+        </p>
+
+        <div class="code"> $  CPL_PATH=/path/to/cpl/library/</div>
+
+        <p>
+            manually.
+            
+            
+        </p>
 
         <p>
             Now the demo codes are compiled, they can be executed together in 
             the run directory with:
         </p>
      
-        <div class="code"> $  cd run</div>
+
         <div class="code"> $  ./run.sh </div>
 
         <p>
@@ -272,8 +277,8 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
     
         <p>
             That's it! The codes should execute, and <mark class="CPL">CPL library</mark> will tell you
-            that its internal communicators have been initialised.  
-            Obviously nothing is ever that simple, if you get any problems,
+            that its internal communicators have been initialised.
+            Obviously it is rarely that simple, if you get any problems,
             please check out the <a class="links" href='/faq.shtml'>faq</a>
             section and if this doesn't help, please get in touch.
         </p>

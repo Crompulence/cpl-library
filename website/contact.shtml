@@ -18,22 +18,25 @@
         <h2>General enquiries</h2>
         <p>
             <mark class="CPL">CPL library</mark> is developed and maintained by 
-	    <a href="https://uk.linkedin.com/pub/david-trevelyan/90/481/495">David Trevelyan</a>
-            and 
-	    <a href="http://www.imperial.ac.uk/people/edward.smith05">Edward Smith</a>, 
-            who are currently based at Imperial College London. 
-            We're happy to help in any way we can. General comments and 
-            questions are best by email: send your message to 
-            <a href="mailto:info@cpl-library.org">info@cpl-library.org</a>, and
-            one of us will get back to you as soon as possible.
+	   	    <a href="http://www.imperial.ac.uk/people/edward.smith05">Edward Smith</a>, 
+            who is based at Imperial College London. 
+            General comments and questions are best by email: send your message to 
+            <a href="mailto:info@cpl-library.org">info@cpl-library.org</a>.
+            If you would like to develop new coupled examples, new features or just help 
+            with <mark class="CPL">CPL library</mark> then please get in touch.
 
         <h2>Technical support</h2>
         <p>
-            Right now we're working on putting together (a) some more comprehensive
-            documentation and (b) a users' forum. For now, please direct support requests to 
+            For now, please direct support requests to 
             <a href="mailto:info@cpl-library.org">info@cpl-library.org</a> or
             one of the developers below.
-        </p>
+            We are academic researchers who are supporting
+            this free software on the side. We have tried to
+            ensure the software is fully tested, user friendly and as clearly documented
+            as possible and we will do our best to help with any problems.
+            However, please understand that it may take some time to respond.          
+            
+         </p>
 
         <h2>Current developers</h2>
 
