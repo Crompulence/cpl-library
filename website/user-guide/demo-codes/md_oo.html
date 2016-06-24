@@ -7,6 +7,8 @@ http://www.gnu.org/software/src-highlite -->
 
 <b><font color="#000080">from</font></b> draw_grid <b><font color="#000080">import</font></b> draw_grid
 
+
+
 <b><font color="#0000FF">class</font></b> MD<font color="#990000">:</font>
 
     <b><font color="#0000FF">def</font></b> <b><font color="#000000">__init__</font></b><font color="#990000">(</font>self<font color="#990000">,</font>
@@ -267,7 +269,7 @@ http://www.gnu.org/software/src-highlite -->
         self<font color="#990000">.</font>tstep <font color="#990000">+=</font> <font color="#993399">1</font>
         self<font color="#990000">.</font>time <font color="#990000">=</font> self<font color="#990000">.</font>tstep<font color="#990000">*</font>self<font color="#990000">.</font>dt 
 
-    <b><font color="#0000FF">def</font></b> <b><font color="#000000">constraint_force</font></b><font color="#990000">(</font>self<font color="#990000">,</font> u_CFD<font color="#990000">,</font> constraint_cell<font color="#990000">,</font> alpha<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">.):</font>
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">constraint_force</font></b><font color="#990000">(</font>self<font color="#990000">,</font> u_CFD<font color="#990000">,</font> constraint_cell<font color="#990000">,</font> alpha<font color="#990000">=</font><font color="#993399">0.1</font><font color="#990000">):</font>
 
         <i><font color="#9A1900">#Get the MD velocity field</font></i>
         binsize_CFD <font color="#990000">=</font> self<font color="#990000">.</font>domain<font color="#990000">/</font>u_CFD<font color="#990000">.</font>shape<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">:</font><font color="#993399">2</font><font color="#990000">]</font>
@@ -295,8 +297,6 @@ http://www.gnu.org/software/src-highlite -->
                 F<font color="#990000">[:]</font> <font color="#990000">=</font> alpha<font color="#990000">*(</font>u_CFD<font color="#990000">[:,</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">-</font> u_MD<font color="#990000">[:,</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]])</font>
                 <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>mbin<font color="#990000">[</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]]</font> <font color="#990000">!=</font> <font color="#993399">0</font><font color="#990000">):</font>
                     self<font color="#990000">.</font>a<font color="#990000">[</font>i<font color="#990000">,:]</font> <font color="#990000">+=</font> F<font color="#990000">[:]/</font><b><font color="#000000">float</font></b><font color="#990000">(</font>mbin<font color="#990000">[</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]])</font>
-                    mbin<font color="#990000">[</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]]</font> <font color="#990000">-=</font> <font color="#993399">1</font>
-                    <b><font color="#0000FF">print</font></b><font color="#990000">(</font>i<font color="#990000">,</font> ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> mbin<font color="#990000">[</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]])</font>
                 <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
                     <b><font color="#0000FF">pass</font></b>
                 self<font color="#990000">.</font>ax<font color="#990000">.</font><b><font color="#000000">quiver</font></b><font color="#990000">((</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]+.</font><font color="#993399">5</font><font color="#990000">)*</font>self<font color="#990000">.</font>dx<font color="#990000">-</font>hd<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>
@@ -304,21 +304,21 @@ http://www.gnu.org/software/src-highlite -->
                               color<font color="#990000">=</font><font color="#FF0000">'red'</font><font color="#990000">,</font>angles<font color="#990000">=</font><font color="#FF0000">'xy'</font><font color="#990000">,</font>scale_units<font color="#990000">=</font><font color="#FF0000">'xy'</font><font color="#990000">,</font>scale<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">)</font>
 
 
-        ucheck <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">([</font><font color="#993399">2</font><font color="#990000">,</font>self<font color="#990000">.</font>xbin<font color="#990000">])</font>
-        <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>N<font color="#990000">):</font>
-            ib <font color="#990000">=</font> <font color="#990000">[</font><b><font color="#000000">int</font></b><font color="#990000">((</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]+</font>hd<font color="#990000">[</font>ixyz<font color="#990000">])</font>
-                       <font color="#990000">/</font>binsize_MD<font color="#990000">[</font>ixyz<font color="#990000">])</font> 
-                  <b><font color="#0000FF">for</font></b> ixyz <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>nd<font color="#990000">)]</font>
-            <i><font color="#9A1900">#Ensure within domain</font></i>
-            <b><font color="#0000FF">if</font></b> ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">&gt;</font> u_MD<font color="#990000">.</font>shape<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]:</font>
-                ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">=</font> u_MD<font color="#990000">.</font>shape<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font>
-            <b><font color="#0000FF">if</font></b> ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">&gt;</font> u_MD<font color="#990000">.</font>shape<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">]:</font>
-                ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> u_MD<font color="#990000">.</font>shape<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">]</font>
-            <b><font color="#0000FF">if</font></b> ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">==</font> constraint_cell<font color="#990000">:</font>
-                ucheck<font color="#990000">[:,</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]]</font> <font color="#990000">+=</font> self<font color="#990000">.</font>v<font color="#990000">[</font>i<font color="#990000">,:]</font> <i><font color="#9A1900">#+ self.dt*self.a[i,:]</font></i>
-                
+<i><font color="#9A1900">#        ucheck = np.zeros([2,self.xbin])</font></i>
+<i><font color="#9A1900">#        for i in range(self.N):</font></i>
+<i><font color="#9A1900">#            ib = [int((self.r[i,ixyz]+hd[ixyz])</font></i>
+<i><font color="#9A1900">#                       /binsize_MD[ixyz]) </font></i>
+<i><font color="#9A1900">#                  for ixyz in range(self.nd)]</font></i>
+<i><font color="#9A1900">#            #Ensure within domain</font></i>
+<i><font color="#9A1900">#            if ib[0] &gt; u_MD.shape[1]:</font></i>
+<i><font color="#9A1900">#                ib[0] = u_MD.shape[1]</font></i>
+<i><font color="#9A1900">#            if ib[1] &gt; u_MD.shape[2]:</font></i>
+<i><font color="#9A1900">#                ib[1] = u_MD.shape[2]</font></i>
+<i><font color="#9A1900">#            if ib[1] == constraint_cell:</font></i>
+<i><font color="#9A1900">#                ucheck[:,ib[0]] += self.v[i,:] + self.dt*self.a[i,:]</font></i>
+<i><font color="#9A1900">#                </font></i>
 
-        <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">'ucheck='</font><font color="#990000">,</font>ucheck<font color="#990000">)</font>
+<i><font color="#9A1900">#        print('ucheck=',ucheck)</font></i>
             
 
     <i><font color="#9A1900">#Plot molecules</font></i>

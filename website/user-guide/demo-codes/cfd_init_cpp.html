@@ -1,0 +1,29 @@
+<!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><b><font color="#000080">#include</font></b> <font color="#FF0000">"CPL.h"</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">"mpi.h"</font>
+<b><font color="#000080">#include</font></b> <font color="#FF0000">&lt;iostream&gt;</font>
+
+<b><font color="#0000FF">using</font></b> <b><font color="#0000FF">namespace</font></b> std<font color="#990000">;</font>
+
+<font color="#009900">int</font> <b><font color="#000000">main</font></b><font color="#990000">()</font> <font color="#FF0000">{</font>
+   <b><font color="#000000">MPI_Init</font></b><font color="#990000">(</font>NULL<font color="#990000">,</font> NULL<font color="#990000">);</font> 
+
+   <font color="#009900">int</font> CFD_realm <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">,</font> CFD_COMM<font color="#990000">;</font>
+   CPL<font color="#990000">::</font><b><font color="#000000">init</font></b><font color="#990000">(</font>CFD_realm<font color="#990000">,</font> CFD_COMM<font color="#990000">);</font>
+
+   <font color="#009900">int</font> nprocs<font color="#990000">;</font> <font color="#009900">int</font> rank<font color="#990000">;</font>
+   <b><font color="#000000">MPI_Comm_size</font></b><font color="#990000">(</font>CFD_COMM<font color="#990000">,</font> <font color="#990000">&amp;</font>nprocs<font color="#990000">);</font>   
+   <b><font color="#000000">MPI_Comm_rank</font></b><font color="#990000">(</font>CFD_COMM<font color="#990000">,</font> <font color="#990000">&amp;</font>rank<font color="#990000">);</font>
+
+   cout <font color="#990000">&lt;&lt;</font> <font color="#FF0000">"MD code processor "</font> <font color="#990000">&lt;&lt;</font> rank<font color="#990000">+</font><font color="#993399">1</font> <font color="#990000">&lt;&lt;</font> <font color="#FF0000">" of "</font> <font color="#990000">&lt;&lt;</font> nprocs <font color="#990000">&lt;&lt;</font> endl<font color="#990000">;</font>
+
+   CPL<font color="#990000">::</font><b><font color="#000000">finalize</font></b><font color="#990000">();</font>
+   <b><font color="#000000">MPI_Finalize</font></b><font color="#990000">();</font>
+<font color="#FF0000">}</font>
+
+
+
+</tt></pre>

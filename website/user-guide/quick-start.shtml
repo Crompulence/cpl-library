@@ -6,8 +6,6 @@
     <script type="text/javascript" src="/details-shim.js"></script>
 </head>
 
-
-
 <body>
 
     <div class="center">
@@ -75,8 +73,7 @@
                                               CXX=gcc-5 FC=gfortran-5 <br>
                                 $make <br>
                                 $make install <br>
-                                $ export
-PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
+                                $ export PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
              </div>
         <em>
              <br>
@@ -139,6 +136,11 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             
         <div class="code"> cpl-library/cpl/include/ </div>
 
+        <p>
+            The wrapper binaries for cplf90 and cplc++ are located in
+        </p>
+            
+        <div class="code"> cpl-library/cpl/bin/ </div>
 
         <p>
             This build has been verified for the GCC compiler collection and
@@ -154,125 +156,116 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             This simple example shows you how to link two massively-parallel 
             codes with <mark class="CPL">CPL library</mark>. The example MD code is written in Fortran,
             and the CFD code in C++. Both programs may run with any number of
-            processes.  
+            processes. Take a look at the simple Fortran example code:
         </p>
-
-        <p>
-            Take a look at the simple Fortran example code:
-        </p>
-
 
         <div class="code">
-            <!--#include virtual="demo-codes/md.f90.html"-->
+            <!--#include virtual="demo-codes/md_init_fortran.html"-->
         </div>
 
         <p>
             This code initialises MPI, and gets the MD communicator from
-            <mark class="CPL">CPL library</mark>. It must, therefore, linked to both the MPI and CPL
-            libraries when it is compiled. The compilation (proper) is
-            performed with a call to mpif90 of the form:
+            <mark class="CPL">CPL library</mark>. It must, therefore, be linked to both the MPI and CPL
+            libraries when it is compiled. The compilation can be performed with a call to mpif90 of the form:
         </p>
  
 
         <div class="code"> 
-            $  mpif90 ./md/md.f90 \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -I$(CPL-LIBRARY-PATH)/cpl/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -L$(CPL-LIBRARY-PATH)/cpl/lib \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -Wl,-rpath=$(CPL-LIBRARY-PATH)/cpl/lib/ -lcpl \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -lc -lstdc++ \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   
-                   -o run/md/mdProgram 
+
+            $  mpif90 ./cfd_init.f90 \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                      -I${CPL_PATH}/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      -L${CPL_PATH}/lib  \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      -Wl,-rpath=${CPL_PATH}/lib/ -lcpl \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      -o ./mdProgram
+
         </div>
 
         <p>
             If you're not familiar with the processes involved in linking
             shared libraries to software, there are a few things to notice
-            in the above command. First, we've specified the location of the 
-            <mark class="CPL">CPL library</mark> Fortran module files with the <code>-I</code> flag. 
-            Second, the 
-            location of the cpl-library shared library, <code>libcpl.so</code>, is specified
-            with <code>-L</code>. 
+            in the above command. 
+            The variable CPL_PATH should be set to the location of the base
+            directory of the <mark class="CPL">CPL library</mark> downloaded,
+            unzipped and build in the previous section. 
+            First, we've specified the location of the 
+            Fortran module files with the <code>-I</code> flag. 
+            Second, the location of the cpl-library shared library, 
+            <code>libcpl.so</code>, is specified with <code>-L</code>. 
             Because the library is a dynamic one, not in the standard
-            <code>/usr/lib</code>
-            location, we also provide the built executable with a reference to the
-            library location with 
-            <code>-Wl,-rpath=$(CPL-LIBRARY-PATH)/cpl-library/cpl/lib/</code>. 
+            <code>/usr/lib</code> location, we also provide the built 
+            executable with a reference to the library location with <br>
+            <code>-Wl,-rpath=${CPL_PATH}/lib/</code>. 
+            Note: all compiler flags for the MPI library
+            are handled automatically by the <code>mpic++</code> and
+            <code>mpif90</code> compiler wrappers. 
+<!--
             Finally, because the library is
             written with both C++ and Fortran, <code>-lc</code> and
             <code>-lstdc++</code> are required
             to link to the C++ standard libraries with the Fortran compiler.
             The executable is saved to <code>md/mdProgram</code>. 
-            <!--Two helper scripts are provided to simplify this process, -->
-        </p>
-
-        <!--<div class="code"> cplf90 ./md/md.f90 -o run/md/mdProgram </div>-->
-
-        <p>
-            For an equivalent CFD demo program written in C++:
+-->
+            Two helper scripts similar to MPI are provided to simplify linking in
+            ${CPL_PATH}/bin folder. These can be included in the path using,
         </p>
 
         <div class="code">
-            <!--#include virtual="demo-codes/cfd.cpp.html"-->
+            $ source SOURCEME.sh
         </div>
-
-        <p>
-            Like the Fortran example above, when running <code>make</code>, 
-            you'll notice that the compilation command was something similar 
-            to:
-        </p>
- 
-        <div class="code"> 
-            $  mpic++ ./cfd/cfd.cpp \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -I$(CPL-LIBRARY-PATH)/cpl/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -L$(CPL-LIBRARY-PATH)/cpl/lib \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -Wl,-rpath=$(CPL-LIBRARY-PATH)/cpl/lib/ -lcpl \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -lgfortran -lmpifort \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   
-                   -o run/cfd/cfdProgram 
-        </div>
-
-        <p>
-            This time, the <code>-I</code> flag tells the compiler where to
-            find the <mark class="CPL">CPL library</mark> C++ header files, and we must link to the 
-            <code>-lgfortran</code> and <code>-lmpifort</code> Fortran libraries.
-            Note: all compiler flags for the MPI library
-            are handled automatically by the <code>mpic++</code> and
-            <code>mpif90</code> compiler wrappers.
-        </p>
-
-        <p>
-            For a python code, there is no need to compile, instead the
-            path must be correctly set. This can be done using,
-            
-        </p>
- 
-        <div class="code"> $  source SOURCEME.sh</div>
 
         <p>
             Note if you want to specify the cpl path to a different directory than the location
             of SOURCEME.sh, you need to set
         </p>
 
-        <div class="code"> $  CPL_PATH=/path/to/cpl/library/</div>
+        <div class="code"> $  CPL_PATH=/some/path/to/cpl/library/</div>
 
         <p>
-            manually.
-            
-            
+            manually. After adding  <mark class="CPL">CPL library</mark>  to your
+            path with SOURCEME.sh, the previous build statement then simply becomes,
         </p>
+
+        <div class="code"> cplf90 ./md_init.f90 -o ./mdProgram </div>
+
+        <p>
+            Next we build an equivalent CFD demo program written in C++:
+        </p>
+
+        <div class="code">
+            <!--#include virtual="demo-codes/md_init_cpp.html"-->
+        </div>
+
+        <p>
+            Like the Fortran example above, the compilation command 
+            is of the form:
+        </p>
+ 
+        <div class="code"> 
+
+            $ mpic++ ./cfd_init.cpp \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                     -I${CPL_PATH}/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
+                     -L${CPL_PATH}/lib  \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                     -Wl,-rpath=${CPL_PATH}/lib/ -lcpl  \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                     -o ./cfdProgram  <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+
+        </div>
+
+        <p>
+            This time, the <code>-I</code> flag tells the compiler where to
+            find the <mark class="CPL">CPL library</mark> C++ header files, and we must link to the 
+            <code>-lgfortran</code> and <code>-lmpifort</code> Fortran libraries.
+            Alternativly using cplc++ wrapper,
+        </p>
+
+        <div class="code"> cplc++ ./cfd_init.cpp -o ./mdProgram </div>
 
         <p>
             Now the demo codes are compiled, they can be executed together in 
             the run directory with:
         </p>
      
-
-        <div class="code"> $  ./run.sh </div>
-
-        <p>
-            The <code>run.sh</code> script simply contains:
-        </p>
-        
         <div class="code"> 
-            mpiexec -n 8 ./md/mdProgram : -n 4 ./cfd/cfdProgram
+            mpiexec -n 8 ./mdProgram : -n 4 ./cfdProgram
         </div>
     
         <p>
@@ -283,6 +276,38 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             section and if this doesn't help, please get in touch.
         </p>
 
+        <p>
+            The fortran code can also be easily replaced with a python example,
+        </p>
+
+        <div class="code">
+            <!--#include virtual="demo-codes/md_init_python.html"-->
+        </div>
+
+        <p>
+            there is no need to compile, but the
+            path must be correctly set. This can also be done using,
+        </p>
+
+        <div class="code">
+            $ source SOURCEME.sh
+        </div>
+
+        <p>
+            if you haven't already. 
+            SOURCEME.sh appends the library location and python ctype bindings 
+            to the PYTHONPATH variable. A python and C++ coupled
+            example can then be run using,
+        </p>
+
+        <div class="code"> 
+            mpiexec -n 8 python ./md_init.py : -n 4 ./cfdProgram
+        </div>
+ 
+        <p>
+            These examples don't actually do anything interesting, and so
+            in the next section, the minimal code is presented to send and recieve data.
+        </p>
 
         <h2 id="linking">Demo: a minimum send/recv example</h2>
 
@@ -335,16 +360,13 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
         <p>
             This section outlines a minimal example in Fortan which will send
             information between an MD and CFD code. 
-
-
-
         <p>
             The CFD code is first,
         </p>
 
             <details>
                 <summary> See CFD Fortran Code </summary>
-                    <!--#include virtual="demo-codes/cfd_fortran_minimal.inc"-->
+                    <!--#include virtual="demo-codes/cfd_send_cells_fortran.html"-->
             </details>
  
 
@@ -355,46 +377,25 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
 
             <details>
                 <summary> See MD Fortran Code </summary>
-                 <!--#include virtual="demo-codes/md_fortran_minimal.inc"-->
+                 <!--#include virtual="demo-codes/md_recv_cells_fortran.html"-->
             </details>   
 
+
         <p>
-            The code to define and check the arrays for each cells is 
-            given in the following module,
+            This can be built using,
         </p>
 
-            <details>
-                <summary> Array fill and checking Code </summary>
-                    <!--#include virtual="demo-codes/array_stuff.inc"-->
-            </details>
-
-
-        <p>
-
-            This can be built using,
-
         <div class="code">
-           $  mpif90 ./md_send_cells.f90 \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -I$(CPL-LIBRARY-PATH)/cpl/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -L$(CPL-LIBRARY-PATH)/cpl/lib \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -Wl,-rpath=$(CPL-LIBRARY-PATH)/cpl/lib/ -lcpl \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -lc -lstdc++ \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   
-                   -o ./md.exe
+           $  cplf90 ./md_recv_cells.f90 -o ./md.exe
  
         </div>
-
 
         <p>
             and similar for cfd executable,
         </p>
 
       <div class="code">
-           $  mpif90 ./cfd_send_cells.f90 \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -I$(CPL-LIBRARY-PATH)/cpl/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -L$(CPL-LIBRARY-PATH)/cpl/lib \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -Wl,-rpath=$(CPL-LIBRARY-PATH)/cpl/lib/ -lcpl \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -lc -lstdc++ \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   
-                   -o ./cfd.exe
+           $  cplf90 ./cfd_send_cells.f90   -o ./cfd.exe
         </div>
 
         <p>
@@ -405,6 +406,29 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             mpiexec -n 4 ./cfd.exe : -n 16 ./md.exe
         </div>
 
+        <p>
+            The coupled simulation sends data from the 16 MD 
+            processors to the 4 CFD processors. These are then
+            checked to ensure they correspond the correct
+            locations in space and any errors are printed.
+            A correct output will contain something like,
+        </p>
+
+        <div class="code">
+            MD -- (rank= 2) CELLS HAVE BEEN RECEIVED CORRECTLY.
+            MD -- (rank= 3) CELLS HAVE BEEN RECEIVED CORRECTLY.
+            MD -- (rank= 6) CELLS HAVE BEEN RECEIVED CORRECTLY.
+            MD -- (rank= 7) CELLS HAVE BEEN RECEIVED CORRECTLY.
+            MD -- (rank=10) CELLS HAVE BEEN RECEIVED CORRECTLY.
+            MD -- (rank=11) CELLS HAVE BEEN RECEIVED CORRECTLY.
+            MD -- (rank=14) CELLS HAVE BEEN RECEIVED CORRECTLY.
+            MD -- (rank=15) CELLS HAVE BEEN RECEIVED CORRECTLY.
+        </div>
+
+        <p>
+            The examples for C++ and python are included next.
+        </p>
+
 
         <h3 id="linking_cpp">C++</h3>
 
@@ -414,8 +438,8 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             similar.
         </p>
             <details>
-                <summary> See CFD C++ code </summary>
-                 <!--#include virtual="demo-codes/cfd_sendrecv_cpp.html"-->
+                <summary> See CFD C++ code <a href=demo-codes/md_send_cells.cpp>(download)</a> </summary>
+                 <!--#include virtual="demo-codes/cfd_send_cells_cpp.html"-->
             </details>   
 
         <p>
@@ -424,9 +448,11 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
 
             <details>
                 <summary> See MD C++ code </summary>
-                 <!--#include virtual="demo-codes/md_sendrecv_cpp.html"-->
+                 <!--#include virtual="demo-codes/md_recv_cells_cpp.html"-->
             </details>
- 
+
+         This is what I want to copy
+
 
 
 
@@ -436,10 +462,10 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             information between an MD and CFD code. The CFD code is first.
         </p>
 
-            <details>
-                <summary> See CFD python Code </summary>
-                 <!--#include virtual="demo-codes/cfd_sendrecv_python.html"-->
-            </details>   
+        <details>
+            <summary> See CFD python Code </summary>
+             <!--#include virtual="demo-codes/cfd_send_cells_python.html"-->
+        </details>   
 
         <p>
             and the MD code,
@@ -447,7 +473,7 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
 
             <details>
                 <summary> See MD python Code </summary>
-                 <!--#include virtual="demo-codes/md_sendrecv_python.html"-->
+                 <!--#include virtual="demo-codes/md_recv_cells_python.html"-->
             </details>   
 
 
@@ -459,7 +485,7 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             data formats in the various codes as well as different grid index systems.
             In the next section, visualisation of a coupled code is presented to show
             how design and development of coupled simulation can be aided by 
-            Minimal CFD and MD code with coupling  <mark class="CPL">CPL library</mark> tools.
+            minimal CFD and MD code with <mark class="CPL">CPL library</mark> tools.
         </p>
 
         <!--<div class="code">
@@ -477,9 +503,9 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             The previous section, although an important test is not particularly exciting.
             In this section, a more interesting visual example is presented which uses
             the python interface and matplotlib to plot results. A fortran
-            and c++ example MD code specifies a test sinusoidal function in x, y and z of the form
+            and C++ example MD code specifies a test sinusoidal function in x, y and z of the form
             and sends this to a python CFD code which plots the results. The fortran and
-            c++ codes are almost identical to the <a href=#linking>previous example</a> , 
+            C++ codes are almost identical to the <a href=#linking>previous example</a> , 
             although this time the MD code sends to the CFD. 
         </p>
 
@@ -489,7 +515,7 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
         </details>
 
         <details>
-            <summary> MD c++ send code </summary>
+            <summary> MD C++ send code </summary>
              <!--#include virtual="demo-codes/md_send_topo_cpp.html"-->
         </details> 
 
@@ -509,7 +535,7 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
 
         <details>
             <summary> CFD python receive and plot </summary>
-             <!--#include virtual="demo-codes/cfd_recv_topo_python.html"-->
+             <!--#include virtual="demo-codes/CFD_recv_and_plot_python.html"-->
         </details>
 
         <p>
