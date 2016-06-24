@@ -232,7 +232,7 @@
         </p>
 
         <div class="code">
-            <!--#include virtual="demo-codes/md_init_cpp.html"-->
+            <!--#include virtual="demo-codes/cfd_init_cpp.html"-->
         </div>
 
         <p>
@@ -415,14 +415,14 @@
         </p>
 
         <div class="code">
-            MD -- (rank= 2) CELLS HAVE BEEN RECEIVED CORRECTLY.
-            MD -- (rank= 3) CELLS HAVE BEEN RECEIVED CORRECTLY.
-            MD -- (rank= 6) CELLS HAVE BEEN RECEIVED CORRECTLY.
-            MD -- (rank= 7) CELLS HAVE BEEN RECEIVED CORRECTLY.
-            MD -- (rank=10) CELLS HAVE BEEN RECEIVED CORRECTLY.
-            MD -- (rank=11) CELLS HAVE BEEN RECEIVED CORRECTLY.
-            MD -- (rank=14) CELLS HAVE BEEN RECEIVED CORRECTLY.
-            MD -- (rank=15) CELLS HAVE BEEN RECEIVED CORRECTLY.
+            MD -- (rank= 2) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank= 3) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank= 6) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank= 7) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank=10) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank=11) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank=14) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank=15) CELLS HAVE BEEN RECEIVED CORRECTLY. 
         </div>
 
         <p>
