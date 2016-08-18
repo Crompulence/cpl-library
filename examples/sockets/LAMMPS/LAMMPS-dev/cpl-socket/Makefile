@@ -55,7 +55,8 @@ $(EXE): $(LIBLAMMPS_CPL) $(OBJDIR) $(BINDIR) $(OBJFILES)
 
 # LAMMPS Library
 $(LIBLAMMPS_CPL):
-	cd $(LAMMPSSRCDIR) && make no-user-cpl && make yes-user-cpl && make mode=lib cpl
+	@bash enable-packages.sh
+	@cd $(LAMMPSSRCDIR) && make mode=lib cpl
 
 # Directories
 $(OBJDIR):
@@ -79,3 +80,8 @@ test-forces:
 
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)
+
+clean-all:
+	cd $(LAMMPSSRCDIR) && make no-all &> /dev/null
+	rm -rf $(OBJDIR) $(BINDIR)
+	rm -f $(LIBLAMMPS_CPL)

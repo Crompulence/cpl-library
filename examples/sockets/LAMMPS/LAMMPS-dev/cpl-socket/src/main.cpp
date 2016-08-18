@@ -36,8 +36,8 @@ License
 Description
 
     Simple program that couples LAMMPS to an external solver via
-    CPL-Library. This program takes a single command-line argument,
-    which is the path to a setup script (arg[1]) that is performed
+    CPL-Library. This program takes a single command-line argvument,
+    which is the path to a setup script (argv[1]) that is performed
     line-by-line before the coupled run.
 
 Author(s)
@@ -59,33 +59,21 @@ Author(s)
 #include "CPL.h"
 #include "CPLSocketLAMMPS.h"
 
-int main(int narg, char **arg)
+int main(int argc, char **argv)
 {
     // Create socket and initialise MPI/CPL communicators
     CPLSocketLAMMPS cpl;
-    cpl.initComms (narg, arg);
+    cpl.initComms (argc, argv);
 
-    // Create lammps instance on socket realm communicator
-//    auto lmp = std::make_unique <LAMMPS_NS::LAMMPS> (1, arg, 
-//                                                     cpl.realmCommunicator());
-    LAMMPS_NS::LAMMPS *lmp = new LAMMPS_NS::LAMMPS(1, arg, cpl.realmCommunicator());
 
-    // Open LAMMPS input script and perform setup line-by-line
-    std::ifstream inputFile (arg[1]);
-    if (!inputFile.is_open())
-    {
-        std::cerr << "ERROR: Could not open LAMMPS setup script "
-                  << arg[1] << std::endl;
-        MPI_Abort (MPI_COMM_WORLD, 1);
-    }
-    std::string line;
-    while (!inputFile.eof())
-    {
-        std::getline (inputFile, line);
-        lmp->input->one (line.c_str());
-    }
+    LAMMPS_NS::LAMMPS *lmp = new LAMMPS_NS::LAMMPS(argc, argv, cpl.realmCommunicator());
 
+std::cout << "args: " << argc << "argv :" << argv[1] << std::endl;
+
+    // Run LAMMPS setup script 
+    lmp->input->file();
     cpl.initMD (lmp);
+    std::string line;
 
     for (int step = 0; step < cpl.nsteps; step += cpl.timestep_ratio)
     {
