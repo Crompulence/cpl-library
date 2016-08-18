@@ -6,6 +6,9 @@ DirectoryIndex index.html index.htm index.php index.shtml index.shtm
 
 SetEnvIfNoCase Request_URI "\.(?:gif|jpe?g|png)$" no-gzip
 
+Options +Includes
+AddType text/html .shtml
+AddOutputFilter INCLUDES .shtml
 #Options -MultiViews
 #RewriteEngine On
 #RewriteCond %{REQUEST_FILENAME} !-f

@@ -1,0 +1,33 @@
+<!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><b><font color="#0000FF">program</font></b> main_MD
+   <b><font color="#0000FF">use</font></b> cpl<font color="#990000">,</font> <b><font color="#0000FF">only</font></b> <font color="#990000">:</font> CPL_init<font color="#990000">,</font> CPL_finalize
+   <b><font color="#0000FF">use</font></b> mpi
+   <b><font color="#0000FF">implicit</font></b> none
+
+   <font color="#009900">integer</font> <font color="#990000">::</font> rank<font color="#990000">,</font> nprocs<font color="#990000">,</font> ierr
+   <font color="#009900">integer</font> <font color="#990000">::</font> MD_COMM
+   <font color="#009900">integer</font><font color="#990000">,</font> <b><font color="#0000FF">parameter</font></b> <font color="#990000">::</font> MD_realm<font color="#990000">=</font><font color="#993399">2</font>
+
+   <i><font color="#9A1900">!Initialise MPI</font></i>
+   <b><font color="#0000FF">call</font></b> <b><font color="#000000">MPI_Init</font></b><font color="#990000">(</font>ierr<font color="#990000">)</font>
+
+   <i><font color="#9A1900">!Create MD Comm by spliting world</font></i>
+   <b><font color="#0000FF">call</font></b> <b><font color="#000000">CPL_init</font></b><font color="#990000">(</font>MD_realm<font color="#990000">,</font> MD_COMM<font color="#990000">,</font> ierr<font color="#990000">)</font>
+
+   <b><font color="#0000FF">call</font></b> <b><font color="#000000">MPI_comm_size</font></b><font color="#990000">(</font>MD_COMM<font color="#990000">,</font> nprocs<font color="#990000">,</font> ierr<font color="#990000">)</font>
+   <b><font color="#0000FF">call</font></b> <b><font color="#000000">MPI_comm_rank</font></b><font color="#990000">(</font>MD_COMM<font color="#990000">,</font> rank<font color="#990000">,</font> ierr<font color="#990000">)</font>
+
+   <b><font color="#0000FF">print</font></b><font color="#990000">*,</font> <font color="#FF0000">"MD code processor "</font><font color="#990000">,</font> rank<font color="#993399">+1</font><font color="#990000">,</font> <font color="#FF0000">" of "</font><font color="#990000">,</font> nprocs
+
+   <i><font color="#9A1900">!No need for seperate CPL finalise as MPI finalise takes care of this</font></i>
+   <b><font color="#0000FF">call</font></b> <b><font color="#000000">CPL_finalize</font></b><font color="#990000">(</font>ierr<font color="#990000">)</font>
+   <b><font color="#0000FF">call</font></b> <b><font color="#000000">MPI_comm_free</font></b><font color="#990000">(</font>MD_COMM<font color="#990000">,</font>ierr<font color="#990000">)</font>
+   <b><font color="#0000FF">call</font></b> <b><font color="#000000">MPI_finalize</font></b><font color="#990000">(</font>ierr<font color="#990000">)</font>
+
+<b><font color="#0000FF">end</font></b> <b><font color="#0000FF">program</font></b> main_MD
+
+
+</tt></pre>

@@ -5,7 +5,13 @@
 #
 # Directory locations: Fixed for any cpl implementation.
 # during make install?? 
-prefix=/home/es205/codes/cpl/cpl-library/
+if [ -z "$CPL_PATH" ] 
+then
+    DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    CPL_PATH=${DIR}/..
+fi
+
+prefix=${CPL_PATH}
 CPL_VERSION=1.0
 
 exec_prefix=${prefix}/bin

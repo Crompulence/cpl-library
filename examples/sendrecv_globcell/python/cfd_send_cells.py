@@ -19,15 +19,15 @@ xyzL = np.array([10.0, 10.0, 10.0], order='F', dtype=np.float64)
 xyz_orig = np.array([0.0, 0.0, 0.0], order='F', dtype=np.float64)
 
 # Create communicators and check that number of processors is consistent
-realm_comm = CPL.init(CPL.CFD_REALM)
-nprocs_realm = realm_comm.Get_size()
+CFD_COMM = CPL.init(CPL.CFD_REALM)
+nprocs_realm = CFD_COMM.Get_size()
 
 if (nprocs_realm != NProcs):
     print "ERROR: Non-coherent number of processors."
     MPI.Abort(errorcode=1)
 
-cart_comm = realm_comm.Create_cart([NPx, NPy, NPz])
-CPL.setup_cfd(nsteps, dt, cart_comm, xyzL, xyz_orig, ncxyz, density)
+cart_comm = CFD_COMM.Create_cart([NPx, NPy, NPz])
+CPL.setup_cfd(cart_comm, xyzL, xyz_orig, ncxyz)
 
 cart_rank = cart_comm.Get_rank()
 olap_limits = CPL.get_olap_limits()
@@ -49,3 +49,9 @@ for i in range(0, ncxl):
 ierr = CPL.send(send_array, olap_limits)
 
 MPI.COMM_WORLD.Barrier()
+
+CFD_COMM.Free()
+cart_comm.Free()
+
+CPL.finalize()
+MPI.Finalize()

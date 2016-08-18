@@ -65,6 +65,13 @@ h3
     font-weight: normal;
 }
 
+mark.CPL {
+    font-family: bebas;
+    background: none;
+    margin-top: 20px;
+    font-weight: normal;
+}
+
 /* Links */
 a
 {
@@ -142,6 +149,8 @@ div#nav homebutton
     text-transform: uppercase !important;
     padding-bottom: 20px !important;
 }
+/* Always include scroll to stop shift */
+html{ overflow-y:scroll; }
 
 
 /* Schematic */

@@ -132,6 +132,9 @@ test-initialisation:
 test-examples:
 	./examples/sendrecv_globcell/test_all.sh
 
+test-valgrind:
+	./test/valgrind/debug_all.sh
+
 webdocs-api:
 	bash ./utils/update-webdocs-api.sh
 
@@ -144,4 +147,4 @@ webdocs-all:
 
 # Clean
 clean:
-	rm -rf $(objdir) $(libdir) $(includedir)
+	rm -rf $(objdir) $(libdir) $(includedir) ./*.mod

@@ -1,0 +1,415 @@
+<!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><b><font color="#000080">import</font></b> numpy as np
+<b><font color="#000080">import</font></b> matplotlib<font color="#990000">.</font>pyplot as plt
+
+<b><font color="#000080">from</font></b> draw_grid <b><font color="#000080">import</font></b> draw_grid
+
+
+
+<b><font color="#0000FF">class</font></b> MD<font color="#990000">:</font>
+
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">__init__</font></b><font color="#990000">(</font>self<font color="#990000">,</font>
+                 initialnunits <font color="#990000">=</font> <font color="#990000">[</font><font color="#993399">3</font><font color="#990000">,</font><font color="#993399">8</font><font color="#990000">],</font>
+                 density <font color="#990000">=</font> <font color="#993399">0.8</font><font color="#990000">,</font>
+                 nd <font color="#990000">=</font> <font color="#993399">2</font><font color="#990000">,</font>
+                 rcutoff <font color="#990000">=</font> <font color="#993399">2</font><font color="#990000">.**(</font><font color="#993399">1</font><font color="#990000">./</font><font color="#993399">6</font><font color="#990000">.),</font>
+                 dt <font color="#990000">=</font> <font color="#993399">0.005</font><font color="#990000">,</font>
+                 Tset <font color="#990000">=</font> <font color="#993399">1.3</font><font color="#990000">,</font>               <i><font color="#9A1900">#After equilbirum approx temp of 1</font></i>
+                 forcecalc <font color="#990000">=</font> <font color="#FF0000">"allpairs"</font><font color="#990000">,</font>
+                 wallwidth <font color="#990000">=</font> <font color="#990000">[</font><font color="#993399">0</font><font color="#990000">.,</font><font color="#993399">0</font><font color="#990000">.],</font>
+                 wallslide <font color="#990000">=</font> <font color="#990000">[</font><font color="#993399">0</font><font color="#990000">.,</font><font color="#993399">0</font><font color="#990000">.],</font>
+                 newfig<font color="#990000">=</font>None<font color="#990000">):</font>
+
+        self<font color="#990000">.</font>initialnunits <font color="#990000">=</font> initialnunits
+        self<font color="#990000">.</font>density <font color="#990000">=</font> density
+        self<font color="#990000">.</font>nd <font color="#990000">=</font> nd
+        self<font color="#990000">.</font>rcutoff <font color="#990000">=</font> rcutoff
+        self<font color="#990000">.</font>dt <font color="#990000">=</font> dt
+        self<font color="#990000">.</font>forcecalc <font color="#990000">=</font> forcecalc
+        self<font color="#990000">.</font>wallwidth <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">array</font></b><font color="#990000">(</font>wallwidth<font color="#990000">)</font>
+        self<font color="#990000">.</font>wallslide <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">array</font></b><font color="#990000">(</font>wallslide<font color="#990000">)</font>
+
+        self<font color="#990000">.</font>rcutoff2 <font color="#990000">=</font> rcutoff<font color="#990000">**</font><font color="#993399">2</font>
+        self<font color="#990000">.</font>first_time<font color="#990000">=</font>True
+        self<font color="#990000">.</font>tstep <font color="#990000">=</font> <font color="#993399">0</font>
+        self<font color="#990000">.</font>time <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">.</font>
+        self<font color="#990000">.</font>periodic <font color="#990000">=</font> <font color="#990000">[</font>True<font color="#990000">,</font> True<font color="#990000">]</font>
+        self<font color="#990000">.</font>spec_wall <font color="#990000">=</font> <font color="#990000">[</font>False<font color="#990000">,</font> False<font color="#990000">]</font>
+
+        <i><font color="#9A1900">#Setup Initial crystal</font></i>
+        self<font color="#990000">.</font>domain <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">(</font><font color="#993399">2</font><font color="#990000">)</font>
+        self<font color="#990000">.</font>volume<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">.</font>    <i><font color="#9A1900">#Set domain size to unity for loop below</font></i>
+        <b><font color="#0000FF">for</font></b> ixyz <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>nd<font color="#990000">):</font>
+            self<font color="#990000">.</font>domain<font color="#990000">[</font>ixyz<font color="#990000">]</font> <font color="#990000">=</font> <font color="#990000">(</font>initialnunits<font color="#990000">[</font>ixyz<font color="#990000">]/((</font>density<font color="#990000">/</font><font color="#993399">4.0</font><font color="#990000">)**(</font><font color="#993399">1.0</font><font color="#990000">/</font>nd<font color="#990000">)))</font>
+            self<font color="#990000">.</font>volume <font color="#990000">=</font> self<font color="#990000">.</font>volume<font color="#990000">*</font>self<font color="#990000">.</font>domain<font color="#990000">[</font>ixyz<font color="#990000">]</font>        <i><font color="#9A1900">#Volume based on size of domain</font></i>
+        self<font color="#990000">.</font>halfdomain <font color="#990000">=</font> <font color="#993399">0.5</font><font color="#990000">*</font>self<font color="#990000">.</font>domain
+
+        <i><font color="#9A1900">#Allocate arrays</font></i>
+        self<font color="#990000">.</font>N <font color="#990000">=</font> <font color="#993399">4</font><font color="#990000">*</font>initialnunits<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]*</font>initialnunits<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font>
+        self<font color="#990000">.</font>tag <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">(</font>self<font color="#990000">.</font>N<font color="#990000">,</font> dtype<font color="#990000">=</font>int<font color="#990000">)</font>
+        self<font color="#990000">.</font>r <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">((</font>self<font color="#990000">.</font>N<font color="#990000">,</font><font color="#993399">2</font><font color="#990000">))</font>
+        self<font color="#990000">.</font>v <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">((</font>self<font color="#990000">.</font>N<font color="#990000">,</font><font color="#993399">2</font><font color="#990000">))</font>
+        self<font color="#990000">.</font>a <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">((</font>self<font color="#990000">.</font>N<font color="#990000">,</font><font color="#993399">2</font><font color="#990000">))</font>
+        self<font color="#990000">.</font>v <font color="#990000">=</font> Tset<font color="#990000">*</font>np<font color="#990000">.</font>random<font color="#990000">.</font><b><font color="#000000">randn</font></b><font color="#990000">(</font>self<font color="#990000">.</font>v<font color="#990000">.</font>shape<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> self<font color="#990000">.</font>v<font color="#990000">.</font>shape<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">])</font>
+        vsum <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">sum</font></b><font color="#990000">(</font>self<font color="#990000">.</font>v<font color="#990000">,</font><font color="#993399">0</font><font color="#990000">)/</font>self<font color="#990000">.</font>N
+        <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>N<font color="#990000">):</font>
+            self<font color="#990000">.</font>v<font color="#990000">[</font>i<font color="#990000">,:]</font> <font color="#990000">-=</font> vsum
+
+        <i><font color="#9A1900">#Setup velocity averaging</font></i>
+        self<font color="#990000">.</font>veluptodate <font color="#990000">=</font> <font color="#993399">0</font>
+        self<font color="#990000">.</font>xbin <font color="#990000">=</font> <font color="#993399">8</font><font color="#990000">;</font> self<font color="#990000">.</font>ybin <font color="#990000">=</font> <font color="#993399">8</font>
+        self<font color="#990000">.</font>dx <font color="#990000">=</font> self<font color="#990000">.</font>domain<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]/</font>self<font color="#990000">.</font>xbin
+        self<font color="#990000">.</font>dy <font color="#990000">=</font> self<font color="#990000">.</font>domain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]/</font>self<font color="#990000">.</font>ybin
+        self<font color="#990000">.</font>xb <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>
+                               self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> self<font color="#990000">.</font>xbin<font color="#990000">)</font>
+        self<font color="#990000">.</font>yb <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font>
+                               self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> self<font color="#990000">.</font>ybin<font color="#990000">)</font>
+        self<font color="#990000">.</font>Xb<font color="#990000">,</font> self<font color="#990000">.</font>Yb <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">meshgrid</font></b><font color="#990000">(</font>self<font color="#990000">.</font>xb<font color="#990000">,</font> self<font color="#990000">.</font>yb<font color="#990000">)</font>
+        self<font color="#990000">.</font>mbin <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">([</font>self<font color="#990000">.</font>xbin<font color="#990000">,</font> self<font color="#990000">.</font>ybin<font color="#990000">])</font>
+        self<font color="#990000">.</font>velbin <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">([</font><font color="#993399">2</font><font color="#990000">,</font> self<font color="#990000">.</font>xbin<font color="#990000">,</font> self<font color="#990000">.</font>ybin<font color="#990000">])</font>
+
+        self<font color="#990000">.</font><b><font color="#000000">setup_crystal</font></b><font color="#990000">()</font>
+        self<font color="#990000">.</font><b><font color="#000000">setup_walls</font></b><font color="#990000">(</font>wallwidth<font color="#990000">)</font>
+
+        <b><font color="#0000FF">if</font></b> newfig <font color="#990000">==</font> None<font color="#990000">:</font>
+            self<font color="#990000">.</font>fig<font color="#990000">,</font> self<font color="#990000">.</font>ax <font color="#990000">=</font> plt<font color="#990000">.</font><b><font color="#000000">subplots</font></b><font color="#990000">(</font><font color="#993399">1</font><font color="#990000">,</font><font color="#993399">1</font><font color="#990000">)</font>
+            plt<font color="#990000">.</font><b><font color="#000000">ion</font></b><font color="#990000">()</font>
+            plt<font color="#990000">.</font><b><font color="#000000">show</font></b><font color="#990000">()</font>
+
+    <i><font color="#9A1900">#Molecules per unit FCC structure (3D)</font></i>
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">setup_crystal</font></b><font color="#990000">(</font>self<font color="#990000">):</font>
+        initialunitsize <font color="#990000">=</font> self<font color="#990000">.</font>domain <font color="#990000">/</font> self<font color="#990000">.</font>initialnunits
+        n  <font color="#990000">=</font> <font color="#993399">0</font>      <i><font color="#9A1900">#Initialise global N counter n</font></i>
+        c <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">(</font><font color="#993399">2</font><font color="#990000">);</font> rc <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">(</font><font color="#993399">2</font><font color="#990000">)</font>
+        <b><font color="#0000FF">for</font></b> nx <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font><font color="#993399">1</font><font color="#990000">,</font>self<font color="#990000">.</font>initialnunits<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]+</font><font color="#993399">1</font><font color="#990000">):</font>
+            c<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#990000">(</font>nx <font color="#990000">-</font> <font color="#993399">0.750</font><font color="#990000">)*</font>initialunitsize<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font>
+            <b><font color="#0000FF">for</font></b> ny <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font><font color="#993399">1</font><font color="#990000">,</font>self<font color="#990000">.</font>initialnunits<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]+</font><font color="#993399">1</font><font color="#990000">):</font>
+                c<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#990000">(</font>ny <font color="#990000">-</font> <font color="#993399">0.750</font><font color="#990000">)*</font>initialunitsize<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> 
+                <b><font color="#0000FF">for</font></b> j <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font><font color="#993399">4</font><font color="#990000">):</font>    <i><font color="#9A1900">#4 Molecules per cell</font></i>
+
+                    rc<font color="#990000">[:]</font> <font color="#990000">=</font> c<font color="#990000">[:]</font>
+                    <b><font color="#0000FF">if</font></b> j <b><font color="#0000FF">is</font></b> <font color="#993399">1</font><font color="#990000">:</font>
+                        rc<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">=</font> c<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">+</font> <font color="#993399">0.5</font><font color="#990000">*</font>initialunitsize<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font>
+                    <b><font color="#0000FF">elif</font></b> j <b><font color="#0000FF">is</font></b> <font color="#993399">2</font><font color="#990000">:</font>        
+                        rc<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> c<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">+</font> <font color="#993399">0.5</font><font color="#990000">*</font>initialunitsize<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font>
+                    <b><font color="#0000FF">elif</font></b> j <b><font color="#0000FF">is</font></b> <font color="#993399">3</font><font color="#990000">:</font>
+                        rc<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">=</font> c<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">+</font> <font color="#993399">0.5</font><font color="#990000">*</font>initialunitsize<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font>
+                        rc<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> c<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">+</font> <font color="#993399">0.5</font><font color="#990000">*</font>initialunitsize<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font>
+                
+                    <i><font color="#9A1900">#Correct to local coordinates</font></i>
+                    self<font color="#990000">.</font>r<font color="#990000">[</font>n<font color="#990000">,</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">=</font> rc<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font>
+                    self<font color="#990000">.</font>r<font color="#990000">[</font>n<font color="#990000">,</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> rc<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font>
+                    n <font color="#990000">+=</font> <font color="#993399">1</font>   <i><font color="#9A1900">#Move to next particle</font></i>
+
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">setup_walls</font></b><font color="#990000">(</font>self<font color="#990000">,</font> wallwidth<font color="#990000">):</font>
+
+        <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>N<font color="#990000">):</font>
+            <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font><font color="#993399">1</font><font color="#990000">]+</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">&lt;</font> wallwidth<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]):</font>
+                self<font color="#990000">.</font>tag<font color="#990000">[</font>i<font color="#990000">]</font> <font color="#990000">=</font> <font color="#993399">1</font>
+            <b><font color="#0000FF">elif</font></b> <font color="#990000">(</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font><font color="#993399">1</font><font color="#990000">]+</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">&gt;</font> self<font color="#990000">.</font>domain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]-</font>wallwidth<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]):</font>
+                self<font color="#990000">.</font>tag<font color="#990000">[</font>i<font color="#990000">]</font> <font color="#990000">=</font> <font color="#993399">1</font>
+            <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+                self<font color="#990000">.</font>tag<font color="#990000">[</font>i<font color="#990000">]</font> <font color="#990000">=</font> <font color="#993399">0</font>
+
+        <b><font color="#0000FF">if</font></b> <b><font color="#000000">any</font></b><font color="#990000">(</font>self<font color="#990000">.</font>wallwidth <font color="#990000">&gt;</font> <font color="#993399">0</font><font color="#990000">.):</font>
+            self<font color="#990000">.</font>periodic<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> False
+            self<font color="#990000">.</font>spec_wall<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> True
+
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">LJ_accij</font></b><font color="#990000">(</font>self<font color="#990000">,</font>rij2<font color="#990000">):</font>
+
+        invrij2 <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">./</font>rij2
+        <b><font color="#0000FF">return</font></b> <font color="#993399">48</font><font color="#990000">.*(</font>invrij2<font color="#990000">**</font><font color="#993399">7</font><font color="#990000">-.</font><font color="#993399">5</font><font color="#990000">*</font>invrij2<font color="#990000">**</font><font color="#993399">4</font><font color="#990000">)</font>
+
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">get_velfield</font></b><font color="#990000">(</font>self<font color="#990000">,</font> bins<font color="#990000">,</font> freq<font color="#990000">=</font><font color="#993399">25</font><font color="#990000">,</font> plusdt<font color="#990000">=</font>False<font color="#990000">,</font> getmbin<font color="#990000">=</font>False<font color="#990000">):</font>
+
+        <i><font color="#9A1900">#Update velocity if timestep dictates </font></i>
+        <b><font color="#0000FF">if</font></b> <font color="#990000">((</font>self<font color="#990000">.</font>tstep<font color="#990000">%</font>freq <font color="#990000">==</font> <font color="#993399">0</font><font color="#990000">)</font>
+             <b><font color="#0000FF">and</font></b> <font color="#990000">(</font>self<font color="#990000">.</font>tstep <font color="#990000">!=</font> self<font color="#990000">.</font>veluptodate<font color="#990000">)):</font>
+            mbin <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">([</font>bins<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> bins<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]])</font>
+            velbin <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">([</font><font color="#993399">2</font><font color="#990000">,</font> bins<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> bins<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]])</font>
+            binsize <font color="#990000">=</font> self<font color="#990000">.</font>domain<font color="#990000">/</font>bins
+            <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>r<font color="#990000">.</font>shape<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]):</font>
+                ib <font color="#990000">=</font> <font color="#990000">[</font><b><font color="#000000">int</font></b><font color="#990000">((</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]+</font><font color="#993399">0.5</font><font color="#990000">*</font>self<font color="#990000">.</font>domain<font color="#990000">[</font>ixyz<font color="#990000">])</font>
+                           <font color="#990000">/</font>binsize<font color="#990000">[</font>ixyz<font color="#990000">])</font> <b><font color="#0000FF">for</font></b> ixyz <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>nd<font color="#990000">)]</font>
+                mbin<font color="#990000">[</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]]</font> <font color="#990000">+=</font> <font color="#993399">1</font>
+                <b><font color="#0000FF">if</font></b> plusdt<font color="#990000">:</font>
+                    vi <font color="#990000">=</font> self<font color="#990000">.</font>v<font color="#990000">[</font>i<font color="#990000">,:]</font> <font color="#990000">+</font> self<font color="#990000">.</font>dt<font color="#990000">*</font>self<font color="#990000">.</font>a<font color="#990000">[</font>i<font color="#990000">,:]</font>
+                <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+                    vi <font color="#990000">=</font> self<font color="#990000">.</font>v<font color="#990000">[</font>i<font color="#990000">,:]</font>
+                velbin<font color="#990000">[:,</font> ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]]</font> <font color="#990000">+=</font> vi
+            self<font color="#990000">.</font>mbin <font color="#990000">=</font> mbin
+            self<font color="#990000">.</font>velbin <font color="#990000">=</font> velbin
+            self<font color="#990000">.</font>veluptodate <font color="#990000">=</font> self<font color="#990000">.</font>tstep
+        <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+            mbin <font color="#990000">=</font> self<font color="#990000">.</font>mbin
+            velbin <font color="#990000">=</font> self<font color="#990000">.</font>velbin
+
+        u <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">divide</font></b><font color="#990000">(</font>velbin<font color="#990000">,</font>mbin<font color="#990000">)</font> 
+        u<font color="#990000">[</font>np<font color="#990000">.</font><b><font color="#000000">isnan</font></b><font color="#990000">(</font>u<font color="#990000">)]</font> <font color="#990000">=</font> <font color="#993399">0.0</font>
+        <b><font color="#0000FF">if</font></b> getmbin<font color="#990000">:</font>
+            <b><font color="#0000FF">return</font></b> u<font color="#990000">,</font> mbin
+        <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+            <b><font color="#0000FF">return</font></b> u
+
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">force</font></b><font color="#990000">(</font>self<font color="#990000">,</font> showarrows<font color="#990000">=</font>False<font color="#990000">,</font> ax<font color="#990000">=</font>None<font color="#990000">):</font>
+
+        <b><font color="#0000FF">if</font></b> ax <font color="#990000">==</font> None<font color="#990000">:</font>
+            ax<font color="#990000">=</font>self<font color="#990000">.</font>ax
+
+        <i><font color="#9A1900">#Force calculation</font></i>
+        self<font color="#990000">.</font>a <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">((</font>self<font color="#990000">.</font>N<font color="#990000">,</font><font color="#993399">2</font><font color="#990000">))</font>
+        <b><font color="#0000FF">if</font></b> self<font color="#990000">.</font>forcecalc <b><font color="#0000FF">is</font></b> <font color="#FF0000">"allpairs"</font><font color="#990000">:</font>
+
+            <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>N<font color="#990000">):</font>
+                <b><font color="#0000FF">for</font></b> j <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>i<font color="#990000">+</font><font color="#993399">1</font><font color="#990000">,</font>self<font color="#990000">.</font>N<font color="#990000">):</font>
+
+                    ri <font color="#990000">=</font> self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,:];</font> rj <font color="#990000">=</font> self<font color="#990000">.</font>r<font color="#990000">[</font>j<font color="#990000">,:]</font>
+                    rij <font color="#990000">=</font> ri <font color="#990000">-</font> rj
+
+                    <i><font color="#9A1900">#Nearest neighbour</font></i>
+                    <b><font color="#0000FF">for</font></b> ixyz <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>nd<font color="#990000">):</font>
+                        <b><font color="#0000FF">if</font></b> self<font color="#990000">.</font>periodic<font color="#990000">[</font>ixyz<font color="#990000">]:</font>
+                            <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>np<font color="#990000">.</font><b><font color="#000000">abs</font></b><font color="#990000">(</font>rij<font color="#990000">[</font>ixyz<font color="#990000">])</font> <font color="#990000">&gt;</font> self<font color="#990000">.</font>halfdomain<font color="#990000">[</font>ixyz<font color="#990000">]):</font>
+                                rij<font color="#990000">[</font>ixyz<font color="#990000">]</font> <font color="#990000">-=</font> np<font color="#990000">.</font><b><font color="#000000">copysign</font></b><font color="#990000">(</font>self<font color="#990000">.</font>domain<font color="#990000">[</font>ixyz<font color="#990000">],</font>rij<font color="#990000">[</font>ixyz<font color="#990000">])</font> 
+
+                    <i><font color="#9A1900">#Get forces</font></i>
+                    rij2 <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">dot</font></b><font color="#990000">(</font>rij<font color="#990000">,</font>rij<font color="#990000">)</font>
+                    <b><font color="#0000FF">if</font></b> rij2 <font color="#990000">&lt;</font> self<font color="#990000">.</font>rcutoff2<font color="#990000">:</font>
+                        fij <font color="#990000">=</font> self<font color="#990000">.</font><b><font color="#000000">LJ_accij</font></b><font color="#990000">(</font>rij2<font color="#990000">)*</font>rij
+                        self<font color="#990000">.</font>a<font color="#990000">[</font>i<font color="#990000">,:]</font> <font color="#990000">+=</font> fij
+                        self<font color="#990000">.</font>a<font color="#990000">[</font>j<font color="#990000">,:]</font> <font color="#990000">-=</font> fij
+
+                        <b><font color="#0000FF">if</font></b> showarrows<font color="#990000">:</font>
+                            ax<font color="#990000">.</font><b><font color="#000000">quiver</font></b><font color="#990000">(</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font><font color="#993399">0</font><font color="#990000">],</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font><font color="#993399">1</font><font color="#990000">],</font>
+                                      rij<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> rij<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font>color<font color="#990000">=</font><font color="#FF0000">'red'</font><font color="#990000">,</font>width<font color="#990000">=</font><font color="#993399">0.002</font><font color="#990000">)</font>
+                            ax<font color="#990000">.</font><b><font color="#000000">quiver</font></b><font color="#990000">(</font>self<font color="#990000">.</font>r<font color="#990000">[</font>j<font color="#990000">,</font><font color="#993399">0</font><font color="#990000">],</font>self<font color="#990000">.</font>r<font color="#990000">[</font>j<font color="#990000">,</font><font color="#993399">1</font><font color="#990000">],</font> 
+                                     <font color="#990000">-</font>rij<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],-</font>rij<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font>color<font color="#990000">=</font><font color="#FF0000">'red'</font><font color="#990000">,</font>width<font color="#990000">=</font><font color="#993399">0.002</font><font color="#990000">)</font>
+
+        <b><font color="#0000FF">elif</font></b> <font color="#FF0000">"celllist"</font><font color="#990000">:</font>
+
+            <i><font color="#9A1900">#Build celllist</font></i>
+            self<font color="#990000">.</font>cells <font color="#990000">=</font> <font color="#990000">[</font><b><font color="#000000">int</font></b><font color="#990000">(</font>self<font color="#990000">.</font>domain<font color="#990000">[</font>i<font color="#990000">]/(</font>self<font color="#990000">.</font>rcutoff<font color="#990000">))</font> <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>nd<font color="#990000">)]</font>
+            self<font color="#990000">.</font>cell <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">(</font>self<font color="#990000">.</font>cells<font color="#990000">,</font> dtype<font color="#990000">=</font>object<font color="#990000">)</font>
+            <b><font color="#0000FF">for</font></b> icell <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>cells<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]):</font>
+                <b><font color="#0000FF">for</font></b> jcell <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>cells<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]):</font>
+                    self<font color="#990000">.</font>cell<font color="#990000">[</font>icell<font color="#990000">,</font>jcell<font color="#990000">]</font> <font color="#990000">=</font> <font color="#990000">[]</font>
+
+            cellsize <font color="#990000">=</font> self<font color="#990000">.</font>domain<font color="#990000">/</font>cells
+            <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>N<font color="#990000">):</font>
+                ib <font color="#990000">=</font> <font color="#990000">[</font><b><font color="#000000">int</font></b><font color="#990000">((</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]+</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font>ixyz<font color="#990000">])</font>
+                           <font color="#990000">/</font>cellsize<font color="#990000">[</font>ixyz<font color="#990000">])</font> <b><font color="#0000FF">for</font></b> ixyz <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>nd<font color="#990000">)]</font>
+                self<font color="#990000">.</font>cell<font color="#990000">[</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]].</font><b><font color="#000000">append</font></b><font color="#990000">(</font>i<font color="#990000">)</font>
+
+            <i><font color="#9A1900">#For each cell, check molecule i</font></i>
+            <b><font color="#0000FF">for</font></b> icell <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>cells<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]):</font>
+                <b><font color="#0000FF">for</font></b> jcell <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>cells<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]):</font>
+                    <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> cell<font color="#990000">[</font>icell<font color="#990000">,</font>jcell<font color="#990000">]:</font>
+                        ri <font color="#990000">=</font> self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,:]</font>
+
+                        <i><font color="#9A1900">#Check i against all molecules in adjacent cells</font></i>
+                        <b><font color="#0000FF">for</font></b> aicell <b><font color="#0000FF">in</font></b> <font color="#990000">[</font>icell<font color="#990000">-</font><font color="#993399">1</font><font color="#990000">,</font>icell<font color="#990000">,(</font>icell<font color="#990000">+</font><font color="#993399">1</font><font color="#990000">)%</font>cells<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]]:</font>
+                            <b><font color="#0000FF">for</font></b> ajcell <b><font color="#0000FF">in</font></b> <font color="#990000">[</font>jcell<font color="#990000">-</font><font color="#993399">1</font><font color="#990000">,</font>jcell<font color="#990000">,(</font>jcell<font color="#990000">+</font><font color="#993399">1</font><font color="#990000">)%</font>cells<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]]:</font>
+                                <b><font color="#0000FF">for</font></b> j <b><font color="#0000FF">in</font></b> cell<font color="#990000">[</font>aicell<font color="#990000">,</font>ajcell<font color="#990000">]:</font>
+                                    rj <font color="#990000">=</font> self<font color="#990000">.</font>r<font color="#990000">[</font>j<font color="#990000">,:]</font>
+                                    rij <font color="#990000">=</font> ri <font color="#990000">-</font> rj
+
+                                    <i><font color="#9A1900">#Nearest neighbour</font></i>
+                                    <b><font color="#0000FF">for</font></b> ixyz <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>nd<font color="#990000">):</font>
+                                        <b><font color="#0000FF">if</font></b> self<font color="#990000">.</font>periodic<font color="#990000">[</font>ixyz<font color="#990000">]:</font>
+                                            <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>np<font color="#990000">.</font><b><font color="#000000">abs</font></b><font color="#990000">(</font>rij<font color="#990000">[</font>ixyz<font color="#990000">])</font> <font color="#990000">&gt;</font> self<font color="#990000">.</font>halfdomain<font color="#990000">[</font>ixyz<font color="#990000">]):</font>
+                                                rij<font color="#990000">[</font>ixyz<font color="#990000">]</font> <font color="#990000">-=</font> np<font color="#990000">.</font><b><font color="#000000">copysign</font></b><font color="#990000">(</font>self<font color="#990000">.</font>domain<font color="#990000">[</font>ixyz<font color="#990000">],</font>rij<font color="#990000">[</font>ixyz<font color="#990000">])</font> 
+
+                                    <i><font color="#9A1900">#Get forces</font></i>
+                                    rij2 <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">dot</font></b><font color="#990000">(</font>rij<font color="#990000">,</font>rij<font color="#990000">)</font>
+                                    <b><font color="#0000FF">if</font></b> rij2 <font color="#990000">&lt;</font> self<font color="#990000">.</font>rcutoff2 <b><font color="#0000FF">and</font></b> rij2 <font color="#990000">&gt;</font> <font color="#993399">1e-8</font><font color="#990000">:</font>
+                                        fij <font color="#990000">=</font> self<font color="#990000">.</font><b><font color="#000000">LJ_accij</font></b><font color="#990000">(</font>rij2<font color="#990000">)*</font>rij
+                                        self<font color="#990000">.</font>a<font color="#990000">[</font>i<font color="#990000">,:]</font> <font color="#990000">+=</font> fij
+
+                                        <b><font color="#0000FF">if</font></b> showarrows<font color="#990000">:</font>
+                                            ax<font color="#990000">.</font><b><font color="#000000">quiver</font></b><font color="#990000">(</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font><font color="#993399">0</font><font color="#990000">],</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font><font color="#993399">1</font><font color="#990000">],</font>
+                                                      <font color="#990000">-</font>rij<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],-</font>rij<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font>color<font color="#990000">=</font><font color="#FF0000">'red'</font><font color="#990000">,</font>width<font color="#990000">=</font><font color="#993399">0.002</font><font color="#990000">)</font>
+
+
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">verlet</font></b><font color="#990000">(</font>self<font color="#990000">):</font>
+
+        <i><font color="#9A1900">#Verlet time advance</font></i>
+        <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>N<font color="#990000">):</font>
+
+            <b><font color="#0000FF">if</font></b> self<font color="#990000">.</font>tag<font color="#990000">[</font>i<font color="#990000">]</font> <font color="#990000">==</font> <font color="#993399">0</font><font color="#990000">:</font>
+                self<font color="#990000">.</font>v<font color="#990000">[</font>i<font color="#990000">,:]</font> <font color="#990000">+=</font> self<font color="#990000">.</font>dt<font color="#990000">*</font>self<font color="#990000">.</font>a<font color="#990000">[</font>i<font color="#990000">,:]</font>
+                self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,:]</font> <font color="#990000">+=</font> self<font color="#990000">.</font>dt<font color="#990000">*</font>self<font color="#990000">.</font>v<font color="#990000">[</font>i<font color="#990000">,:]</font>
+            <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+                <i><font color="#9A1900">#Fixed molecule, add sliding</font></i>
+                self<font color="#990000">.</font>v<font color="#990000">[</font>i<font color="#990000">,:]</font> <font color="#990000">=</font> self<font color="#990000">.</font>wallslide<font color="#990000">[:]</font>
+                self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,:]</font> <font color="#990000">+=</font> self<font color="#990000">.</font>dt<font color="#990000">*</font>self<font color="#990000">.</font>wallslide<font color="#990000">[:]</font>
+
+            <i><font color="#9A1900">#Peridic boundary</font></i>
+            <b><font color="#0000FF">for</font></b> ixyz <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>nd<font color="#990000">):</font>
+                <b><font color="#0000FF">if</font></b> self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]</font> <font color="#990000">&gt;</font> self<font color="#990000">.</font>halfdomain<font color="#990000">[</font>ixyz<font color="#990000">]:</font>
+                    <b><font color="#0000FF">if</font></b> self<font color="#990000">.</font>spec_wall<font color="#990000">[</font>ixyz<font color="#990000">]:</font>
+                        overshoot <font color="#990000">=</font> self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font>ixyz<font color="#990000">]</font>
+                        self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]</font> <font color="#990000">-=</font> <font color="#993399">2</font><font color="#990000">.*</font>overshoot
+                        self<font color="#990000">.</font>v<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]</font> <font color="#990000">=</font> <font color="#990000">-</font>self<font color="#990000">.</font>v<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]</font> 
+
+                    <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+                        self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]</font> <font color="#990000">-=</font> self<font color="#990000">.</font>domain<font color="#990000">[</font>ixyz<font color="#990000">]</font>
+
+                <b><font color="#0000FF">elif</font></b> self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]</font> <font color="#990000">&lt;</font> <font color="#990000">-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font>ixyz<font color="#990000">]:</font>
+                    <b><font color="#0000FF">if</font></b> self<font color="#990000">.</font>spec_wall<font color="#990000">[</font>ixyz<font color="#990000">]:</font>
+                        overshoot <font color="#990000">=</font> <font color="#990000">-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font>ixyz<font color="#990000">]-</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]</font>
+                        self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]</font> <font color="#990000">+=</font> <font color="#993399">2</font><font color="#990000">.*</font>overshoot
+                        self<font color="#990000">.</font>v<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]</font> <font color="#990000">=</font> <font color="#990000">-</font>self<font color="#990000">.</font>v<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]</font> 
+                    <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+                        self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]</font> <font color="#990000">+=</font> self<font color="#990000">.</font>domain<font color="#990000">[</font>ixyz<font color="#990000">]</font>
+
+        <i><font color="#9A1900">#Increment current time step</font></i>
+        self<font color="#990000">.</font>tstep <font color="#990000">+=</font> <font color="#993399">1</font>
+        self<font color="#990000">.</font>time <font color="#990000">=</font> self<font color="#990000">.</font>tstep<font color="#990000">*</font>self<font color="#990000">.</font>dt 
+
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">constraint_force</font></b><font color="#990000">(</font>self<font color="#990000">,</font> u_CFD<font color="#990000">,</font> constraint_cell<font color="#990000">,</font> alpha<font color="#990000">=</font><font color="#993399">0.1</font><font color="#990000">):</font>
+
+        <i><font color="#9A1900">#Get the MD velocity field</font></i>
+        binsize_CFD <font color="#990000">=</font> self<font color="#990000">.</font>domain<font color="#990000">/</font>u_CFD<font color="#990000">.</font>shape<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">:</font><font color="#993399">2</font><font color="#990000">]</font>
+        binsize_MD <font color="#990000">=</font> self<font color="#990000">.</font>domain<font color="#990000">/[</font>self<font color="#990000">.</font>xbin<font color="#990000">,</font>self<font color="#990000">.</font>ybin<font color="#990000">]</font>
+        <b><font color="#0000FF">assert</font></b> binsize_CFD<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">==</font> binsize_MD<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font>
+        <b><font color="#0000FF">assert</font></b> binsize_CFD<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">==</font> binsize_MD<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font>
+        <i><font color="#9A1900">#assert binsize_CFD[2] == binsize_MD[2]</font></i>
+        u_MD<font color="#990000">,</font> mbin <font color="#990000">=</font> self<font color="#990000">.</font><b><font color="#000000">get_velfield</font></b><font color="#990000">([</font>self<font color="#990000">.</font>xbin<font color="#990000">,</font>self<font color="#990000">.</font>ybin<font color="#990000">],</font> getmbin<font color="#990000">=</font>True<font color="#990000">)</font>
+
+       
+        <i><font color="#9A1900">#Extract CFD value</font></i>
+        F <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">(</font><font color="#993399">2</font><font color="#990000">)</font>
+        ucheck <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">([</font><font color="#993399">2</font><font color="#990000">,</font>self<font color="#990000">.</font>xbin<font color="#990000">])</font>
+        hd <font color="#990000">=</font> self<font color="#990000">.</font>halfdomain
+        <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>N<font color="#990000">):</font>
+            ib <font color="#990000">=</font> <font color="#990000">[</font><b><font color="#000000">int</font></b><font color="#990000">((</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font>ixyz<font color="#990000">]+</font>hd<font color="#990000">[</font>ixyz<font color="#990000">])</font>
+                       <font color="#990000">/</font>binsize_MD<font color="#990000">[</font>ixyz<font color="#990000">])</font> <b><font color="#0000FF">for</font></b> ixyz <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>nd<font color="#990000">)]</font>
+            <i><font color="#9A1900">#Ensure within domain</font></i>
+            <b><font color="#0000FF">if</font></b> ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">&gt;</font> u_MD<font color="#990000">.</font>shape<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]:</font>
+                ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">=</font> u_MD<font color="#990000">.</font>shape<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font>
+            <b><font color="#0000FF">if</font></b> ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">&gt;</font> u_MD<font color="#990000">.</font>shape<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">]:</font>
+                ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">=</font> u_MD<font color="#990000">.</font>shape<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">]</font>
+            <i><font color="#9A1900">#only apply to constrained cell</font></i>
+            <b><font color="#0000FF">if</font></b> ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">==</font> constraint_cell<font color="#990000">:</font>
+                F<font color="#990000">[:]</font> <font color="#990000">=</font> alpha<font color="#990000">*(</font>u_CFD<font color="#990000">[:,</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font><font color="#993399">0</font><font color="#990000">]</font> <font color="#990000">-</font> u_MD<font color="#990000">[:,</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]])</font>
+                <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>mbin<font color="#990000">[</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]]</font> <font color="#990000">!=</font> <font color="#993399">0</font><font color="#990000">):</font>
+                    self<font color="#990000">.</font>a<font color="#990000">[</font>i<font color="#990000">,:]</font> <font color="#990000">+=</font> F<font color="#990000">[:]/</font><b><font color="#000000">float</font></b><font color="#990000">(</font>mbin<font color="#990000">[</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]])</font>
+                <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+                    <b><font color="#0000FF">pass</font></b>
+                self<font color="#990000">.</font>ax<font color="#990000">.</font><b><font color="#000000">quiver</font></b><font color="#990000">((</font>ib<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]+.</font><font color="#993399">5</font><font color="#990000">)*</font>self<font color="#990000">.</font>dx<font color="#990000">-</font>hd<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>
+                             <font color="#990000">(</font>ib<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]+.</font><font color="#993399">5</font><font color="#990000">)*</font>self<font color="#990000">.</font>dy<font color="#990000">-</font>hd<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font>F<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>F<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font>
+                              color<font color="#990000">=</font><font color="#FF0000">'red'</font><font color="#990000">,</font>angles<font color="#990000">=</font><font color="#FF0000">'xy'</font><font color="#990000">,</font>scale_units<font color="#990000">=</font><font color="#FF0000">'xy'</font><font color="#990000">,</font>scale<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">)</font>
+
+
+<i><font color="#9A1900">#        ucheck = np.zeros([2,self.xbin])</font></i>
+<i><font color="#9A1900">#        for i in range(self.N):</font></i>
+<i><font color="#9A1900">#            ib = [int((self.r[i,ixyz]+hd[ixyz])</font></i>
+<i><font color="#9A1900">#                       /binsize_MD[ixyz]) </font></i>
+<i><font color="#9A1900">#                  for ixyz in range(self.nd)]</font></i>
+<i><font color="#9A1900">#            #Ensure within domain</font></i>
+<i><font color="#9A1900">#            if ib[0] &gt; u_MD.shape[1]:</font></i>
+<i><font color="#9A1900">#                ib[0] = u_MD.shape[1]</font></i>
+<i><font color="#9A1900">#            if ib[1] &gt; u_MD.shape[2]:</font></i>
+<i><font color="#9A1900">#                ib[1] = u_MD.shape[2]</font></i>
+<i><font color="#9A1900">#            if ib[1] == constraint_cell:</font></i>
+<i><font color="#9A1900">#                ucheck[:,ib[0]] += self.v[i,:] + self.dt*self.a[i,:]</font></i>
+<i><font color="#9A1900">#                </font></i>
+
+<i><font color="#9A1900">#        print('ucheck=',ucheck)</font></i>
+            
+
+    <i><font color="#9A1900">#Plot molecules</font></i>
+    <b><font color="#0000FF">def</font></b> <b><font color="#000000">plot</font></b><font color="#990000">(</font>self<font color="#990000">,</font> ax<font color="#990000">=</font>None<font color="#990000">,</font> showarrows<font color="#990000">=</font>False<font color="#990000">):</font>
+
+        <b><font color="#0000FF">if</font></b> ax <font color="#990000">==</font> None<font color="#990000">:</font>
+            ax<font color="#990000">=</font>self<font color="#990000">.</font>ax
+
+        <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>self<font color="#990000">.</font>N<font color="#990000">):</font>
+            <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>self<font color="#990000">.</font>tag<font color="#990000">[</font>i<font color="#990000">]</font> <font color="#990000">==</font> <font color="#993399">0</font><font color="#990000">):</font>
+                ax<font color="#990000">.</font><b><font color="#000000">plot</font></b><font color="#990000">(</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font><font color="#993399">0</font><font color="#990000">],</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font><font color="#993399">1</font><font color="#990000">],</font><font color="#FF0000">'ko'</font><font color="#990000">,</font>alpha<font color="#990000">=</font><font color="#993399">0.5</font><font color="#990000">)</font>
+            <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
+                ax<font color="#990000">.</font><b><font color="#000000">plot</font></b><font color="#990000">(</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font><font color="#993399">0</font><font color="#990000">],</font>self<font color="#990000">.</font>r<font color="#990000">[</font>i<font color="#990000">,</font><font color="#993399">1</font><font color="#990000">],</font><font color="#FF0000">'ro'</font><font color="#990000">,</font> ms<font color="#990000">=</font><font color="#993399">7</font><font color="#990000">.)</font>
+
+        <i><font color="#9A1900">#Overlay grid</font></i>
+        <b><font color="#000000">draw_grid</font></b><font color="#990000">(</font>ax<font color="#990000">,</font> nx<font color="#990000">=</font>self<font color="#990000">.</font>xbin<font color="#990000">,</font> ny<font color="#990000">=</font>self<font color="#990000">.</font>ybin<font color="#990000">,</font> nz<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">,</font>
+                  xmin<font color="#990000">=-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> xmax<font color="#990000">=</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>
+                  ymin<font color="#990000">=-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> ymax<font color="#990000">=</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">])</font>
+
+        <i><font color="#9A1900">#Get velocity field</font></i>
+        u <font color="#990000">=</font> self<font color="#990000">.</font><b><font color="#000000">get_velfield</font></b><font color="#990000">([</font>self<font color="#990000">.</font>xbin<font color="#990000">,</font>self<font color="#990000">.</font>ybin<font color="#990000">])</font>
+
+        <i><font color="#9A1900">#Plot velocity profile offset to the left</font></i>
+        axisloc <font color="#990000">=</font> self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]+</font><font color="#993399">1</font>
+        ax<font color="#990000">.</font><b><font color="#000000">arrow</font></b><font color="#990000">(</font>axisloc<font color="#990000">,-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> <font color="#993399">0</font><font color="#990000">.,</font>self<font color="#990000">.</font>domain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font>  
+                 width<font color="#990000">=</font><font color="#993399">0.015</font><font color="#990000">,</font> color<font color="#990000">=</font><font color="#FF0000">"k"</font><font color="#990000">,</font> clip_on<font color="#990000">=</font>False<font color="#990000">,</font> head_width<font color="#990000">=</font><font color="#993399">0.12</font><font color="#990000">,</font> head_length<font color="#990000">=</font><font color="#993399">0.12</font><font color="#990000">)</font>
+        ax<font color="#990000">.</font><b><font color="#000000">arrow</font></b><font color="#990000">(</font>axisloc<font color="#990000">-</font><font color="#993399">1</font><font color="#990000">,</font><font color="#993399">0</font><font color="#990000">.,</font> <font color="#993399">2</font><font color="#990000">.,</font><font color="#993399">0</font><font color="#990000">.,</font>  width<font color="#990000">=</font><font color="#993399">0.015</font><font color="#990000">,</font> 
+                 color<font color="#990000">=</font><font color="#FF0000">"k"</font><font color="#990000">,</font> clip_on<font color="#990000">=</font>False<font color="#990000">,</font> head_width<font color="#990000">=</font><font color="#993399">0.12</font><font color="#990000">,</font> head_length<font color="#990000">=</font><font color="#993399">0.12</font><font color="#990000">)</font>
+
+        yp <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]+.</font><font color="#993399">5</font><font color="#990000">*</font>self<font color="#990000">.</font>dy<font color="#990000">,</font> self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]</font> <font color="#990000">-</font> <font color="#993399">0.5</font><font color="#990000">*</font>self<font color="#990000">.</font>dy<font color="#990000">,</font> self<font color="#990000">.</font>ybin<font color="#990000">)</font>
+        ax<font color="#990000">.</font><b><font color="#000000">plot</font></b><font color="#990000">(</font>np<font color="#990000">.</font><b><font color="#000000">mean</font></b><font color="#990000">(</font>u<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">,:,:],</font><font color="#993399">1</font><font color="#990000">)+</font>axisloc<font color="#990000">,</font>yp<font color="#990000">,</font><font color="#FF0000">'g-x'</font><font color="#990000">)</font>
+
+        sm <font color="#990000">=</font> ax<font color="#990000">.</font><b><font color="#000000">imshow</font></b><font color="#990000">(</font>u<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">,:,:].</font>T<font color="#990000">,</font>aspect<font color="#990000">=</font><font color="#FF0000">'auto'</font><font color="#990000">,</font>origin<font color="#990000">=</font><font color="#FF0000">'lower'</font><font color="#990000">,</font>
+                       extent<font color="#990000">=[-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>
+                               <font color="#990000">-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]],</font>
+                       interpolation<font color="#990000">=</font><font color="#FF0000">"none"</font><font color="#990000">,</font>vmin<font color="#990000">=-</font><font color="#993399">1</font><font color="#990000">.,</font>vmax<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">.,</font>
+                       alpha<font color="#990000">=</font><font color="#993399">0.5</font><font color="#990000">,</font> cmap<font color="#990000">=</font>plt<font color="#990000">.</font>cm<font color="#990000">.</font>RdYlBu_r<font color="#990000">)</font>
+
+<i><font color="#9A1900">#        sm = ax.pcolormesh(self.Xb,self.Yb,u[0,:,:].T,vmin=-1.,vmax=1.,alpha=0.5,</font></i>
+<i><font color="#9A1900">#                          cmap=plt.cm.RdYlBu_r)</font></i>
+
+<i><font color="#9A1900">#        cb=ax.imshow(u[0,:,:],interpolation="none",</font></i>
+<i><font color="#9A1900">#                     extent=[-self.halfdomain[0],self.halfdomain[0],</font></i>
+<i><font color="#9A1900">#                             -self.halfdomain[1],self.halfdomain[1]], </font></i>
+<i><font color="#9A1900">#                    cmap=plt.cm.RdYlBu_r,vmin=-3.,vmax=3.)</font></i>
+        <b><font color="#0000FF">if</font></b> self<font color="#990000">.</font>first_time<font color="#990000">:</font>
+            plt<font color="#990000">.</font><b><font color="#000000">colorbar</font></b><font color="#990000">(</font>sm<font color="#990000">)</font>
+            self<font color="#990000">.</font>first_time<font color="#990000">=</font>False
+
+        <b><font color="#0000FF">if</font></b> showarrows<font color="#990000">:</font>
+            <i><font color="#9A1900">#Show velocity of molecules</font></i>
+            Q <font color="#990000">=</font> ax<font color="#990000">.</font><b><font color="#000000">quiver</font></b><font color="#990000">(</font>self<font color="#990000">.</font>r<font color="#990000">[:,</font><font color="#993399">0</font><font color="#990000">],</font> self<font color="#990000">.</font>r<font color="#990000">[:,</font><font color="#993399">1</font><font color="#990000">],</font>
+                          self<font color="#990000">.</font>v<font color="#990000">[:,</font><font color="#993399">0</font><font color="#990000">],</font> self<font color="#990000">.</font>v<font color="#990000">[:,</font><font color="#993399">1</font><font color="#990000">],</font> color<font color="#990000">=</font><font color="#FF0000">'k'</font><font color="#990000">)</font>
+
+        <i><font color="#9A1900">#Set limits and plot</font></i>
+        ax<font color="#990000">.</font><b><font color="#000000">set_xlim</font></b><font color="#990000">((-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]+</font><font color="#993399">2</font><font color="#990000">.))</font>
+        ax<font color="#990000">.</font><b><font color="#000000">set_ylim</font></b><font color="#990000">((-</font>self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> self<font color="#990000">.</font>halfdomain<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]))</font>
+        plt<font color="#990000">.</font><b><font color="#000000">pause</font></b><font color="#990000">(</font><font color="#993399">0.001</font><font color="#990000">)</font>
+        plt<font color="#990000">.</font><b><font color="#000000">cla</font></b><font color="#990000">()</font>
+
+        <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"Temperature ="</font><font color="#990000">,</font> np<font color="#990000">.</font><b><font color="#000000">sum</font></b><font color="#990000">(</font>self<font color="#990000">.</font>v<font color="#990000">[:,</font><font color="#993399">0</font><font color="#990000">]**</font><font color="#993399">2</font><font color="#990000">+</font>self<font color="#990000">.</font>v<font color="#990000">[:,</font><font color="#993399">1</font><font color="#990000">]**</font><font color="#993399">2</font><font color="#990000">)/(</font><font color="#993399">2</font><font color="#990000">.*</font>self<font color="#990000">.</font>N<font color="#990000">))</font>
+
+
+<b><font color="#0000FF">if</font></b> __name__ <font color="#990000">==</font> <font color="#FF0000">"__main__"</font><font color="#990000">:</font>
+
+    Nsteps <font color="#990000">=</font> <font color="#993399">10000</font>
+
+    md <font color="#990000">=</font> <b><font color="#000000">MD</font></b><font color="#990000">()</font>
+
+    <i><font color="#9A1900">#Main run</font></i>
+    <b><font color="#0000FF">for</font></b> step <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>Nsteps<font color="#990000">):</font>
+
+        <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"MD time = "</font><font color="#990000">,</font> md<font color="#990000">.</font>tstep<font color="#990000">,</font> <font color="#FF0000">" of "</font><font color="#990000">,</font> Nsteps<font color="#990000">)</font>
+
+        md<font color="#990000">.</font><b><font color="#000000">force</font></b><font color="#990000">()</font>
+
+        <i><font color="#9A1900">#=======================================================</font></i>
+        <i><font color="#9A1900"># Call to CPL-LIBRARY goes here to</font></i>
+        <i><font color="#9A1900"># recieve u_CFD in constraint region</font></i>
+        <i><font color="#9A1900"># and force is applied</font></i>
+        <i><font color="#9A1900"># F = (1/tau)*(u_CFD - u_MD)</font></i>
+        <i><font color="#9A1900">#=======================================================</font></i>
+
+        md<font color="#990000">.</font><b><font color="#000000">verlet</font></b><font color="#990000">()</font>
+
+        <i><font color="#9A1900">#=======================================================</font></i>
+        <i><font color="#9A1900">#Call to CPL-LIBRARY goes here to send u_MD at boundary</font></i>
+        <i><font color="#9A1900">#=======================================================</font></i>
+
+        md<font color="#990000">.</font><b><font color="#000000">plot</font></b><font color="#990000">()</font>
+
+
+
+</tt></pre>

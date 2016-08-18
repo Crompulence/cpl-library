@@ -2,11 +2,9 @@
 <html lang="en-UK">
 
 <head>
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="../styles.css">
     <script type="text/javascript" src="/details-shim.js"></script>
 </head>
-
-
 
 <body>
 
@@ -16,14 +14,14 @@
 
         <h2>Quick-start guide: coupling with CPL Library</h2>
         The aim of the following text is to lead the user, by example, from the
-        start to the end; from downloading CPL Library, all the way through to
+        start to the end; from downloading <mark class="CPL">CPL library</mark>, all the way through to
         running and analysing a coupled simulation. 
 
         Please <a href="/contact.shtml">get in touch</a> if something is
         unclear or just plain wrong!
 
         <p>
-        Guide contents:
+            Guide contents:
         </p>
 
         <ul>
@@ -32,16 +30,19 @@
             <a href=#compilation ><li>Compilation</li></a>
             <a href=#MLE><li>Demo: a minimal linking example</li></a>
             <a href=#linking><li>Demo: a minimum send/recv example</li></a>
-        </ul>
-        <p>
-        The following sections of this guide are currently being written and
-        will appear soon:
-        </p>
-        <ul>
-            <a href=#analysing><li>Analysing a coupled simulation</li></a>
+            <a href=#analysing><li>Demo: visualising a coupled simulation</li></a>
+            <a href=#interactive><li>Demo: Interactive GUI using CPL library</li></a>
+            <a href=#MD_CFD><li>Minimal CFD and MD code with coupling</li></a>
         </ul>
 
-        <h2 id="prerequisites">Pre-requisites</h2></a>
+        <p>
+            These examples are all included in the /cpl-library/examples folder
+            with the <mark class="CPL">CPL library</mark> software.
+            Once the code has been successfully compiled, the 
+        </p>
+
+
+        <h2 id="prerequisites">Pre-requisites</h2>
         Before you begin, make sure you have the following installed on your
         system:
         <ul>
@@ -50,7 +51,7 @@
             <li>An MPI library</li>
         </ul>
 
-        CPL Library was developed and tested using the
+        <mark class="CPL">CPL library</mark> was developed and tested using the
         <a href="https://gcc.gnu.org/">GCC compiler collection </a>
         and <a href="https://www.mpich.org">MPICH</a>,
         which are both free and open-source. The
@@ -72,8 +73,7 @@
                                               CXX=gcc-5 FC=gfortran-5 <br>
                                 $make <br>
                                 $make install <br>
-                                $ export
-PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
+                                $ export PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
              </div>
         <em>
              <br>
@@ -86,7 +86,7 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
         </em>
         </P>
 
-        <h2 id="download">Download</h2></a>
+        <h2 id="download">Download</h2>
 
         <p>
             To keep up-to-date with bug-fixes and future developments, the
@@ -116,7 +116,7 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
         <h2 id="compilation">Compilation</h2>
 
         <p>
-            Compiling CPL Library itself, as a shared library, is
+            Compiling <mark class="CPL">CPL library</mark> itself, as a shared library, is
             likely to work with Gnu make:
 
             <div class="code"> $  cd cpl-library/cpl</div>
@@ -136,6 +136,11 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             
         <div class="code"> cpl-library/cpl/include/ </div>
 
+        <p>
+            The wrapper binaries for cplf90 and cplc++ are located in
+        </p>
+            
+        <div class="code"> cpl-library/cpl/bin/ </div>
 
         <p>
             This build has been verified for the GCC compiler collection and
@@ -149,141 +154,162 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
 
         <p>
             This simple example shows you how to link two massively-parallel 
-            codes with CPL Library. The example MD code is written in Fortran,
+            codes with <mark class="CPL">CPL library</mark>. The example MD code is written in Fortran,
             and the CFD code in C++. Both programs may run with any number of
-            processes.  
+            processes. Take a look at the simple Fortran example code:
         </p>
-        <p>
-            The first step is to navigate to the demo directory:            
-        </p>
-
-        <div class="code"> $  cd cpl-library/demo/ </div>
-
-        <p>
-            Take a look at the simple Fortran example code in
-            <code>md/md.f90</code>:
-        </p>
-
 
         <div class="code">
-            <!--#include virtual="demo-codes/md.f90.html"-->
+            <!--#include virtual="demo-codes/md_init_fortran.html"-->
         </div>
 
         <p>
             This code initialises MPI, and gets the MD communicator from
-            CPL Library. It must, therefore, linked to both the MPI and CPL
-            libraries when it is compiled. On running: 
-        </p>
-       
-        <div class="code"> $  make </div> 
-        
-        <p>
-            you'll notice that the compilation (proper) is
-            performed with a call to mpif90 of the form:
+            <mark class="CPL">CPL library</mark>. It must, therefore, be linked to both the MPI and CPL
+            libraries when it is compiled. The compilation can be performed with a call to mpif90 of the form:
         </p>
  
 
         <div class="code"> 
-            $  mpif90 ./md/md.f90 \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -I$(CPL-LIBRARY-PATH)/cpl/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -L$(CPL-LIBRARY-PATH)/cpl/lib \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -Wl,-rpath=$(CPL-LIBRARY-PATH)/cpl/lib/ -lcpl \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -lc -lstdc++ \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   
-                   -o run/md/mdProgram 
+
+            $  mpif90 ./cfd_init.f90 \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                      -I${CPL_PATH}/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      -L${CPL_PATH}/lib  \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      -Wl,-rpath=${CPL_PATH}/lib/ -lcpl \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      -o ./mdProgram
+
         </div>
 
         <p>
             If you're not familiar with the processes involved in linking
             shared libraries to software, there are a few things to notice
-            in the above command. First, we've specified the location of the 
-            CPL Library Fortran module files with the <code>-I</code> flag. 
-            Second, the 
-            location of the cpl-library shared library, <code>libcpl.so</code>, is specified
-            with <code>-L</code>. 
+            in the above command. 
+            The variable CPL_PATH should be set to the location of the base
+            directory of the <mark class="CPL">CPL library</mark> downloaded,
+            unzipped and build in the previous section. 
+            First, we've specified the location of the 
+            Fortran module files with the <code>-I</code> flag. 
+            Second, the location of the cpl-library shared library, 
+            <code>libcpl.so</code>, is specified with <code>-L</code>. 
             Because the library is a dynamic one, not in the standard
-            <code>/usr/lib</code>
-            location, we also provide the built executable with a reference to the
-            library location with 
-            <code>-Wl,-rpath=$(CPL-LIBRARY-PATH)/cpl-library/cpl/lib/</code>. 
+            <code>/usr/lib</code> location, we also provide the built 
+            executable with a reference to the library location with <br>
+            <code>-Wl,-rpath=${CPL_PATH}/lib/</code>. 
+            Note: all compiler flags for the MPI library
+            are handled automatically by the <code>mpic++</code> and
+            <code>mpif90</code> compiler wrappers. 
+<!--
             Finally, because the library is
             written with both C++ and Fortran, <code>-lc</code> and
             <code>-lstdc++</code> are required
             to link to the C++ standard libraries with the Fortran compiler.
             The executable is saved to <code>md/mdProgram</code>. 
-            <!--Two helper scripts are provided to simplify this process, -->
-        </p>
-
-        <!--<div class="code"> cplf90 ./md/md.f90 -o run/md/mdProgram </div>-->
-
-        <p>
-            For an equivalent CFD demo program written in C++, take a look at
-            <code>cfd/cfd.cpp</code>:
+-->
+            Two helper scripts similar to MPI are provided to simplify linking in
+            ${CPL_PATH}/bin folder. These can be included in the path using,
         </p>
 
         <div class="code">
-            <!--#include virtual="demo-codes/cfd.cpp.html"-->
+            $ source SOURCEME.sh
         </div>
 
         <p>
-            Like the Fortran example above, when running <code>make</code>, 
-            you'll notice that the compilation command was something similar 
-            to:
+            Note if you want to specify the cpl path to a different directory than the location
+            of SOURCEME.sh, you need to set
+        </p>
+
+        <div class="code"> $  CPL_PATH=/some/path/to/cpl/library/</div>
+
+        <p>
+            manually. After adding  <mark class="CPL">CPL library</mark>  to your
+            path with SOURCEME.sh, the previous build statement then simply becomes,
+        </p>
+
+        <div class="code"> cplf90 ./md_init.f90 -o ./mdProgram </div>
+
+        <p>
+            Next we build an equivalent CFD demo program written in C++:
+        </p>
+
+        <div class="code">
+            <!--#include virtual="demo-codes/cfd_init_cpp.html"-->
+        </div>
+
+        <p>
+            Like the Fortran example above, the compilation command 
+            is of the form:
         </p>
  
         <div class="code"> 
-            $  mpic++ ./cfd/cfd.cpp \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -I$(CPL-LIBRARY-PATH)/cpl/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -L$(CPL-LIBRARY-PATH)/cpl/lib \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -Wl,-rpath=$(CPL-LIBRARY-PATH)/cpl/lib/ -lcpl \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -lgfortran -lmpifort \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   
-                   -o run/cfd/cfdProgram 
+
+            $ mpic++ ./cfd_init.cpp \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                     -I${CPL_PATH}/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
+                     -L${CPL_PATH}/lib  \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                     -Wl,-rpath=${CPL_PATH}/lib/ -lcpl  \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                     -o ./cfdProgram  <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+
         </div>
 
         <p>
             This time, the <code>-I</code> flag tells the compiler where to
-            find the CPL Library C++ header files, and we must link to the 
+            find the <mark class="CPL">CPL library</mark> C++ header files, and we must link to the 
             <code>-lgfortran</code> and <code>-lmpifort</code> Fortran libraries.
-            Note: all compiler flags for the MPI library
-            are handled automatically by the <code>mpic++</code> and
-            <code>mpif90</code> compiler wrappers.
+            Alternativly using cplc++ wrapper,
         </p>
 
-        <!--p>
-            Which can be complied as follows,
-        </p>
-
-        <div class="code"> cplc++ ./cfd/cfd.cpp -o run/cfd/cfdProgram  </div>
-
-        <p>
-            Which can now be run simply by using,
-        </p-->
+        <div class="code"> cplc++ ./cfd_init.cpp -o ./mdProgram </div>
 
         <p>
             Now the demo codes are compiled, they can be executed together in 
             the run directory with:
         </p>
      
-        <div class="code"> $  cd run</div>
-        <div class="code"> $  ./run.sh </div>
-
-        <p>
-            The <code>run.sh</code> script simply contains:
-        </p>
-        
         <div class="code"> 
-            mpiexec -n 8 ./md/mdProgram : -n 4 ./cfd/cfdProgram
+            mpiexec -n 8 ./mdProgram : -n 4 ./cfdProgram
         </div>
     
         <p>
-            That's it! The codes should execute, and CPL Library will tell you
-            that its internal communicators have been initialised.  
-            Obviously nothing is ever that simple, if you get any problems,
+            That's it! The codes should execute, and <mark class="CPL">CPL library</mark> will tell you
+            that its internal communicators have been initialised.
+            Obviously it is rarely that simple, if you get any problems,
             please check out the <a class="links" href='/faq.shtml'>faq</a>
             section and if this doesn't help, please get in touch.
         </p>
 
+        <p>
+            The fortran code can also be easily replaced with a python example,
+        </p>
 
-        <h2 id="linking">Demo: a minimum send/recv example</h2></a>
+        <div class="code">
+            <!--#include virtual="demo-codes/md_init_python.html"-->
+        </div>
+
+        <p>
+            there is no need to compile, but the
+            path must be correctly set. This can also be done using,
+        </p>
+
+        <div class="code">
+            $ source SOURCEME.sh
+        </div>
+
+        <p>
+            if you haven't already. 
+            SOURCEME.sh appends the library location and python ctype bindings 
+            to the PYTHONPATH variable. A python and C++ coupled
+            example can then be run using,
+        </p>
+
+        <div class="code"> 
+            mpiexec -n 8 python ./md_init.py : -n 4 ./cfdProgram
+        </div>
+ 
+        <p>
+            These examples don't actually do anything interesting, and so
+            in the next section, the minimal code is presented to send and recieve data.
+        </p>
+
+        <h2 id="linking">Demo: a minimum send/recv example</h2>
 
         <p>
             This section outlines a first and simplest example of 
@@ -292,21 +318,29 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             shown here for 2D indices only,
         </p>
 
-        <img width=80% src="./cfd_md_cell_index.png" >
+        <img width=80% src="./images/cfd_md_cell_index.png" >
 
         <p>
             This is sent, from CFD to MD and checked.
-            The MD code then packs a similar array and sends to the CFD code.
             Although this isn't the most exciting example, it does
-            provide a clear picture of exactly how CPL library works.
+            provide a clear picture of exactly how <mark class="CPL">CPL library</mark> works.
             The global system of cells is setup and split over many processors
             in both the MD and CFD codes. The coupled simulation has some 
             overlap, specified in the COUPLER.in file in the cpl folder. This
             determines how the two codes overlap and the topological
             relationship between them. The mapping of processors is handled
-            by CPL library using a minimal set of inputs to the CPL_init(...)
-            and CPL_md_setup(...)/CPL_cfd_setup(...) functions. The
-            CPL_send(...) and CPL_recv(...) functions then exchange all 
+            by <mark class="CPL">CPL library</mark> using a minimal set of inputs.
+            First, initialisation is performed with a call to 
+            <a class="links" href='/api-docs/fortran_api.shtml#f/_/cpl_init'>CPL_init</a>.
+            This splits MPI_COMM_WORLD into two MPI communicators for the MD and CFD realms. 
+            The grid information and topological mapping is performed using calls to
+            <a class="links" href='/api-docs/fortran_api.shtml#f/_/cpl_setup_md'>CPL_setup_md</a> on the MD side and 
+            <a class="links" href='/api-docs/fortran_api.shtml#f/_/cpl_setup_cfd'>CPL_setup_cfd</a> for the CFD. 
+            The 
+            <a class="links" href='/api-docs/fortran_api.shtml#f/_/cpl_send'>CPL_send</a>
+            and 
+            <a class="links" href='/api-docs/fortran_api.shtml#f/_/cpl_recv'>CPL_recv</a>
+            functions then exchange all 
             information for the grid in the overlap region with all information
             exchanged only between processes that are topological overlapping.
             This avoids any global communications and maintains the scaling of 
@@ -316,76 +350,52 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             processor topology of the two codes.
 
             The examples in this section start with fortran, then c++ and
-            finally python. The codes 
+            finally python. 
             
              
         </p>
 
 
-        <h3 id="linking_fortran">Fortran</h3></a>
+        <h3 id="linking_fortran">Fortran</h3>
         <p>
             This section outlines a minimal example in Fortan which will send
             information between an MD and CFD code. 
-
-
-
         <p>
             The CFD code is first,
         </p>
 
             <details>
                 <summary> See CFD Fortran Code </summary>
-                    <!--#include virtual="demo-codes/cfd_fortran_minimal.inc"-->
+                    <!--#include virtual="demo-codes/cfd_send_cells_fortran.html"-->
             </details>
  
 
         <p>
-            Now the MD code which recieves data from the CFD code
+            Now the MD code which receives data from the CFD code
             and 
         </p>
 
             <details>
                 <summary> See MD Fortran Code </summary>
-                 <!--#include virtual="demo-codes/md_fortran_minimal.inc"-->
+                 <!--#include virtual="demo-codes/md_recv_cells_fortran.html"-->
             </details>   
 
+
         <p>
-            The code to define and check the arrays for each cells is 
-            given in the following module,
+            This can be built using,
         </p>
 
-            <details>
-                <summary> Array fill and checking Code </summary>
-                    <!--#include virtual="demo-codes/array_stuff.inc"-->
-            </details>
-
-
-        <p>
-
-            This can be built using,
-
         <div class="code">
-           $  mpif90 ./md_send_cells.f90 \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -I$(CPL-LIBRARY-PATH)/cpl/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -L$(CPL-LIBRARY-PATH)/cpl/lib \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -Wl,-rpath=$(CPL-LIBRARY-PATH)/cpl/lib/ -lcpl \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -lc -lstdc++ \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   
-                   -o ./md.exe
+           $  cplf90 ./md_recv_cells.f90 -o ./md.exe
  
         </div>
-
 
         <p>
             and similar for cfd executable,
         </p>
 
       <div class="code">
-           $  mpif90 ./cfd_send_cells.f90 \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -I$(CPL-LIBRARY-PATH)/cpl/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -L$(CPL-LIBRARY-PATH)/cpl/lib \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                   -Wl,-rpath=$(CPL-LIBRARY-PATH)/cpl/lib/ -lcpl \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   -lc -lstdc++ \<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   
-                   -o ./cfd.exe
+           $  cplf90 ./cfd_send_cells.f90   -o ./cfd.exe
         </div>
 
         <p>
@@ -396,8 +406,31 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             mpiexec -n 4 ./cfd.exe : -n 16 ./md.exe
         </div>
 
+        <p>
+            The coupled simulation sends data from the 16 MD 
+            processors to the 4 CFD processors. These are then
+            checked to ensure they correspond the correct
+            locations in space and any errors are printed.
+            A correct output will contain something like,
+        </p>
 
-        <h3 id="linking_cpp">C++</h3></a>
+        <div class="code">
+            MD -- (rank= 2) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank= 3) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank= 6) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank= 7) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank=10) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank=11) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank=14) CELLS HAVE BEEN RECEIVED CORRECTLY. <br>&nbsp;&nbsp;
+            MD -- (rank=15) CELLS HAVE BEEN RECEIVED CORRECTLY. 
+        </div>
+
+        <p>
+            The examples for C++ and python are included next.
+        </p>
+
+
+        <h3 id="linking_cpp">C++</h3>
 
         <p>
             This section outlines a minimal example in C++ which will send
@@ -405,8 +438,8 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             similar.
         </p>
             <details>
-                <summary> See CFD C++ code </summary>
-                 <!--#include virtual="demo-codes/cfd_sendrecv_cpp.html"-->
+                <summary> See CFD C++ code <a href=demo-codes/md_send_cells.cpp>(download)</a> </summary>
+                 <!--#include virtual="demo-codes/cfd_send_cells_cpp.html"-->
             </details>   
 
         <p>
@@ -415,22 +448,24 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
 
             <details>
                 <summary> See MD C++ code </summary>
-                 <!--#include virtual="demo-codes/md_sendrecv_cpp.html"-->
-            </details>   
- 
+                 <!--#include virtual="demo-codes/md_recv_cells_cpp.html"-->
+            </details>
+
+         This is what I want to copy
 
 
 
-        <h3 id="linking_python">python</h3></a>
+
+        <h3 id="linking_python">python</h3>
         <p>
             This section outlines a minimal example in python which will send
             information between an MD and CFD code. The CFD code is first.
         </p>
 
-            <details>
-                <summary> See CFD python Code </summary>
-                 <!--#include virtual="demo-codes/cfd_sendrecv_python.html"-->
-            </details>   
+        <details>
+            <summary> See CFD python Code </summary>
+             <!--#include virtual="demo-codes/cfd_send_cells_python.html"-->
+        </details>   
 
         <p>
             and the MD code,
@@ -438,8 +473,21 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
 
             <details>
                 <summary> See MD python Code </summary>
-                 <!--#include virtual="demo-codes/md_sendrecv_python.html"-->
+                 <!--#include virtual="demo-codes/md_recv_cells_python.html"-->
             </details>   
+
+
+        <p>
+            This minimal send and receive example forms part of the testing 
+            framework of the <mark class="CPL">CPL library</mark> and represents the core functionality
+            of coupled simulation. Designing coupled simulation can still be
+            more tricky than this simple example, owing to the different possible
+            data formats in the various codes as well as different grid index systems.
+            In the next section, visualisation of a coupled code is presented to show
+            how design and development of coupled simulation can be aided by 
+            minimal CFD and MD code with <mark class="CPL">CPL library</mark> tools.
+        </p>
+
         <!--<div class="code">
             make PLATFORM=template cpl_
         </div>
@@ -449,6 +497,226 @@ PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
             which the compilers and flags are defined. The template provided is likely to
             work for most machines, but the user is advised to create their own version.
         </p>-->
+        <h2 id="analysing">Demo: visualising a coupled simulation</h2>
+
+        <p>
+            The previous section, although an important test is not particularly exciting.
+            In this section, a more interesting visual example is presented which uses
+            the python interface and matplotlib to plot results. A fortran
+            and C++ example MD code specifies a test sinusoidal function in x, y and z of the form
+            and sends this to a python CFD code which plots the results. The fortran and
+            C++ codes are almost identical to the <a href=#linking>previous example</a> , 
+            although this time the MD code sends to the CFD. 
+        </p>
+
+        <details>
+            <summary> MD fortran send code </summary>
+             <!--#include virtual="demo-codes/md_send_topo_fortran.html"-->
+        </details>
+
+        <details>
+            <summary> MD C++ send code </summary>
+             <!--#include virtual="demo-codes/md_send_topo_cpp.html"-->
+        </details> 
+
+        <p>
+            The python code requires matplotlib to be <a href=http://matplotlib.org/users/installing.html>installed</a>,
+            which for debian based systems uses,
+        </p> 
+
+        <div class="code">
+            sudo apt-get build-dep python-matplotlib
+        </div>
+
+        <p>
+            please see the <a href=http://matplotlib.org/index.html>official website </a> for more information.
+            The python CFD code which uses matplotlib to display the data received is as follows:
+        </p> 
+
+        <details>
+            <summary> CFD python receive and plot </summary>
+             <!--#include virtual="demo-codes/CFD_recv_and_plot_python.html"-->
+        </details>
+
+        <p>
+            Setting the cells to be a combination of sines and cosines for every cell in the domain, here set to be 16 by 16 in 
+            x and z. The CFD code has 6 cell with an overlap size specified to be 4 cells,
+        </p> 
+
+        <img height=50px src="./images/sincos.png"
+             attribute="A(1,i,j,k) = sin\left(\frac{2\pi i}{N_x}-0.25j\pi\right)cos\left(\frac{2\pi k}{N_z}\right)" >
+
+        <p>
+            This plots a figure of the form,
+        </p> 
+
+        <img width=80% src="./images/topology_plot.png" >
+
+        <p>
+            The grid is set to a function of x, y and z based on cell numbers.
+            The above plot shows the x and y dependence of the functions on the top 
+            figure and the x z dependence on the bottom layer.
+            In order to understand this in the context of the coupler grid, a python
+            function can be used to add a grid to the plot,
+        </p> 
+
+
+        <details>
+            <summary> Python Grid plotting function </summary>
+             <!--#include virtual="demo-codes/draw_grid_python.html"-->
+        </details>
+
+        <p>
+            There are no changes needed to the sending code. 
+            The python code to use this in the plot introduced the cpl_get 
+            function in order to obtain the grid properties. All details of the
+            coupled configuration are stored locally on every processor so no
+            communication is required for a call to CPL_get. The code receive data
+            and plots over the grid resulting the following,
+        </p> 
+
+        <img width=80% src="./images/topology_grid_plot.png" >
+
+        <p>
+            Notice that the MD code is running on four processor, highlighted on the grid plot and the
+            sine function is clearly continuous and correct over the processor boundaries.
+            A single CFD processor receives and plots the data for simplicity here.
+            The CPL could be used in this manner on an MD or CFD simulation running on
+            thousands of processors and the <mark class="CPL">CPL library</mark> linked only to display current values.
+            By linking to a particular location, a slice or plot along an axis could be used
+            without requiring global communications. In this way, the current state of the simulation can
+            be checked while maintaining the scaling of the codes.
+            This is a very important function to use when developing coupled simulation.
+            As typically you will be linking two highly complex and non-linear codes, they MUST
+            be verified individually before attempting to link. Using the python interface with
+            plotting, the two codes can be visualised, unit-tested and verified individually.
+            The simple plotting interface can then be simply swapped out for the other code.
+            Both for debugging and controlling simulation, <mark class="CPL">CPL library</mark> can be used to not only display the 
+            current state of the simulation, but also to control it by specifiying a boundary condition.
+            In the next section, the plotting code sends back a user changeable value to interactivly
+            develop a coupled simulation. 
+        </p> 
+
+
+
+        <h2 id="interactive">Demo: Interactive GUI using CPL library</h2>
+
+
+        <p>
+            This allows an interactive code to adjust the various values, usign a send and
+            receive. The python code to do this uses matplotlib widgets and is as follows,
+        </p> 
+
+
+        <details>
+            <summary> Interactive python code </summary>
+             <!--#include virtual="demo-codes/Interactive_python.html"-->
+        </details>
+
+        <p>
+            The previous MD code needs to be adapted to receive data from the
+            CFD code, as well as evolve in time to reflect the potentially changing
+            boundary. 
+
+        <details>
+            <summary> Interactive fortran code </summary>
+             <!--#include virtual="demo-codes/Interactive_fortran.html"-->
+        </details>
+
+        <details>
+            <summary> Interactive cpp code </summary>
+             <!--#include virtual="demo-codes/Interactive_cpp.html"-->
+        </details>
+
+            Again, this highlights a use of <mark class="CPL">CPL library</mark> framework beyond simple
+            coupled simulation, where a user interface could be attached to a large scale
+            simulation running on many processors to visualise and adjust the simulation
+            as required during a run. 
+
+            In the next section, the example of a fully coupled
+            CFD and MD code is presented.
+        </p> 
+
+        <img width=80% src="./images/interactive_grid_plot.png" >
+
+        <h2 id="MD_CFD">Minimal CFD and MD code with coupling</h2>
+
+
+        <p>
+            Bringing the previous examples of topological setup and data exchange,
+            along with a minimal CFD solver for the 2D unsteady diffusive equation,
+        </p> 
+
+        <img height=50px src="./images/unsteady_diffuse.png" 
+             attribute="\frac{\partial u}{\partial t} =  \nu \left[ \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} \right]">
+
+        <p>
+            This equation is simulated using a simple finite difference method 
+            with a forward Euler for time discretisation and central difference in space. 
+            The code is written in an object oriented manner, so a CFD object can be
+            created, containing all field information and allowing specification of 
+            boundary conditions, time evolution and plotting:
+        </p> 
+
+        <details>
+            <summary> CFD code </summary>
+             <!--#include virtual="demo-codes/cfd_oo.html"-->
+        </details>
+
+        <p>
+            The minimal MD code solves Newton's law for the N body problem. 
+            This is extremely slow in python so only a very small number of molecules are used. 
+            A simply cell list is also included to speed up the simulation and time is advanced
+            using a Verlet algorithm. A number of non-equilibrium molecular dynamics and coupling 
+            specific features are required, including fixed wall molecules, a specular wall at
+            the domain top, constraint force and averaging to get a velocity field.
+            The MD code is also written in an object oriented manner with functions for force calculation, time evolution
+            and plotting along with more exotic velocity averaging, constraint forces and specular walls. 
+        </p> 
+
+        <details>
+            <summary> MD code </summary>
+             <!--#include virtual="demo-codes/md_oo.html"-->
+        </details>
+
+        <p>
+            The code to coupled the MD and CFD code is written as
+            two separate files to instantiate the respective MD or CFD solver object. 
+            The <mark class="CPL">CPL library</mark> is fexible in that both CFD and MD could be contained in a single file,
+            however the recommended way to couple is through the MPMD model with all
+            data exchange through <mark class="CPL">CPL library</mark>. This keeps the scope of both codes
+            separated and ensures changes to each piece of coupled software is minimised.
+            The coupled MD code is here, notice that most of the code is boilerplate problem setup,
+        </p> 
+
+        <details>
+            <summary> MD code </summary>
+             <!--#include virtual="demo-codes/md_cpl.html"-->
+        </details>
+
+
+        <p>
+            The CFD code is here and looks very similar to previous coupling examples and the MD,
+        </p> 
+
+        <details>
+            <summary> MD code </summary>
+             <!--#include virtual="demo-codes/cfd_cpl.html"-->
+        </details>
+
+        <p>
+            The resulting simulation should run and display evolving molecules on one
+            figure (with overlayed averaged), and a CFD on a seperate panel.
+        </p> 
+
+
+        <img width=80% src="./images/MD_CFD.png" >
+
+        <p>
+            Note that these toy MD and CFD codes are provided as an example and there is no guarantee of the
+            accuracy or correctness of either code. In fact, the constraint applied appears to need
+            some work on the MD code.
+        </p> 
 
     </div>
 

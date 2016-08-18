@@ -1,18 +1,18 @@
 program md_cpl_example
     use cpl, only : CPL_init, CPL_setup_md, & 
                     CPL_get_olap_limits, CPL_my_proc_portion, &
-                    CPL_get_no_cells, CPL_send, CPL_recv, CPL_overlap
+                    CPL_get_no_cells, CPL_send, CPL_recv, &
+					CPL_overlap, CPL_finalize
     use mpi
     implicit none
 
     logical :: recv_flag,send_flag, NO_ERROR
     integer :: i,j,k,ii,jj,kk,ierr,errorcode
-    integer :: rank, nprocs_realm, nsteps, initialstep
+    integer :: rank, nprocs_realm
     integer :: CART_COMM, MD_COMM
     integer, parameter :: md_realm=2
     integer, dimension(3) :: npxyz, Ncells
     integer, dimension(6) :: portion, limits
-    double precision :: dt, density
     double precision, dimension(3)  :: xyzL, xyz_orig
     double precision, dimension(:,:,:,:), allocatable  :: recv_array, send_array
 
@@ -22,23 +22,17 @@ program md_cpl_example
     !Create MD Comm by spliting world
     call CPL_init(md_realm, MD_COMM, ierr)
 
-    !Parameters
-    dt = 0.1
-    density = 0.8
-
     ! Parameters of the cpu topology (cartesian grid)
     xyzL = (/10.d0, 10.d0, 10.d0/)
     xyz_orig = (/0.d0, 0.d0, 0.d0/)
     npxyz = (/ 4, 2, 2/)
 
-!    call read_input(xyzL=xyzL, xyz_orig=xyz_orig, & 
-!                    npxyz_MD=npxyz)
-
     ! Create communicators and check that number of processors is consistent
     call MPI_Comm_size(MD_COMM, nprocs_realm, ierr) 
 
     if (nprocs_realm .ne. product(npxyz)) then
-        print*, "Non-coherent number of processes"
+        print'(4(a,i6))', "Non-coherent number of processes in MD ", nprocs_realm, & 
+                " no equal to ",  npxyz(1), " X ", npxyz(2), " X ", npxyz(3)
         call MPI_Abort(MPI_COMM_WORLD, errorcode, ierr)
     endif
 
@@ -48,8 +42,7 @@ program md_cpl_example
                          .true., CART_COMM, ierr)
 
     !Coupler setup
-    call CPL_setup_md(nsteps, initialstep, dt, CART_COMM, & 
-                      xyzL, xyz_orig, density)
+    call CPL_setup_md(CART_COMM, xyzL, xyz_orig)
 
     !Get detail for grid
     call CPL_get_olap_limits(limits)
@@ -101,9 +94,15 @@ program md_cpl_example
     if (CPL_overlap() .and. no_error) then
         print'(a,a,i2,a)', "MD -- ", "(rank=", rank, ") CELLS HAVE BEEN RECEIVED CORRECTLY."
     endif
-    deallocate(recv_array)
     call MPI_Barrier(MPI_COMM_WORLD, ierr)
 
+    !Release all coupler comms 
+    call CPL_finalize(ierr)
+
+    !Deallocate arrays and finalise MPI
+    deallocate(recv_array)
+    call MPI_Comm_free(MD_COMM, ierr)
+    call MPI_Comm_free(CART_COMM, ierr)
     call MPI_finalize(ierr)
 
 end program

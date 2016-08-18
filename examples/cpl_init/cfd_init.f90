@@ -1,5 +1,5 @@
 program main_CFD
-   use cpl, only : CPL_init
+   use cpl, only : CPL_init, CPL_finalize
    use mpi
    implicit none
 
@@ -20,6 +20,8 @@ program main_CFD
    print*, "CFD code processor ", rank+1, " of ", nprocs
 
    !No need for seperate CPL finalise as MPI finalise takes care of this
+   call CPL_finalize(ierr)
+   call MPI_comm_free(CFD_COMM,ierr)
    call MPI_finalize(ierr)
 
 end program main_CFD

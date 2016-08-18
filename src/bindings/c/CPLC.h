@@ -44,151 +44,44 @@ Author(s)
 
 */
 
-extern "C" void CPLC_init
-(
-    int  calling_realm,
-    int* returned_realm_comm
-);
+extern "C" void CPLC_init(int  calling_realm, int* returned_realm_comm);
+extern "C" void CPLC_finalize();
+extern "C" void CPLC_setup_cfd(int icomm_grid, double xyzL[], 
+                               double xyz_orig[], int ncxyz[]);
 
-extern "C" void CPLC_setup_cfd
-(
-    int nsteps,
-    double dt,
-    int icomm_grid,
-    double xyzL[],
-    double xyz_orig[],
-    int ncxyz[],
-    double density
-);
+extern "C" void CPLC_test_python(int int_p, double doub_p, bool bool_p, 
+                                 int* int_pptr, double* doub_pptr, 
+                                 int* int_pptr_dims, int* doub_pptr_dims);
 
-extern "C" void CPLC_test_python
-(
-	int int_p, 
-	double doub_p, 
-	bool bool_p, 
-	int* int_pptr,
-	double* doub_pptr, 
-	int* int_pptr_dims,
-	int* doub_pptr_dims
-);
-
-extern "C" void CPLC_setup_md
-(
-    int* nsteps,
-    int* initialstep,
-    double dt,
-    int icomm_grid,
-    double xyzL[],
-    double xyz_orig[],
-	double density
-);
+extern "C" void CPLC_setup_md(int icomm_grid, double xyzL[], 
+                              double xyz_orig[]);
 
 extern "C" void CPLC_send(double* asend, int* asend_shape, int* limits, bool *send_flag);
 extern "C" void CPLC_recv(double* arecv, int* arecv_shape, int* limits, bool *recv_flag);
 
-extern "C" void CPLC_scatter
-(
-    double* scatterarray,
-    int* scatter_shape,
-    int* limits,
-    double* recvarray,
-    int* recv_shape
-);
+extern "C" void CPLC_scatter(double* scatterarray, int* scatter_shape, int* limits, 
+                             double* recvarray, int* recv_shape);
 
-extern "C" void CPLC_gather
-(
-    double* gatherarray,
-    int* gather_shape,
-    int* limits,
-    double* recvarray,
-    int* recv_shape
-);
+extern "C" void CPLC_gather(double* gatherarray, int* gather_shape, int* limits, 
+                            double* recvarray, int* recv_shape);
 
-extern "C" void CPLC_proc_extents
-(
-    int coord[],
-    int realm,
-    int extents[]
-);
-
-extern "C" void CPLC_my_proc_extents
-(
-    int extents[]
-);
-
-extern "C" void CPLC_proc_portion
-(
-    int coord[],
-    int realm,
-    int limits[],
-    int portion[]
-);
-
-extern "C" void CPLC_my_proc_portion
-(
-    int limits[],
-    int portion[]
-);
-
-extern "C" void CPLC_map_cell2coord
-(
-    int i,
-    int j,
-    int k,
-    double coord_xyz[]
-);
-
-extern "C" bool CPLC_map_coord2cell
-(
-    double x, 
-    double y, 
-    double z, 
-    int cell_ijk[]
-);
-
-extern "C" void CPLC_get_no_cells
-(
-    int limits[],
-    int no_cells[]
-);
-
-extern "C" bool CPLC_map_glob2loc_cell
-(
-    int limits[],
-    int glob_cell[],
-    int loc_cell[]
-);
-
-extern "C" void CPLC_get_olap_limits
-(
-    int limits[]
-);
-
-extern "C" void CPLC_get_cnst_limits
-(
-    int limits[]
-);
-
-
-extern "C" bool CPLC_map_cfd2md_coord
-(
-    double coord_cfd[],
-    double coord_md[]
-);
-
-extern "C" bool CPLC_map_md2cfd_coord
-(
-    double coord_md[],
-    double coord_cfd[]
-);
-
+extern "C" void CPLC_proc_extents(int coord[], int realm, int extents[]);
+extern "C" void CPLC_my_proc_extents(int extents[]);
+extern "C" void CPLC_proc_portion(int coord[], int realm, int limits[], int portion[]);
+extern "C" void CPLC_my_proc_portion(int limits[], int portion[]);
+extern "C" void CPLC_map_cell2coord(int i, int j, int k, double coord_xyz[]);
+extern "C" bool CPLC_map_coord2cell(double x,  double y,  double z,  int cell_ijk[]);
+extern "C" void CPLC_get_no_cells(int limits[], int no_cells[]);
+extern "C" bool CPLC_map_glob2loc_cell(int limits[], int glob_cell[], int loc_cell[]);
+extern "C" void CPLC_get_olap_limits(int limits[]);
+extern "C" void CPLC_get_cnst_limits(int limits[]);
+extern "C" bool CPLC_map_cfd2md_coord(double coord_cfd[], double coord_md[]);
+extern "C" bool CPLC_map_md2cfd_coord(double coord_md[], double coord_cfd[]);
 extern "C" bool CPLC_overlap();
-
 
 // Setters
 extern "C" void CPLC_set_output_mode
-(
-    int mode
+( int mode
 );
 
 // Getters
@@ -229,6 +122,12 @@ extern "C" double CPLC_dz();
 extern "C" double CPLC_xl_md();
 extern "C" double CPLC_yl_md();
 extern "C" double CPLC_zl_md();
+extern "C" double CPLC_x_orig_cfd();
+extern "C" double CPLC_y_orig_cfd();
+extern "C" double CPLC_z_orig_cfd();
+extern "C" double CPLC_x_orig_md();
+extern "C" double CPLC_y_orig_md();
+extern "C" double CPLC_z_orig_md();
 extern "C" double CPLC_xl_cfd();
 extern "C" double CPLC_yl_cfd();
 extern "C" double CPLC_zl_cfd();

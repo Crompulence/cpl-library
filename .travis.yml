@@ -37,13 +37,16 @@ before_script:
     - export PATH=$MPI_DIR/bin:$PATH
     - export CPL_PATH=`pwd`
     - source $CPL_PATH/SOURCEME.sh
-    - echo "Make demo here"
+    - sudo apt-get -qq update
+    - sudo apt-get install -qq valgrind
 
 
 script:
     - make test-all
     - make test-examples
-    - make webdocs-all
+#    - make webdocs-all
+    - make test-valgrind
+
 
 after_success:
      - echo "Build Success"

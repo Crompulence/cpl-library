@@ -1,0 +1,125 @@
+<!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><b><font color="#000080">import</font></b> numpy as np
+<b><font color="#000080">import</font></b> matplotlib<font color="#990000">.</font>pyplot as plt
+<b><font color="#000080">from</font></b> matplotlib<font color="#990000">.</font>widgets <b><font color="#000080">import</font></b> Slider
+<b><font color="#000080">from</font></b> mpi4py <b><font color="#000080">import</font></b> MPI
+
+<b><font color="#000080">from</font></b> cplpy <b><font color="#000080">import</font></b> CPL
+<b><font color="#000080">from</font></b> draw_grid <b><font color="#000080">import</font></b> draw_grid
+
+<i><font color="#9A1900">#initialise MPI and CPL</font></i>
+comm <font color="#990000">=</font> MPI<font color="#990000">.</font>COMM_WORLD
+CPL <font color="#990000">=</font> <b><font color="#000000">CPL</font></b><font color="#990000">()</font>
+CFD_COMM <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">init</font></b><font color="#990000">(</font>CPL<font color="#990000">.</font>CFD_REALM<font color="#990000">)</font>
+nprocs_realm <font color="#990000">=</font> CFD_COMM<font color="#990000">.</font><b><font color="#000000">Get_size</font></b><font color="#990000">()</font>
+
+<i><font color="#9A1900"># Parameters of the cpu topology (cartesian grid)</font></i>
+npxyz <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">array</font></b><font color="#990000">([</font><font color="#993399">1</font><font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">],</font> order<font color="#990000">=</font><font color="#FF0000">'F'</font><font color="#990000">,</font> dtype<font color="#990000">=</font>np<font color="#990000">.</font>int32<font color="#990000">)</font>
+NProcs <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">product</font></b><font color="#990000">(</font>npxyz<font color="#990000">)</font>
+xyzL <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">array</font></b><font color="#990000">([</font><font color="#993399">10.0</font><font color="#990000">,</font> <font color="#993399">10.0</font><font color="#990000">,</font> <font color="#993399">10.0</font><font color="#990000">],</font> order<font color="#990000">=</font><font color="#FF0000">'F'</font><font color="#990000">,</font> dtype<font color="#990000">=</font>np<font color="#990000">.</font>float64<font color="#990000">)</font>
+xyz_orig <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">array</font></b><font color="#990000">([</font><font color="#993399">0.0</font><font color="#990000">,</font> <font color="#993399">0.0</font><font color="#990000">,</font> <font color="#993399">0.0</font><font color="#990000">],</font> order<font color="#990000">=</font><font color="#FF0000">'F'</font><font color="#990000">,</font> dtype<font color="#990000">=</font>np<font color="#990000">.</font>float64<font color="#990000">)</font>
+ncxyz <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">array</font></b><font color="#990000">([</font><font color="#993399">16</font><font color="#990000">,</font> <font color="#993399">6</font><font color="#990000">,</font> <font color="#993399">16</font><font color="#990000">],</font> order<font color="#990000">=</font><font color="#FF0000">'F'</font><font color="#990000">,</font> dtype<font color="#990000">=</font>np<font color="#990000">.</font>int32<font color="#990000">)</font>
+
+<b><font color="#0000FF">if</font></b> <font color="#990000">(</font>nprocs_realm <font color="#990000">!=</font> NProcs<font color="#990000">):</font>
+    <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"Non-coherent number of processes in CFD "</font><font color="#990000">,</font> nprocs_realm<font color="#990000">,</font>
+            <font color="#FF0000">" no equal to "</font><font color="#990000">,</font>  npxyz<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> <font color="#FF0000">" X "</font><font color="#990000">,</font> npxyz<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> <font color="#FF0000">" X "</font><font color="#990000">,</font> npxyz<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">])</font>
+    MPI<font color="#990000">.</font><b><font color="#000000">Abort</font></b><font color="#990000">(</font>errorcode<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">)</font>
+
+<i><font color="#9A1900">#Setup coupled simulation</font></i>
+cart_comm <font color="#990000">=</font> CFD_COMM<font color="#990000">.</font><b><font color="#000000">Create_cart</font></b><font color="#990000">([</font>npxyz<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> npxyz<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> npxyz<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">]])</font>
+CPL<font color="#990000">.</font><b><font color="#000000">setup_cfd</font></b><font color="#990000">(</font>cart_comm<font color="#990000">,</font> xyzL<font color="#990000">,</font> xyz_orig<font color="#990000">,</font> ncxyz<font color="#990000">)</font>
+
+<i><font color="#9A1900">#Plot output</font></i>
+fig<font color="#990000">,</font> ax <font color="#990000">=</font> plt<font color="#990000">.</font><b><font color="#000000">subplots</font></b><font color="#990000">(</font><font color="#993399">1</font><font color="#990000">,</font><font color="#993399">1</font><font color="#990000">)</font>
+plt<font color="#990000">.</font><b><font color="#000000">subplots_adjust</font></b><font color="#990000">(</font>bottom<font color="#990000">=</font><font color="#993399">0.25</font><font color="#990000">)</font>
+axslider <font color="#990000">=</font> plt<font color="#990000">.</font><b><font color="#000000">axes</font></b><font color="#990000">([</font><font color="#993399">0.25</font><font color="#990000">,</font> <font color="#993399">0.1</font><font color="#990000">,</font> <font color="#993399">0.65</font><font color="#990000">,</font> <font color="#993399">0.03</font><font color="#990000">])</font>
+freq <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">.</font>
+sfreq <font color="#990000">=</font> <b><font color="#000000">Slider</font></b><font color="#990000">(</font>axslider<font color="#990000">,</font> <font color="#FF0000">'Freq'</font><font color="#990000">,</font> <font color="#993399">0.1</font><font color="#990000">,</font> <font color="#993399">2.0</font><font color="#990000">,</font> valinit<font color="#990000">=</font>freq<font color="#990000">)</font>
+<b><font color="#0000FF">def</font></b> <b><font color="#000000">update</font></b><font color="#990000">(</font>val<font color="#990000">):</font>
+    freq <font color="#990000">=</font> sfreq<font color="#990000">.</font>val
+    <b><font color="#0000FF">global</font></b> freq
+    <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"CHANGED"</font><font color="#990000">,</font> freq<font color="#990000">)</font>
+sfreq<font color="#990000">.</font><b><font color="#000000">on_changed</font></b><font color="#990000">(</font>update<font color="#990000">)</font>
+
+plt<font color="#990000">.</font><b><font color="#000000">ion</font></b><font color="#990000">()</font>
+plt<font color="#990000">.</font><b><font color="#000000">show</font></b><font color="#990000">()</font>
+
+<i><font color="#9A1900"># === Plot both grids ===</font></i>
+dx <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"xl_cfd"</font><font color="#990000">)/</font><b><font color="#000000">float</font></b><font color="#990000">(</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"ncx"</font><font color="#990000">))</font>
+dy <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"yl_cfd"</font><font color="#990000">)/</font><b><font color="#000000">float</font></b><font color="#990000">(</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"ncy"</font><font color="#990000">))</font>
+dz <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"zl_cfd"</font><font color="#990000">)/</font><b><font color="#000000">float</font></b><font color="#990000">(</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"ncz"</font><font color="#990000">))</font>
+ioverlap <font color="#990000">=</font> <font color="#990000">(</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"icmax_olap"</font><font color="#990000">)-</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"icmin_olap"</font><font color="#990000">)+</font><font color="#993399">1</font><font color="#990000">)</font>
+joverlap <font color="#990000">=</font> <font color="#990000">(</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"jcmax_olap"</font><font color="#990000">)-</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"jcmin_olap"</font><font color="#990000">)+</font><font color="#993399">1</font><font color="#990000">)</font>
+koverlap <font color="#990000">=</font> <font color="#990000">(</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"kcmax_olap"</font><font color="#990000">)-</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"kcmin_olap"</font><font color="#990000">)+</font><font color="#993399">1</font><font color="#990000">)</font>
+xoverlap <font color="#990000">=</font> ioverlap<font color="#990000">*</font>dx
+yoverlap <font color="#990000">=</font> joverlap<font color="#990000">*</font>dy
+zoverlap <font color="#990000">=</font> koverlap<font color="#990000">*</font>dz
+
+<b><font color="#0000FF">for</font></b> time <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font><font color="#993399">100000</font><font color="#990000">):</font>
+
+    <i><font color="#9A1900"># recv data to plot</font></i>
+    olap_limits <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">get_olap_limits</font></b><font color="#990000">()</font>
+    portion <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">my_proc_portion</font></b><font color="#990000">(</font>olap_limits<font color="#990000">)</font>
+    <font color="#990000">[</font>ncxl<font color="#990000">,</font> ncyl<font color="#990000">,</font> nczl<font color="#990000">]</font> <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">get_no_cells</font></b><font color="#990000">(</font>portion<font color="#990000">)</font>
+    recv_array <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">((</font><font color="#993399">1</font><font color="#990000">,</font> ncxl<font color="#990000">,</font> ncyl<font color="#990000">,</font> nczl<font color="#990000">),</font> order<font color="#990000">=</font><font color="#FF0000">'F'</font><font color="#990000">,</font> dtype<font color="#990000">=</font>np<font color="#990000">.</font>float64<font color="#990000">)</font>
+    recv_array<font color="#990000">,</font> ierr <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">recv</font></b><font color="#990000">(</font>recv_array<font color="#990000">,</font> olap_limits<font color="#990000">)</font>
+
+    <i><font color="#9A1900">#Plot CFD and coupler Grid</font></i>
+    <b><font color="#000000">draw_grid</font></b><font color="#990000">(</font>ax<font color="#990000">,</font> 
+              nx<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"ncx"</font><font color="#990000">),</font>
+              ny<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"ncy"</font><font color="#990000">),</font>
+              nz<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"ncz"</font><font color="#990000">),</font>
+              px<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"npx_cfd"</font><font color="#990000">),</font>
+              py<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"npy_cfd"</font><font color="#990000">),</font>
+              pz<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"npz_cfd"</font><font color="#990000">),</font>
+              xmin<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"x_orig_cfd"</font><font color="#990000">),</font>
+              ymin<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"y_orig_cfd"</font><font color="#990000">),</font>
+              zmin<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"z_orig_cfd"</font><font color="#990000">),</font>
+              xmax<font color="#990000">=(</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"icmax_olap"</font><font color="#990000">)+</font><font color="#993399">1</font><font color="#990000">)*</font>dx<font color="#990000">,</font>
+              ymax<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"yl_cfd"</font><font color="#990000">),</font>
+              zmax<font color="#990000">=(</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"kcmax_olap"</font><font color="#990000">)+</font><font color="#993399">1</font><font color="#990000">)*</font>dz<font color="#990000">,</font>
+              lc <font color="#990000">=</font> <font color="#FF0000">'r'</font><font color="#990000">,</font>
+              label<font color="#990000">=</font><font color="#FF0000">'CFD'</font><font color="#990000">)</font>
+
+    <i><font color="#9A1900">#Plot MD domain</font></i>
+    <b><font color="#000000">draw_grid</font></b><font color="#990000">(</font>ax<font color="#990000">,</font> nx<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">,</font> ny<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">,</font> nz<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">,</font>
+              px<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"npx_md"</font><font color="#990000">),</font>
+              py<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"npy_md"</font><font color="#990000">),</font>
+              pz<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"npz_md"</font><font color="#990000">),</font>
+              xmin<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"x_orig_md"</font><font color="#990000">),</font>
+              ymin<font color="#990000">=-</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"yl_md"</font><font color="#990000">)+</font>yoverlap<font color="#990000">,</font>
+              zmin<font color="#990000">=</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"z_orig_md"</font><font color="#990000">),</font>
+              xmax<font color="#990000">=(</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"icmax_olap"</font><font color="#990000">)+</font><font color="#993399">1</font><font color="#990000">)*</font>dx<font color="#990000">,</font>
+              ymax<font color="#990000">=</font>yoverlap<font color="#990000">,</font>
+              zmax<font color="#990000">=(</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"kcmax_olap"</font><font color="#990000">)+</font><font color="#993399">1</font><font color="#990000">)*</font>dz<font color="#990000">,</font>
+              label<font color="#990000">=</font><font color="#FF0000">'MD'</font><font color="#990000">)</font>
+
+    <i><font color="#9A1900">#Plot x component on grid</font></i>
+    x <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"x_orig_cfd"</font><font color="#990000">)+.</font><font color="#993399">5</font><font color="#990000">*</font>dx<font color="#990000">,</font>xoverlap<font color="#990000">-.</font><font color="#993399">5</font><font color="#990000">*</font>dx<font color="#990000">,</font>ioverlap<font color="#990000">)</font>
+    z <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>CPL<font color="#990000">.</font><b><font color="#000000">get</font></b><font color="#990000">(</font><font color="#FF0000">"z_orig_cfd"</font><font color="#990000">)+.</font><font color="#993399">5</font><font color="#990000">*</font>dz<font color="#990000">,</font>zoverlap<font color="#990000">-.</font><font color="#993399">5</font><font color="#990000">*</font>dz<font color="#990000">,</font>koverlap<font color="#990000">)</font>
+    <b><font color="#0000FF">for</font></b> j <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>joverlap<font color="#990000">):</font>
+        ax<font color="#990000">.</font><b><font color="#000000">plot</font></b><font color="#990000">(</font>x<font color="#990000">,</font> <font color="#993399">0.5</font><font color="#990000">*</font>dy<font color="#990000">*(</font>recv_array<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">,:,</font>j<font color="#990000">,</font><font color="#993399">0</font><font color="#990000">]+</font><font color="#993399">1</font><font color="#990000">.+</font><font color="#993399">2</font><font color="#990000">*</font>j<font color="#990000">),</font> <font color="#FF0000">'s-'</font><font color="#990000">)</font>
+    ax<font color="#990000">.</font><b><font color="#000000">set_xlabel</font></b><font color="#990000">(</font><font color="#FF0000">'$x$'</font><font color="#990000">)</font>
+    ax<font color="#990000">.</font><b><font color="#000000">set_ylabel</font></b><font color="#990000">(</font><font color="#FF0000">'$y$'</font><font color="#990000">)</font>
+
+    <b><font color="#0000FF">print</font></b><font color="#990000">(</font>time<font color="#990000">,</font> freq<font color="#990000">)</font>
+    plt<font color="#990000">.</font><b><font color="#000000">pause</font></b><font color="#990000">(</font><font color="#993399">0.1</font><font color="#990000">)</font>
+    ax<font color="#990000">.</font><b><font color="#000000">cla</font></b><font color="#990000">()</font>
+
+    <i><font color="#9A1900"># send data to update</font></i>
+    olap_limits <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">get_olap_limits</font></b><font color="#990000">()</font>
+    portion <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">my_proc_portion</font></b><font color="#990000">(</font>olap_limits<font color="#990000">)</font>
+    <font color="#990000">[</font>ncxl<font color="#990000">,</font> ncyl<font color="#990000">,</font> nczl<font color="#990000">]</font> <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">get_no_cells</font></b><font color="#990000">(</font>portion<font color="#990000">)</font>
+    send_array <font color="#990000">=</font> freq<font color="#990000">*</font>np<font color="#990000">.</font><b><font color="#000000">ones</font></b><font color="#990000">((</font><font color="#993399">1</font><font color="#990000">,</font> ncxl<font color="#990000">,</font> ncyl<font color="#990000">,</font> nczl<font color="#990000">),</font> order<font color="#990000">=</font><font color="#FF0000">'F'</font><font color="#990000">,</font> dtype<font color="#990000">=</font>np<font color="#990000">.</font>float64<font color="#990000">)</font>
+    CPL<font color="#990000">.</font><b><font color="#000000">send</font></b><font color="#990000">(</font>send_array<font color="#990000">,</font> olap_limits<font color="#990000">)</font>
+    
+CPL<font color="#990000">.</font><b><font color="#000000">finalize</font></b><font color="#990000">()</font>
+MPI<font color="#990000">.</font><b><font color="#000000">Finalize</font></b><font color="#990000">()</font>
+
+
+
+
+</tt></pre>

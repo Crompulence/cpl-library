@@ -14,23 +14,62 @@
 
         <!--#include virtual="nav.html"-->
 
-        <h2>Downloading CPL Library</h2>
+        <h2>Downloading the latest releases of CPL Library</h2>
+            
+        <p>
+            Version 2.0.0
+            <a href="http://dx.doi.org/10.5281/zenodo.56208"><img src="https://zenodo.org/badge/doi/10.5281/zenodo.56208.svg" alt="10.5281/zenodo.56208"></a> 
+            of <mark class="CPL">CPL library</mark> is now available
+            to download from 
+            <a href="https://github.com/Crompulence/cpl-library/archive/v2.0.0.zip"> here </a>.
+            This includes a remodelling of the interface
+            from version 1.1.0 so will break backward compatibility.
+            The interface has been greatly simplified to allow coupled
+            simulation with a minimum of inputs. Comprehensive
+            examples (hopefully) take the user step by step to a 
+            fully coupled MD-CFD code on the
+            <a href="/user-guide/quick-start.shtml">  quick start guide </a>.
+            Please get in 
+            <a href="/contact.shtml">  touch </a>
+            if the examples are not clear or report a bug on
+            <a href="https://github.com/Crompulence/cpl-library/issues">  github </a>. 
+        </p>
 
-        CPL Library may be downloaded with 
-        <a href="https://github.com/Crompulence/cpl-library">git</a>. 
-        Copy and paste the following command into your Terminal:
+
+        <h2>Previous releases of CPL Library</h2>
+            
+        <p>
+            Version 1.0.0 of <a href="http://dx.doi.org/10.5281/zenodo.46573"><img src="https://zenodo.org/badge/doi/10.5281/zenodo.46573.svg" alt="10.5281/zenodo.46573"></a> 
+            <mark class="CPL">CPL library</mark> 
+            is no longer supported and as the interface has been re-designed is no longer
+            compatibile with newer sockets and coupled codes. It can still be downloaded
+            <a href=https://zenodo.org/record/46573/files/cpl-library-1.0.zip> here </a>.
+            for comparison and to allow previous coupled codes to still be used. 
+            
+
+        </p>
+
+
+        <h2>Bleeding edge CPL Library <a href="https://travis-ci.org/Crompulence/cpl-library"><img src="https://camo.githubusercontent.com/45e545c03770e1ab040ff716e41bffe1755be570/68747470733a2f2f7472617669732d63692e6f72672f43726f6d70756c656e63652f63706c2d6c6962726172792e706e673f6272616e63683d6d6173746572" alt="Build Status" data-canonical-src="https://travis-ci.org/Crompulence/cpl-library.png?branch=master" style="max-width:100%;"></a> </h2>
+
+        <p>
+            The latest version of <mark class="CPL">CPL library</mark> may also be downloaded from github
+            <a href="https://github.com/Crompulence/cpl-library">git</a>. 
+            Copy and paste the following command into your Terminal:
+        </p>
 
         <div class="code">
-            <p>
-		git clone https://github.com/Crompulence/cpl-library.git
-            </p>
+		    git clone https://github.com/Crompulence/cpl-library.git
         </div>
 
         <p>
             Or see our 
             <a href="https://github.com/Crompulence/cpl-library">github homepage</a>.
-       Alternatively, a zip file may be downloaded from 
-       <a href="https://github.com/Crompulence/cpl-library/archive/master.zip">here</a>.
+           Alternatively, a zip file may be downloaded from 
+           <a href="https://github.com/Crompulence/cpl-library/archive/master.zip">here</a>.
+           There is a master and dev branch, the master branch is tested using Travis CI
+            and should be free from basic bugs while the dev will often be unstable and
+            used for testing new features.
         </p>
     
     </div>

@@ -45,17 +45,22 @@ void CPL::init(int calling_realm, int& returned_realm_comm)
     CPLC_init(calling_realm, &returned_realm_comm);
 }
 
-void CPL::setup_cfd(int nsteps, double dt, int icomm_grid, double xyzL[],
-                    double xyz_orig[], int ncxyz[], double density)
+
+void CPL::finalize()
 {
-    CPLC_setup_cfd(nsteps, dt, icomm_grid, xyzL, xyz_orig, ncxyz, density);
+    CPLC_finalize();
 }
 
-void CPL::setup_md(int& nsteps, int& initialstep, double dt,
-                   int icomm_grid, double xyzL[], 
-                   double xyz_orig[], double density)
+void CPL::setup_cfd(int icomm_grid, double xyzL[],
+                    double xyz_orig[], int ncxyz[])
 {
-    CPLC_setup_md(&nsteps, &initialstep, dt, icomm_grid, xyzL, xyz_orig, density);
+    CPLC_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz);
+}
+
+void CPL::setup_md(int icomm_grid, double xyzL[], 
+                   double xyz_orig[])
+{
+    CPLC_setup_md(icomm_grid, xyzL, xyz_orig);
 }
 
 bool CPL::send (double* asend, int* asend_shape, int* limits)

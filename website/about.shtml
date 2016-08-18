@@ -4,14 +4,13 @@
 
 <head>
     <link rel="stylesheet" href="styles.css">
+    <link rel="shortcut icon" href="./cpl_logo.ico">
 </head>
 
 
 <body>
 
     <div class="center">
-
-
 
         <!--#include virtual="nav.html"-->
 
@@ -24,17 +23,16 @@
         <!-- </div> -->
 
         <p> 
-            CPL Library is a communications and topology management system for
+            <mark class="CPL">CPL library</mark> is a communications and topology management system for
             coupling <i>any</i> continuum fluid dynamics (CFD) solver to
-            <i>any</i> molecular dynamics (MD) code. CPL Library is free and
-            open-source. <a href="download.shtml">Download</a> the library
-            today!
+            <i>any</i> molecular dynamics (MD) code. <mark class="CPL">CPL library</mark> is free and
+            open-source.
         </p>
 
         <p>
-            A full tutorial and example codes written in modern C++ and Fortran
-            are under development and will come bundled with CPL Library very
-            soon. Their purpose will be to provide templates that are easily 
+            A full tutorial and example codes written in python, C++ and Fortran
+            are provided with <mark class="CPL">CPL library</mark>. 
+            Their purpose is to provide templates that are easily 
             replaced by the user with any CFD or MD code of their choice.
         </p>
 
@@ -65,8 +63,7 @@
         -->
 
         <p>
-            If you'd like more details, or want to get started before the
-            example codes are available, please get in touch with us on the <a
+            If you'd like more details, or want to get started, please get in touch with us on the <a
             href="/contact.shtml">contact</a> page; we'd love to hear from you
             and will help however we can.
         </p>
@@ -80,12 +77,12 @@
         <!-- </div> -->
 
         <p> 
-            CPL Library currently facilitates a domain-decomposition style of
+            <mark class="CPL">CPL library</mark> currently facilitates a domain-decomposition style of
             coupling. With this approach, a CFD program solves the continuum
             equations of motion in the upper region of a domain, and an MD
             simulation solves discrete-particle equations of motion in the
             lower region. The two programs exchange data (in this case with
-            CPL Library) to ensure selected field variables are consistent
+            <mark class="CPL">CPL library</mark>) to ensure selected field variables are consistent
             where the MD and CFD domains overlap.  
         </p>
             
@@ -135,7 +132,7 @@
         <h2>Supported Configurations</h2>
 
         <p>
-            CPL Library is written in Fortran with a C/C++ wrapper and is not 
+            <mark class="CPL">CPL library</mark> is written in Fortran with a C/C++ wrapper and is not 
             expected to change much from its current form.
             The CFD and MD code are assumed to be massively parallel, running 
             on a number of processors communicating through the message 

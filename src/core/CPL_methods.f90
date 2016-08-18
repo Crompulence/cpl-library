@@ -37,8 +37,9 @@
 !
 !
 !Author(s)
-! .. codeauthor:: Edward Smith 
-! .. codeauthor:: David Trevelyan September 2012 to De
+! .. codeauthor:: Edward Smith Novemeber 2011 to present
+! .. codeauthor:: Eduardo Ramos Fernandez 2015 to present
+! .. codeauthor:: David Trevelyan September 2012 to December 2015
 ! .. codeauthor:: Lucian Anton, November 2011  
 !
 !! Routines accessible from application ( molecular or continuum ) after
@@ -733,7 +734,8 @@ subroutine CPL_send(asend, limits, send_flag)
     use coupler_module, only : md_realm,cfd_realm, & 
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
                                rank_world, realm, rank_realm,rank_olap, & 
-                               iblock_realm,jblock_realm,kblock_realm,ierr, VOID
+                               iblock_realm,jblock_realm,kblock_realm,ierr, VOID, &
+							   CPL_setup_complete, REALM_NAME, realm
     implicit none
 
     
@@ -755,6 +757,11 @@ subroutine CPL_send(asend, limits, send_flag)
     integer,dimension(3)                :: pcoords, Ncell
     integer,dimension(6)                :: portion, myportion, portion_CFD
     real(kind=kind(0.d0)), allocatable  :: vbuf(:)
+
+	!Check setup is complete
+	if (CPL_setup_complete .ne. 1) then
+		call error_abort("Error CPL_send called before CPL_setup_"//REALM_NAME(realm))
+	endif
 
     ! This local CFD domain is outside MD overlap zone 
     if (olap_mask(rank_world) .eqv. .false.) return
@@ -840,7 +847,7 @@ subroutine CPL_send(asend, limits, send_flag)
 
             ! Send data 
             itag = 0 !mod( ncalls, MPI_TAG_UB) !Attention ncall could go over max tag value for long runs!!
-            call MPI_send(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
+            call MPI_sSend(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
 
         endif
 
@@ -907,7 +914,8 @@ subroutine CPL_recv(arecv, limits, recv_flag)
                                rank_graph, &
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
                                rank_world, realm, rank_realm, rank_olap, & 
-                               iblock_realm,jblock_realm,kblock_realm,VOID,ierr
+                               iblock_realm,jblock_realm,kblock_realm,VOID,ierr, &
+							   CPL_setup_complete, REALM_NAME, realm
     implicit none
 
     logical, intent(out), optional  :: recv_flag  !Flag set if processor has received data
@@ -929,6 +937,11 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     integer,dimension(:),allocatable   :: req
     integer,dimension(:,:),allocatable :: status
     real(kind(0.d0)),dimension(:), allocatable ::  vbuf
+
+	!Check setup is complete
+	if (CPL_setup_complete .ne. 1) then
+		call error_abort("Error CPL_recv called before CPL_setup_"//REALM_NAME(realm))
+	endif
  
     ! This local CFD domain is outside MD overlap zone 
     if (olap_mask(rank_world).eqv. .false.) return
@@ -958,8 +971,8 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     call MPI_Graph_neighbors(CPL_GRAPH_COMM,myid_graph,nneighbors,id_neighbors,ierr )
 
     ! Receive from all attached processors
-    allocate(req(nneighbors))
-    allocate(status(MPI_STATUS_SIZE,nneighbors))
+    allocate(req(nneighbors)); req = MPI_REQUEST_NULL
+    allocate(status(MPI_STATUS_SIZE, nneighbors))
     start_address = 1 
     do nbr = 1, nneighbors
 
@@ -972,7 +985,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
             call CPL_Cart_coords(CPL_GRAPH_COMM, sourceid+1, md_realm, 3, pcoords, ierr) 
         elseif (realm .eq. md_realm) then
             !MD realm receives data as big as own processor domain
-            pcoords = (/iblock_realm,jblock_realm,kblock_realm /)
+            pcoords = (/iblock_realm, jblock_realm, kblock_realm /)
         endif
 
         ! If limits passed to recv routine, use these instead
@@ -982,7 +995,9 @@ subroutine CPL_recv(arecv, limits, recv_flag)
         !Only receive if overlapping
         if (any(portion.eq.VOID)) then
             ndata = 0
-            req(nbr) = MPI_REQUEST_NULL
+            if (req(nbr) .ne. MPI_REQUEST_NULL) then
+                call MPI_Request_free(req(nbr), ierr)
+            endif   
             if (present(recv_flag)) recv_flag = .false.
         else
             ! Amount of data to receive
@@ -996,8 +1011,8 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 
             ! Receive section of data
             itag = 0
-            call MPI_irecv(vbuf(start_address),ndata,MPI_DOUBLE_PRECISION,sourceid,itag,&
-                                    CPL_GRAPH_COMM,req(nbr),ierr)
+            call MPI_irecv(vbuf(start_address), ndata, MPI_DOUBLE_PRECISION, sourceid, itag,&
+                                    CPL_GRAPH_COMM, req(nbr), ierr)
 
         endif
 
@@ -1006,6 +1021,15 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 
     enddo
     call MPI_waitall(nneighbors, req, status, ierr)
+
+    !free all requests
+!    do nbr = 1, nneighbors
+!	print*, req(nbr)
+!        if (req(nbr) .ne. MPI_REQUEST_NULL) then
+!            call MPI_Request_free(req(nbr), ierr)
+!        endif
+!    enddo
+!    deallocate(req)
 
     !if (rank_world .eq. 33) then
     !   do n = 1,size(vbuf)
@@ -1286,7 +1310,7 @@ end subroutine CPL_recv
 !!
 !! .. sectionauthor:: David Trevelyan
 !! .. sectionauthor:: Edward Smith
-subroutine CPL_proc_extents(coord,realm,extents,ncells)
+subroutine CPL_proc_extents(coord, realm, extents, ncells)
     use mpi
     use coupler_module, only: md_realm,      cfd_realm,      &
                               icPmin_md,     icPmax_md,      &
@@ -1295,13 +1319,19 @@ subroutine CPL_proc_extents(coord,realm,extents,ncells)
                               icPmin_cfd,    icPmax_cfd,     &
                               jcPmin_cfd,    jcPmax_cfd,     &
                               kcPmin_cfd,    kcPmax_cfd,     &
-                              error_abort
+                              error_abort!, & 
+                              !CPL_setup_complete, REALM_NAME
     implicit none
 
     character(250)       :: strng
     integer, intent(in)  :: coord(3), realm
     integer, intent(out) :: extents(6)
     integer, optional, intent(out) :: ncells
+
+	!Check setup is complete
+	!if (CPL_setup_complete .ne. 1) then
+	!	call error_abort("Error CPL_extents/portion called before CPL_setup_"//REALM_NAME(realm))
+	!endif
 
     select case(realm)
     case(md_realm)
@@ -2520,5 +2550,18 @@ subroutine test_python (integer_p, double_p, bool_p, integer_pptr, double_pptr)
  end subroutine
 
 !------------------------------------------------------------------------------
+
+subroutine MPI_errorcheck(ierr)
+	use mpi
+
+    integer, intent(in) :: ierr
+
+	integer             :: resultlen, newierr
+	character(12)       :: err_buffer
+
+	call MPI_Error_string(ierr, err_buffer, resultlen, newierr)
+	print*, err_buffer
+
+end subroutine MPI_errorcheck
 
 end module coupler

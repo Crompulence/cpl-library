@@ -1,0 +1,19 @@
+<!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><b><font color="#000080">from</font></b> mpi4py <b><font color="#000080">import</font></b> MPI
+<b><font color="#000080">from</font></b> cplpy <b><font color="#000080">import</font></b> CPL
+
+comm <font color="#990000">=</font> MPI<font color="#990000">.</font>COMM_WORLD
+CPL <font color="#990000">=</font> <b><font color="#000000">CPL</font></b><font color="#990000">()</font>
+MD_COMM <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">init</font></b><font color="#990000">(</font>CPL<font color="#990000">.</font>MD_REALM<font color="#990000">)</font>
+
+nprocs <font color="#990000">=</font> MD_COMM<font color="#990000">.</font><b><font color="#000000">Get_size</font></b><font color="#990000">()</font>
+rank <font color="#990000">=</font> MD_COMM<font color="#990000">.</font><b><font color="#000000">Get_rank</font></b><font color="#990000">()</font>
+
+<b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"MD code processor "</font><font color="#990000">+</font> <b><font color="#000000">str</font></b><font color="#990000">(</font>rank<font color="#990000">+</font><font color="#993399">1</font><font color="#990000">)</font> <font color="#990000">+</font> <font color="#FF0000">" of "</font> <font color="#990000">+</font> <b><font color="#000000">str</font></b><font color="#990000">(</font>nprocs<font color="#990000">))</font>
+
+CPL<font color="#990000">.</font><b><font color="#000000">finalize</font></b><font color="#990000">()</font>
+MPI<font color="#990000">.</font><b><font color="#000000">Finalize</font></b><font color="#990000">()</font>
+</tt></pre>
