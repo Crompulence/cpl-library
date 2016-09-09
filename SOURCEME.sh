@@ -4,6 +4,7 @@ then
     CPL_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     echo "CPL_PATH variable is not set. Trying "${CPL_PATH}
 fi
+export CPL_PATH
 export CPL_BIN_PATH="$CPL_PATH/bin"
 PATH=${CPL_BIN_PATH}:$PATH 
 export CPL_LIBRARY_PATH="$CPL_PATH/lib"

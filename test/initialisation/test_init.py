@@ -24,7 +24,6 @@ def prepare_config_fix(tmpdir):
 
 
 @pytest.mark.parametrize("mdprocs, err_msg", [
-                         ((0, 0, 0), "CFD or MD realm is missing"),
                          ((1, 4, 4), "number of MD processors in x must be"),
                          ((4, 4, 2), "number of MD processors in z must be"),
                          ((4, 3, 4), "number of MD processors in y must be"),
