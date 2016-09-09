@@ -1,0 +1,123 @@
+#!/usr/bin/env python
+
+import re
+import subprocess
+import argparse
+
+# This script runs two codes seperatly in thier own directories
+# and ensure the coupled run works correctly. To do this:
+# 1) The version of CPL library, MPI and compiler should be the same
+#    for both codes, this is checked before running.
+# 2) The two codes can be started in MPMD mode or individually.
+#    Starting indivdually is more general (and potentially more efficients
+#    as intra-communications are 3D while coupled only along a 2D plane.)
+#    The MPI instances are connected by opening a port, writing details to 
+#    file and reading with the other code. This script ensures the 
+#    port file, written at location of exec 1 is available to exec 2.
+# 3) Running with PBS or other service is simplified by a single cplexec
+
+def get_libraries(filename=None):
+    """
+     Get List of Librairies in Dictionary
+    """
+    lddOut = subprocess.check_output(['ldd', filename])
+    libraries = {}
+    for line in lddOut.splitlines():
+        match = re.match(r'\t(.*) => (.*) \(0x', line)
+        if match:
+            libraries[match.group(1)] = match.group(2)
+
+    return libraries
+
+
+#Keyword arguments
+parser = argparse.ArgumentParser(
+                       description="""
+                       Builds a Dict of linked libraries""")
+
+parser.add_argument('-c', '--cfd', dest='CFD',
+                    help='cfd executable',
+                    default='./cfd')
+
+parser.add_argument('-m', '--md', dest='MD',
+                    help='cfd executable',
+                    default='./md')
+
+args = vars(parser.parse_args())
+
+#Get libraries of each executable.
+CFDlib = get_libraries(args['CFD'])
+MDlib = get_libraries(args['MD'])
+
+#CPLlibs = [CFDlib, MDlib]
+
+#for libs in CPLlibs:
+#    for lib, lpath in libs.items():
+#        if "libcpl.so" in libs:
+#            print("CFD CPL", lib, lpath)
+#            CFD_cpl = lpath
+
+#Check version of cpl library is linked in correctly 
+# and is the same version for executables
+for lib, lpath in CFDlib.items():
+    if "libcpl.so" in lib:
+        print("CFD CPL", lib, lpath)
+        CFD_cpl = lpath
+
+for lib, lpath in MDlib.items():
+    if "libcpl.so" in lib:
+        print("MD CPL", lib, lpath)
+        MD_cpl = lpath
+
+if MD_cpl != CFD_cpl:
+    print("Warning -- different CPL linked into executables")
+else:
+    cpllib = get_libraries(CFD_cpl)
+
+#Check for MPI libraries for both cpl and executables are the same
+for lib, lpath in cpllib.items():
+    if "mpi" in lib:
+        print("CPL MPI libs", lib, lpath)
+        CPL_mpi = lpath
+
+for lib, lpath in CFDlib.items():
+    if "mpi" in lib:
+        print("CFD MPI libs", lib, lpath)
+        CFD_mpi = lpath
+
+for lib, lpath in MDlib.items():
+    if "mpi" in lib:
+        print("MD MPI libs", lib, lpath)
+        MD_mpi = lpath
+
+if (MD_mpi != CFD_mpi) or (CPL_mpi != CFD_mpi):
+    print("Warning -- different MPI linked into executables")
+else:
+    mpilibs = get_libraries(CPL_mpi)
+
+# Check fortran and c++ compilers are consistent 
+# for mpi, cpl and executables
+libs = [cpllib, mpilibs, MDlib, CFDlib]
+compilers = ["gcc", "gfortran", "stdc++"]
+checkDict = {}
+for lib in libs:
+    for mlib, mlpath in lib.items():
+        for c in compilers:
+            if c in mlib:
+                if c in checkDict:
+                    if (checkDict[c] != mlpath):
+                        print("Warning -- different version of ", c ," linked into executables")
+                else:
+                    checkDict[c] = mlpath
+
+
+print("Compilers all the same : ", checkDict)
+
+# Run of the form 
+# mpiexec -n 16 args['MD'] PID=$! & mpiexec -n 4 .args['CFD'] ; wait $PID
+# But will also need to check for and copy port file if needed here because
+# executables are in different folders...
+
+lddOut = subprocess.check_output([])
+
+
