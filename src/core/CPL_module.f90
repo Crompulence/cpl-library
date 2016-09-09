@@ -117,7 +117,7 @@ module coupler_module
 
     ! MPI Communicators
     integer,protected :: &
-        CPL_WORLD_COMM !! Copy of MPI_COMM_WORLD, both CFD and MD realms;
+        CPL_WORLD_COMM !! Both CFD and MD realms;
     integer,protected :: &
         CPL_REALM_COMM !! INTRA communicators within MD/CFD realms;
     integer,protected :: &
@@ -447,21 +447,28 @@ subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
     integer, intent(in)   :: callingrealm ! CFD_REALM=1 or MD_REALM=2
     integer, intent(out)  :: RETURNED_REALM_COMM, ierror
 
-    !Get processor id in world across both realms
-    call MPI_comm_rank(MPI_COMM_WORLD, myid_world, ierr)
-    rank_world = myid_world + 1; rootid_world = 0
-    call MPI_comm_size(MPI_COMM_WORLD, nproc_world, ierr)
+    integer :: MPMD_mode
 
-    if (myid_world .eq. rootid_world .and. (output_mode .ne. QUIET)) call print_cplheader
-
-    ! test if we have a CFD and a MD realm
+    !Set error to zero and copy realm
     ierror=0
-    ! Test realms are assigned correctly
-    call test_realms()
-
-    ! Create intercommunicator between realms       
     realm = callingrealm
-    call create_comm()
+
+    ! Test if we have an MPMD simulation with 
+    ! CFD and a MD realm sharing a single MPI_COMM_WORLD
+    ! or if two seperate codes with seperate MPI_COMM_WORLDs 
+    ! exist and must be connected by opening a port.
+    call test_realms(MPMD_mode)
+
+    ! Create intercommunicator linking realms
+    ! and intracommunicators in each of the realms
+    call create_comm(MPMD_mode)
+
+    !Return a duplicate to protect the internal CPL_REALM_COMM 
+    call MPI_comm_dup(CPL_REALM_COMM, RETURNED_REALM_COMM, ierr)
+
+    !Print header if necessary
+    if (myid_world .eq. rootid_world .and. & 
+        (output_mode .ne. QUIET)) call print_cplheader
 
 contains
 
@@ -488,47 +495,63 @@ subroutine print_cplheader()
 
 end subroutine print_cplheader
 
-subroutine test_realms()
+subroutine test_realms(MPMD_mode)
     implicit none
 
-    integer              :: i, root, nproc, ncfd, nmd
+    integer,intent(out)  :: MPMD_mode
+    integer              :: i, root, rank, nproc, ncfd, nmd
     integer, allocatable :: realm_list(:)
 
-    ! Allocate and gather array with realm (MD or CFD) of each 
-    ! processor in the coupled domain on the root processor
-    root = 1
-    if (rank_world .eq. root) then
+
+    !Get processor id in world comm
+    call MPI_comm_rank(MPI_comm_world, rank, ierr)
+
+    ! Allocate and gather array with realm (MD or CFD) of all
+    ! processor in MPI_COMM_WORLD on the root processor
+    root = 0
+    if (rank .eq. root) then
         call MPI_comm_size(MPI_comm_world, nproc, ierr)
         allocate(realm_list(nproc))
     else
         allocate(realm_list(0))
     endif
     call MPI_gather(callingrealm, 1, MPI_INTEGER, realm_list, &
-					1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+					1, MPI_INTEGER, root, MPI_COMM_WORLD, ierr)
 
     !Check through array of processors on both realms
-    !and return error if wrong values or either is missing
-    if (rank_world .eq. root) then
+    !and return error if wrong values.
+    if (rank .eq. root) then
         ncfd = 0; nmd = 0
-        do i =1, nproc
+        do i = 1, nproc
             if ( realm_list(i) .eq. cfd_realm ) then 
                 ncfd = ncfd + 1
             else if ( realm_list(i) .eq. md_realm ) then
                 nmd = nmd +1
             else
                 ierror = COUPLER_ERROR_REALM
-                write(*,*) "wrong realm value in coupler_create_comm"
+                print*, "Error in CPL_init --", realm_list(i), "is an unrecognised " // &
+                           "callingrealm value Use ", cfd_realm, & 
+                           " for CFD or ", md_realm, " for MD."
                 call MPI_abort(MPI_COMM_WORLD, ierror, ierr)
             endif
         enddo
 
-        if ( ncfd .eq. 0 .or. nmd .eq. 0) then 
-            ierror = COUPLER_ERROR_ONE_REALM
-            write(*,*) "CFD or MD realm is missing in MPI_COMM_WORLD"
-            call MPI_abort(MPI_COMM_WORLD, ierror, ierr)
+        ! Check that both CFD and MD codes exist in MPI_COMM_WORLD
+        ! if not, then we need to open a port and link them
+        if ( ncfd .eq. 0 ) then
+            print*, "Only MD realm present in MPI_COMM_WORLD"
+            MPMD_mode = 0
+        elseif (nmd .eq. 0) then 
+            print*, "Only CFD realm present in MPI_COMM_WORLD"
+            MPMD_mode = 0
+        else
+            print*, "MPMD mode, CFD and MD both share MPI_COMM_WORLD"
+            MPMD_mode = 1
         endif
 
     endif
+
+	call MPI_BCAST(MPMD_mode, 1, MPI_INTEGER, root, MPI_COMM_WORLD, ierr)
 
 end subroutine test_realms
 
@@ -536,60 +559,159 @@ end subroutine test_realms
 ! Create communicators for each realm and inter-communicator
 !-----------------------------------------------------------------------------
 
-subroutine create_comm()
+subroutine create_comm(MPMD_mode)
     implicit none
 
-    integer ::  callingrealm, ibuf(2), jbuf(2), remote_leader, comm_size
+    integer, intent(in) :: MPMD_mode
 
-    ! Split MPI COMM WORLD ready to establish two communicators
-    ! 1) A global intra-communicator in each realm for communication
-    ! internally between CFD processes or between MD processes
-    ! 2) An inter-communicator which allows communication between  
-    ! the 'groups' of processors in MD and the group in the CFD
-    callingrealm = realm
-    call MPI_comm_dup(MPI_COMM_WORLD, CPL_WORLD_COMM, ierr)
-    RETURNED_REALM_COMM = MPI_COMM_NULL
-    CPL_REALM_COMM      = MPI_COMM_NULL
+    integer ::  ibuf(2), jbuf(2), remote_leader, comm_size
 
-    !------------ create realm intra-communicators -----------------------
-    ! Split MPI_COMM_WORLD into an intra-communicator for each realm 
-    ! (used for any communication within each realm - e.g. broadcast from 
-    !  an md process to all other md processes)
-    call MPI_comm_split(CPL_WORLD_COMM, callingrealm, myid_world, RETURNED_REALM_COMM, ierr)
+    character(len=64) :: filename
+    character(MPI_MAX_PORT_NAME) :: port
+    integer :: port_connect, unitno, rsize
+    logical :: portfileexists
 
-    !------------ create realm inter-communicators -----------------------
-    ! Create intercommunicator between the group of processor on each realm
-    ! (used for any communication between realms - e.g. md group rank 2 sends
-    ! to cfd group rank 5). inter-communication is by a single processor on each group
-    ! Split duplicate of MPI_COMM_WORLD
-    call MPI_comm_split(CPL_WORLD_COMM, callingrealm, myid_world, CPL_REALM_COMM, ierr)
-    call MPI_comm_rank(CPL_REALM_COMM, myid_realm, ierr)
-    rank_realm = myid_realm + 1; rootid_realm = 0
+    if (MPMD_mode .eq. 1) then
+        ! Split MPI COMM WORLD ready to establish two communicators
+        ! 1) A global intra-communicator in each realm for communication
+        ! internally between CFD processes or between MD processes
+        ! 2) An inter-communicator which allows communication between  
+        ! the 'groups' of processors in MD and the group in the CFD
+        call MPI_comm_dup(MPI_COMM_WORLD, CPL_WORLD_COMM, ierr)
 
-    ! Get the MPI_comm_world ranks that hold the largest ranks in cfd_comm and md_comm
-    call MPI_comm_size(CPL_REALM_COMM,comm_size,ierr)
-    ibuf(:) = -1
-    jbuf(:) = -1
-    if ( myid_realm .eq. comm_size - 1) then
-        ibuf(realm) = myid_world
+        !Get processor id in world across both realms
+        call MPI_comm_rank(CPL_WORLD_COMM, myid_world, ierr)
+        rank_world = myid_world + 1; rootid_world = 0
+        call MPI_comm_size(CPL_WORLD_COMM, nproc_world, ierr)
+
+        !------------ create realm intra-communicators -----------------------
+        ! Split CPL_WORLD_COMM into an intra-communicator for each realm 
+        ! (used for any communication within each realm - e.g. broadcast from 
+        !  an md process to all other md processes)
+        call MPI_comm_split(CPL_WORLD_COMM, callingrealm, & 
+                            myid_world, CPL_REALM_COMM, ierr)
+
+        !Define processor ID
+        call MPI_comm_rank(CPL_REALM_COMM, myid_realm, ierr)
+        rank_realm = myid_realm + 1; rootid_realm = 0
+
+        !------------ create realm inter-communicators -----------------------
+        ! Create intercommunicator between the group of processor on each realm
+        ! (used for any communication between realms - e.g. md group rank 2 sends
+        ! to cfd group rank 5). inter-communication is by a single processor on 
+        ! each group.
+
+        ! Get the MPI_comm_world ranks that hold the largest ranks in cfd_comm and md_comm
+        call MPI_comm_size(CPL_REALM_COMM, comm_size, ierr)
+        ibuf(:) = -1
+        jbuf(:) = -1
+        if ( myid_realm .eq. comm_size - 1) then
+            ibuf(realm) = myid_world
+        endif
+
+        call MPI_allreduce( ibuf ,jbuf, 2, MPI_INTEGER, MPI_MAX, &
+                            CPL_WORLD_COMM, ierr)
+
+        !Set this largest rank on each process to be the inter-communicators (WHY NOT 0??)
+        select case (callingrealm)
+        case (cfd_realm)
+            remote_leader = jbuf(md_realm)
+        case (md_realm)
+            remote_leader = jbuf(cfd_realm)
+        end select
+
+        call MPI_intercomm_create(CPL_REALM_COMM, comm_size - 1, CPL_WORLD_COMM, &
+                                  remote_leader, 1, CPL_INTER_COMM, ierr)
+
+    elseif (MPMD_mode .eq. 0) then
+        ! Here we need to open a port and wait for connection from 
+        ! the other code which has been started as a seperate MPI
+        ! instance with its own MPI_COMM_WORLD and exchange port
+        ! information by writing to filename
+        filename = "./port"
+
+        !MPI_COMM_WORLD is the realm comm now
+        call MPI_Comm_dup(MPI_COMM_WORLD, CPL_REALM_COMM, ierr)
+        call MPI_Comm_size(CPL_REALM_COMM, comm_size, ierr)
+        call MPI_Comm_rank(CPL_REALM_COMM, myid_realm, ierr)
+        rank_realm = myid_realm + 1; rootid_realm = 0
+
+        !Two seperate programs specified by the realm input argument
+        if (callingrealm .eq. cfd_realm) then
+
+            !Just root file needs to open a port
+            if (myid_realm .eq. rootid_realm) then
+                call MPI_Open_port(MPI_INFO_NULL, port, ierr)
+                print*, "opened port:", port
+
+                !Write port file
+                open(unitno, file=trim(filename), action="write")
+                write(unitno,*), port
+                close(unitno)
+                print*, "Portname written to file ", filename
+            endif
+
+            !All processors then attempt to establish connection
+            call MPI_Comm_accept(port, MPI_INFO_NULL, 0, CPL_REALM_COMM, CPL_INTER_COMM, ierr)
+            call MPI_Comm_remote_size(CPL_INTER_COMM, rsize, ierr)
+            print*, "accepted connection on port to root of ", rsize, " procs."
+
+        elseif (callingrealm .eq. md_realm) then
+            ! Keep trying until successful connection to the port
+            call MPI_Errhandler_set(CPL_REALM_COMM, MPI_ERRORS_RETURN, ierr)
+            port_connect = MPI_ERR_PORT
+            do while (port_connect .ne. MPI_SUCCESS)
+
+                !Wait until a port file exists and is avaialble
+                portfileexists = .false.
+                do while(portfileexists .eqv. .false.)
+                    inquire(file=trim(filename), exist=portfileexists)
+                    if (portfileexists) then
+                        unitno = get_new_fileunit()
+                        open(unitno, file=trim(filename), action="read")
+                        read(unitno, *) port
+                    else
+                        print*, "Cannot find port file ", trim(filename), " Waiting"
+                        call sleep(3)
+                    endif
+                enddo
+                print*, "Reading port from file ", port
+
+                !Attempt to establish connection 
+                call MPI_Comm_connect(port, MPI_INFO_NULL, 0, CPL_REALM_COMM, CPL_INTER_COMM, port_connect)
+                if (port_connect .ne. MPI_SUCCESS) then
+                    print*, "Error -- failed to connected to port ",  port 
+                    call sleep(3)
+                endif
+            enddo
+
+            !Delete file
+            if (myid_realm .eq. rootid_realm) then
+                close(unitno, status="delete")
+            endif
+
+            call MPI_Comm_remote_size(CPL_INTER_COMM, rsize, ierr)
+            print*, "connection accepted to root of ", rsize , " procs." 
+            call MPI_Errhandler_set(CPL_REALM_COMM, MPI_ERRORS_ARE_FATAL, ierr)
+        else
+            stop "Error -- Realm should be 1 or 2 "
+        endif
+
+        call MPI_Barrier(CPL_INTER_COMM, ierr)
+        call MPI_Intercomm_merge(CPL_INTER_COMM, .true., CPL_WORLD_COMM, ierr)
+        !Get processor id in world across both realms
+        call MPI_comm_rank(CPL_WORLD_COMM, myid_world, ierr)
+        rank_world = myid_world + 1; rootid_world = 0
+        call MPI_comm_size(CPL_WORLD_COMM, nproc_world, ierr)
+        print*, "Rank on realm ", realm, " is ", rank_realm, " of ", comm_size, & 
+                "  and rank on intercomm is ", myid_world, " of ", nproc_world
+
+
+    else
+
+        call error_abort("Error in CPL_init -- It should be impossible to see this error!") 
+
     endif
-
-    call MPI_allreduce( ibuf ,jbuf, 2, MPI_INTEGER, MPI_MAX, &
-                        CPL_WORLD_COMM, ierr)
-
-    !Set this largest rank on each process to be the inter-communicators (WHY NOT 0??)
-    select case (realm)
-    case (cfd_realm)
-        remote_leader = jbuf(md_realm)
-    case (md_realm)
-        remote_leader = jbuf(cfd_realm)
-    end select
-
-    !print*,color, jbuf, remote_leader
-
-    call MPI_intercomm_create(CPL_REALM_COMM, comm_size - 1, CPL_WORLD_COMM, &
-                                    remote_leader, 1, CPL_INTER_COMM, ierr)
-
     if (output_mode .ne. QUIET) then
         print*, 'Completed CPL communicator init for ', realm_name(realm), &
                 ' , CPL_WORLD_COMM ID:', myid_world
@@ -1264,11 +1386,11 @@ contains
             call error_abort("check_mesh error -  Grid stretching in y not supported")
         endif
         !if (dymax-dy.gt.0.0001 .or. dy-dymin.gt.0.0001) then
-        !    write(*,*) "********************************************************************"
-        !    write(*,*) " Grid stretching employed in CFD domain - range of dy sizes:        "
-        !   write(*,*) "dymin = ", dymin, " dy = ",dy, " dymax = ", dymax
-        !    write(*,*) "********************************************************************"
-        !    write(*,*)
+        !    print*, "********************************************************************"
+        !    print*, " Grid stretching employed in CFD domain - range of dy sizes:        "
+        !   print*, "dymin = ", dymin, " dy = ",dy, " dymax = ", dymax
+        !    print*, "********************************************************************"
+        !    print*,
         !endif
         ! - - z - -
 
@@ -2478,7 +2600,7 @@ subroutine error_abort_s(msg)
         call sleep(2)
     endif
 
-    call MPI_Abort(MPI_COMM_WORLD,errcode,ierr)
+    call MPI_Abort(CPL_WORLD_COMM,errcode,ierr)
 
 end subroutine error_abort_s
 
@@ -2500,7 +2622,7 @@ subroutine error_abort_si(msg,i)
     flush(error_unit)
     call sleep(2)
 
-    call MPI_Abort(MPI_COMM_WORLD,errcode,ierr)
+    call MPI_Abort(CPL_WORLD_COMM,errcode,ierr)
 
 end subroutine error_abort_si
 
@@ -2662,6 +2784,24 @@ subroutine set_output_mode(mode)
     output_mode = mode
 end subroutine
 
+!--------------------------------------------------------------------------------------
+! Return unused fileunit by checking all exisiting
+function get_new_fileunit() result (f)
+	implicit none
+
+	logical	:: op
+	integer	:: f
+
+	f = 1
+	do 
+		inquire(f,opened=op)
+		if (op .eqv. .false.) exit
+		f = f + 1
+	enddo
+
+end function
+
+
 end module coupler_module
 
 
@@ -2710,7 +2850,7 @@ end module coupler_module
 
 !    if ( changed ) then
 !        print*, "CPL_cfd_adjust_domain error - Regenerate Grid with corrected sizes as above"
-!        call MPI_Abort(MPI_COMM_WORLD,ierror,ierr)
+!        call MPI_Abort(CPL_WORLD_COMM,ierror,ierr)
 !    endif
 
 !    ! check id CFD cell sizes are larger than 2*sigma 
