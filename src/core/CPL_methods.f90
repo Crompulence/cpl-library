@@ -853,6 +853,9 @@ subroutine CPL_send(asend, limits, send_flag)
 
     enddo
 
+    !Barrier for CPL_isend version
+    !call MPI_barrier(CPL_GRAPH_COMM, ierr)
+
 end subroutine CPL_send
 
 
@@ -1109,6 +1112,9 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 
     enddo
     ! ----------------- Unpack data -----------------------------
+
+    !Barrier for CPL_isend version
+    !call MPI_barrier(CPL_GRAPH_COMM, ierr)
            
 end subroutine CPL_recv
 

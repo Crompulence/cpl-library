@@ -183,11 +183,6 @@ class CPL:
     @abortMPI
     def setup_cfd(self, icomm_grid, xyzL, 
                         xyz_orig, ncxyz):
-        """
-        Keyword arguments:
-        real -- the real part (default 0.0)
-        imag -- the imaginary part (default 0.0)
-        """
 
         self.py_setup_cfd(MPI._handleof(icomm_grid), xyzL,
                           xyz_orig, ncxyz)
@@ -202,12 +197,7 @@ class CPL:
 
     @abortMPI
     def setup_md(self, icomm_grid, xyzL, xyz_orig):
-        """
-        setup_md(self, dt, icomm_grid, xyzL, xyz_orig)
-        Keyword arguments:
-        real -- the real part (default 0.0)
-        imag -- the imaginary part (default 0.0)
-        """
+
         nsteps = c_int()
         initialstep = c_int()
         self.py_setup_md(MPI._handleof(icomm_grid), xyzL, xyz_orig)

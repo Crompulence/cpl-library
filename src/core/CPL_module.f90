@@ -642,13 +642,26 @@ subroutine create_comm(MPMD_mode)
             !Just root file needs to open a port
             if (myid_realm .eq. rootid_realm) then
                 call MPI_Open_port(MPI_INFO_NULL, port, ierr)
-                print*, "opened port:", port
+                print*, "opened port: ", trim(port), & 
+                        " Attempting to write to file:", trim(filename)
 
                 !Write port file
-                open(unitno, file=trim(filename), action="write")
-                write(unitno,*), port
-                close(unitno)
-                print*, "Portname written to file ", filename
+                ierr = -1
+                do while(ierr .ne. 0)
+                    open(unitno, file=trim(filename), & 
+                         action="write", iostat=ierr)
+                    if (ierr .eq. 0) then
+                        write(unitno,*), port
+                        close(unitno)
+                        print*, "Portname written to file ", filename
+                    elseif (ierr .eq. 23) then
+                        call sleep(3)
+                    else
+                        print*, "Error ", ierr , & 
+                                "when attempting to write Port file: ", &
+                                trim(filename)
+                    endif
+                enddo
             endif
 
             !All processors then attempt to establish connection
@@ -668,14 +681,24 @@ subroutine create_comm(MPMD_mode)
                     inquire(file=trim(filename), exist=portfileexists)
                     if (portfileexists) then
                         unitno = get_new_fileunit()
-                        open(unitno, file=trim(filename), action="read")
-                        read(unitno, *) port
+                        open(unitno, file=trim(filename), & 
+                             action="read", iostat=ierr)
+                        if (ierr .eq. 0) then
+                            read(unitno, *) port  
+                        !Catch file already open error                       
+                        elseif (ierr .eq. 23) then
+                            call sleep(3)
+                            cycle 
+                        else
+                            print*, "Error ", ierr , & 
+                                   " when attempting to read Port file:", & 
+                                   trim(filename)
+                        endif
                     else
-                        print*, "Cannot find port file ", trim(filename), " Waiting"
+                        print*, "Cannot find port file: ", trim(filename), ". Waiting..."
                         call sleep(3)
                     endif
                 enddo
-                print*, "Reading port from file ", port
 
                 !Attempt to establish connection 
                 call MPI_Comm_connect(port, MPI_INFO_NULL, 0, CPL_REALM_COMM, CPL_INTER_COMM, port_connect)
@@ -1037,6 +1060,7 @@ subroutine CPL_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
     allocate(xgrid(ncxyz(1) + 1, ncxyz(2) + 1), stat=ierr)
     allocate(ygrid(ncxyz(1) + 1, ncxyz(2) + 1), stat=ierr)
     allocate(zgrid(ncxyz(3) + 1), stat=ierr)
+
     ! Construct cartesian grid
     dx =  xyzL(1) / ncxyz(1)
     dy =  xyzL(2) / ncxyz(2)
@@ -1846,9 +1870,9 @@ subroutine check_config_feasibility()
     rval = rval + abs(mod( zL_md+rtoler, dz )-rtoler)
 
     if (rval .gt. rtoler) then
-        print'(6(a,f10.5))', ' xL_md/dx = ',xL_md/dx, 'dx =', dx, & 
-                     ' yL_md/dy = ',yL_md/dy, 'dy =', dy, &
-                     ' zL_md/dz = ',zL_md/dz, 'dz =', dz
+        print'(6(a,f10.5))', ' xL_md/dx = ',xL_md/dx, ' dx =', dx, & 
+                     ' yL_md/dy = ',yL_md/dy, ' dy =', dy, &
+                     ' zL_md/dz = ',zL_md/dz, ' dz =', dz
         string = "CPL_create_map error - MD region lengths must be an integer number of CFD " // &
                  "cell sizes (i.e. xL_md must be an integer multiple " // &
                  "of dx, etc. ), aborting simulation."
@@ -1882,6 +1906,7 @@ subroutine check_config_feasibility()
         yL_md .lt. (yL_olap - dy/2.d0) .or. &
         zL_md .lt. (zL_olap - dz/2.d0)      ) then
 
+        print'(3(2f15.6,i8,f15.6))',  xL_md, xL_olap, ncx_olap , dx, yL_md, yL_olap, ncy_olap , dy, zL_md, zL_olap, ncz_olap , dz
         string = "CPL_create_map error - Overlap region is larger than the MD region. "       // &
                  "Aborting simulation."
         call error_abort(string)
