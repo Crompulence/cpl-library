@@ -405,7 +405,7 @@ class CPL:
     py_send.argtypes = \
         [ndpointer(np.float64, flags='aligned, f_contiguous'),
          ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
+         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'), 
          POINTER(c_bool)]
 
     @abortMPI
