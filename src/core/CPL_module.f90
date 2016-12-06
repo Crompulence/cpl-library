@@ -948,6 +948,7 @@ subroutine CPL_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
 
 	!Set flag to register setup is complete correctly
 	CPL_setup_complete = 1
+    call MPI_Barrier(MPI_COMM_WORLD, ierr)
  
 end subroutine CPL_setup_cfd
 
@@ -1349,8 +1350,9 @@ subroutine CPL_setup_md(icomm_grid, xyzL, xyz_orig)
     call coupler_md_init(icomm_grid, icoord, npxyz_md, xyzL, xyz_orig)
     deallocate(icoord)
 
-	!Set flag to register setup is complete correctly
-	CPL_setup_complete = 1
+    !Set flag to register setup is complete correctly
+    CPL_setup_complete = 1
+    call MPI_Barrier(MPI_COMM_WORLD, ierr)
 
 end subroutine CPL_setup_md
 
@@ -1581,7 +1583,7 @@ end subroutine coupler_md_init
 
 !-----------------------------------------------------------------------------
 
-subroutine CPL_set_timing(initialstep, Nsteps, dt)
+subroutine CPL_set_timing(initialstep, nsteps, dt)
 ! - *nsteps*
 !
 !   - Number of steps in MD simulation.
@@ -1594,7 +1596,7 @@ subroutine CPL_set_timing(initialstep, Nsteps, dt)
     use mpi
     implicit none
 
-    integer, intent(inout) :: initialstep, Nsteps
+    integer, intent(in) :: initialstep, nsteps
     real(kind=kind(0.d0)), intent(in) :: dt
 
     integer :: Nsteps_MDperCFD, source
@@ -1609,25 +1611,36 @@ subroutine CPL_set_timing(initialstep, Nsteps, dt)
     ! ------------------ Timesteps and iterations ------------------------------
     if (realm .eq. md_realm) then
         ! Receive & store CFD nsteps and dt_cfd
-        call MPI_bcast(nsteps_cfd,1,MPI_integer,0,CPL_INTER_COMM,ierr)              !Receive
-        call MPI_bcast(dt_cfd,1,MPI_double_precision,0,CPL_INTER_COMM,ierr)     !Receive
+        print*, 'CFDbefore-nsteps: ', nsteps_cfd
+        call MPI_bcast(nsteps_cfd, 1, MPI_integer, 0, CPL_INTER_COMM, ierr) !Receive
+        print*, 'CFDafter-nsteps: ', nsteps_cfd
+        call MPI_bcast(dt_cfd, 1, MPI_double_precision, 0, CPL_INTER_COMM, ierr) !Receive
+        print*, 'CFD-dt: ', dt_cfd
 
         ! Store & send MD timestep to dt_md
         dt_MD = dt
-        call MPI_bcast(dt,1,MPI_double_precision,source,CPL_INTER_COMM,ierr)    !Send
+        call MPI_bcast(dt_MD, 1, MPI_double_precision, source, CPL_INTER_COMM, ierr) !Send
         nsteps_MD = nsteps
-        call MPI_bcast(nsteps,1,MPI_integer,source,CPL_INTER_COMM,ierr) !Send
+        call MPI_bcast(nsteps_MD, 1, MPI_integer, source, CPL_INTER_COMM, ierr) !Send
+
     elseif (realm .eq. cfd_realm) then
     ! ------------------ Timesteps and iterations ------------------------------
         ! Store & send CFD nsteps and dt_cfd
         nsteps_cfd = nsteps
-        call MPI_bcast(nsteps,1,MPI_integer,source,CPL_INTER_COMM,ierr)         !Send
+        !print*, 'CFD3() nsteps: ', nsteps_cfd
+
+        call MPI_bcast(nsteps_cfd ,1,MPI_integer,source,CPL_INTER_COMM,ierr) !Send
         dt_cfd = dt
-        call MPI_bcast(dt,1,MPI_double_precision,source,CPL_INTER_COMM,ierr)    !Send
+        call MPI_bcast(dt_cfd,1,MPI_double_precision,source,CPL_INTER_COMM,ierr) !Send
 
         ! Receive & store MD timestep dt_md
         call MPI_bcast(dt_md,1,MPI_double_precision,0,CPL_INTER_COMM,ierr)      !Receive
+        print*, 'MDbefore-nsteps: ', nsteps_md
         call MPI_bcast(nsteps_md,1,MPI_integer,     0,CPL_INTER_COMM,ierr)      !Receive
+        print*, 'MDafter-nsteps: ', nsteps_md
+        print*, 'MD() nsteps: ', nsteps_md
+        print*, 'MD() dt: ', dt_md
+
     endif
 
     !Set number of MD timesteps per CFD using ratio of timestep or coupler value
@@ -1645,11 +1658,13 @@ subroutine CPL_set_timing(initialstep, Nsteps, dt)
     if (rank_realm .eq. 1 .and. (output_mode .ne. QUIET)) then 
         print*, 'Nsteps in CFD is ', Nsteps_cfd
         print*, 'Nsteps in MD reset from ', Nsteps, ' to ', Nsteps_md
-        print*, 'Total simulation time will be ', elapsedtime, ' in LJ units'
+        print*, 'Total simulation time will be ', elapsedtime, '.'
     endif 
 
+    call MPI_Barrier(MPI_COMM_WORLD, ierr)
+
     !Set corrected nsteps returned to MD
-    if (realm .eq. md_realm) Nsteps = Nsteps_md
+    !if (realm .eq. md_realm) Nsteps = Nsteps_md
 
 end subroutine CPL_set_timing
 

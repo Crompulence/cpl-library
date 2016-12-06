@@ -22,6 +22,7 @@ testdir = ./test
 objdir = obj
 srcdir = src
 libdir = lib
+#TODO: Add here 3partylibs dir for json-fortran and fdict
 includedir = include
 coresrcdir = $(srcdir)/core
 binddir = $(srcdir)/bindings

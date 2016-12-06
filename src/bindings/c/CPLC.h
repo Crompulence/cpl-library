@@ -40,7 +40,7 @@ Description
     
 Author(s)
 
-    David Trevelyan, Edward Smith
+    David Trevelyan, Edward Smith, Eduardo Ramos Fernandez
 
 */
 
@@ -56,6 +56,7 @@ extern "C" void CPLC_test_python(int int_p, double doub_p, bool bool_p,
 extern "C" void CPLC_setup_md(int icomm_grid, double xyzL[], 
                               double xyz_orig[]);
 
+extern "C" void CPLC_set_timing(int initialstep, int nsteps, double dt);
 extern "C" void CPLC_send(double* asend, int* asend_shape, int* limits, bool *send_flag);
 extern "C" void CPLC_recv(double* arecv, int* arecv_shape, int* limits, bool *recv_flag);
 
@@ -85,6 +86,9 @@ extern "C" void CPLC_set_output_mode
 );
 
 // Getters
+extern "C" int CPLC_nsteps_md();
+extern "C" int CPLC_nsteps_cfd();
+extern "C" int CPLC_nsteps_coupled();
 extern "C" int CPLC_icmin_olap();
 extern "C" int CPLC_jcmin_olap();
 extern "C" int CPLC_kcmin_olap();

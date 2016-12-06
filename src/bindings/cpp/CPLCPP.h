@@ -77,7 +77,7 @@ namespace CPL
         double xyz_orig[]
     );
 
-
+    void set_timing(int initialstep, int nsteps, double dt);
     bool send(double* asend, int* asend_shape, int* limits);
     bool recv(double* arecv, int* arecv_shape, int* limits);
 
@@ -189,7 +189,9 @@ namespace CPL
     T get(std::string name)
     {
         T (*fp)();
- 
+        if (name == "nsteps_md") fp = reinterpret_cast<T(*)()> (&CPLC_nsteps_md); 
+        if (name == "nsteps_cfd") fp = reinterpret_cast<T(*)()> (&CPLC_nsteps_cfd); 
+        if (name == "nsteps_coupled") fp = reinterpret_cast<T(*)()> (&CPLC_nsteps_coupled); 
         if (name == "ncx") fp = reinterpret_cast<T(*)()> (&CPLC_ncx);
         if (name == "ncy") fp = reinterpret_cast<T(*)()> (&CPLC_ncy);
         if (name == "ncz") fp = reinterpret_cast<T(*)()> (&CPLC_ncz);

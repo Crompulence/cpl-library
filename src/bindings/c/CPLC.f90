@@ -344,6 +344,22 @@ contains
     end subroutine CPLC_md_init
 
 
+    subroutine CPLC_set_timing(initialstep, Nsteps, dt) &
+        bind(C, name="CPLC_set_timing")
+        use CPL, only: CPL_set_timing
+        implicit none
+
+        ! Integer
+        integer(C_INT), value :: Nsteps, initialstep
+
+        ! Real
+        real(C_DOUBLE), value :: dt 
+
+        call CPL_set_timing(initialstep, Nsteps, dt)
+
+    endsubroutine CPLC_set_timing
+
+
     subroutine CPLC_send(asend, asend_shape, limits, send_flag) &
         bind(C, name="CPLC_send")
         use CPL, only: CPL_send!, CPL_send_4d, CPL_send_3d
@@ -838,6 +854,33 @@ contains
 
 
     ! Getters: integers
+
+    integer(C_INT) function CPLC_nsteps_md() &
+        bind(C, name="CPLC_nsteps_md")
+        use CPL, only: nsteps_md
+        implicit none
+
+        CPLC_nsteps_md = nsteps_md
+        
+    end function CPLC_nsteps_md
+
+    integer(C_INT) function CPLC_nsteps_cfd() &
+        bind(C, name="CPLC_nsteps_cfd")
+        use CPL, only: nsteps_cfd
+        implicit none
+
+        CPLC_nsteps_cfd = nsteps_cfd
+        
+    end function CPLC_nsteps_cfd
+
+    integer(C_INT) function CPLC_nsteps_coupled() &
+        bind(C, name="CPLC_nsteps_coupled")
+        use CPL, only: nsteps_coupled
+        implicit none
+
+        CPLC_nsteps_coupled = nsteps_coupled
+        
+    end function CPLC_nsteps_coupled
 
     integer(C_INT) function CPLC_ncx() &
         bind(C, name="CPLC_ncx")

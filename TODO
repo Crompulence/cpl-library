@@ -4,3 +4,4 @@
 - Being able to define regions inside the overlap without any restriction in x and z
 - Create 2 new communicators with only CFD processors and with only MD processors 
   intersecting the overlap region.
+- Debug mode

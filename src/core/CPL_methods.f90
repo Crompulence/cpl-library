@@ -1952,6 +1952,7 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
                    kcmin_cnst, kcmax_cnst,                       &
                    md_cfd_match_cellsize, staggered_averages,    &
                    cpl_cfd_bc_slice, cpl_md_bc_slice,            &
+                   nsteps_md, nsteps_cfd, nsteps_coupled,        &
                    cpl_cfd_bc_x, cpl_cfd_bc_y, cpl_cfd_bc_z,     &
                    timestep_ratio, comm_style)
 ! Wrapper to retrieve (read only) parameters from the coupler_module 
@@ -2014,6 +2015,9 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
                                 kcmax_cnst_ => kcmax_cnst, &
                                 cpl_cfd_bc_slice_ => cpl_cfd_bc_slice, &
                                 cpl_md_bc_slice_ => cpl_md_bc_slice, &
+                                nsteps_md_ => nsteps_md, &
+                                nsteps_cfd_ => nsteps_cfd, &
+                                nsteps_coupled_ => nsteps_coupled, &
                                 cpl_cfd_bc_x_ => cpl_cfd_bc_x, &
                                 cpl_cfd_bc_y_ => cpl_cfd_bc_y, &
                                 cpl_cfd_bc_z_ => cpl_cfd_bc_z, &
@@ -2048,6 +2052,7 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
     integer, optional, intent(out)          :: cpl_cfd_bc_y 
     integer, optional, intent(out)          :: cpl_cfd_bc_z 
     integer, optional, intent(out)          :: cpl_md_bc_slice 
+    integer, optional, intent(out)          :: nsteps_md, nsteps_cfd, nsteps_coupled
 
     real(kind(0.d0)), optional, intent(out) :: density_cfd,density_md
     real(kind(0.d0)), optional, intent(out) :: dt_cfd,dt_MD
@@ -2079,6 +2084,9 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
     !Temporal and spatial steps
     if (present(dt_cfd)) dt_cfd= dt_cfd_
     if (present(dt_MD )) dt_MD = dt_MD_
+    if (present(nsteps_md)) nsteps_md = nsteps_md_
+    if (present(nsteps_cfd)) nsteps_cfd = nsteps_cfd_
+    if (present(nsteps_coupled)) nsteps_coupled= nsteps_coupled_
     if (present(dx)) dx = dx_
     if (present(dy)) dy = dy_   
     if (present(dz)) dz = dz_
@@ -2515,15 +2523,6 @@ function coupler_md_get_md_steps_per_cfd_dt() result(p)
 end function coupler_md_get_md_steps_per_cfd_dt
 
 !-----------------------------------------------------------------------------
-
-function coupler_md_get_nsteps() result(p)
-    use coupler_module, only :  nsteps_md
-    implicit none 
-
-     integer p
-     p = nsteps_md
-
-end function coupler_md_get_nsteps
 
 !-----------------------------------------------------------------------------
 
