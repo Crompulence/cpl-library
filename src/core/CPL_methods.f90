@@ -89,7 +89,8 @@ module coupler
            CPL_my_proc_extents, CPL_proc_portion, CPL_my_proc_portion, &
            CPL_map_cell2coord, CPL_map_coord2cell, CPL_get_no_cells, &
            CPL_map_glob2loc_cell, CPL_get_olap_limits, CPL_get_cnst_limits, & 
-           CPL_map_cfd2md_coord, CPL_map_md2cfd_coord, CPL_overlap
+           CPL_map_cfd2md_coord, CPL_map_md2cfd_coord, CPL_overlap, CPL_realm, &
+           CPL_cart_coords, CPL_cfd_dt, CPL_md2cfd, CPL_cfd2md
 
 contains
 
@@ -1046,15 +1047,15 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     !Check size is consistent with array
     if (myportion(2)-myportion(1)+1 .ne. size(arecv,2)) then
         print*, myportion(2)-myportion(1)+1, size(arecv,2)
-        call error_abort("Error in CPL send -- x size of arecv must be the same as portion(2)-portion(1)+1")
+        call error_abort("Error in CPL recv -- x size of arecv must be the same as portion(2)-portion(1)+1")
     endif
     if (myportion(4)-myportion(3)+1 .ne. size(arecv,3)) then
         print*, myportion(4)-myportion(3)+1, size(arecv,3)
-        call error_abort("Error in CPL send -- y size of arecv must be the same as portion(4)-portion(3)+1")
+        call error_abort("Error in CPL recv -- y size of arecv must be the same as portion(4)-portion(3)+1")
     endif
     if (myportion(6)-myportion(5)+1 .ne. size(arecv,4)) then
         print*, myportion(6)-myportion(5)+1, size(arecv,4)
-        call error_abort("Error in CPL send -- z size of arecv must be the same as portion(6)-portion(5)+1")
+        call error_abort("Error in CPL recv -- z size of arecv must be the same as portion(6)-portion(5)+1")
     endif
 
     ! ----------------- Unpack data -----------------------------
@@ -1935,6 +1936,18 @@ function CPL_overlap() result(p)
 end function CPL_overlap
 
 
+! Function to get current realm
+function CPL_realm() result(current_realm)
+    use coupler_module, only : realm
+    implicit none
+    
+    integer :: current_realm
+
+    current_realm = realm
+
+end function CPL_realm
+
+
 !============================================================================
 !
 ! Utility functions and subroutines that extract parameters from internal modules 
@@ -2164,18 +2177,6 @@ function CPL_comm_style()
 
 end function
 
-! Function to get current realm
-function CPL_realm()
-    use coupler_module, only : realm
-    implicit none
-    
-    integer :: CPL_realm
-
-    CPL_realm = realm
-
-end function
-
-
 !=============================================================================
 !> Map global MD position to global CFD coordinate frame
 !-----------------------------------------------------------------------------
@@ -2195,13 +2196,6 @@ function CPL_map_md2cfd_coord(coord_md, coord_cfd) result(valid_coord)
                                       coord_limits_md(6)
     logical                        :: valid_coord
 
-    coord_limits_cfd(1) = x_orig_cfd
-    coord_limits_cfd(2) = x_orig_cfd + xL_cfd
-    coord_limits_cfd(3) = y_orig_cfd
-    coord_limits_cfd(4) = y_orig_cfd + yL_cfd
-    coord_limits_cfd(5) = z_orig_cfd
-    coord_limits_cfd(6) = z_orig_cfd + zL_cfd
-
     coord_limits_md(1) = x_orig_md
     coord_limits_md(2) = x_orig_md + xL_md
     coord_limits_md(3) = y_orig_md
@@ -2211,7 +2205,7 @@ function CPL_map_md2cfd_coord(coord_md, coord_cfd) result(valid_coord)
 
     valid_coord = is_coord_inside(coord_md, coord_limits_md)
     
-    if (valid_coord) then
+    !if (valid_coord) then
         !Get size of MD domain which has no CFD cells overlapping
         !This should be general enough to include grid stretching
         !and total overlap in any directions 
@@ -2220,12 +2214,19 @@ function CPL_map_md2cfd_coord(coord_md, coord_cfd) result(valid_coord)
         md_only(3) = zL_md-abs(zg( kcmax_olap+1 ) - zg( kcmin_olap ))
 
         ! CFD has origin at bottom left while MD origin at centre
+        coord_limits_cfd(1) = x_orig_cfd
+        coord_limits_cfd(2) = x_orig_cfd + xL_cfd
+        coord_limits_cfd(3) = y_orig_cfd
+        coord_limits_cfd(4) = y_orig_cfd + yL_cfd
+        coord_limits_cfd(5) = z_orig_cfd
+        coord_limits_cfd(6) = z_orig_cfd + zL_cfd
+
         !coord_md = coord_cfd + md_only + md_xyz_orig
         coord_cfd(1) = abs(coord_md(1) - x_orig_md - md_only(1)) + x_orig_cfd
         coord_cfd(2) = abs(coord_md(2) - y_orig_md - md_only(2)) + y_orig_cfd
         coord_cfd(3) = abs(coord_md(3) - z_orig_md - md_only(3)) + z_orig_cfd
         valid_coord = is_coord_inside(coord_cfd, coord_limits_cfd)
-    endif
+    !endif
 
 end function CPL_map_md2cfd_coord
 
@@ -2257,13 +2258,6 @@ function CPL_map_cfd2md_coord(coord_cfd, coord_md) result(valid_coord)
     coord_limits_cfd(5) = z_orig_cfd
     coord_limits_cfd(6) = z_orig_cfd + zL_cfd
 
-    coord_limits_md(1) = x_orig_md
-    coord_limits_md(2) = x_orig_md + xL_md
-    coord_limits_md(3) = y_orig_md
-    coord_limits_md(4) = y_orig_md + yL_md
-    coord_limits_md(5) = z_orig_md
-    coord_limits_md(6) = z_orig_md + zL_md
-
     valid_coord = is_coord_inside(coord_cfd, coord_limits_cfd)
     
     if (valid_coord) then
@@ -2275,6 +2269,13 @@ function CPL_map_cfd2md_coord(coord_cfd, coord_md) result(valid_coord)
         md_only(3) = zL_md-abs(zg( kcmax_olap+1 ) - zg( kcmin_olap ))
 
         ! CFD has origin at bottom left while MD origin at centre
+        coord_limits_md(1) = x_orig_md
+        coord_limits_md(2) = x_orig_md + xL_md
+        coord_limits_md(3) = y_orig_md
+        coord_limits_md(4) = y_orig_md + yL_md
+        coord_limits_md(5) = z_orig_md
+        coord_limits_md(6) = z_orig_md + zL_md
+
         !coord_md = coord_cfd + md_only + md_xyz_orig
         coord_md(1) = abs(coord_cfd(1) - x_orig_cfd) + md_only(1) + x_orig_md
         coord_md(2) = abs(coord_cfd(2) - y_orig_cfd) + md_only(2) + y_orig_md
@@ -2283,6 +2284,41 @@ function CPL_map_cfd2md_coord(coord_cfd, coord_md) result(valid_coord)
     endif
 
 end function CPL_map_cfd2md_coord
+
+function CPL_md2cfd(coord_md) result(coord_cfd)
+    use coupler_module, only : error_abort
+    implicit none
+
+    real(kind(0.d0)), intent(in)  :: coord_md(3)
+    real(kind(0.d0))              :: coord_cfd(3)
+
+    logical :: valid
+
+    valid = CPL_map_md2cfd_coord(coord_md, coord_cfd)
+!    if (.not. valid) then
+!        print'(a,l,2(a,3f10.5))', "Valid coords= ",valid, " CFD coords= ", coord_cfd, " MD coords= ", coord_md
+!!        call error_abort("CPL_md2cfd error - coord outside limits") 
+!    endif    
+
+end function CPL_md2cfd
+
+
+function CPL_cfd2md(coord_cfd) result(coord_md)
+    use coupler_module, only : error_abort
+    implicit none
+
+    real(kind(0.d0)), intent(in)  :: coord_cfd(3)
+    real(kind(0.d0))              :: coord_md(3)
+
+    logical :: valid
+
+    valid = CPL_map_cfd2md_coord(coord_cfd, coord_md)
+!    if (.not. valid) then
+!        print'(a,l,2(a,3f10.5))', "Valid coords= ",valid, " CFD coords= ", coord_cfd, " MD coords= ", coord_md
+!!        call error_abort("CPL_cfd2md error - coord outside limits") 
+!    endif    
+
+end function CPL_cfd2md
 
 !-----------------------------------------------------------------------------
 
@@ -2333,11 +2369,14 @@ function CPL_map_coord2cell(x, y, z, cell_ijk) result(ret)
 
     call CPL_map_cell2coord(icmin_olap, jcmin_olap, kcmin_olap, olap_lo)
 
-    cell_ijk(1) = int(x - olap_lo(1)) / dx + 1
-    cell_ijk(2) = int(y - olap_lo(2)) / dy + 1
-    cell_ijk(3) = int(z - olap_lo(3)) / dz + 1
+    cell_ijk(1) = ceiling((x - olap_lo(1)) / dx)
+    cell_ijk(2) = ceiling((y - olap_lo(2)) / dy)
+    cell_ijk(3) = ceiling((z - olap_lo(3)) / dz)
 
     call CPL_get_olap_limits(olap_limits)
+
+    !print*, "CPL dx,dy,dz = ", dx, dy, dz, olap_lo
+
 
     ret = .true.
     if (.not. is_cell_inside(cell_ijk, olap_limits)) then
@@ -2533,14 +2572,14 @@ end function coupler_md_get_nsteps
 
 !-----------------------------------------------------------------------------
 
-function coupler_md_get_dt_cfd() result(p)
+function CPL_cfd_dt() result(p)
     use coupler_module, only : dt_CFD  
     implicit none
 
     real(kind=kind(0.d0)) p
     p = dt_CFD
 
-end function coupler_md_get_dt_cfd
+end function CPL_cfd_dt
 
 !------------------------------------------------------------------------------
 
@@ -2553,6 +2592,7 @@ subroutine test_python (integer_p, double_p, bool_p, integer_pptr, double_pptr)
 
   print *, 'Integer: ', integer_p
   print *, 'Double: ', double_p
+
  end subroutine
 
 !------------------------------------------------------------------------------

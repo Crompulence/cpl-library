@@ -119,6 +119,12 @@ class MD:
         invrij2 = 1./rij2
         return 48.*(invrij2**7-.5*invrij2**4)
 
+
+    def get_bin(r, binsize):
+        ib = [int((r[ixyz]+0.5*self.domain[ixyz])
+              /binsize[ixyz]) for ixyz in range(self.nd)]
+        return ib
+
     def get_velfield(self, bins, freq=25, plusdt=False, getmbin=False):
 
         #Update velocity if timestep dictates 
@@ -127,9 +133,9 @@ class MD:
             mbin = np.zeros([bins[0], bins[1]])
             velbin = np.zeros([2, bins[0], bins[1]])
             binsize = self.domain/bins
+            #Loop over all molecules in r
             for i in range(self.r.shape[0]):
-                ib = [int((self.r[i,ixyz]+0.5*self.domain[ixyz])
-                           /binsize[ixyz]) for ixyz in range(self.nd)]
+                ib = self.get_bin(r[i,:], binsize)
                 mbin[ib[0], ib[1]] += 1
                 if plusdt:
                     vi = self.v[i,:] + self.dt*self.a[i,:]
@@ -195,8 +201,7 @@ class MD:
 
             cellsize = self.domain/cells
             for i in range(self.N):
-                ib = [int((self.r[i,ixyz]+self.halfdomain[ixyz])
-                           /cellsize[ixyz]) for ixyz in range(nd)]
+                ib = self.get_bin(r[i,:], cellsize)
                 self.cell[ib[0],ib[1]].append(i)
 
             #For each cell, check molecule i
@@ -242,7 +247,7 @@ class MD:
                 self.v[i,:] = self.wallslide[:]
                 self.r[i,:] += self.dt*self.wallslide[:]
 
-            #Peridic boundary
+            #Peridic boundary and specular wall
             for ixyz in range(self.nd):
                 if self.r[i,ixyz] > self.halfdomain[ixyz]:
                     if self.spec_wall[ixyz]:
@@ -272,17 +277,14 @@ class MD:
         binsize_MD = self.domain/[self.xbin,self.ybin]
         assert binsize_CFD[0] == binsize_MD[0]
         assert binsize_CFD[1] == binsize_MD[1]
-        #assert binsize_CFD[2] == binsize_MD[2]
         u_MD, mbin = self.get_velfield([self.xbin,self.ybin], getmbin=True)
-
        
         #Extract CFD value
         F = np.zeros(2)
         ucheck = np.zeros([2,self.xbin])
         hd = self.halfdomain
         for i in range(self.N):
-            ib = [int((self.r[i,ixyz]+hd[ixyz])
-                       /binsize_MD[ixyz]) for ixyz in range(self.nd)]
+            ib = self.get_bin(r[i,:], binsize_MD)
             #Ensure within domain
             if ib[0] > u_MD.shape[1]:
                 ib[0] = u_MD.shape[1]
@@ -300,22 +302,43 @@ class MD:
                               color='red',angles='xy',scale_units='xy',scale=1)
 
 
-#        ucheck = np.zeros([2,self.xbin])
-#        for i in range(self.N):
-#            ib = [int((self.r[i,ixyz]+hd[ixyz])
-#                       /binsize_MD[ixyz]) 
-#                  for ixyz in range(self.nd)]
-#            #Ensure within domain
-#            if ib[0] > u_MD.shape[1]:
-#                ib[0] = u_MD.shape[1]
-#            if ib[1] > u_MD.shape[2]:
-#                ib[1] = u_MD.shape[2]
-#            if ib[1] == constraint_cell:
-#                ucheck[:,ib[0]] += self.v[i,:] + self.dt*self.a[i,:]
-#                
 
-#        print('ucheck=',ucheck)
-            
+    def CV_constraint_force(self, u_CFD, constraint_cell):
+
+        #Get the MD velocity field
+        binsize_CFD = self.domain/u_CFD.shape[1:2]
+        binsize_MD = self.domain/[self.xbin,self.ybin]
+        assert binsize_CFD[0] == binsize_MD[0]
+        assert binsize_CFD[1] == binsize_MD[1]
+        u_MD = self.get_velfield([self.xbin,self.ybin], freq=1)
+       
+        #Apply force value
+        F = np.zeros(2)
+        du_MDdt = np.zeros(2)
+        du_CFDdt = np.zeros(2)
+        hd = self.halfdomain
+        for i in range(self.N):
+            ib = self.get_bin(r[i,:], binsize_MD)
+            #Ensure within domain
+            if ib[0] > u_MD.shape[1]:
+                ib[0] = u_MD.shape[1]
+            if ib[1] > u_MD.shape[2]:
+                ib[1] = u_MD.shape[2]
+            #only apply to constrained cell
+            if ib[1] == constraint_cell:
+                du_MDdt[:] = (u_MD[:,ib[0],ib[1]] 
+                       - self.u_MD[:,ib[0],ib[1]])
+                du_CFDdt[:] = (u_CFD[:,ib[0],ib[1]] 
+                        - self.u_CFD[:,ib[0],ib[1]])
+
+                if (mbin[ib[0],ib[1]] != 0):
+                    F[:] = ( (du_MDdt - du_CFDdt)
+                           /(float(mbin[ib[0],ib[1]])*self.dt))
+                else
+                    F[:] = 0.
+
+        self.u_MD = u_MD
+        self.u_CFD = u_CFD
 
     #Plot molecules
     def plot(self, ax=None, showarrows=False):

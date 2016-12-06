@@ -821,7 +821,15 @@ contains
         CPLC_overlap = CPL_overlap()
 
     end function CPLC_overlap
-    
+
+
+!    logical(C_BOOL) function CPLC_realm() &
+!        bind(C, name="CPLC_realm")
+!        use CPL, only: CPL_realm
+!    
+!        CPLC_overlap = CPL_realm()
+
+!    end function CPLC_realm
     
    
     ! Setters:

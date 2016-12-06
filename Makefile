@@ -131,6 +131,7 @@ test-initialisation:
 
 test-examples:
 	./examples/sendrecv_globcell/test_all.sh
+	./examples/sendrecv_globcell/test_all_port.sh
 
 test-valgrind:
 	./test/valgrind/debug_all.sh

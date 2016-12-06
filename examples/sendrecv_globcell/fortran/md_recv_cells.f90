@@ -54,7 +54,7 @@ program md_cpl_example
     recv_array = 0.d0
     call CPL_recv(recv_array, limits, recv_flag)
 
-    ! Check that every processor inside the overlap region receives correctly the cell
+    ! Check that every processor inside the overlap region receives the cell correctly
     ! number.  
     if (CPL_overlap()) then
         no_error = .true.

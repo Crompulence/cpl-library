@@ -470,7 +470,7 @@ def cart_create(old_comm, dims, periods, coords):
     new_cart_comm = temp_comm.Create_cart(dims, periods)
     comm_coords = new_cart_comm.Get_coords(new_cart_comm.Get_rank())
     if (not (coords == comm_coords).all()):
-            print ("Not good!")
+            print ("cart_create Error")
             exit()
     return new_cart_comm
 
@@ -504,7 +504,9 @@ def prepare_config(tmpdir, test_dir, md_fname, cfd_fname):
 
 def run_test(template_dir, config_params, md_exec, md_fname, cfd_exec,
              cfd_fname, md_params, cfd_params, err_msg, debug=False):
+    #Update the COUPLER.in file
     parametrizeConfig(template_dir, config_params)
+    #Save parameter dictonaries to be read by md/cfd codes
     cPickle.dump(md_params, open("md_params.dic", "wb"))
     cPickle.dump(cfd_params, open("cfd_params.dic", "wb"))
     try:
@@ -514,7 +516,7 @@ def run_test(template_dir, config_params, md_exec, md_fname, cfd_exec,
             cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_fname,
                             ":", "-n", str(cfdprocs), cfd_exec, cfd_fname])
             if debug:
-	        print ("\nMPI run: " + cmd)
+                print ("\nMPI run: " + cmd)
             check_output(cmd, stderr=STDOUT, shell=True)
         else:
             print (md_fname + " or " + cfd_fname + " are not found.")

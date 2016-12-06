@@ -44,15 +44,11 @@ examples/sendrecv_globcell/fortran/cfd
 examples/sendrecv_globcell/fortran/md
 examples/sendrecv_globcell/fortran/md.exe
 examples/sendrecv_globcell/fortran/md_recv_cells.f90.orig
-examples/sendrecv_globcell/test_all_port.sh
-examples/topology_plot_example/cpl/.gitignore
-examples/topology_plot_example/cpp/.gitignore
 examples/topology_plot_example/cpp/md
 examples/topology_plot_example/fortran/md
 examples/topology_plot_example/python/draw_grid.pyc
 examples/topology_plot_example/rebuild.sh
 examples/topology_plot_example/runex1.sh
-superseeded/
 test/valgrind/array_stuff.mod
 test/valgrind/cfd
 test/valgrind/cpl/coupler_header

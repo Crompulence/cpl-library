@@ -20,7 +20,7 @@ xyz_orig = np.array([0.0, 0.0, 0.0], order='F', dtype=np.float64)
 
 if (nprocs_realm != NProcs):
     print("Non-coherent number of processes in MD ", nprocs_realm,
-            " no equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2])
+            " not equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2])
     MPI.Abort(errorcode=1)
 
 #Setup coupled simulation
@@ -42,7 +42,7 @@ portion = CPL.my_proc_portion(limits_MD_BC)
 A_recv = np.zeros((2, ncxl, ncyl, nczl), order='F', dtype=np.float64)
 
 # Setup MD simulation object
-md_cfd_dt_ratio = 25
+md_cfd_dt_ratio = 50
 dt = 0.005; Nsteps = 100000; tf = Nsteps*dt
 time = np.arange(0.,tf,dt)
 md = MD(dt=dt, wallwidth=[2.,0.], wallslide=[-1.,0.])

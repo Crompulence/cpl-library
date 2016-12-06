@@ -21,7 +21,7 @@ ncxyz = np.array([8, 8, 1], order='F', dtype=np.int32)
 
 if (nprocs_realm != NProcs):
     print("Non-coherent number of processes in CFD ", nprocs_realm,
-            " no equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2])
+            " not equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2])
     MPI.Abort(errorcode=1)
 
 #Setup coupled simulation
@@ -42,7 +42,7 @@ portion = CPL.my_proc_portion(limits_MD_BC)
 A_send = np.zeros((2, ncxl, ncyl, nczl), order='F', dtype=np.float64)
 
 #Set CFD simulation object
-md_cfd_dt_ratio = 25
+md_cfd_dt_ratio = 50
 dt = 0.125; Nsteps = 100000/md_cfd_dt_ratio; tf = Nsteps*dt
 time = np.arange(-dt,tf,dt)
 uwall = 1.
