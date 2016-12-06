@@ -63,6 +63,11 @@ void CPL::setup_md(int icomm_grid, double xyzL[],
     CPLC_setup_md(icomm_grid, xyzL, xyz_orig);
 }
 
+void CPL::set_timing(int initialstep, int nsteps, double dt) 
+{
+    CPLC_set_timing(initialstep, nsteps, dt);
+}
+
 bool CPL::send (double* asend, int* asend_shape, int* limits)
 {
     bool send_flag;

@@ -1,6 +1,8 @@
-lib
-include
-obj
+/lib
+/include
+/obj
+*.swp
+*.pyc
 .travis.yml.orig
 Makefile.orig
 bin/cplf.h

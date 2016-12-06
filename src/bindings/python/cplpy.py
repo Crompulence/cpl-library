@@ -33,6 +33,7 @@ _CPL_GET_VARS = {"icmin_olap": c_int, "jcmin_olap": c_int, "kcmin_olap": c_int,
                  "npx_md": c_int, "npy_md": c_int, "npz_md": c_int,
                  "npx_cfd": c_int, "npy_cfd": c_int, "npz_cfd": c_int,
                  "overlap": c_int, "xl_md": c_double, "yl_md": c_double,
+                 "nsteps_md": c_int, "nsteps_cfd": c_int, "nsteps_coupled": c_int,
                  "zl_md": c_double, "xl_cfd": c_double, "yl_cfd": c_double,
                  "zl_cfd": c_double,
                  "x_orig_cfd": c_double,"y_orig_cfd": c_double,"z_orig_cfd": c_double,
@@ -183,6 +184,11 @@ class CPL:
     @abortMPI
     def setup_cfd(self, icomm_grid, xyzL, 
                         xyz_orig, ncxyz):
+        """
+        Keyword arguments:
+        real -- the real part (default 0.0)
+        imag -- the imaginary part (default 0.0)
+        """
 
         self.py_setup_cfd(MPI._handleof(icomm_grid), xyzL,
                           xyz_orig, ncxyz)
@@ -197,9 +203,12 @@ class CPL:
 
     @abortMPI
     def setup_md(self, icomm_grid, xyzL, xyz_orig):
-
-        nsteps = c_int()
-        initialstep = c_int()
+        """
+        setup_md(self, dt, icomm_grid, xyzL, xyz_orig)
+        Keyword arguments:
+        real -- the real part (default 0.0)
+        imag -- the imaginary part (default 0.0)
+        """
         self.py_setup_md(MPI._handleof(icomm_grid), xyzL, xyz_orig)
 
     py_gather = _cpl_lib.CPLC_gather
@@ -384,6 +393,14 @@ class CPL:
         self.py_get_cnst_limits(limits)
         return limits
 
+    py_set_timing = _cpl_lib.CPLC_set_timing
+    py_set_timing.argtypes = \
+        [c_int, c_int, c_double]
+
+    @abortMPI
+    def set_timing(self, initialstep, nsteps, dt):
+        self.py_set_timing(initialstep, nsteps, dt)
+
     py_send = _cpl_lib.CPLC_send
     py_send.argtypes = \
         [ndpointer(np.float64, flags='aligned, f_contiguous'),
@@ -522,7 +539,6 @@ def run_test(template_dir, config_params, md_exec, md_fname, cfd_exec,
             print (md_fname + " or " + cfd_fname + " are not found.")
             assert False
             return False
-            
 
     except CalledProcessError as exc:
         print (exc.output)
