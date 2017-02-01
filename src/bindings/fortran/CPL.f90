@@ -2,4 +2,5 @@
 module CPL
     use coupler_module
     use coupler
+    use io
 end module CPL

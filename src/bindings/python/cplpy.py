@@ -530,6 +530,7 @@ def run_test(template_dir, config_params, md_exec, md_fname, cfd_exec,
         if os.path.isfile(md_fname) and os.path.isfile(cfd_fname):
             cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_fname,
                             ":", "-n", str(cfdprocs), cfd_exec, cfd_fname])
+            print (cmd)
             if debug:
                 print ("\nMPI run: " + cmd)
             check_output(cmd, stderr=STDOUT, shell=True)

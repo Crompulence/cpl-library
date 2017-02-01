@@ -1,0 +1,15 @@
+comment:
+  layout: header, changes, diff, sunburst
+coverage:
+  fixes:
+  - doc/src::src
+  ignore:
+  - src/tests
+  - doc
+  status:
+    patch:
+      default:
+        target: 70%
+    project:
+      default:
+        target: 70%

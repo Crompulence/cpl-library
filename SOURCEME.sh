@@ -16,3 +16,7 @@ else
 fi
 export CPLPY_PATH="$CPL_PATH/src/bindings/python"
 
+# Third-party libs
+export CPL_THIRD_PARTY="$CPL_PATH/3rd-party"
+export CPL_THIRD_PARTY_INC="$CPL_THIRD_PARTY/include"
+export CPL_THIRD_PARTY_LIB="$CPL_THIRD_PARTY/lib"
