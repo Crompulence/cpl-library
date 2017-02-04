@@ -1,5 +1,5 @@
 !=============================================================================
-!
+
 !    ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________
 !     _____/\\\////////__\/\\\/////////\\\_\/\\\_____________
 !      ___/\\\/___________\/\\\_______\/\\\_\/\\\_____________
@@ -51,19 +51,21 @@ module io
 
 
     integer, protected :: fd_counter = 0 
-    character(len=256), protected  :: param_fname
+    integer, public, parameter :: CPL_STRING_MAX_LEN = 256 + 1;
+    character(len=CPL_STRINg_MAX_LEN), protected  :: param_fname
     type(json_file), private :: json
-       
 
     public CPL_load_param_file
 
     interface get_file_param
-        module procedure get_integer, get_logical, get_string, get_real,&
-        get_real_array, get_integer_array, get_logical_array, get_string_array
+        module procedure get_int_param, get_boolean_param, get_string_param, get_real_param,&
+        get_real_array_param, get_int_array_param, get_boolean_array_param, get_string_array_param
     end interface get_file_param
 
-    private get_integer, get_logical, get_string, get_real, get_real_array,&
-            get_integer_array, get_logical_array, get_string_array, bcast_param_file
+    public get_int_param, get_boolean_param, get_string_param, get_real_param, get_real_array_param,&
+           get_int_array_param, get_boolean_array_param, get_string_array_param
+
+    private bcast_param_file
 
 
 contains
@@ -83,7 +85,6 @@ subroutine CPL_load_param_file(fname)
 
     integer :: myrank, ierr
     character(kind=json_CK, len=*), intent(in) :: fname
-
 
     fd_counter = fd_counter + 1
     param_fname = fname
@@ -138,7 +139,7 @@ subroutine bcast_param_file()
 
 endsubroutine bcast_param_file
 
-subroutine get_real(section, var_name, ret)
+subroutine get_real_param(section, var_name, ret)
 
     implicit none
 
@@ -148,21 +149,22 @@ subroutine get_real(section, var_name, ret)
     call json%get(section//'.'//var_name, ret)
     if (json%failed()) stop 1
 
-endsubroutine get_real
+endsubroutine get_real_param
 
-subroutine get_real_array(section, var_name, ret)
+subroutine get_real_array_param(section, var_name, ret)
 
     implicit none
 
     character(len=*), intent(in) :: section, var_name
     real(kind(0.d0)), dimension(:), allocatable, intent(out) :: ret
 
+
     call json%get(section//'.'//var_name, ret)
     if (json%failed()) stop 1
 
-endsubroutine get_real_array
+endsubroutine get_real_array_param
 
-subroutine get_integer(section, var_name, ret)
+subroutine get_int_param(section, var_name, ret)
 
     implicit none
 
@@ -172,22 +174,27 @@ subroutine get_integer(section, var_name, ret)
     call json%get(section//'.'//var_name, ret)
     if (json%failed()) stop 1
 
-endsubroutine get_integer
+endsubroutine get_int_param
 
-subroutine get_integer_array(section, var_name, ret)
+subroutine get_int_array_param(section, var_name, ret)
 
+    use coupler_module, only: error_abort
     implicit none
 
     character(len=*), intent(in) :: section, var_name
     integer, dimension(:),allocatable,intent(out) :: ret
 
     call json%get(section//'.'//var_name, ret)
-    if (json%failed()) stop 1
+    if (json%failed()) then
+        call json%print_error_message()
+        call error_abort("CPL_get_int_array_param - Error getting integer array param.")
+    endif
 
-endsubroutine get_integer_array
+
+endsubroutine get_int_array_param
 
 
-subroutine get_string(section, var_name, ret)
+subroutine get_string_param(section, var_name, ret)
 
     implicit none
 
@@ -197,9 +204,9 @@ subroutine get_string(section, var_name, ret)
     call json%get(section//'.'//var_name, ret)
     if (json%failed()) stop 1
 
-endsubroutine get_string
+endsubroutine get_string_param
 
-subroutine get_string_array(section, var_name, ret)
+subroutine get_string_array_param(section, var_name, ret)
 
     implicit none
 
@@ -209,9 +216,9 @@ subroutine get_string_array(section, var_name, ret)
     call json%get(section//'.'//var_name, ret)
     if (json%failed()) stop 1
 
-endsubroutine get_string_array
+endsubroutine get_string_array_param
 
-subroutine get_logical(section, var_name, ret)
+subroutine get_boolean_param(section, var_name, ret)
 
     implicit none
 
@@ -221,9 +228,9 @@ subroutine get_logical(section, var_name, ret)
     call json%get(section//'.'//var_name, ret)
     if (json%failed()) stop 1
 
-endsubroutine get_logical
+endsubroutine get_boolean_param
 
-subroutine get_logical_array(section, var_name, ret)
+subroutine get_boolean_array_param(section, var_name, ret)
 
     implicit none
 
@@ -233,7 +240,7 @@ subroutine get_logical_array(section, var_name, ret)
     call json%get(section//'.'//var_name, ret)
     if (json%failed()) stop 1
 
-endsubroutine get_logical_array
+endsubroutine get_boolean_array_param
 
 
 end module io

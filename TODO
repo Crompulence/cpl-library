@@ -5,3 +5,5 @@
 - Create 2 new communicators with only CFD processors and with only MD processors 
   intersecting the overlap region.
 - Debug mode
+- Add automatically to the .bashrc the path variables
+- Remove any gather/scatter, use send/recv

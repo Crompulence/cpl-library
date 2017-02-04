@@ -39,6 +39,72 @@ Description
 
 */
 #include "CPLCPP.h"
+#include <iostream>
+#include <sstream>
+
+
+void CPL::load_param_file(std::string fname) {
+	CPLC_load_param_file(fname.c_str(), fname.length());
+}
+
+void CPL::close_param_file() {
+	CPLC_close_param_file();
+}
+
+void CPL::get_file_param(const std::string section, const std::string param_name, double& real_param) {
+	CPLC_get_real_param(section.c_str(), param_name.c_str(), &real_param);
+}
+
+void CPL::get_file_param(const std::string section, const std::string param_name, std::vector<double> &real_param_array){
+	int array_len = 0;
+	double* real_param_array_c;
+	CPLC_get_real_array_param(section.c_str(), param_name.c_str(), &real_param_array_c, &array_len);
+	real_param_array.assign(real_param_array_c, real_param_array_c + array_len);
+}
+
+void CPL::get_file_param(const std::string section, const std::string param_name, int& int_param) {
+	CPLC_get_int_param(section.c_str(), param_name.c_str(), &int_param);
+}
+
+void CPL::get_file_param(const std::string section, const std::string param_name, std::vector<int> &int_param_array){
+	int array_len = 0;
+	int* int_param_array_c;
+	CPLC_get_int_array_param(section.c_str(), param_name.c_str(), &int_param_array_c, &array_len);
+	int_param_array.assign(int_param_array_c, int_param_array_c + array_len);
+}
+
+void CPL::get_file_param(const std::string section, const std::string param_name, bool& boolean_param) {
+	CPLC_get_boolean_param(section.c_str(), param_name.c_str(), &boolean_param);
+}
+
+void CPL::get_file_param(const std::string section, const std::string param_name, std::vector<bool> &boolean_param_array){
+	int array_len = 0;
+	bool* boolean_param_array_c;
+	CPLC_get_boolean_array_param(section.c_str(), param_name.c_str(), &boolean_param_array_c, &array_len);
+	boolean_param_array.assign(boolean_param_array_c, boolean_param_array_c + array_len);
+}
+
+void CPL::get_file_param(const std::string section, const std::string param_name, std::string& string_param) {
+	char* sp;
+	CPLC_get_string_param(section.c_str(), param_name.c_str(), &sp);
+	string_param = std::string(sp);
+}
+
+void CPL::get_file_param(const std::string section, const std::string param_name, std::vector<std::string> &string_param_array){
+	int array_len = 0;
+	char* string_param_array_c;
+	CPLC_get_string_array_param(section.c_str(), param_name.c_str(), &string_param_array_c, &array_len);
+	string_param_array.resize(array_len);
+	for (int s = 0; s < array_len; s++) {
+		std::stringstream myStreamString;
+		myStreamString << ((char**)string_param_array_c)[s];
+		string_param_array[s] = myStreamString.str();
+	}
+
+}
+
+
+
 
 void CPL::init(int calling_realm, int& returned_realm_comm)
 {

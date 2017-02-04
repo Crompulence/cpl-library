@@ -76,7 +76,7 @@ CFLAGS += -fPIC
 default: core fortran c cpp utilities link
 
 debug: core fortran c cpp utilities link
-    FFLAGS = -fPIC -O0 -fbacktrace -fbounds-check $(FMODKEY)$(includedir)
+    FFLAGS = -fPIC -O0 -fbacktrace -Wall -fbounds-check $(FMODKEY)$(includedir)
 
 # Declare phony targets
 .phony.: fortran c cpp utilities

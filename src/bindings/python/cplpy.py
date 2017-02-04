@@ -167,6 +167,26 @@ class CPL:
 
         return newcomm
 
+    py_test_python = _cpl_lib.CPLC_test_python
+    py_test_python.argtypes = \
+        [c_int,
+         c_double,
+         c_bool,
+         ndpointer(np.int32, ndim=2, flags='aligned, f_contiguous'),
+         ndpointer(np.float64, ndim=2,  flags='aligned, f_contiguous'),
+         ndpointer(np.int32, shape=(2,), flags='aligned, f_contiguous'),
+         ndpointer(np.int32, shape=(2,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def test_python(self, int_p, doub_p, bool_p, int_pptr, doub_pptr):
+        int_pptr_dims = np.array(int_pptr.shape, order='F', dtype=np.int32)
+        doub_pptr_dims = np.array(doub_pptr.shape, order='F', dtype=np.int32)
+        self.py_test_python(int_p, doub_p, bool_p, int_pptr, doub_pptr,
+                            int_pptr_dims, doub_pptr_dims)
+
+    
+
+
     _py_finalize = _cpl_lib.CPLC_finalize
 
     @abortMPI
