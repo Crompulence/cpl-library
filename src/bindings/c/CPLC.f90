@@ -109,12 +109,11 @@ contains
     ! CPL_io module routines
 
     subroutine c_f_string(c_string, f_string)
-        use cpl, only: json_CK
         implicit none 
         type(C_PTR), intent(in) :: c_string
         character(:), intent(out), allocatable :: f_string
         ! Array for accessing string pointed at by C pointer 
-        character(kind=json_CK), pointer :: string_ptr(:)
+        character, pointer :: string_ptr(:)
         integer :: i    ! string index
         interface
           ! Steal std C library function rather than writing our own.
@@ -138,42 +137,45 @@ contains
     end subroutine c_f_string      
 
     subroutine f_c_string(f_string, c_string)
-        use cpl, only: json_CK
         implicit none
 
         type(C_PTR), intent(out) :: c_string
-        character(len=:, kind=json_CK), intent(inout), allocatable, target :: f_string
+        character(len=:), intent(inout), allocatable, target :: f_string
 
         f_string = f_string//C_NULL_CHAR
         c_string = c_loc(f_string)
     end subroutine f_c_string
 
     subroutine f_c_string_array(f_string_array, c_string_array)
-        use cpl, only: json_CK, CPL_STRING_MAX_LEN
+        use commondefs, only: CPL_STRING_MAX_LEN
         implicit none
 
         type(C_PTR), dimension(:), allocatable, intent(out) :: c_string_array
         integer :: i, s_len
-        character(kind=json_CK, len=CPL_STRING_MAX_LEN), dimension(:), target, allocatable, intent(inout):: f_string_array
+        character(len=CPL_STRING_MAX_LEN), dimension(:), target, allocatable,intent(inout):: f_string_array
 
+        print*, "INSIDE0"
         allocate(c_string_array(size(f_string_array)))
-
+        print*, "INSIDE1"
         do i = 1, size(f_string_array)
             s_len = len_trim(f_string_array(i))
+            print*, "loop:",i
             f_string_array(i)(s_len+1:s_len+1) = C_NULL_CHAR
             c_string_array(i) = c_loc(f_string_array(i))
         end do
 
+        print*, "INSIDE2"
+
     end subroutine f_c_string_array
 
-
+#ifdef JSON_SUPPORT
     subroutine CPLC_load_param_file(fname) &
         bind (C, name="CPLC_load_param_file")
-        use CPL, only: CPL_load_param_file, json_CK
+        use CPL, only: CPL_load_param_file
         implicit none
 
         type(C_PTR), intent(in), value :: fname
-        character(:, kind=json_CK), allocatable :: fname_f
+        character(:), allocatable :: fname_f
 
         call c_f_string(fname, fname_f)
 
@@ -183,7 +185,7 @@ contains
 
     subroutine CPLC_close_param_file() &
         bind (C, name="CPLC_close_param_file")
-        use CPL, only: CPL_close_param_file, json_CK
+        use CPL, only: CPL_close_param_file
         implicit none
 
         call CPL_close_param_file()
@@ -191,14 +193,14 @@ contains
 
     subroutine CPLC_get_real_param(section, param_name, real_param) &
         bind (C, name="CPLC_get_real_param")
-        use CPL, only: get_real_param, json_CK
+        use CPL, only: get_real_param 
         implicit none
         
         real(C_DOUBLE), intent(out) :: real_param
         type(C_PTR), intent(in), value :: param_name
         type(C_PTR), intent(in), value :: section
-        character(:, kind=json_CK), allocatable :: param_name_f
-        character(:, kind=json_CK), allocatable :: section_f
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
 
         call c_f_string(param_name, param_name_f)
         call c_f_string(section, section_f)
@@ -209,7 +211,7 @@ contains
 
     subroutine CPLC_get_real_array_param(section, param_name, real_array_param, array_len) &
         bind (C, name="CPLC_get_real_array_param")
-        use CPL, only: get_real_array_param, json_CK
+        use CPL, only: get_real_array_param
         implicit none
         
         integer(C_INT), intent(out) :: array_len
@@ -218,8 +220,8 @@ contains
         type(C_PTR), intent(in), value :: param_name
         type(C_PTR), intent(in), value :: section
 
-        character(:, kind=json_CK), allocatable :: param_name_f
-        character(:, kind=json_CK), allocatable :: section_f
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
         real(kind(0.d0)), dimension(:), allocatable, target, save:: real_array_param_f
         !real(kind(0.d0)), dimension(:), pointer :: r_f
 
@@ -235,14 +237,14 @@ contains
 
     subroutine CPLC_get_boolean_param(section, param_name, boolean_param) &
         bind (C, name="CPLC_get_boolean_param")
-        use CPL, only: get_boolean_param, json_CK
+        use CPL, only: get_boolean_param
         implicit none
         
         logical(C_BOOL), intent(out) :: boolean_param
         type(C_PTR), intent(in), value :: param_name
         type(C_PTR), intent(in), value :: section
-        character(:, kind=json_CK), allocatable :: param_name_f
-        character(:, kind=json_CK), allocatable :: section_f
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
         logical :: boolean_param_f
 
         call c_f_string(param_name, param_name_f)
@@ -256,7 +258,7 @@ contains
 
     subroutine CPLC_get_boolean_array_param(section, param_name, boolean_array_param, array_len) &
         bind (C, name="CPLC_get_boolean_array_param")
-        use CPL, only: get_boolean_array_param, json_CK
+        use CPL, only: get_boolean_array_param
         implicit none
         
         integer(C_INT), intent(out) :: array_len
@@ -265,8 +267,8 @@ contains
         type(C_PTR), intent(in), value :: param_name
         type(C_PTR), intent(in), value :: section
 
-        character(:, kind=json_CK), allocatable :: param_name_f
-        character(:, kind=json_CK), allocatable :: section_f
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
         logical, dimension(:), allocatable :: boolean_array_param_f
         logical(C_BOOL), dimension(:), allocatable, target, save:: boolean_array_param_c
         !boolean(kind(0.d0)), dimension(:), pointer :: r_f
@@ -285,14 +287,14 @@ contains
     
    subroutine CPLC_get_int_param(section, param_name, int_param) &
         bind (C, name="CPLC_get_int_param")
-        use CPL, only: get_int_param, json_CK
+        use CPL, only: get_int_param
         implicit none
         
         integer(C_INT), intent(out) :: int_param
         type(C_PTR), intent(in), value :: param_name
         type(C_PTR), intent(in), value :: section
-        character(:, kind=json_CK), allocatable :: param_name_f
-        character(:, kind=json_CK), allocatable :: section_f
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
 
         call c_f_string(param_name, param_name_f)
         call c_f_string(section, section_f)
@@ -304,7 +306,7 @@ contains
 
     subroutine CPLC_get_int_array_param(section, param_name, int_array_param, array_len) &
         bind (C, name="CPLC_get_int_array_param")
-        use CPL, only: get_int_array_param, json_CK
+        use CPL, only: get_int_array_param
         implicit none
         
         integer(C_INT), intent(out) :: array_len
@@ -313,8 +315,8 @@ contains
         type(C_PTR), intent(in), value :: param_name
         type(C_PTR), intent(in), value :: section
 
-        character(:, kind=json_CK), allocatable :: param_name_f
-        character(:, kind=json_CK), allocatable :: section_f
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
         integer, dimension(:), allocatable, target, save :: int_array_param_f
 
         call c_f_string(param_name, param_name_f)
@@ -327,15 +329,15 @@ contains
 
    subroutine CPLC_get_string_param(section, param_name, string_param) &
         bind (C, name="CPLC_get_string_param")
-        use CPL, only: get_string_param, json_CK
+        use CPL, only: get_string_param
         implicit none
 
         type(C_PTR), intent(out) :: string_param
         type(C_PTR), intent(in), value :: param_name
         type(C_PTR), intent(in), value :: section
-        character(len=:, kind=json_CK), allocatable, save:: string_param_f
-        character(:, kind=json_CK), allocatable :: section_f
-        character(:, kind=json_CK), allocatable :: param_name_f
+        character(len=:), allocatable, save:: string_param_f
+        character(:), allocatable :: section_f
+        character(:), allocatable :: param_name_f
 
 
         call c_f_string(param_name, param_name_f)
@@ -349,29 +351,40 @@ contains
 
     subroutine CPLC_get_string_array_param(section, param_name, string_array_param, array_len) &
         bind (C, name="CPLC_get_string_array_param")
-        use CPL, only: get_string_array_param, json_CK, CPL_STRING_MAX_LEN
+        use CPL, only: get_string_array_param, CPL_STRING_MAX_LEN
         implicit none
         
         integer(C_INT), intent(out) :: array_len
         type(C_PTR), dimension(:), allocatable, intent(out) :: string_array_param
-!        type(C_PTR),  intent(out) :: string_array_param
 
         type(C_PTR), intent(in), value :: param_name
         type(C_PTR), intent(in), value :: section
 
-        character(:, kind=json_CK), allocatable :: param_name_f
-        character(:, kind=json_CK), allocatable :: section_f
-        character(kind=json_CK, len=CPL_STRING_MAX_LEN), dimension(:), allocatable, save:: string_array_param_f
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
+        character(len=CPL_STRING_MAX_LEN), dimension(:), allocatable, save:: string_array_param_f
+        character, dimension(:,:), allocatable, target, save:: f
+
 
         call c_f_string(param_name, param_name_f)
         call c_f_string(section, section_f)
 
         call get_string_array_param(section_f, param_name_f, string_array_param_f)
+        !allocate(f(1, 5))
+        !f(1,1) = 'H'
+        !f(1,2) = 'O'
+        !f(1,3) = 'L'
+        !f(1,4) = 'A'
+        !f(1,5) = C_NULL_CHAR
+
+        print*, "ENTRA"
 
         call f_c_string_array(string_array_param_f, string_array_param)
 
         array_len = size(string_array_param_f)
+        print*, "SALE"
     end subroutine CPLC_get_string_array_param
+#endif
 
 
     subroutine CPLC_init(calling_realm, returned_realm_comm) &

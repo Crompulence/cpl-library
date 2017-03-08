@@ -46,7 +46,8 @@ Author(s)
 
 /** MODULE IO **/
 
-extern "C" void CPLC_load_param_file(const char* fname, int fname_len);
+#ifdef JSON_SUPPORT
+extern "C" void CPLC_load_param_file(const char* fname);
 extern "C" void CPLC_close_param_file();
 extern "C" void CPLC_get_real_param(const char* section, const char* param_name, double* real_param);
 extern "C" void CPLC_get_real_array_param(const char* section, const char* param_name, double** real_param_array, int* array_len);
@@ -56,6 +57,7 @@ extern "C" void CPLC_get_boolean_param(const char* section, const char* param_na
 extern "C" void CPLC_get_boolean_array_param(const char* section, const char* param_name, bool** boolean_param_array, int* array_len);
 extern "C" void CPLC_get_string_param(const char* section, const char* param_name, char** string_param);
 extern "C" void CPLC_get_string_array_param(const char* section, const char* param_name, char** string_param_array, int* array_len);
+#endif 
 
 extern "C" void CPLC_init(int  calling_realm, int* returned_realm_comm);
 extern "C" void CPLC_finalize();

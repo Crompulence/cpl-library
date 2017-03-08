@@ -1,5 +1,5 @@
 from __future__ import print_function, division
-from ctypes import c_int, c_double, c_bool, c_void_p, byref, POINTER, util
+from ctypes import c_char_p, c_char, c_int, c_double, c_bool, c_void_p, byref, POINTER, util, pointer
 import ctypes
 from mpi4py import MPI
 import numpy as np
@@ -41,6 +41,29 @@ _CPL_GET_VARS = {"icmin_olap": c_int, "jcmin_olap": c_int, "kcmin_olap": c_int,
                  }
 
 _CPL_SET_VARS = {"output_mode": c_int}
+
+_CPL_FILE_VARS_TYPES = {"CPL_INT", "CPL_DOUBLE", "CPL_INT_ARRAY", "CPL_DOUBLE_ARRAY"}
+
+class CPL_VAR_TYPES():
+    INT = 1
+    DOUBLE = 2
+    BOOL = 3
+    STRING = 4
+    INT_ARRAY = 5
+    DOUBLE_ARRAY = 6
+    BOOL_ARRAY = 7
+    STRING_ARRAY = 8
+
+
+_CPL_GET_FILE_VARS = {CPL_VAR_TYPES.DOUBLE: ("get_real_param", c_double), 
+                      CPL_VAR_TYPES.DOUBLE_ARRAY:("get_real_array_param", POINTER(c_double)),
+                      CPL_VAR_TYPES.INT: ("get_int_param", c_int), 
+                      CPL_VAR_TYPES.INT_ARRAY: ("get_int_array_param", POINTER(c_int)),
+                      CPL_VAR_TYPES.BOOL: ("get_boolean_param", c_bool), 
+                      CPL_VAR_TYPES.BOOL_ARRAY: ("get_boolean_array_param", POINTER(c_bool)),
+                      CPL_VAR_TYPES.STRING: ("get_string_param", c_char_p), 
+                      CPL_VAR_TYPES.STRING_ARRAY: ("get_string_array_param", POINTER(c_char_p))}
+            
 
 # Decorator to abort all processes if an exception is thrown. This
 # avoids getting blocked when the exception do not occurs in every
@@ -112,8 +135,15 @@ class CPL:
                 time.sleep(2)
                 MPI.COMM_WORLD.Abort(errorcode=1)
 
+    # Check for JSON support by cheking if load_param_file symbol exists
+    JSON_SUPPORT = True
+    try:
+        _cpl_lib.CPLC_load_param_file
+    except:
+        JSON_SUPPORT = False
+
     def __init__(self):
-        pass
+        self._var = POINTER(POINTER(c_char_p))
 
     # py_test_python function
     py_test_python = _cpl_lib.CPLC_test_python
@@ -167,24 +197,57 @@ class CPL:
 
         return newcomm
 
-    py_test_python = _cpl_lib.CPLC_test_python
-    py_test_python.argtypes = \
-        [c_int,
-         c_double,
-         c_bool,
-         ndpointer(np.int32, ndim=2, flags='aligned, f_contiguous'),
-         ndpointer(np.float64, ndim=2,  flags='aligned, f_contiguous'),
-         ndpointer(np.int32, shape=(2,), flags='aligned, f_contiguous'),
-         ndpointer(np.int32, shape=(2,), flags='aligned, f_contiguous')]
+
+    if JSON_SUPPORT:
+        _py_load_param_file = _cpl_lib.CPLC_load_param_file
+        _py_load_param_file.argtypes = [c_char_p]
 
     @abortMPI
-    def test_python(self, int_p, doub_p, bool_p, int_pptr, doub_pptr):
-        int_pptr_dims = np.array(int_pptr.shape, order='F', dtype=np.int32)
-        doub_pptr_dims = np.array(doub_pptr.shape, order='F', dtype=np.int32)
-        self.py_test_python(int_p, doub_p, bool_p, int_pptr, doub_pptr,
-                            int_pptr_dims, doub_pptr_dims)
+    def load_param_file(self, fname):
+        self._py_load_param_file(c_char_p(fname), c_int(len(fname)))
 
-    
+
+    if JSON_SUPPORT:
+        _py_close_param_file = _cpl_lib.CPLC_close_param_file
+
+    @abortMPI
+    def close_param_file(self):
+        self._py_close_param_file()
+
+
+    @abortMPI
+    def get_file_var(self, section, var_name, var_type):
+        try:
+            fun_name = _CPL_GET_FILE_VARS[var_type][0]
+            var_ctype = _CPL_GET_FILE_VARS[var_type][1]
+
+            fun = getattr(self._cpl_lib, "CPLC_" + fun_name)
+            fun.argtypes =  [c_char_p,
+                             c_char_p,
+                             POINTER(var_ctype)]
+
+        except KeyError:
+            print ("CPL-ERROR: CPL Library function '" +
+                   str(fun_name) + "' not found!")
+            raise KeyError
+        else:
+            self._var = var_ctype()
+
+            if ("array" in fun_name):
+                print ("ENTRO")
+                var_len = c_int()
+                fun.argtypes.append(POINTER(c_int))
+                print ("EY")
+                fun(c_char_p(section), c_char_p(var_name), byref(self._var), byref(var_len))
+                print ("len:" , var_len.value)
+                #print (self._var[0])
+                #print (byref(var[0]))
+                a = ([self._var[i] for i in xrange(var_len.value)])
+                return a
+            else:
+                fun(c_char_p(section), c_char_p(var_name), byref(self._var))
+                return self._var.value
+
 
 
     _py_finalize = _cpl_lib.CPLC_finalize
@@ -550,7 +613,10 @@ def run_test(template_dir, config_params, md_exec, md_fname, cfd_exec,
         if os.path.isfile(md_fname) and os.path.isfile(cfd_fname):
             cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_fname,
                             ":", "-n", str(cfdprocs), cfd_exec, cfd_fname])
-            print (cmd)
+            #cmd_md = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_fname, "&"])
+            #cmd_cfd = " ".join(["mpiexec", "-n", str(cfdprocs), cfd_exec, cfd_fname, "&"])
+            #cmd = cmd_md + " & " + cmd_cfd
+            print(cmd)
             if debug:
                 print ("\nMPI run: " + cmd)
             check_output(cmd, stderr=STDOUT, shell=True)

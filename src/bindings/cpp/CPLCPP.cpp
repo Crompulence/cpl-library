@@ -42,9 +42,9 @@ Description
 #include <iostream>
 #include <sstream>
 
-
+#ifdef JSON_SUPPORT
 void CPL::load_param_file(std::string fname) {
-	CPLC_load_param_file(fname.c_str(), fname.length());
+	CPLC_load_param_file(fname.c_str());
 }
 
 void CPL::close_param_file() {
@@ -100,9 +100,11 @@ void CPL::get_file_param(const std::string section, const std::string param_name
 		myStreamString << ((char**)string_param_array_c)[s];
 		string_param_array[s] = myStreamString.str();
 	}
+	// Free allocated array inside Fortran bindings. A bit dirty but it does the job.
+	free(string_param_array_c);
 
 }
-
+#endif 
 
 
 

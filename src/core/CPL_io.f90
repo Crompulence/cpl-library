@@ -46,13 +46,13 @@
 
 module io
     use json_module
+    use commondefs
 
     implicit none
 
 
     integer, protected :: fd_counter = 0 
-    integer, public, parameter :: CPL_STRING_MAX_LEN = 256 + 1;
-    character(len=CPL_STRINg_MAX_LEN), protected  :: param_fname
+    character(len=CPL_STRING_MAX_LEN), protected  :: param_fname
     type(json_file), private :: json
 
     public CPL_load_param_file

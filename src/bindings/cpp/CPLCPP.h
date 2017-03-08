@@ -60,6 +60,8 @@ namespace CPL
     static const int cfd_realm = 1;
     static const int md_realm = 2;
 
+
+#ifdef JSON_SUPPORT
 	/** MODULE IO **/
 	void load_param_file(const std::string fname);
 	void close_param_file();
@@ -71,6 +73,7 @@ namespace CPL
 	void get_file_param(const std::string section, const std::string param_name, std::vector<bool> &boolean_param_array);
 	void get_file_param(const std::string section, const std::string param_name, std::string& string_param);
 	void get_file_param(const std::string section, const std::string param_name, std::vector<std::string> &string_param_array);
+#endif 
 
 
 
