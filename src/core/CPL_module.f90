@@ -1757,11 +1757,11 @@ subroutine CPL_set_timing(initialstep, nsteps, dt)
     ! ------------------ Timesteps and iterations ------------------------------
     if (realm .eq. md_realm) then
         ! Receive & store CFD nsteps and dt_cfd
-        print*, 'CFDbefore-nsteps: ', nsteps_cfd
+        !print*, 'CFDbefore-nsteps: ', nsteps_cfd
         call MPI_bcast(nsteps_cfd, 1, MPI_integer, 0, CPL_INTER_COMM, ierr) !Receive
-        print*, 'CFDafter-nsteps: ', nsteps_cfd
+        !print*, 'CFDafter-nsteps: ', nsteps_cfd
         call MPI_bcast(dt_cfd, 1, MPI_double_precision, 0, CPL_INTER_COMM, ierr) !Receive
-        print*, 'CFD-dt: ', dt_cfd
+        !print*, 'CFD-dt: ', dt_cfd
 
         ! Store & send MD timestep to dt_md
         dt_MD = dt
@@ -1781,12 +1781,7 @@ subroutine CPL_set_timing(initialstep, nsteps, dt)
 
         ! Receive & store MD timestep dt_md
         call MPI_bcast(dt_md,1,MPI_double_precision,0,CPL_INTER_COMM,ierr)      !Receive
-        print*, 'MDbefore-nsteps: ', nsteps_md
         call MPI_bcast(nsteps_md,1,MPI_integer,     0,CPL_INTER_COMM,ierr)      !Receive
-        print*, 'MDafter-nsteps: ', nsteps_md
-        print*, 'MD() nsteps: ', nsteps_md
-        print*, 'MD() dt: ', dt_md
-
     endif
 
     !Set number of MD timesteps per CFD using ratio of timestep or coupler value

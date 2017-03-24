@@ -968,6 +968,21 @@ contains
 
     end subroutine CPLC_my_proc_portion
 
+    logical(C_BOOL) function CPLC_is_proc_inside(region) &
+        bind(C, name="CPLC_is_proc_inside")
+        use CPL, only: CPL_is_proc_inside
+
+        type(C_PTR), value :: region ! (6)
+        integer, dimension(:), pointer :: region_f
+        call C_F_POINTER(region, region_f, [6])
+
+        region_f = region_f + 1
+
+        CPLC_is_proc_inside = CPL_is_proc_inside(region_f)
+
+        region_f = region_f - 1
+    end function CPLC_is_proc_inside
+        
 
     logical(C_BOOL) function CPLC_map_cfd2md_coord(coord_cfd, coord_md) &
         bind(C, name="CPLC_map_cfd2md_coord")

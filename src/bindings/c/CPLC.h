@@ -94,6 +94,7 @@ extern "C" void CPLC_get_cnst_limits(int limits[]);
 extern "C" bool CPLC_map_cfd2md_coord(double coord_cfd[], double coord_md[]);
 extern "C" bool CPLC_map_md2cfd_coord(double coord_md[], double coord_cfd[]);
 extern "C" bool CPLC_overlap();
+extern "C" bool CPLC_is_proc_inside(int region[]);
 
 // Setters
 extern "C" void CPLC_set_output_mode

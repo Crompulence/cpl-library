@@ -75,134 +75,36 @@ namespace CPL
 	void get_file_param(const std::string section, const std::string param_name, std::vector<std::string> &string_param_array);
 #endif 
 
-
-
-
     void init ( int  calling_realm, int& returned_realm_comm); 
     void finalize(); 
 
-    // All the info (plus some, need to streamline!) from cfd for mapping
-    void setup_cfd
-    (
-        int icomm_grid,
-        double xyzL[],
-        double xyz_orig[],
-        int ncxyz[]
-    );
-
-    void setup_md
-    (
-        int icomm_grid,
-        double xyzL[],
-        double xyz_orig[]
-    );
+    void setup_cfd(int icomm_grid, double xyzL[], double xyz_orig[], int ncxyz[]);
+    void setup_md(int icomm_grid, double xyzL[], double xyz_orig[]);
 
     void set_timing(int initialstep, int nsteps, double dt);
     bool send(double* asend, int* asend_shape, int* limits);
     bool recv(double* arecv, int* arecv_shape, int* limits);
 
-    void scatter
-    (
-        double* scatterarray,
-        int* scatter_shape,
-        int* limits,
-        double* recvarray,
-        int* recv_shape
-    );
+    void scatter(double* scatterarray, int* scatter_shape, int* limits, 
+				 double* recvarray, int* recv_shape);
+	void gather(double* gatherarray, int* gather_shape, int* limits,
+			    double* recvarray, int* recv_shape);
 
-    void gather
-    (
-        double* gatherarray,
-        int* gather_shape,
-        int* limits,
-        double* recvarray,
-        int* recv_shape
-    );
-
-    void proc_extents
-    (
-        int coord[],
-        int realm,
-        int extents[]
-    );
-
-    void my_proc_extents
-    (
-        int extents[]
-    );
-
-    void proc_portion
-    (
-        int coord[],
-        int realm,
-        int limits[],
-        int portion[]
-    );
-
-
-    void my_proc_portion
-    (
-        int limits[],
-        int portion[]
-    );
-
-    void map_cell2coord
-    (
-        int i,
-        int j,
-        int k,
-        double coord_xyz[]
-    );
-
-    bool map_coord2cell
-    (
-        double x,
-        double y,
-        double z,
-        int cell_ijk[]
-    );
-
-    void get_no_cells
-    (
-        int limits[],
-        int no_cells[]
-    );
-
-    bool map_glob2loc_cell
-    (
-        int limits[],
-        int glob_cell[],
-        int loc_cell[]
-    );
-
-    void get_olap_limits
-    (
-        int limits[]
-    );
-
-    void get_cnst_limits
-    (
-        int limits[]
-    );
-
-    bool map_cfd2md_coord
-    (
-        double cfd_coord[],
-        double md_coord[]
-    );
-
-    bool map_md2cfd_coord
-    (
-        double md_coord[],
-        double cfd_coord[]
-    );
-
-    bool overlap();
-
-    void set_output_mode
-    (
-        int mode
-    );
+    void proc_extents(int coord[], int realm, int extents[]);
+    void my_proc_extents(int extents[]);
+    void proc_portion(int coord[], int realm, int limits[], int portion[]);
+    void my_proc_portion(int limits[], int portion[]); 
+    void map_cell2coord(int i, int j, int k, double coord_xyz[]);
+    bool map_coord2cell(double x, double y, double z, int cell_ijk[]);
+    void get_no_cells(int limits[], int no_cells[]);
+	bool map_glob2loc_cell(int limits[], int glob_cell[], int loc_cell[]);
+    void get_olap_limits(int limits[]); 
+    void get_cnst_limits(int limits[]);
+    bool map_cfd2md_coord(double cfd_coord[],double md_coord[]);
+    bool map_md2cfd_coord(double md_coord[], double cfd_coord[]);
+    bool overlap(); 
+	bool is_proc_inside(int region[]);
+    void set_output_mode(int mode);
 
     // Getters
     template<class T>

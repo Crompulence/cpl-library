@@ -10,9 +10,10 @@ import time
 from subprocess import STDOUT, check_output, CalledProcessError
 import shutil
 import cPickle
+import errno
 
 
-__all__ = ["CPL", "cart_create", "run_test", "prepare_config"]
+__all__ = ["CPL", "cart_create", "run_test", "prepare_config", "parametrize_file"]
 
 
 class OpenMPI_Not_Supported(Exception):
@@ -35,7 +36,7 @@ _CPL_GET_VARS = {"icmin_olap": c_int, "jcmin_olap": c_int, "kcmin_olap": c_int,
                  "overlap": c_int, "xl_md": c_double, "yl_md": c_double,
                  "nsteps_md": c_int, "nsteps_cfd": c_int, "nsteps_coupled": c_int,
                  "zl_md": c_double, "xl_cfd": c_double, "yl_cfd": c_double,
-                 "zl_cfd": c_double,
+                 "zl_cfd": c_double, "dx" : c_double, "dy" : c_double, "dz" : c_double,
                  "x_orig_cfd": c_double,"y_orig_cfd": c_double,"z_orig_cfd": c_double,
                  "x_orig_md": c_double,"y_orig_md": c_double,"z_orig_md": c_double
                  }
@@ -144,6 +145,7 @@ class CPL:
 
     def __init__(self):
         self._var = POINTER(POINTER(c_char_p))
+        self.realm = None
 
     # py_test_python function
     py_test_python = _cpl_lib.CPLC_test_python
@@ -178,6 +180,7 @@ class CPL:
     @abortMPI
     def init(self, calling_realm):
 
+        self.realm = calling_realm
         # Build a communicator mpi4py python object from the
         # handle returned by the CPL_init function.
         if MPI._sizeof(MPI.Comm) == ctypes.sizeof(c_int):
@@ -522,6 +525,16 @@ class CPL:
         self.py_overlap.restype = c_bool
         return self.py_overlap()
 
+    py_is_proc_inside = _cpl_lib.CPLC_is_proc_inside
+    py_is_proc_inside.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def is_proc_inside(self, region):
+        self.py_is_proc_inside.restype = c_bool
+        region = self._type_check(region)
+        return self.py_is_proc_inside(region)
+
     @abortMPI
     def get(self, var_name):
         try:
@@ -563,6 +576,60 @@ class CPL:
             A = np.require(A, requirements=['A'])
         return A
 
+    @abortMPI
+    def dump_region(self, region, array, fname, comm, components={}, coords="mine"):
+            lines = ""
+            portion = self.my_proc_portion(region)
+            cell_coords = np.array(3)
+            dx = self.get("dx")
+            dy = self.get("dy")
+            dz = self.get("dz")
+            def_func = lambda x : x
+            components_dic = components
+            if callable(components):
+                def_func = components
+            if not components or callable(components):
+                components_idx = list(xrange(0, array.shape[0]))
+                for c_idx in components_idx:
+                    components_dic[c_idx] = def_func
+            for k,v in components_dic.items():
+                if v is None:
+                    components_dic[k] = def_func
+            #if self.overlap():
+            if self.is_proc_inside(portion):
+                ncx, ncy, ncz = self.get_no_cells(portion)
+                if (ncx, ncy, ncz) != array.shape[1:]:
+                    print ("self-Error in dump_region(): array and processor portion of different size.")
+                    MPI.COMM_WORLD.Abort(errorcode=1)
+
+                for i in xrange(portion[0], portion[1]+1):
+                    for j in xrange(portion[2], portion[3]+1):
+                        for k in xrange(portion[4], portion[5]+1):
+                            cell_coords = self.map_cell2coord(i, j, k)
+                            if coords != "mine":
+                                if self.realm == CPL.CFD_REALM:
+                                    cell_coords = self.map_cfd2md_coord(cell_coords)
+                                else:
+                                  cell_coords = self.map_md2cfd_coord(cell_coords)
+                            [i_loc, j_loc, k_loc] = self.map_glob2loc_cell(portion, [i, j, k])
+                            lines += str(cell_coords[0] + dx/2.0) + " "\
+                                   + str(cell_coords[1] + dy/2.0) + " "\
+                                   + str(cell_coords[2] + dz/2.0)
+                                   
+                            for k, f in components_dic.items():
+                                lines += " " + str(f(array[k, i_loc, j_loc, k_loc]))
+                            lines += "\n"
+
+            # Gather all the forces from every processor and dump them to a file at the root
+            lines = comm.gather(lines, root=0)
+
+            myrank = comm.Get_rank()
+            if myrank == 0:
+                with open(fname, "w") as file_out:
+                    file_out.writelines(lines)
+
+
+
 
 def cart_create(old_comm, dims, periods, coords):
     dummy_cart_comm = old_comm.Create_cart(dims, periods)
@@ -582,45 +649,59 @@ CONFIG_FILE = "COUPLER.in"
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 TEST_NAME = os.path.basename(os.path.realpath(__file__))
 
+def copyanything(src_dir, dst_dir, name):
+    src_dir = os.path.join(src_dir, name)
+    try:
+        shutil.copytree(src_dir, os.path.join(dst_dir, name))
+    except OSError as exc:
+        if exc.errno == errno.ENOTDIR:
+            shutil.copy(src_dir, dst_dir)
+        else: raise
 
-def parametrizeConfig(template_dir, params):
-    # It assumes is in the temp directory with cpl/ folder accessible
-    # from this level.
-    with open(os.path.join(template_dir,
-                           CONFIG_FILE), "r+") as config_file:
-        lines = config_file.readlines()
+def parametrize_file(source, dest, params):
+    with open(source, "r+") as param_file_in:
+        lines = param_file_in.readlines()
         for (k, v) in params.items():
             lines = [l.replace("$[" + str(k) + "]", str(v)) for l in lines]
-    with open(os.path.join("cpl/", CONFIG_FILE), "w") as config_file:
-        config_file.writelines(lines)
+    with open(dest, "w+") as param_file_out:
+        param_file_out.writelines(lines)
+
+def parametrize_config(template_dir, params):
+    # It assumes is in the temp directory with cpl/ folder accessible
+    # from this level.
+    source = os.path.join(template_dir, CONFIG_FILE)
+    dest = os.path.join("cpl/", CONFIG_FILE)
+    parametrize_file(source, dest, params)
 
 
 def prepare_config(tmpdir, test_dir, md_fname, cfd_fname):
     tmpdir.mkdir("cpl")
-    shutil.copy(os.path.join(test_dir, md_fname), tmpdir.strpath)
-    shutil.copy(os.path.join(test_dir, cfd_fname), tmpdir.strpath)
+    copyanything(test_dir, tmpdir.strpath, md_fname)
+    copyanything(test_dir, tmpdir.strpath, cfd_fname)
     os.chdir(tmpdir.strpath)
 
 
-def run_test(template_dir, config_params, md_exec, md_fname, cfd_exec,
-             cfd_fname, md_params, cfd_params, err_msg, debug=False):
-    parametrizeConfig(template_dir, config_params)
+def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
+             cfd_fname, cfd_args, md_params, cfd_params, err_msg, debug=False, mpirun="port"):
+    parametrize_config(template_dir, config_params)
     cPickle.dump(md_params, open("md_params.dic", "wb"))
     cPickle.dump(cfd_params, open("cfd_params.dic", "wb"))
     try:
         mdprocs = md_params["npx"] * md_params["npy"] * md_params["npz"]
         cfdprocs = cfd_params["npx"] * cfd_params["npy"] * cfd_params["npz"]
-        if os.path.isfile(md_fname) and os.path.isfile(cfd_fname):
-            cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_fname,
-                            ":", "-n", str(cfdprocs), cfd_exec, cfd_fname])
-            #cmd_md = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_fname, "&"])
-            #cmd_cfd = " ".join(["mpiexec", "-n", str(cfdprocs), cfd_exec, cfd_fname, "&"])
-            #cmd = cmd_md + " & " + cmd_cfd
-            print(cmd)
+        if os.path.exists(md_fname) and os.path.exists(cfd_fname):
+            if mpirun == "port":
+                cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_args, 
+                                "& PID=$!;", "mpiexec", "-n", str(cfdprocs), 
+                                cfd_exec, cfd_args, "; wait $PID"])
+            else:
+                cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_args,
+                                ":", "-n", str(cfdprocs), cfd_exec, cfd_fname])
             if debug:
                 print ("\nMPI run: " + cmd)
             check_output(cmd, stderr=STDOUT, shell=True)
         else:
+            print ("Current directory: " + os.getcwd())
             print (md_fname + " or " + cfd_fname + " are not found.")
             assert False
             return False
@@ -637,7 +718,6 @@ def run_test(template_dir, config_params, md_exec, md_fname, cfd_exec,
         else:
             assert True
     return True
-
 
 if __name__ == "__main__":
     lib = CPL()

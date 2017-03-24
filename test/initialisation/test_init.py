@@ -11,8 +11,10 @@ import os
 #              one direction.
 
 MD_FNAME = "md_test.py"
+MD_ARGS = MD_FNAME
 MD_EXEC = "python"
 CFD_FNAME = "cfd_test.py"
+CFD_ARGS = CFD_FNAME
 CFD_EXEC = "python"
 TEST_TEMPLATE_DIR = os.path.join(os.environ["CPL_PATH"], "test/templates")
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -45,8 +47,8 @@ def test_mdprocs(prepare_config_fix, mdprocs, err_msg):
                      "cnst_zlo": 1, "cnst_zhi": 1,
                      "tstep_ratio": 50, }
 
-    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME,
-             CFD_EXEC, CFD_FNAME, MD_PARAMS, CFD_PARAMS, err_msg)
+    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
+             CFD_EXEC, CFD_FNAME, CFD_ARGS, MD_PARAMS, CFD_PARAMS, err_msg, True)
 
 
 # EXPLANATION: These tests fail due to no_procs(MD) != k*no_procs(CFD),
@@ -75,8 +77,8 @@ def test_cfdprocs(prepare_config_fix, cfdprocs, err_msg):
                      "cnst_zlo": 1, "cnst_zhi": 1,
                      "tstep_ratio": 50, }
 
-    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME,
-             CFD_EXEC, CFD_FNAME, MD_PARAMS, CFD_PARAMS, err_msg)
+    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
+             CFD_EXEC, CFD_FNAME, CFD_ARGS, MD_PARAMS, CFD_PARAMS, err_msg)
 
 
 # EXPLANATION: These tests fail due to bad ranges in overlap cell ranges OR
@@ -110,8 +112,8 @@ def test_olapcells(prepare_config_fix, olapcells, err_msg):
     CONFIG_PARAMS["olap_ylo"], CONFIG_PARAMS["olap_yhi"] = olapcells[2:4]
     CONFIG_PARAMS["olap_zlo"], CONFIG_PARAMS["olap_zhi"] = olapcells[4:6]
 
-    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME,
-             CFD_EXEC, CFD_FNAME, MD_PARAMS, CFD_PARAMS, err_msg)
+    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
+             CFD_EXEC, CFD_FNAME, CFD_ARGS, MD_PARAMS, CFD_PARAMS, err_msg)
 
 
 # EXPLANATION: These tests fails due to k*no_cells != no_procs(CFD) OR,
@@ -140,5 +142,5 @@ def test_domaincells(prepare_config_fix, domaincells, err_msg):
                      "cnst_zlo": 1, "cnst_zhi": 1,
                      "tstep_ratio": 50, }
 
-    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME,
-             CFD_EXEC, CFD_FNAME, MD_PARAMS, CFD_PARAMS, err_msg)
+    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
+             CFD_EXEC, CFD_FNAME, CFD_ARGS, MD_PARAMS, CFD_PARAMS, err_msg)

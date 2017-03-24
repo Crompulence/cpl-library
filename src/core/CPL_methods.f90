@@ -89,7 +89,7 @@ module coupler
            CPL_my_proc_extents, CPL_proc_portion, CPL_my_proc_portion, &
            CPL_map_cell2coord, CPL_map_coord2cell, CPL_get_no_cells, &
            CPL_map_glob2loc_cell, CPL_get_olap_limits, CPL_get_cnst_limits, & 
-           CPL_map_cfd2md_coord, CPL_map_md2cfd_coord, CPL_overlap
+           CPL_map_cfd2md_coord, CPL_map_md2cfd_coord, CPL_overlap, CPL_is_proc_inside
 
 contains
 
@@ -735,7 +735,7 @@ subroutine CPL_send(asend, limits, send_flag)
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
                                rank_world, realm, rank_realm,rank_olap, & 
                                iblock_realm,jblock_realm,kblock_realm,ierr, VOID, &
-							   CPL_setup_complete, REALM_NAME, realm
+							   CPL_setup_complete, REALM_NAME, realm, CPL_OLAP_COMM
     implicit none
 
     
@@ -918,7 +918,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
                                rank_world, realm, rank_realm, rank_olap, & 
                                iblock_realm,jblock_realm,kblock_realm,VOID,ierr, &
-							   CPL_setup_complete, REALM_NAME, realm
+							   CPL_setup_complete, REALM_NAME, realm, CPL_OLAP_COMM
     implicit none
 
     logical, intent(out), optional  :: recv_flag  !Flag set if processor has received data
@@ -2307,11 +2307,11 @@ subroutine CPL_map_cell2coord(i, j, k, coord_xyz)
 
     call CPL_get_olap_limits(olap_limits)
 
-    if (.not. is_cell_inside((/i, j, k/), olap_limits)) then
-        print*, "cell:", (/i,j,k/)
-        call error_abort("CPL_map_cell2coord error - Cell is outside overlap region. " // &
-                         "Aborting simulation.") 
-    end if
+    !if (.not. is_cell_inside((/i, j, k/), olap_limits)) then
+    !    print*, "cell:", (/i,j,k/)
+    !    call error_abort("CPL_map_cell2coord error - Cell is outside overlap region. " // &
+    !                     "Aborting simulation.") 
+    !end if
 
     coord_xyz(1) = xg(i, j)
     coord_xyz(2) = yg(i, j) 
@@ -2387,11 +2387,11 @@ function CPL_map_glob2loc_cell(limits, glob_cell, loc_cell) result(ret)
     call CPL_get_olap_limits(olap_limits)
 
     ! Check if cell is inside the overlap region
-    if (.not. is_cell_inside(glob_cell, olap_limits)) then 
-        print*, "cell:" , glob_cell
-        call error_abort("CPL_map_glob2loc_cell error - Cell is outside overlap region. " // &
-                         "Aborting simulation.") 
-    end if
+    !if (.not. is_cell_inside(glob_cell, olap_limits)) then 
+    !    print*, "cell:" , glob_cell
+        ! call error_abort("CPL_map_glob2loc_cell error - Cell is outside overlap region. " // &
+         !                "Aborting simulation.") 
+   ! end if
 
     ! Check if global cell is within the limits of the region specified
     if (is_cell_inside(glob_cell, limits)) then
@@ -2447,17 +2447,33 @@ end subroutine CPL_get_cnst_limits
 
 !-----------------------------------------------------------------------------
 
+function CPL_is_proc_inside(region) result(res)
+    use coupler_module, only: VOID
+
+    integer, intent(in) :: region(6)
+    logical :: res
+
+    res = .true.
+    if (any(region.eq.VOID)) then
+        res = .false.
+    end if
+end function CPL_is_proc_inside
+
 function is_cell_inside(cell, limits) result(res)
     use coupler_module, only :  icmin_olap, icmax_olap, & 
                                 jcmin_olap, jcmax_olap, & 
-                                kcmin_olap, kcmax_olap
+                                kcmin_olap, kcmax_olap, &
+                                VOID
 
     integer, intent(in) :: cell(3)
     integer, intent(in) :: limits(6)
     logical :: res
     
     res = .true.
-    ! Check send limits are inside overlap region
+    ! Check send limits are inside a certain region
+    if (any(limits.eq.VOID)) then
+        res =.false.
+    end if
     if (cell(1) .lt. limits(1) .or. &
         cell(1) .gt. limits(2) .or. &
         cell(2) .lt. limits(3) .or. &
@@ -2480,7 +2496,7 @@ function is_coord_inside(coord, coord_limits) result(res)
     logical :: res
 
     res = .true.
-    ! Check send limits are inside overlap region
+    ! Check send limits are inside a certain region
     if (coord(1) .lt. coord_limits(1) .or. &
         coord(1) .gt. coord_limits(2) .or. &
         coord(2) .lt. coord_limits(3) .or. &
