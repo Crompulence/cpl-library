@@ -48,23 +48,24 @@ a) Compiling the library
 ------------------------
 
 Compiling CPL Library with GCC, as a shared library, is likely to 
-work with the makefile provided in cpl/:
+work with the makefile provided in the top level directory:
 
-    $  cd cpl
+    $  cd ./PATH/TO/cpl-library
     $  make 
 
 If this doesn't work, the compilers and flags may need to be specified
-manually. The makefiles provided with CPL Library import the variables 
-in the file make/[platform].inc, where the variable [platform] is specified
-exactly by the contents of the file make/PLATFORM. A template is provided
-in make/gcc.inc, and the file make/PLATFORM contains only the string "gcc" 
-by default. The GCC template is likely to work for most machines, but
-the user may create their own version (make/user-include.inc, for
-example):
+manually. The makefiles provided with CPL Library import flags and variables 
+from the make/[platform].inc, where the variable [platform] is specified
+by the file make/PLATFORM. A number of template are provided
+in make, and the file make/PLATFORM contains the string "gcc" 
+by default to use make/gcc.inc. 
+The GCC template is likely to work for most machines, but
+the user may create their own version. For example, to create
+make/user-include.inc:
 
     $  cd ./make
     $  cp gcc.inc user-include.inc
-    $  vi user-include.inc                     (make any necessary changes)
+    $  vi user-include.inc                  (make any necessary changes)
     $  cd ../cpl
     $  make PLATFORM=user-include
 
