@@ -23,14 +23,14 @@ how to couple other programs with CPL Library.
 Contents
 ========
     
- 1. Pre-requisites for compilation
- 2. Install <br />
+ 1) Pre-requisites for compilation
+ 2) Install <br />
   a) Compiling the library <br />
   b) Compiling and running the demo programs
- 3. License
+ 3) License
+ 
 
-
-1. Pre-requisites for compilation
+1 ) Pre-requisites for compilation
 =================================
 
 - A C++14 compiler 
@@ -41,7 +41,7 @@ CPL Library was developed and tested using the GCC compiler collection and
 MPICH, which are both free and open-source. 
 
 
-2. Install
+2 ) Install
 ==========
 
 a) Compiling the library 
@@ -79,7 +79,7 @@ Please see:
         http://www.cpl-library.org/user-guide/quick-start.shtml 
 
 
-3. License
+3 ) License
 ==========
 
 CPL Library is released under the GNU GPL v3 license. Details are found in
