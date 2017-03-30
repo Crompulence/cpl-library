@@ -50,7 +50,7 @@ a) Compiling the library
 Compiling CPL Library with GCC, as a shared library, is likely to 
 work with the makefile provided in the top level directory:
 
-    $  cd ./PATH/TO/cpl-library
+    $  cd /PATH/TO/cpl-library
     $  make 
 
 If this doesn't work, the compilers and flags may need to be specified
@@ -77,7 +77,7 @@ b) Building the demo applications
 
 Please see:
 
-        http://www.cpl-library.org/user-guide/quick-start.shtml 
+[www.cpl-library.org/user-guide/quick-start.shtml ](http://www.cpl-library.org/user-guide/quick-start.shtml)
 
 
 3 ) License
