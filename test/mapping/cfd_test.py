@@ -92,14 +92,16 @@ if CPL.overlap():
                     send_array[0:3, iloc, jloc, kloc] = [xglob, yglob, zglob]
 
     recv_array = np.zeros((3, 0, 0, 0), order='F', dtype=np.float64)
-    CPL.scatter(send_array, olap_region, recv_array)
+    #CPL.scatter(send_array, olap_region, recv_array)
+    CPL.send(send_array, olap_region)
 
 
 # Receiving cell coordinates from MD
 if CPL.overlap():
     recv_array = np.zeros((3, ncxl, ncyl, nczl), order='F', dtype=np.float64)
     send_array = np.zeros((3, 0, 0, 0), order='F', dtype=np.float64)
-    CPL.gather(send_array, olap_region, recv_array)
+    #CPL.gather(send_array, olap_region, recv_array)
+    CPL.recv(recv_array, olap_region)
     for icfd in xrange(portion[0], portion[1] + 1):
         for jcfd in xrange(portion[2], portion[3] + 1):
             for kcfd in xrange(portion[4], portion[5] + 1):

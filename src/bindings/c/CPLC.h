@@ -40,9 +40,24 @@ Description
     
 Author(s)
 
-    David Trevelyan, Edward Smith
+    David Trevelyan, Edward Smith, Eduardo Ramos Fernandez
 
 */
+
+/** MODULE IO **/
+
+#ifdef JSON_SUPPORT
+extern "C" void CPLC_load_param_file(const char* fname);
+extern "C" void CPLC_close_param_file();
+extern "C" void CPLC_get_real_param(const char* section, const char* param_name, double* real_param);
+extern "C" void CPLC_get_real_array_param(const char* section, const char* param_name, double** real_param_array, int* array_len);
+extern "C" void CPLC_get_int_param(const char* section, const char* param_name, int* int_param);
+extern "C" void CPLC_get_int_array_param(const char* section, const char* param_name, int** int_param_array, int* array_len);
+extern "C" void CPLC_get_boolean_param(const char* section, const char* param_name, bool* boolean_param);
+extern "C" void CPLC_get_boolean_array_param(const char* section, const char* param_name, bool** boolean_param_array, int* array_len);
+extern "C" void CPLC_get_string_param(const char* section, const char* param_name, char** string_param);
+extern "C" void CPLC_get_string_array_param(const char* section, const char* param_name, char** string_param_array, int* array_len);
+#endif 
 
 extern "C" void CPLC_init(int  calling_realm, int* returned_realm_comm);
 extern "C" void CPLC_finalize();
@@ -56,6 +71,7 @@ extern "C" void CPLC_test_python(int int_p, double doub_p, bool bool_p,
 extern "C" void CPLC_setup_md(int icomm_grid, double xyzL[], 
                               double xyz_orig[]);
 
+extern "C" void CPLC_set_timing(int initialstep, int nsteps, double dt);
 extern "C" void CPLC_send(double* asend, int* asend_shape, int* limits, bool *send_flag);
 extern "C" void CPLC_recv(double* arecv, int* arecv_shape, int* limits, bool *recv_flag);
 
@@ -78,6 +94,7 @@ extern "C" void CPLC_get_cnst_limits(int limits[]);
 extern "C" bool CPLC_map_cfd2md_coord(double coord_cfd[], double coord_md[]);
 extern "C" bool CPLC_map_md2cfd_coord(double coord_md[], double coord_cfd[]);
 extern "C" bool CPLC_overlap();
+extern "C" bool CPLC_is_proc_inside(int region[]);
 
 // Setters
 extern "C" void CPLC_set_output_mode
@@ -85,6 +102,9 @@ extern "C" void CPLC_set_output_mode
 );
 
 // Getters
+extern "C" int CPLC_nsteps_md();
+extern "C" int CPLC_nsteps_cfd();
+extern "C" int CPLC_nsteps_coupled();
 extern "C" int CPLC_icmin_olap();
 extern "C" int CPLC_jcmin_olap();
 extern "C" int CPLC_kcmin_olap();

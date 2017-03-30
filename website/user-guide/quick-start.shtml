@@ -690,7 +690,7 @@
         </p> 
 
         <details>
-            <summary> MD code </summary>
+            <summary> Coupling code MD side </summary>
              <!--#include virtual="demo-codes/md_cpl.html"-->
         </details>
 
@@ -700,7 +700,7 @@
         </p> 
 
         <details>
-            <summary> MD code </summary>
+            <summary> Coupling code CFD side </summary>
              <!--#include virtual="demo-codes/cfd_cpl.html"-->
         </details>
 

@@ -37,13 +37,32 @@ library_names_spec="\$libname\$shrext"
 
 # Flag to hardcode $libdir into a binary during linking.
 # This must work even if $libdir does not exist.
-hardcode_libdir_flag_spec="\${wl}-rpath \${wl}\$libdir"
+hardcode_libdir_flag_spec="\${wl}-rpath \${wl}\$libdir -Wl,--enable-new-dtags"
+
+# Whether we need a single -rpath flag with a separated argument.
+hardcode_libdir_separator=""
+
+# Set to yes if using DIR/libNAME.so during linking hardcodes DIR into the
+# resulting binary.
+hardcode_direct="no"
+
+# Set to yes if using the -LDIR flag during linking hardcodes DIR into the
+# resulting binary.
+hardcode_minus_L="no"
 
 # Internal variables
 # Show is set to echo to cause the compilation command to be echoed instead 
 # of executed.
 Show=
 
+#
+# End of initialization of variables
+
+# Allow a profiling option to be selected through an environment variable
+if [ -n "$CPLCXX_PROFILE" ] ; then
+    profConf=$CPLCXX_PROFILE
+fi
+#
 # ------------------------------------------------------------------------
 # Argument processing.
 # This is somewhat awkward because of the handling of arguments within
@@ -58,6 +77,7 @@ Show=
 linking=yes
 allargs=("$@")
 argno=0
+interlib_deps=yes
 for arg in "$@" ; do
     # Set addarg to no if this arg should be ignored by the C compiler
     addarg=yes
@@ -71,6 +91,9 @@ for arg in "$@" ; do
 	# ----------------------------------------------------------------
 	# Options that control how we use mpicxx (e.g., -show, 
 	# -cxx=* -config=*
+    -static)
+    interlib_deps=no
+    ;;
     -echo)
     addarg=no
     set -x
@@ -109,7 +132,7 @@ for arg in "$@" ; do
     ;;
     -v)
     # Pass this argument to the compiler as well.
-    echo "cplf90 for cpl-library version $CPL_VERSION"
+    echo "cplc++ for cpl-library version $CPL_VERSION"
     # if there is only 1 argument, it must be -v.
     if [ "$#" -eq "1" ] ; then
         linking=no
@@ -158,25 +181,40 @@ if [ $# -eq 0 ] ; then
     exit 1
 fi
 
-# Construct the line to add the include directory (not all compilers 
-# use -I, unfortunately)
-if [ -z "${FCINC}" ] ; then
-    # If there is no path, add a link to the cpl.h file.
-    # There *must* be a way to provide the path the any modules (there
-    # may be too many to link)
-    if [ ! -r cpl.h ] ; then
-        #echo "Adding a symbolic link for cpl.h"
-	trap "$Show rm -f cpl.h" 0
-	# This should really be the (related) f77includedir (see cpl77).
-	$Show ln -s ${includedir}/mpif.h mpif.h
-	# Remember to remove this file
-	rmfiles="$rmfiles cpl.h"
+# -----------------------------------------------------------------------
+# Derived variables.  These are assembled from variables set from the
+# default, environment, configuration file (if any) and command-line
+# options (if any)
+cxxlibs=
+if [ "mpicxx" != "mpi" ] ; then
+    cxxlibs="-lmpicxx"
+fi
+
+PROFILE_FOO=
+# Handle the case of a profile switch
+if [ -n "$profConf" ] ; then
+    profConffile=
+    if [ -s "$libdir/lib$profConf.a" -o -s "$libdir/lib$profConf.so" ] ; then
+	PROFILE_FOO="-l$profConf"
+    elif [ -s "$sysconfdir/$profConf.conf" ] ; then
+	profConffile="$sysconfdir/$profConf.conf"
+    elif [ -s "$profConf.conf" ] ; then
+        profConffile="$profConf.conf"
+    else
+        echo "Profiling configuration file $profConf.conf not found in $sysconfdir"
     fi
-    FCINCDIRS=
-else
-    # Normally, FCINC is just -I, but some compilers have used different
-    # command line arguments
-    FCINCDIRS=${FCINC}${includedir}
+    if [ -n "$profConffile" -a -s "$profConffile" ] ; then
+	. $profConffile
+    fi
+fi
+
+final_cxxflags=" "
+final_cppflags=" "
+final_ldflags=" "
+final_libs=""
+if test "yes" = "no" -o "${interlib_deps}" = "no" ; then
+    final_ldflags="${final_ldflags} "
+    final_libs="${final_libs} -lpthread   -lrt -lpthread "
 fi
 
 # A temporary statement to invoke the compiler
@@ -197,14 +235,14 @@ if [ "$linking" = yes ] ; then
     fi
 
     if [ "$nativelinking" = yes ] ; then
-        $Show $CXX $PROFILE_INCPATHS      "${allargs[@]}" -I$includedir
+        $Show $CXX ${final_cppflags} $PROFILE_INCPATHS ${final_cxxflags} ${final_ldflags} "${allargs[@]}" -I$includedir
         rc=$?
     else
-        $Show $CXX $PROFILE_INCPATHS      "${allargs[@]}" -I$includedir -L$libdir $rpath_flags -lcpl
+        $Show $CXX ${final_cppflags} $PROFILE_INCPATHS ${final_cxxflags} ${final_ldflags} "${allargs[@]}" -I$includedir -L$libdir $cxxlibs $PROFILE_PRELIB $PROFILE_FOO $rpath_flags -lmpi  $PROFILE_POSTLIB ${final_libs}
         rc=$?
     fi
 else
-    $Show $CXX $PROFILE_INCPATHS   "${allargs[@]}" -I$includedir
+    $Show $CXX ${final_cppflags} $PROFILE_INCPATHS ${final_cxxflags} "${allargs[@]}" -I$includedir
     rc=$?
 fi
 

@@ -8,8 +8,10 @@ import os
 #              k in [1,2,3,...] in one direction.
 
 MD_FNAME = "md_test.py"
+MD_ARGS = MD_FNAME
 MD_EXEC = "python"
 CFD_FNAME = "cfd_test.py"
+CFD_ARGS = CFD_FNAME
 CFD_EXEC = "python"
 TEST_TEMPLATE_DIR = os.path.join(os.environ["CPL_PATH"], "test/templates")
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -46,8 +48,8 @@ def test_mapcells(prepare_config_fix, cfdprocs, mdprocs, err_msg):
                      "cnst_zlo": 1, "cnst_zhi": 1,
                      "tstep_ratio": 50, }
 
-    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME,
-             CFD_EXEC, CFD_FNAME, MD_PARAMS, CFD_PARAMS, err_msg)
+    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
+             CFD_EXEC, CFD_FNAME, CFD_ARGS, MD_PARAMS, CFD_PARAMS, err_msg)
 
 
 @pytest.mark.parametrize("cfdprocs, mdprocs, err_msg", [
@@ -76,5 +78,5 @@ def test_mappoint(prepare_config_fix, cfdprocs, mdprocs, err_msg):
                      "cnst_zlo": 1, "cnst_zhi": 1,
                      "tstep_ratio": 50, }
 
-    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME,
-             CFD_EXEC, CFD_FNAME, MD_PARAMS, CFD_PARAMS, err_msg)
+    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
+             CFD_EXEC, CFD_FNAME, CFD_ARGS, MD_PARAMS, CFD_PARAMS, err_msg)
