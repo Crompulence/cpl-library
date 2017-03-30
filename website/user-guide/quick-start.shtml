@@ -119,7 +119,7 @@
             Compiling <mark class="CPL">CPL library</mark> itself, as a shared library, is
             likely to work with Gnu make:
 
-            <div class="code"> $  cd cpl-library/cpl</div>
+            <div class="code"> $  cd PATH/TO/cpl-library/</div>
             <div class="code"> $  make </div>
 
         </p>
@@ -128,19 +128,19 @@
             where the library will be created at the path,
         </p>
 
-        <div class="code"> cpl-library/cpl/lib/ </div>
+        <div class="code"> cpl-library/lib/ </div>
     
         <p>
             C++ headers and Fortran use-modules are placed in
         </p>
             
-        <div class="code"> cpl-library/cpl/include/ </div>
+        <div class="code"> cpl-library/include/ </div>
 
         <p>
             The wrapper binaries for cplf90 and cplc++ are located in
         </p>
             
-        <div class="code"> cpl-library/cpl/bin/ </div>
+        <div class="code"> cpl-library/bin/ </div>
 
         <p>
             This build has been verified for the GCC compiler collection and
@@ -218,7 +218,7 @@
             of SOURCEME.sh, you need to set
         </p>
 
-        <div class="code"> $  CPL_PATH=/some/path/to/cpl/library/</div>
+        <div class="code"> $  CPL_PATH=/PATH/TO/cpl-library/</div>
 
         <p>
             manually. After adding  <mark class="CPL">CPL library</mark>  to your
