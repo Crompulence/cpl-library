@@ -31,7 +31,7 @@ def check_forces(tol, cfd_fname="cfd_forces.dat", lammps_fname="lammps_forces.da
     if len(lammps_cells) != len(cfd_cells):
         print "Number of cells LAMMPS: ", len(lammps_cells), "\n",\
               "Number of cells dummy CFD: ", len(cfd_cells)
-        print "FALSE"
+        print "FAILURE"
         sys.exit()
 
     for k in lammps_cells.keys():

@@ -63,7 +63,7 @@ setenv WM_COMPILE_OPTION Opt
 # Modify the MPI_ROOT to the root folder of your mpi library i.e /opt/mpich3.2
 setenv MPI_ROOT ""
 setenv MPI_ARCH_INC "-I$MPI_ROOT/include"
-setenv MPI_ARCH_LIBS "-L$MPI_ROOT/lib -Wl,-rpath -Wl,$MPI_ROOT/lib -Wl,--enable-new-dtags -lmpi"
+setenv MPI_ARCH_LIBS "-L$MPI_ROOT/lib -Wl,-rpath -Wl,/opt/mpich3.2-gcc4.9/lib -Wl,--enable-new-dtags -lmpi"
 setenv MPI_ARCH_FLAGS ""
 setenv WM_MPLIB SYSTEMMPI
 

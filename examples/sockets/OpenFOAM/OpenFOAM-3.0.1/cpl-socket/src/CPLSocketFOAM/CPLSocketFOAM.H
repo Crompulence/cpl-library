@@ -46,6 +46,7 @@ Description
 #include "fvCFD.H"
 #include "error.H"
 #include "CPL.h"
+#include "meshSearch.H"
 
 // Nearest integer
 int nint(double d)
@@ -53,14 +54,13 @@ int nint(double d)
     return std::floor(d+0.5);
 }
 
-class CPLSocketFOAM
-{   
+class CPLSocketFOAM {   
 
 public:
     
     // Construct from no arguments 
     CPLSocketFOAM() : olapRegion(6), velBCRegion(6), cnstFRegion(6),
-                  velBCPortion(6), cnstFPortion(6) {}
+                  velBCPortion(6), cnstFPortion(6), myCoords(3) {}
     
     // Invoke CPL_Library and store CFD realm communicator
     void initComms(int& argc, char**& argv);
@@ -79,6 +79,10 @@ public:
     void sendStress();
     void recvVelocity();
 
+	~CPLSocketFOAM() {
+		delete meshSearcher;
+	}
+
 
 private:
 
@@ -95,9 +99,7 @@ private:
     int ncxyz[3];
 
     // Size of the cells in each direction
-    double dx;
-    double dy;
-    double dz;
+    double dx, dy, dz;
 
     // Density of the fluid assumed by CPL
     double CPLDensity;
@@ -110,15 +112,9 @@ private:
     int rankRealm;
     int rankCart;
 
-    // Coordinates of the local processor
-    std::vector<int> myCoords;
-
-
     // Data to be sent/received with CPL-Library
-    CPL::ndArray<double> sendVelocityBuff;
     CPL::ndArray<double> sendStressBuff;
     CPL::ndArray<double> recvVelocityBuff;
-    CPL::ndArray<double> recvStressBuff;
 
     // Region cell limits
     std::vector<int> olapRegion;
@@ -128,57 +124,16 @@ private:
     // Portions of the region in the local processor
     std::vector<int> velBCPortion;
     std::vector<int> cnstFPortion;
+
+    // Coordinates of the local processor
+    std::vector<int> myCoords;
     
     // Number of cells in the portion in a region
     int velBCCells[3];
     int cnstFCells[3];
 
-    // Some utility functions
-    Foam::Vector<double> maxPoints (Foam::pointField points)
-    {
-        double xmax=-std::numeric_limits<double>::max();
-        double ymax=-std::numeric_limits<double>::max();
-        double zmax=-std::numeric_limits<double>::max();
-        double x, y, z;
-        forAll(points, i)
-        {
-            x = points[i].x();
-            y = points[i].y();
-            z = points[i].z();
-            if (x > xmax) xmax = x;
-            if (y > ymax) ymax = y;
-            if (z > zmax) zmax = z;
-        }
-
-        Foam::Vector<double> coords(xmax, ymax, zmax);
-
-        return coords;
-    }
-
-    Foam::Vector<double> minPoints (Foam::pointField points)
-    {
-        double xmin=std::numeric_limits<double>::max();
-        double ymin=std::numeric_limits<double>::max();
-        double zmin=std::numeric_limits<double>::max();
-        double x, y, z;
-        int count = 0;
-        forAll(points, i)
-        {
-
-            x = points[i].x();
-            y = points[i].y();
-            z = points[i].z();
-                count++;
-        //        std::cout << "mincoord: " << x << " " << y << " " << z << std::endl;
-            if (x < xmin) xmin = x;
-            if (y < ymin) ymin = y;
-            if (z < zmin) zmin = z;
-        }
-
-        Foam::Vector<double> coords (xmin, ymin, zmin);
-
-        return coords;
-    }
+	//meshSearch local search for points in a mesh
+	Foam::meshSearch* meshSearcher;
 
 };
 

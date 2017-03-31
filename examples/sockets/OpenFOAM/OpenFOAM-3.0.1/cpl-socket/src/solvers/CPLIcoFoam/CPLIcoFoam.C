@@ -39,8 +39,6 @@ int main(int argc, char *argv[])
 {
 
 
-    CPLSocketFOAM socket;
-    socket.initComms(argc, argv);
     
     #include "setRootCase.H"
     #include "createTime.H"
@@ -50,8 +48,10 @@ int main(int argc, char *argv[])
 
     #include "createFields.H"
     #include "initContinuityErrs.H"
-    
-
+   
+	// MPI_Init is called somewhere in the PStream library
+    CPLSocketFOAM socket;
+    socket.initComms(argc, argv);
     socket.initCFD(runTime, mesh);
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -59,12 +59,10 @@ int main(int argc, char *argv[])
     Info<< "\nStarting time loop\n" << endl;
     while (runTime.loop())
     {
-
-        socket.packStress(U, nu, mesh);
-        socket.sendStress();
-        socket.recvVelocity();
-        socket.unpackVelocity(U, mesh);
-
+		socket.packStress(U, nu, mesh);
+		socket.sendStress();
+		socket.recvVelocity();
+       	socket.unpackVelocity(U, mesh);
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
@@ -133,6 +131,7 @@ int main(int argc, char *argv[])
             << nl << endl;
     }
     Info<< "End\n" << endl;
+	CPL::finalize();
 
     return 0;
 }

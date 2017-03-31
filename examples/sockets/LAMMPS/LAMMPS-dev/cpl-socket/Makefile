@@ -24,6 +24,7 @@ OBJ = $(SRC:.cpp=.o)
 OBJDIR = ./obj
 SRCDIR = ./src
 BINDIR = ./bin
+CONFIGDIR = ./config
 SRCFILES = $(addprefix $(SRCDIR)/, $(SRC))
 OBJFILES = $(addprefix $(OBJDIR)/, $(OBJ))
 LAMMPSSRCDIR = $(LAMMPS_PATH)/src
@@ -55,7 +56,7 @@ $(EXE): $(LIBLAMMPS_CPL) $(OBJDIR) $(BINDIR) $(OBJFILES)
 
 # LAMMPS Library
 $(LIBLAMMPS_CPL):
-	@bash enable-packages.sh
+	@bash $(CONFIGDIR)/enable-packages.sh
 	@cd $(LAMMPSSRCDIR) && make mode=lib cpl
 
 # Directories
@@ -70,13 +71,17 @@ $(OBJFILES): $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CPP) $(CFLAGS) $(LAMMPS_INC) $(CPL_INC) -c $< -o $@
 
 test-all:
-	py.test -v -s ./test
+	py.test -v ./test
 	
-test-velcities:
-	py.test -v -s ./test/velocityP-C
+test-velocities:
+	py.test -v ./test/velocityP-C
 
 test-forces:
-	py.test -v -s ./test/forcesC-P
+	py.test -v ./test/forceC-P
+
+install-user-cpl:
+	cp -R lammps_packages/USER-CPL $(LAMMPS_PATH)/src
+	cp $(CONFIGDIR)/Makefile.cpl $(LAMMPS_PATH)/src/MAKE
 
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)

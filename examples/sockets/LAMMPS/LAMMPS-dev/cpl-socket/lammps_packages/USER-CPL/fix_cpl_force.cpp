@@ -43,6 +43,7 @@ post_force (int vflag) {
     double dA = dx*dz;
     double dV = dx*dy*dz;
     
+    //TODO: Pass this info as parameters of the fix
     char* groupstr = "cplforcegroup";
     char* regionstr = "cplforceregion";
 
@@ -130,25 +131,22 @@ post_force (int vflag) {
                 double g = flekkoyGWeight (x[i][1], cplforceregion->extent_ylo,
                                            cplforceregion->extent_yhi);
 
+
                 // Since the Flekkoy weight is considered only for 0 < y < L/2, for cells 
                 // that are completely in y < 0 gSums(i, j, k) will be always 0.0 so can 
                 // produce a NAN in the g/gSums division below.
                 if (gSums(icell, jcell, kcell) > 0.0) {
                     double gdA = (g/gSums(icell, jcell, kcell)) * dA;
-                    // Normal to the X-Z plane is (0, 1, 0) so (tauxy, syy, tauxy)
+                    // Normal to the X-Z plane is (0, 1, 0) so (tauxy, syy, tauzy)
                     // are the only components of the stress tensor that matter.
                     double fx = gdA * cfdStress->operator()(1, icell, jcell, kcell);
                     double fy = gdA * cfdStress->operator()(4, icell, jcell, kcell);
                     double fz = gdA * cfdStress->operator()(7, icell, jcell, kcell);
                     f[i][0] += fx;
-                    // Those should be zero for parallel flow! (CHECK WITH OPENFOAM)
+                    // Those should be zero for parallel flow! (CHECK WITH OPENFOAM). Unless one considers pressure from
+                    // the continuum domain acting on the interface.
                     f[i][1] += fy;
                     f[i][2] += fz;
-                    //ofs << x[i][1] << "\t" << 
-                    //       jcell << "\t" << 
-                    //       fx << "\t" << 
-                    //       fy << "\t" << 
-                    //       fz << "\t" << std::endl;
                     //f[i][1] -= (g/gsum) * dA * pressure
                 }
             }
@@ -179,8 +177,8 @@ flekkoyGWeight (double y, double ymin, double ymax) {
     else if (yhat > 0.0) {
         g = 2.0*(1.0/(L - K*yhat) - 1.0/L - K*yhat/(L*L));
     }
-    
-    return g;
+    return 1; 
+   // return g;
     
 }
 

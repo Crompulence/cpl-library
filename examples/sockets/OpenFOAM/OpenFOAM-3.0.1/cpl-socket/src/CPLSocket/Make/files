@@ -1,3 +1,0 @@
-CPLSocket.C
-
-LIB = $(FOAM_CPL_SOCKET_LIBBIN)/libCPLSocket

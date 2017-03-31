@@ -4,16 +4,16 @@ import sys
 
 try:
     from mpi4py import MPI
-    from cplpy import CPL
+    from cplpy import CPL 
     import numpy as np
 except ImportError as exc:
     print("ERROR: ", sys.exc_info()[0], exc, file=sys.stderr)
     MPI.COMM_WORLD.Abort(errorcode=1)
 
 
-CPL = CPL()
+cpllib = CPL()
 
-CPL.set("output_mode", 1)
+cpllib.set("output_mode", 1)
 
 
 try:
@@ -46,7 +46,7 @@ ncxyz = np.array([NCx, NCy, NCz], order='F', dtype=np.int32)
 xyzL = np.array([Lx, Ly, Lz], order='F', dtype=np.float64)
 
 # Create communicators and check that number of processors is consistent
-realm_comm = CPL.init(CPL.CFD_REALM)
+realm_comm = cpllib.init(cpllib.CFD_REALM)
 nprocs_realm = realm_comm.Get_size()
 
 if (nprocs_realm != NProcs):
@@ -54,42 +54,42 @@ if (nprocs_realm != NProcs):
     MPI.COMM_WORLD.Abort(errorcode=1)
 
 # Create cartesian communicator and initialize
+cpllib.set_timing(0, nsteps, dt)
 cart_comm = realm_comm.Create_cart([NPx, NPy, NPz])
-CPL.setup_cfd(nsteps, dt, cart_comm, xyzL, xyz_orig, ncxyz, 1.0)
+cpllib.setup_cfd(cart_comm, xyzL, xyz_orig, ncxyz)
 
 my_coords = cart_comm.Get_coords(cart_comm.Get_rank())
 my_coords = np.array(my_coords, order='F', dtype=np.int32)
-olap_limits = CPL.get_olap_limits()
+olap_limits = cpllib.get_olap_limits()
 
 # Constrained region cell limits and number of cells
-cnstFRegion = CPL.get_cnst_limits()
-cnstFPortion = CPL.my_proc_portion(cnstFRegion)
-[cnstncx, cnstncy, cnstncz] = CPL.get_no_cells(cnstFPortion)
+cnstFRegion = cpllib.get_cnst_limits()
+cnstFPortion = cpllib.my_proc_portion(cnstFRegion)
+[cnstncx, cnstncy, cnstncz] = cpllib.get_no_cells(cnstFPortion)
 
 # Velocity averaging region cell limits and number of cells
 velBCRegion = np.copy(olap_limits)
 velBCRegion[3] = velBCRegion[2]
-velBCPortion = CPL.my_proc_portion(velBCRegion)
-[velBCncx, velBCncy, velBCncz] = CPL.get_no_cells(velBCPortion)
+velBCPortion = cpllib.my_proc_portion(velBCRegion)
+[velBCncx, velBCncy, velBCncz] = cpllib.get_no_cells(velBCPortion)
 
 # NOTE: Only 1 step for tests
 for step in xrange(nsteps):
     # Send dummy stress distribution (constant value of stress = 0) to MD
-    scatter_array = np.zeros((9, cnstncx, cnstncy, cnstncz), order='F',
+    send_array = np.zeros((9, cnstncx, cnstncy, cnstncz), order='F',
                              dtype=np.float64)
-    recv_array = np.zeros((9, 0, 0, 0), order='F', dtype=np.float64)
-    CPL.scatter(scatter_array, cnstFRegion, recv_array)
+    cpllib.send(send_array, cnstFRegion)
 
     # Receive averaged velocities from LAMMPS socket
     recv_array = np.zeros((4, velBCncx, velBCncy, velBCncz), order='F',
                           dtype=np.float64)
-    gather_array = np.zeros((4, 0, 0, 0), order='F', dtype=np.float64)
-    CPL.gather(gather_array, velBCRegion, recv_array)
+    cpllib.recv(recv_array, velBCRegion)
 
+"""
 dx, dy, dz = (Lx / NCx, Ly / NCy, Lz / NCz)
 lines = ""
 
-if (velBCPortion[2] >= 0):
+if (cpllib.overlap()):
     for i in xrange(velBCncx):
         for k in xrange(velBCncz):
             icoord = my_coords[0] * velBCncx + i
@@ -106,3 +106,10 @@ myrank = realm_comm.Get_rank()
 if myrank == 0:
     with open("cfd_vels.dat", "w") as vels_file:
         vels_file.writelines(lines)
+"""
+cpllib.dump_region(velBCRegion, recv_array, "cfd_vels.dat", realm_comm,                                                                                                                                                            
+        components={0:None, 1:None, 2:None}, coords="other")
+
+
+
+cpllib.finalize()

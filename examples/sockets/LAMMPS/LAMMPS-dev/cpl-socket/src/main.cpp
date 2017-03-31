@@ -43,6 +43,7 @@ Description
 Author(s)
 
     David Trevelyan
+    Eduardo Ramos Fernandez
 
 */
 #include <memory>
@@ -68,14 +69,12 @@ int main(int argc, char **argv)
 
     LAMMPS_NS::LAMMPS *lmp = new LAMMPS_NS::LAMMPS(argc, argv, cpl.realmCommunicator());
 
-std::cout << "args: " << argc << "argv :" << argv[1] << std::endl;
-
     // Run LAMMPS setup script 
     lmp->input->file();
     cpl.initMD (lmp);
-    std::string line;
+	std::string line;
 
-    for (int step = 0; step < cpl.nsteps; step += cpl.timestep_ratio)
+    for (int step = 0; step < cpl.nsteps; step++)//cpl.timestep_ratio)
     {
         // Communications
         cpl.recvStress();
@@ -89,6 +88,8 @@ std::cout << "args: " << argc << "argv :" << argv[1] << std::endl;
 
     }
 
+
+    std::cout << "LAMMPS finished."<< std::endl;
     // Finalize MPI
     delete lmp;
     cpl.finalizeComms();

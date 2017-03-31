@@ -1,0 +1,63 @@
+# LAMMPS
+
+variable	xx equal 300
+variable	yy equal 300
+variable	zz equal 300
+
+# Cells' dimensions
+variable dx equal 20
+variable dy equal 20
+variable dz equal 20 
+
+
+units		real
+atom_style	atomic
+
+lattice		fcc 10
+region		box block 0 ${xx} 0 ${yy} 0 ${zz} units box
+boundary p p p
+create_box	1 box
+
+region fluidregion block 0 ${xx} 0 ${yy} 0 ${zz} units box
+
+# The force constrain fix is acting in a x-y slab of one cell big in y
+region constrainreg block 0 ${xx} $(v_yy - 3*v_dy) ${yy}  0 ${zz} units box
+
+create_atoms 1 region fluidregion units box
+
+mass		1 1.0
+
+velocity	all create 1000.0 87287 loop geom
+
+pair_style	lj/cut 10
+pair_coeff	1 1 2.5 3.4
+
+neighbor	2.0 bin
+neigh_modify delay 0 every 1 check yes
+
+fix 1 all nve
+
+# Atoms do not interact at all so forces can be only
+# modified from lammps forece fix.
+neigh_modify exclude type 1 1
+
+# Move a bit the atoms so there is no lattice arrangement anymore
+run 10
+
+# Do not integrate
+unfix 1
+
+# Stop atoms from moving. Forces are zero since interactions have been turned
+# off.
+velocity all set 0 0 0 units box
+
+# IMPORTANT for not messing the internal average for BCs in the CPLSocket for LAMMPS
+reset_timestep 0
+
+compute ffieldcompute all chunk/atom bin/3d x lower ${dx} y lower ${dy} z  lower ${dz} ids every region constrainreg units box
+
+# The output shows the middle coordinate of each box (10, 10, 10) for the first box in this case
+# The dumped forces should be the ones imposed by the constrained region.
+fix ffieldfix all ave/chunk 1 1 1 ffieldcompute fx fy fz norm none file lammps_forces.dat format %20.16g
+
+print "---RUN COUPLED---"

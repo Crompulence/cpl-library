@@ -1,0 +1,75 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  3.0.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       polyBoundaryMesh;
+    location    "constant/polyMesh";
+    object      boundary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+6
+(
+    movingWall
+    {
+        type            wall;
+        inGroups        1(wall);
+        nFaces          630;
+        startFace       26955;
+    }
+    CPLReceiveMD
+    {
+        type            patch;
+        nFaces          630;
+        startFace       27585;
+    }
+    streamwiseIn
+    {
+        type            cyclic;
+        inGroups        1(cyclic);
+        nFaces          315;
+        startFace       28215;
+        matchTolerance  0.0001;
+        transform       unknown;
+        neighbourPatch  streamwiseOut;
+    }
+    streamwiseOut
+    {
+        type            cyclic;
+        inGroups        1(cyclic);
+        nFaces          315;
+        startFace       28530;
+        matchTolerance  0.0001;
+        transform       unknown;
+        neighbourPatch  streamwiseIn;
+    }
+    front
+    {
+        type            cyclic;
+        inGroups        1(cyclic);
+        nFaces          450;
+        startFace       28845;
+        matchTolerance  0.0001;
+        transform       unknown;
+        neighbourPatch  back;
+    }
+    back
+    {
+        type            cyclic;
+        inGroups        1(cyclic);
+        nFaces          450;
+        startFace       29295;
+        matchTolerance  0.0001;
+        transform       unknown;
+        neighbourPatch  front;
+    }
+)
+
+// ************************************************************************* //

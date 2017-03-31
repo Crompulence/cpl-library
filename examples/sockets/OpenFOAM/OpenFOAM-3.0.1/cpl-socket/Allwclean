@@ -1,7 +1,0 @@
-wclean src/CPLPstream
-wclean src/CPLSocketFOAM
-
-wclean src/solvers/CPLIcoFoam
-
-rm -r lib
-rm -r bin

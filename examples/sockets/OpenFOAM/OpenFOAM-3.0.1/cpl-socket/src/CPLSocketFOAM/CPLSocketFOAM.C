@@ -39,41 +39,33 @@ Description
 */
 #include "CPLSocketFOAM.H"
 #include "blockMesh.H"
-#include "PstreamGlobals.H"
+#include <sstream>
+#include <unistd.h>
 
 
 // Initialise CFD realm communicator
-void CPLSocketFOAM::initComms (int& argc, char**& argv)
-{
-
-    MPI_Init(&argc, &argv);
-
-    // Split MPI_COMM_WORLD to md and cfd realm comms,
-    // store cfd realm comm in global variable for Pstream and
-    // store rank in realm
-
+void CPLSocketFOAM::initComms (int& argc, char**& argv) {
     CPL::init (CPL::cfd_realm, realmComm);
-    Foam::PstreamGlobals::CPLRealmComm = realmComm;
     MPI_Comm_rank (realmComm, &rankRealm);
 
 }
 
-
-
 // Analyse mesh topology and perform CFD-side CPL_init.
-void CPLSocketFOAM::\
-    initCFD (const Foam::Time &runTime, const Foam::fvMesh &mesh) {
+void CPLSocketFOAM::initCFD (const Foam::Time &runTime, const Foam::fvMesh &mesh) {
+
+	meshSearcher = new Foam::meshSearch(mesh);
 
     Foam::Info << "CPLSocketFOAM: Analysing processor and mesh topology"
                << Foam::endl;
 
     // Read from decomposePar dictionary the number of processors in each
     // direction. Must be decomposed with the "simple" method.
-    Foam::IOdictionary decomposeDict
-    (
-        Foam::IOobject ("decomposeParDict", runTime.time().system(), runTime,
-                        IOobject::MUST_READ, IOobject::NO_WRITE, false)
-    );
+	//TODO: THis should not be necessary if the cell grid is defined in the config
+	//file for the overlap region
+    Foam::IOdictionary decomposeDict(Foam::IOobject ("decomposeParDict", 
+									 runTime.time().system(), runTime,
+                        			 IOobject::MUST_READ, IOobject::NO_WRITE,
+									 false));
     Foam::dictionary simpleCoeffs = decomposeDict.subDict ("simpleCoeffs");
     Foam::Vector<int> np = simpleCoeffs.lookup ("n");
     nprocs = np.x() * np.y() * np.z();
@@ -82,50 +74,20 @@ void CPLSocketFOAM::\
     npxyz[0] = np.x();
     npxyz[1] = np.y();
     npxyz[2] = np.z();
-    periods[0] = 1;
+    periods[0] = 0;
     periods[1] = 0;
-    periods[2] = 1;
-
-    // Get info needed to calculate this processor's spatial coordinates
-    Foam::pointField points = mesh.points();
-    Foam::Vector<double> procMaxPoints (maxPoints (points));
-    Foam::Vector<double> procMinPoints (minPoints (points));
-
-    // Reduce all with min/max operator to find global min/max
-    Foam::Vector<double> globMaxPoints (procMaxPoints);
-    Foam::Vector<double> globMinPoints (procMinPoints);
-    Foam::reduce (globMaxPoints, maxOp<Foam::Vector<double>>());
-    Foam::reduce (globMinPoints, minOp<Foam::Vector<double>>());
-
-    Foam::Vector<double> domainLength (globMaxPoints - globMinPoints);
-
-//    std::cout << "domainlength " << domainLength.x() << " " << domainLength.y() << " " << domainLength.z() << std::endl;
-//    std::cout << "proc_min" << procMinPoints.x() << " " << procMinPoints.y() << " " << procMinPoints.z() \
-    << "glob_min" << globMinPoints.x() << " " << globMinPoints.y() << " " << globMinPoints.z() << std::endl;
-   
-    // Store this processor's coordinates in space
-    myCoords.push_back
-    (
-        nint (np.x() * ((procMinPoints.x() - globMinPoints.x())
-                       / domainLength.x()))
-    );
-    myCoords.push_back
-    (
-        nint (np.y() * ((procMinPoints.y() - globMinPoints.y())
-                       / domainLength.y()))
-    );
-    myCoords.push_back
-    (
-        nint (np.z() * ((procMinPoints.z() - globMinPoints.z())
-                       / domainLength.z()))
-    );
-
+    periods[2] = 0;
 
     Foam::Info << "CPLSocketFOAM: Defining new MPI Cartesian communicator"
                << Foam::endl;
 
-    // Create custom cartesian communicator (cartComm) based on myCoords
-    //std::cout << "npxyz: " << npxyz[0] << " " << npxyz[1] << " " << npxyz[2] << "my_coords: " << myCoords[0] << " " << myCoords[1] << " " << myCoords[2] << std::endl;
+    // Create custom cartesian communicator (cartComm) based on myCoords	
+	// Assume xyz ordering (Simple decomposition)
+	myCoords[2] = Pstream::myProcNo() / (np.x()*np.y());
+	int mod_aux = Pstream::myProcNo() % (np.x()*np.y());
+	myCoords[1] = mod_aux / np.x();
+	myCoords[0] = mod_aux % np.x();
+	
     CPL::Cart_create (realmComm, 3, npxyz, periods, 
                       myCoords.data(), &cartComm);
 
@@ -137,20 +99,20 @@ void CPLSocketFOAM::\
     int nsteps = nint ((runTime.endTime().value() - \
                         runTime.startTime().value()) / dt_cfd);
 
+    Foam::IOdictionary blockMeshDict(Foam::IOobject ("polyMesh/blockMeshDict", 
+									 runTime.time().constant(), runTime,
+                        			 IOobject::MUST_READ, 
+									 IOobject::NO_WRITE, false));
+
+	Foam::List<Foam::Vector<double>> vertices(blockMeshDict.lookup("vertices"));
+
     // Domain dimensions
-    xyzL[0] = domainLength.x();
-    xyzL[1] = domainLength.y();
-    xyzL[2] = domainLength.z();
+    xyzL[0] = vertices[1][0] - vertices[0][0];
+    xyzL[1] = vertices[3][1] - vertices[0][1];
+    xyzL[2] = vertices[4][2] - vertices[0][2];
   
-    // dummy density for now TODO(djt06@ic.ac.uk) remove density from coupler
-    // cfd_init function input
     double dummyDensity = -666.0;
 
-    Foam::IOdictionary blockMeshDict
-    (
-        Foam::IOobject ("blockMeshDict", "../constant/polyMesh", runTime,
-                        IOobject::MUST_READ, IOobject::NO_WRITE, false)
-    );
 
     Foam::word dummyRegionName("dummy");
     Foam::blockMesh blocks(blockMeshDict, dummyRegionName);
@@ -164,8 +126,11 @@ void CPLSocketFOAM::\
     // Origin of the domain
     double xyz_orig[3] = {0.0, 0.0, 0.0};
 
+
     // Initialise CPL library
+	CPL::set_timing(0, nsteps, dt_cfd);
     CPL::setup_cfd (cartComm, xyzL, xyz_orig, ncxyz);
+
 
     getCellTopology();
     allocateBuffers();
@@ -174,14 +139,10 @@ void CPLSocketFOAM::\
     CPLDensity = CPL::density_cfd();
 
     Foam::Info << "OpenFOAM CPL topology initialisation complete" << Foam::endl;
-    return;
 
 }
 
-void CPLSocketFOAM::\                                                                                                                                                                                                                      
-getCellTopology() {                                                                                                                                                                                                                       
-
-
+void CPLSocketFOAM::getCellTopology() {                                                                                                                                                                                                                       
     // Cell sizes
     dx = CPL::get<double> ("dx");
     dy = CPL::get<double> ("dy");
@@ -204,65 +165,61 @@ getCellTopology() {
     CPL::get_no_cells(cnstFPortion.data(), cnstFCells);
 }
 
-void CPLSocketFOAM::\
-allocateBuffers() {
+void CPLSocketFOAM::allocateBuffers() {
     // Received stress field
-    int zeroShapeStress[4] = {9, 0, 0, 0};
     int sendShape[4] = {9, cnstFCells[0], cnstFCells[1], cnstFCells[2]};
     sendStressBuff.resize(4, sendShape);
-    recvStressBuff.resize(4, zeroShapeStress);
 
     // LAMMPS computed velocity field
     int recvShape[4] = {4, velBCCells[0], velBCCells[1], velBCCells[2]};
-    int zeroShapeVel[4] = {4, 0, 0, 0};
     recvVelocityBuff.resize (4, recvShape);
-    sendVelocityBuff.resize (4, zeroShapeVel);
 }  
     
 // Packs the 9 components of the stress-tensor to the socket's CPL::ndArray
 // storage.
 void CPLSocketFOAM::packStress(volVectorField &U, dimensionedScalar &nu, fvMesh &mesh)
 {
-
-    // Evaluate the stress tensor sigma at all local cells (forget pressure for
-    // now)
     Foam::dimensionedScalar mu(CPLDensity*nu);
-    Foam::volTensorField gradU(fvc::grad(U));
-    Foam::volTensorField sigma(mu*(gradU + gradU.T()));
+	Foam::volSymmTensorField sigma(nu*2*dev(symm(fvc::grad(U))));
+	if (CPL::is_proc_inside(cnstFPortion.data())) {
 
-    // Loop over socket cells
-    int icmin = cnstFPortion[0];
-    int jcmin = cnstFPortion[2];
-    int kcmin = cnstFPortion[4];
+		// Loop over socket cells
+		Foam::label cell;
+		Foam::point globalPos;
+		int glob_cell[3], loc_cell[3];
+		for (int ix = cnstFPortion[0]; ix <= cnstFPortion[1]; ix++) {
+			for (int iy = cnstFPortion[2]; iy <= cnstFPortion[3]; iy++) {
+				for (int iz = cnstFPortion[4]; iz <= cnstFPortion[5]; iz++) {
+					// Global position at cell center
+					glob_cell[0] = ix;
+					glob_cell[1] = iy;
+					glob_cell[2] = iz;
+					CPL::map_glob2loc_cell(cnstFPortion.data(), glob_cell, loc_cell);
+					globalPos = Foam::point((glob_cell[0] + 0.5) * dx,
+											(glob_cell[1] + 0.5) * dy, 
+											(glob_cell[2] + 0.5) * dz);
+					cell = meshSearcher->findNearestCell(globalPos);
+					if (cell != -1) {
+						sendStressBuff(0,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xx();
+						sendStressBuff(1,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
+						sendStressBuff(2,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
+						sendStressBuff(3,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
+						sendStressBuff(4,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yy();
+						sendStressBuff(5,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
+						sendStressBuff(6,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
+						sendStressBuff(7,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
+						sendStressBuff(8,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zz();
+					}
+					else
+						std::cerr << "Warning: The point (" << (glob_cell[0]+0.5)*dx << "," << 
+									(glob_cell[1]+0.5)*dy << "," << (glob_cell[2]+0.5)*dz << 
+									") is outside the mesh for whatever reason! - Cell: " << 
+									cell << std::endl;
 
-    for (int ix = 0; ix < sendStressBuff.shape(1); ix++) {
-        for (int iy = 0; iy < sendStressBuff.shape(2); iy++) {
-            for (int iz = 0; iz < sendStressBuff.shape(3); iz++) {
-
-                // Global position at cell center
-                Foam::point globalPos
-                (
-                    (static_cast<double>(ix + icmin) + 0.5) * dx,
-                    (static_cast<double>(iy + jcmin) + 0.5) * dy,
-                    (static_cast<double>(iz + kcmin) + 0.5) * dz
-                );
-
-                // Get value of stress 9D by interpolating
-                Foam::label cell = mesh.findCell(globalPos);
-                sendStressBuff(0,ix,iy,iz) = sigma[cell].xx();
-                sendStressBuff(1,ix,iy,iz) = sigma[cell].xy();
-                sendStressBuff(2,ix,iy,iz) = sigma[cell].xz();
-                sendStressBuff(3,ix,iy,iz) = sigma[cell].yx();
-                sendStressBuff(4,ix,iy,iz) = sigma[cell].yy();
-                sendStressBuff(5,ix,iy,iz) = sigma[cell].yz();
-                sendStressBuff(6,ix,iy,iz) = sigma[cell].zx();
-                sendStressBuff(7,ix,iy,iz) = sigma[cell].zy();
-                sendStressBuff(8,ix,iy,iz) = sigma[cell].zz();
-
-            }
-        }
-    }
-
+				}
+			}
+		}
+	}
 }
 
 // Unpacks the 3 components of the velocity-tensor from the socket's
@@ -270,173 +227,92 @@ void CPLSocketFOAM::packStress(volVectorField &U, dimensionedScalar &nu, fvMesh 
 double CPLSocketFOAM::\
 unpackVelocity(volVectorField &U, fvMesh &mesh) {
 
-    // Take the mean across spanwise direction if specified by coupler
-    // y direction is axis #2
-    if (CPL::get<int>("cpl_cfd_bc_slice")) {
+	if (CPL::is_proc_inside(velBCPortion.data())) { 
 
-        Foam::Info << "CPL_CFD_BC_SLICE is on: averaging CFD recvVelocity "
-                      "in the x-z plane" << Foam::endl;
+		// TODO: Make this a utility general function that can be used on buffers
+		if (CPL::get<int>("cpl_cfd_bc_slice")) {
 
-        // Number of cells in the local processor in x-z plane
-        int N = recvVelocityBuff.shape(1) * recvVelocityBuff.shape(3);
+			Foam::Info << "CPL_CFD_BC_SLICE is on: averaging CFD recvVelocity "
+						  "in the x-z plane" << Foam::endl;
 
-        // For every component and y-value 
-        for (int j = 0; j < recvVelocityBuff.shape(2); ++j) {
-            for (int c = 0; c < recvVelocityBuff.shape(0); ++c) {
-            // Sum across the x-z plane 
-            double total = 0.0;
-                for (int k = 0; k < recvVelocityBuff.shape(3); ++k)
-                    for (int i = 0; i < recvVelocityBuff.shape(1); ++i)
-                        total += recvVelocityBuff(c, i, j, k);
+			// Number of cells in the local processor in x-z plane
+			int N = recvVelocityBuff.shape(1) * recvVelocityBuff.shape(3);
 
-            // Find mean by dividing sum by number of cells 
-                for (int k = 0; k < recvVelocityBuff.shape(3); ++k)
-                    for (int i = 0; i < recvVelocityBuff.shape(1); ++i)
-                        recvVelocityBuff(c, i, j, k) = total / static_cast<double> (N);
-            }
-        }
-    } 
+			// For every component and y-value 
+			for (int j = 0; j < recvVelocityBuff.shape(2); ++j) {
+				for (int c = 0; c < recvVelocityBuff.shape(0); ++c) {
+				// Sum across the x-z plane 
+				double total = 0.0;
+				for (int k = 0; k < recvVelocityBuff.shape(3); ++k)
+					for (int i = 0; i < recvVelocityBuff.shape(1); ++i)
+						total += recvVelocityBuff(c, i, j, k);
 
-    int applyBCx = CPL::get<int> ("cpl_cfd_bc_x");
-    int applyBCy = CPL::get<int> ("cpl_cfd_bc_y");
-    int applyBCz = CPL::get<int> ("cpl_cfd_bc_z");
+			// Find mean by dividing sum by number of cells 
+				for (int k = 0; k < recvVelocityBuff.shape(3); ++k)
+					for (int i = 0; i < recvVelocityBuff.shape(1); ++i)
+						recvVelocityBuff(c, i, j, k) = total / static_cast<double> (N);
+				}
+			}
+		} 
 
-    Foam::string receivePatchName ("CPLReceiveMD");
-    Foam::label rvPatchID = mesh.boundary().findPatchID(receivePatchName);
+		// Apply BCs only in certain directions.
+		int applyBCx = CPL::get<int> ("cpl_cfd_bc_x");
+		int applyBCy = CPL::get<int> ("cpl_cfd_bc_y");
+		int applyBCz = CPL::get<int> ("cpl_cfd_bc_z");
 
-    if (rvPatchID == -1) {
-        FatalErrorIn ( "CPLSocketFOAM::unpack()")
-            << " Could not find patch ID " << receivePatchName << ". "
-               " Aborting."
-            << exit(FatalError);
-    }
+		// Patch receiving B.Cs
+		Foam::string receivePatchName ("CPLReceiveMD");
+		Foam::label rvPatchID = mesh.boundary().findPatchID(receivePatchName);
 
-    Foam::fvPatchVectorField& rvPatch = U.boundaryField()[rvPatchID];
-    const Foam::vectorField faceCenters = mesh.boundary()[rvPatchID].Cf();
+		if (rvPatchID == -1) {
+			FatalErrorIn ( "CPLSocketFOAM::unpack()")
+				<< " Could not find patch ID " << receivePatchName << ". "
+				   " Aborting."
+				<< exit(FatalError);
+		}
 
-    for (int faceI = 0; faceI != faceCenters.size(); ++faceI) {
+		Foam::fvPatchVectorField& rvPatch = U.boundaryField()[rvPatchID];
+		const Foam::vectorField faceCenters = mesh.boundary()[rvPatchID].Cf();
 
-        double facex = faceCenters[faceI].x();
-        double facey = faceCenters[faceI].y();
-        double facez = faceCenters[faceI].z();
+		Foam::label cell;
+		Foam::point closestCellCentre;
+		for (int faceI = 0; faceI != faceCenters.size(); ++faceI) {
+			double facex = faceCenters[faceI].x();
+			double facey = faceCenters[faceI].y();
+			double facez = faceCenters[faceI].z();
 
-        // Find the cell indices for this position recvVelocity(:, ix, iy, iz)
-        int glob_cell[3];
-        CPL::map_coord2cell(facex, facey, facez, glob_cell);
-        int loc_cell[3];
-        bool valid_cell = CPL::map_glob2loc_cell(velBCPortion.data(), glob_cell, loc_cell);
+			// Find the cell indices for this position recvVelocity(:, ix, iy, iz)
+			int glob_cell[3];
+			CPL::map_coord2cell(facex, facey, facez, glob_cell);
+			int loc_cell[3];
+			CPL::map_glob2loc_cell(velBCPortion.data(), glob_cell, loc_cell);
 
-        // For now, the coupler passes momentum and mass in velocity array
-        // This is due for review. 
-        if (valid_cell) {
-            //std::cout << "cell: " << loc_cell[0] << " " << loc_cell[1] << " " << loc_cell[2] \
-               << "limits: " << velBCPortion[0] << " " << velBCPortion[1] << " " << velBCPortion[2] << " " << velBCPortion[3] << " " << velBCPortion[4] << " " << velBCPortion[5] << std::endl;
+			//double m = recvVelocityBuff(3, loc_cell[0], loc_cell[1], loc_cell[2]); 
+			double m = 1.0;
+			double recvvx = recvVelocityBuff(0, loc_cell[0], loc_cell[1], loc_cell[2])/m;
+			double recvvy = recvVelocityBuff(1, loc_cell[0], loc_cell[1], loc_cell[2]) /m;
+			double recvvz = recvVelocityBuff(2, loc_cell[0], loc_cell[1], loc_cell[2])/m;
 
-            double m = recvVelocityBuff(3, loc_cell[0], loc_cell[1], loc_cell[2]); 
-            double recvvy = recvVelocityBuff(1, loc_cell[0], loc_cell[1], loc_cell[2]) /m;
-            double recvvx = recvVelocityBuff(0, loc_cell[0], loc_cell[1], loc_cell[2])/m;
-            double recvvz = recvVelocityBuff(2, loc_cell[0], loc_cell[1], loc_cell[2])/m;
+			if (applyBCx) rvPatch[faceI].x() = recvvx;
+			if (applyBCy) rvPatch[faceI].y() = recvvy;
+			if (applyBCz) rvPatch[faceI].z() = recvvz;
+		}
 
-            // Received velocity was averaged in the cell region BELOW 
-            // the domain. So, to get the velocity required at the BOUNDARY, 
-            // we need to take the average of the velocities ABOVE (i.e. the 
-            // bottom OpenFOAM cell velocity) AND BELOW (i.e. the received 
-            // velocity) the domain face.
-            Foam::point closestCellCentre (facex, facey + 0.5*dy, facez);
-            Foam::label cell = mesh.findCell (closestCellCentre);
-            double vx = (recvvx + U[cell].x()) / 2.0;
-            double vy = (recvvy + U[cell].y()) / 2.0;
-            double vz = (recvvz + U[cell].z()) / 2.0;
-
-            if (applyBCx) rvPatch[faceI].x() = vx;
-            if (applyBCy) rvPatch[faceI].y() = vy;
-            if (applyBCz) rvPatch[faceI].z() = vz;
-            //return recvvy + m + recvvx + recvvz;
-         }
-        }
-
-    if (applyBCx) Foam::Info << "MD->CFD BC x-velocity applied." << Foam::endl;
-    if (applyBCy) Foam::Info << "MD->CFD BC y-velocity applied." << Foam::endl;
-    if (applyBCz) Foam::Info << "MD->CFD BC z-velocity applied." << Foam::endl;
-
+		if (applyBCx) Foam::Info << "MD->CFD BC x-velocity applied." << Foam::endl;
+		if (applyBCy) Foam::Info << "MD->CFD BC y-velocity applied." << Foam::endl;
+		if (applyBCz) Foam::Info << "MD->CFD BC z-velocity applied." << Foam::endl;
+	}
 }
 
 // Sends 9 components of the stress-tensor to overlapping MD processes.
-void CPLSocketFOAM::\
-sendStress() {
-
-    const int comm_style = CPL::get<int> ("comm_style"); 
-    const int gath_scat = CPL::get<int> ("comm_style_gath_scat"); 
-    const int send_recv = CPL::get<int> ("comm_style_send_recv"); 
-
-
-    if (comm_style == gath_scat) {
-        // Send stress from CFD to MD processes
-     /**
-    for (int ix = 0; ix < sendStressBuff.shape(1); ix++) {
-        for (int iy = 0; iy < sendStressBuff.shape(2); iy++) {
-            for (int iz = 0; iz < sendStressBuff.shape(3); iz++) {
-
-                if (cnstFPortion[2] >= 0)
-                    std::cout << "Stress:" << sendStressBuff(1,ix,iy,iz) << " " << sendStressBuff(4,ix,iy,iz) << " " <<sendStressBuff(7,ix,iy,iz) << std::endl;
-             }
-         }
-     }**/
-
-        CPL::scatter (sendStressBuff.data(), sendStressBuff.shapeData(),
-                      cnstFRegion.data(), recvStressBuff.data(), 
-                      recvStressBuff.shapeData());
-    }
-    else if (comm_style == send_recv) {
-        FatalErrorIn ("CPLSocketFOAM::send()")
-            << " invalid comm_style."
-               " Currently only gather/scatter supported by OpenFOAM."
-            << exit(FatalError);
-    }
-    else {
-        FatalErrorIn ("CPLSocketFOAM::send()")
-            << " unrecognised comm_style."
-               " Currently only gather/scatter supported by OpenFOAM."
-            << exit(FatalError);
-    }
-  
+void CPLSocketFOAM::sendStress() {
+        CPL::send (sendStressBuff.data(), sendStressBuff.shapeData(),
+                   cnstFRegion.data());
 }
 
 // Receives 3 components of the velocity vector from overlapping MD processes.
-void CPLSocketFOAM::recvVelocity()
-{
-
-    const int comm_style = CPL::get<int> ("comm_style"); 
-    const int gath_scat = CPL::get<int> ("comm_style_gath_scat"); 
-    const int send_recv = CPL::get<int> ("comm_style_send_recv"); 
-
-    if (comm_style == gath_scat) {
-        // Receive velocity from CFD to MD processes
-        CPL::gather (sendVelocityBuff.data(), sendVelocityBuff.shapeData(),
-                     velBCRegion.data(), recvVelocityBuff.data(), 
-                     recvVelocityBuff.shapeData());
-   /**
-    for (int ix = 0; ix < recvVelocityBuff.shape(1); ix++) {
-        for (int iy = 0; iy < recvVelocityBuff.shape(2); iy++) {
-            for (int iz = 0; iz < recvVelocityBuff.shape(3); iz++) {
-                if (cnstFPortion[2] >= 0)
-                    std::cout << "Stress:" << recvVelocityBuff(0,ix,iy,iz) << " " << recvVelocityBuff(1,ix,iy,iz) << " " <<recvVelocityBuff(2,ix,iy,iz) << std::endl;
-             }
-         }
-    }
-**/ 
-    }
-    else if (comm_style == send_recv) {
-        FatalErrorIn ("CPLSocketFOAM::receive()")
-            << " invalid comm_style."
-               " Currently only gather/scatter supported by OpenFOAM."
-            << exit(FatalError);
-    }
-    else {
-        FatalErrorIn ("CPLSocketFOAM::receive()")
-            << " unrecognised comm_style."
-               " Currently only gather/scatter supported by OpenFOAM."
-            << exit(FatalError);
-    }
-  
+void CPLSocketFOAM::recvVelocity() {
+    CPL::recv(recvVelocityBuff.data(), recvVelocityBuff.shapeData(), 
+			  velBCRegion.data());
 }
+  
