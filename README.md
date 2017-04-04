@@ -8,7 +8,7 @@
 
 CPL Library is a communications and topology management system for
 coupling any continuum fluid dynamics (CFD) solver to any molecular dynamics
-(MD) code written in either python, C, C++ or Fortran. For more details about
+(MD) code written in either Python, C, C++ or Fortran. For more details about
 the philosophy, range of validity and aims of this software, please
 see the [wikki page](https://github.com/Crompulence/cpl-library/wiki/CPL-Library)
 and our dedicated website [www.cpl-library.org](http://www.cpl-library.org)
@@ -33,7 +33,7 @@ Contents
 1 ) Pre-requisites for compilation
 =================================
 
-- A C++14 compiler 
+- A C++11 compiler 
 - A Fortran 2008 compiler
 - An MPI library 
 
@@ -66,7 +66,7 @@ make/user-include.inc:
     $  cd ./make
     $  cp gcc.inc user-include.inc
     $  vi user-include.inc                  (make any necessary changes)
-    $  cd ../cpl
+    $  cd ../
     $  make PLATFORM=user-include
 
 
