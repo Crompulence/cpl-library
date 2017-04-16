@@ -61,20 +61,25 @@ Author(s)
 
 int main(int argc, char **argv)
 {
-    // Create socket and initialise MPI/CPL communicators
-    CPLSocketLAMMPS cpl;
-    cpl.initComms (argc, argv);
 
-
-    LAMMPS_NS::LAMMPS *lmp = new LAMMPS_NS::LAMMPS(argc, argv, cpl.realmCommunicator());
-
-std::cout << "args: " << argc << "argv :" << argv[1] << std::endl;
-
-    // Run LAMMPS setup script 
-    lmp->input->file();
-    cpl.initMD (lmp);
     std::string line;
 
+    // Create socket and initialise MPI/CPL communicators
+    CPLSocketLAMMPS cpl;
+    cpl.initComms(argc, argv);
+    LAMMPS_NS::LAMMPS *lmp = new LAMMPS_NS::LAMMPS(argc, argv, cpl.realmCommunicator());
+
+    // Run LAMMPS setup script
+    lmp->input->file();
+    cpl.initMD(lmp);
+
+    //Setup the fixes to LAMMPS by passing input arguments
+    // which activate averaging (using existing fixes) and
+    // turning on custom fixes specified in USER-CPL
+    cpl.setupFixMDtoCFD(lmp);
+    cpl.setupFixCFDtoMD(lmp);
+
+    cpl.nsteps = 100000;
     for (int step = 0; step < cpl.nsteps; step += cpl.timestep_ratio)
     {
         // Communications
@@ -85,12 +90,14 @@ std::cout << "args: " << argc << "argv :" << argv[1] << std::endl;
 
         // Continue LAMMPS 
         line = "run " + std::to_string(cpl.timestep_ratio);
-        lmp->input->one (line.c_str());
+        lmp->input->one(line.c_str());
 
     }
 
     // Finalize MPI
     delete lmp;
     cpl.finalizeComms();
+
+    return 0;
 
 }
