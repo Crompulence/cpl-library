@@ -448,6 +448,12 @@ subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
     integer, intent(out)  :: RETURNED_REALM_COMM, ierror
 
     integer :: MPMD_mode
+    logical :: initialised
+
+    call MPI_initialized(initialised, ierr)
+    if (.not.initialised) then
+        call error_abort("Error in CPL_init -- MPI not initialised") 
+    endif
 
     !Set error to zero and copy realm
     ierror=0
@@ -648,6 +654,7 @@ subroutine create_comm(MPMD_mode)
                 !Write port file
                 ierr = -1
                 do while(ierr .ne. 0)
+                    unitno = get_new_fileunit()
                     open(unitno, file=trim(filename), & 
                          action="write", iostat=ierr)
                     if (ierr .eq. 0) then
@@ -732,7 +739,7 @@ subroutine create_comm(MPMD_mode)
 
     else
 
-        call error_abort("Error in CPL_init -- It should be impossible to see this error!") 
+        call error_abort("Error in CPL_init -- MPMD_mode should be 0 or 1") 
 
     endif
     if (output_mode .ne. QUIET) then
@@ -1820,7 +1827,7 @@ end subroutine CPL_set_timing
 !! to coupled CFD processors
 !-----------------------------------------------------------------------------
 
-subroutine CPL_create_map
+subroutine CPL_create_map()
     use mpi
     implicit none
 

@@ -2430,7 +2430,7 @@ function CPL_map_glob2loc_cell(limits, glob_cell, loc_cell) result(ret)
         print*, "cell:" , glob_cell
         call error_abort("CPL_map_glob2loc_cell error - Cell is outside overlap region. " // &
                          "Aborting simulation.") 
-    end if
+    endif
 
     ! Check if global cell is within the limits of the region specified
     if (is_cell_inside(glob_cell, limits)) then
@@ -2441,7 +2441,7 @@ function CPL_map_glob2loc_cell(limits, glob_cell, loc_cell) result(ret)
     else
         loc_cell = VOID
         ret = .false.
-    end if
+    endif
 
 end function CPL_map_glob2loc_cell
 
