@@ -474,8 +474,7 @@ contains
         integer, dimension(:,:), pointer :: icoord_f
         real(kind(0.d0)), dimension(:), pointer :: xyzL_f
         real(kind(0.d0)), dimension(:), pointer :: xyz_orig_f
-        real(kind(0.d0)), dimension(:), pointer :: zgrid_f
-        real(kind(0.d0)), dimension(:,:), pointer :: xgrid_f, ygrid_f
+        real(kind(0.d0)), dimension(:,:,:), pointer :: xgrid_f, ygrid_f, zgrid_f
 
         ! Convenient local variables to be stored
         integer :: npx, npy, npz, nprocs, ncx, ncy, ncz
@@ -510,9 +509,9 @@ contains
         ! Reals
         call C_F_POINTER(xyzL, xyzL_f, [3])
         call C_F_POINTER(xyz_orig, xyz_orig_f, [3])
-        call C_F_POINTER(xgrid, xgrid_f, [ncx+1, ncy+1])
-        call C_F_POINTER(ygrid, ygrid_f, [ncx+1, ncy+1])
-        call C_F_POINTER(zgrid, zgrid_f, [ncz+1])
+        call C_F_POINTER(xgrid, xgrid_f, [ncx+1, ncy+1, ncz+1])
+        call C_F_POINTER(ygrid, ygrid_f, [ncx+1, ncy+1, ncz+1])
+        call C_F_POINTER(zgrid, zgrid_f, [ncx+1, ncy+1, ncz+1])
 
         ! Call the old routine
         call coupler_cfd_init(icomm_grid, icoord_f, npxyz_cfd_f,  &

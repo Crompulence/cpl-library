@@ -2067,8 +2067,7 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
     real(kind(0.d0)), optional, intent(out) :: yL_md,yL_cfd
     real(kind(0.d0)), optional, intent(out) :: zL_md,zL_cfd
 
-    real(kind(0.d0)), dimension(:,:),allocatable,optional,intent(out) :: xg,yg
-    real(kind(0.d0)), dimension(:)  ,allocatable,optional,intent(out) :: zg
+    real(kind(0.d0)), dimension(:,:,:),allocatable,optional,intent(out) :: xg,yg,zg
 
     !Overlap extents
     if (present(icmax_olap)) icmax_olap = icmax_olap_
@@ -2115,15 +2114,15 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
 
     !The mesh
     if (present(xg)) then
-        allocate(xg(size(xg_,1),size(xg_,2)))
+        allocate(xg(size(xg_,1),size(xg_,2),size(xg_,3)))
         xg = xg_
     endif
     if (present(yg)) then
-        allocate(yg(size(yg_,1),size(yg_,2)))
+        allocate(yg(size(yg_,1),size(yg_,2),size(xg_,3)))
         yg = yg_
     endif
     if (present(zg)) then
-        allocate(zg(size(zg_,1)))
+        allocate(zg(size(yg_,1),size(yg_,2),size(xg_,3)))
         zg = zg_
     endif
 
@@ -2181,7 +2180,18 @@ function CPL_realm()
 
     CPL_realm = realm
 
-end function
+end function CPL_realm
+
+
+subroutine CPL_meshgrid(xg, yg, zg)
+    implicit none
+
+    real(kind(0.d0)), dimension(:,:,:), & 
+        allocatable,intent(out) :: xg, yg, zg
+
+    call CPL_get(xg=xg, yg=yg, zg=zg)
+
+end subroutine CPL_meshgrid
 
 
 !=============================================================================
@@ -2223,9 +2233,9 @@ function CPL_map_md2cfd_coord(coord_md, coord_cfd) result(valid_coord)
         !Get size of MD domain which has no CFD cells overlapping
         !This should be general enough to include grid stretching
         !and total overlap in any directions 
-        md_only(1) = xL_md-abs(xg(icmax_olap+1,1) - xg(icmin_olap,1))
-        md_only(2) = yL_md-abs(yg(1,jcmax_olap+1) - yg(1,jcmin_olap))
-        md_only(3) = zL_md-abs(zg( kcmax_olap+1 ) - zg( kcmin_olap ))
+        md_only(1) = xL_md-abs(xg(icmax_olap+1,1,1) - xg(icmin_olap,1,1))
+        md_only(2) = yL_md-abs(yg(1,jcmax_olap+1,1) - yg(1,jcmin_olap,1))
+        md_only(3) = zL_md-abs(zg(1,1,kcmax_olap+1) - zg(1,1,kcmin_olap))
 
         ! CFD has origin at bottom left while MD origin at centre
         !coord_md = coord_cfd + md_only + md_xyz_orig
@@ -2278,9 +2288,9 @@ function CPL_map_cfd2md_coord(coord_cfd, coord_md) result(valid_coord)
         !Get size of MD domain which has no CFD cells overlapping
         !This should be general enough to include grid stretching
         !and total overlap in any directions 
-        md_only(1) = xL_md-abs(xg(icmax_olap+1,1) - xg(icmin_olap,1))
-        md_only(2) = yL_md-abs(yg(1,jcmax_olap+1) - yg(1,jcmin_olap))
-        md_only(3) = zL_md-abs(zg( kcmax_olap+1 ) - zg( kcmin_olap ))
+        md_only(1) = xL_md-abs(xg(icmax_olap+1,1,1) - xg(icmin_olap,1,1))
+        md_only(2) = yL_md-abs(yg(1,jcmax_olap+1,1) - yg(1,jcmin_olap,1))
+        md_only(3) = zL_md-abs(zg(1,1,kcmax_olap+1) - zg(1,1,kcmin_olap))
 
         ! CFD has origin at bottom left while MD origin at centre
         !coord_md = coord_cfd + md_only + md_xyz_orig
@@ -2313,9 +2323,9 @@ subroutine CPL_map_cell2coord(i, j, k, coord_xyz)
     !                     "Aborting simulation.") 
     !end if
 
-    coord_xyz(1) = xg(i, j)
-    coord_xyz(2) = yg(i, j) 
-    coord_xyz(3) = zg(k)
+    coord_xyz(1) = xg(i, j, k)
+    coord_xyz(2) = yg(i, j, k) 
+    coord_xyz(3) = zg(i, j, k)
 
     if (realm .eq. md_realm) then
         aux_ret = CPL_map_cfd2md_coord(coord_xyz, coord_md)
@@ -2486,10 +2496,6 @@ function is_cell_inside(cell, limits) result(res)
 end function is_cell_inside
 
 function is_coord_inside(coord, coord_limits) result(res)
-    use coupler_module, only :  icmin_olap, icmax_olap, & 
-                                jcmin_olap, jcmax_olap, & 
-                                kcmin_olap, kcmax_olap, &
-                                dx, dy, dz
 
     real(kind(0.d0)), intent(in)   :: coord(3)
     real(kind(0.d0)), intent(in)   :: coord_limits(6)

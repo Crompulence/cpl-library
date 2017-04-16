@@ -325,10 +325,9 @@ module coupler_module
 
 
     ! Positions of CFD grid lines
-    real(kind(0.d0)),protected, dimension(:,:), allocatable, target :: &
+    real(kind(0.d0)),protected, dimension(:,:,:), allocatable, target :: &
         xg,               &
-        yg
-    real(kind(0.d0)),protected, dimension(:)  , allocatable, target :: &
+        yg,               &
         zg
 
     ! CFD to MD processor mapping
@@ -1012,8 +1011,7 @@ subroutine CPL_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
     integer, dimension(:), allocatable            :: iTmin, iTmax, jTmin,&
                                                      jTmax, kTmin, kTmax
     integer, dimension(:,:), allocatable          :: icoord
-    real(kind(0.d0)), dimension(:), allocatable   :: zgrid
-    real(kind(0.d0)), dimension(:,:), allocatable :: xgrid, ygrid
+    real(kind(0.d0)), dimension(:,:,:), allocatable :: xgrid, ygrid, zgrid
     integer, dimension(3)                         :: ijkcmin, ijkcmax
     integer, dimension(3)                         :: npxyz_cfd, cart_coords
     logical, dimension(3)                         :: cart_periods
@@ -1057,30 +1055,28 @@ subroutine CPL_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
         kTmax(z+1) = kTmin(z+1) + nczl - 1
     enddo
     
-    allocate(xgrid(ncxyz(1) + 1, ncxyz(2) + 1), stat=ierr)
-    allocate(ygrid(ncxyz(1) + 1, ncxyz(2) + 1), stat=ierr)
-    allocate(zgrid(ncxyz(3) + 1), stat=ierr)
+    allocate(xgrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
+    allocate(ygrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
+    allocate(zgrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
 
     ! Construct cartesian grid
     dx =  xyzL(1) / ncxyz(1)
     dy =  xyzL(2) / ncxyz(2)
     dz =  xyzL(3) / ncxyz(3)
     do i=1, ncxyz(1) + 1
-        do j=1, ncxyz(2) + 1
-            xgrid(i, j) = (i - 1) * dx
-            ygrid(i, j) = (j - 1) * dy
-        enddo
-    enddo
-            
+    do j=1, ncxyz(2) + 1
     do k=1, ncxyz(3) + 1
-        zgrid(k) = (k - 1) * dz
+            xgrid(i, j, k) = (i-1) * dx
+            ygrid(i, j, k) = (j-1) * dy
+            zgrid(i, j, k) = (k-1) * dz
     enddo
-
+    enddo
+    enddo
 
     call coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, &
                           xyz_orig, ncxyz, ijkcmax, ijkcmin, iTmin, &
-                          iTmax, jTmin, jTmax, kTmin, kTmax, xgrid, ygrid, &
-                          zgrid)
+                          iTmax, jTmin, jTmax, kTmin, kTmax, & 
+                          xgrid, ygrid, zgrid)
     deallocate(icoord)
     deallocate(iTmin)
     deallocate(iTmax)
@@ -1143,13 +1139,14 @@ end subroutine CPL_setup_cfd
 !!  - kTmax
 !!   - Local maximum cell for each rank (integer array no. procs in z)
 !!  - xg
-!!   - Array of cell vertices in the x direction (no. cells in x + 1 by 
-!!     no. cells in y + 1)
+!!   - Array of cell vertices in the x direction 
+!!     (no. cells in x + 1 by no. cells in y + 1, no. cells in z+1)
 !!  - yg
-!!   - Array of cell vertices in the y direction (no. cells in x + 1 by 
-!!     no. cells in y + 1)
+!!   - Array of cell vertices in the y direction 
+!!     (no. cells in x + 1 by no. cells in y + 1, no. cells in z+1)
 !!  - zg
-!!   - Array of cell vertices in the z direction (no. cells in z + 1)
+!!   - Array of cell vertices in the z direction 
+!!     (no. cells in x + 1 by no. cells in y + 1, no. cells in z+1)
 !!
 !! - Input/Output
 !!  - NONE
@@ -1168,13 +1165,12 @@ subroutine coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, ncxyz
     use mpi
     implicit none           
 
-    integer,                        intent(in)  :: icomm_grid 
-    integer,dimension(3),           intent(in)  :: ijkcmin,ijkcmax,npxyz_cfd,ncxyz
-    integer,dimension(:),           intent(in)  :: iTmin,iTmax,jTmin,jTmax,kTmin,kTmax
-    integer,dimension(:,:),         intent(in)  :: icoord
-    real(kind(0.d0)),dimension(3),  intent(in)  :: xyzL, xyz_orig
-    real(kind(0.d0)),dimension(:  ),intent(in)  :: zgrid
-    real(kind(0.d0)),dimension(:,:),intent(in)  :: xgrid,ygrid
+    integer,                        intent(in)    :: icomm_grid 
+    integer,dimension(3),           intent(in)    :: ijkcmin,ijkcmax,npxyz_cfd,ncxyz
+    integer,dimension(:),           intent(in)    :: iTmin,iTmax,jTmin,jTmax,kTmin,kTmax
+    integer,dimension(:,:),         intent(in)    :: icoord
+    real(kind(0.d0)),dimension(3),  intent(in)    :: xyzL, xyz_orig
+    real(kind(0.d0)),dimension(:,:,:),intent(in)  :: xgrid,ygrid,zgrid
 
 
     integer                                         :: i,ib,jb,kb,pcoords(3),source,nproc
@@ -1331,11 +1327,10 @@ subroutine coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, ncxyz
     call MPI_bcast(ncxyz,3,MPI_INTEGER,source,CPL_INTER_COMM,ierr)              !Send
 
     ! Store & send array of global grid points
-    allocate(xg(size(xgrid,1)+1,size(xgrid,2)+1),stat=ierr); xg = xgrid
-    allocate(yg(size(ygrid,1)+1,size(ygrid,2)+1),stat=ierr); yg = ygrid
-    allocate(zg(size(zgrid,1)+1                ),stat=ierr); zg = zgrid
+    allocate(xg(size(xgrid,1)+1,size(xgrid,2)+1,size(xgrid,3)+1),stat=ierr); xg = xgrid
+    allocate(yg(size(xgrid,1)+1,size(xgrid,2)+1,size(xgrid,3)+1),stat=ierr); yg = ygrid
+    allocate(zg(size(xgrid,1)+1,size(xgrid,2)+1,size(xgrid,3)+1),stat=ierr); zg = zgrid
 
-              
     call MPI_bcast(xgrid,size(xgrid),MPI_double_precision,source,CPL_INTER_COMM,ierr) !Send
     call MPI_bcast(ygrid,size(ygrid),MPI_double_precision,source,CPL_INTER_COMM,ierr) !Send
     call MPI_bcast(zgrid,size(zgrid),MPI_double_precision,source,CPL_INTER_COMM,ierr) !Send
@@ -1356,7 +1351,7 @@ subroutine coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, ncxyz
 
     !Calculate the cell sizes dx,dy & dz
     dx = xL_cfd/ncx   !xg(2,1)-xg(1,1)
-    dy = yg(1,2)-yg(1,1) ! yL_cfd/ncy
+    dy = yL_cfd/ncy   !yg(1,2,1)-yg(1,1,1) ! This assumed grid stretching
     dz = zL_cfd/ncz   !zg(2  )-zg(1  )
 
     !Calculate number of cells in overlap region
@@ -1383,29 +1378,35 @@ contains
         integer :: i,j
    
         ! Check grids are the right size 
-        if (size(xg,1) .ne. (ncx + 1) .or. size(xg,2) .ne. (ncy + 1)) then
+        if (size(xg,1) .ne. (ncx + 1) .or. & 
+            size(xg,2) .ne. (ncy + 1) .or. &
+            size(xg,3) .ne. (ncz + 1)) then
             call error_abort('check_mesh error - xg is the wrong size in cpl_cfd_init')
         end if
-        if (size(yg,1) .ne. (ncx + 1) .or. size(yg,2) .ne. (ncy + 1)) then
+        if (size(yg,1) .ne. (ncx + 1) .or. & 
+            size(yg,2) .ne. (ncy + 1) .or. &
+            size(yg,3) .ne. (ncz + 1)) then
             call error_abort('check_mesh error - yg is the wrong size in cpl_cfd_init')
         end if
-        if (size(zg) .ne. (ncz + 1)) then
+        if (size(zg,1) .ne. (ncx + 1) .or. & 
+            size(zg,2) .ne. (ncy + 1) .or. &
+            size(zg,3) .ne. (ncz + 1)) then
             call error_abort('check_mesh error - zg is the wrong size in cpl_cfd_init')
         end if
 
         !Define cell sizes dx,dy & dz and check for grid stretching
         ! - - x - -
-        dx = xg(2,1)-xg(1,1)
-        dxmax = maxval(xg(2:ncx+1,2:ncy+1)-xg(1:ncx,1:ncy))
-        dxmin = minval(xg(2:ncx+1,2:ncy+1)-xg(1:ncx,1:ncy))
+        dx = xg(2,1,1)-xg(1,1,1)
+        dxmax = maxval(xg(2:ncx+1,2:ncy+1,2:ncz+1)-xg(1:ncx,1:ncy,1:ncz))
+        dxmin = minval(xg(2:ncx+1,2:ncy+1,2:ncz+1)-xg(1:ncx,1:ncy,1:ncz))
         if (dxmax-dx.gt.0.00001d0 .or.dx-dxmin.gt.0.00001d0) then
             print'(3(a,f15.7))', 'Max dx = ', dxmax, ' dx = ', dx, ' Min dx = ',dxmin
             call error_abort("check_mesh error -  Grid stretching in x not supported")
         endif
         ! - - y - -
-        dy = yg(1,2)-yg(1,1)
-        dymax = maxval(yg(2:ncx+1,2:ncy+1)-yg(1:ncx,1:ncy))
-        dymin = minval(yg(2:ncx+1,2:ncy+1)-yg(1:ncx,1:ncy))
+        dy = yg(1,2,1)-yg(1,1,1)
+        dymax = maxval(yg(2:ncx+1,2:ncy+1,2:ncz+1)-yg(1:ncx,1:ncy,1:ncz))
+        dymin = minval(yg(2:ncx+1,2:ncy+1,2:ncz+1)-yg(1:ncx,1:ncy,1:ncz))
         if (dymax-dy.gt.0.00001d0 .or. dy-dymin.gt.0.00001d0) then
             print'(3(a,f15.7))', 'Max dy = ', dymax, ' dy = ', dy, ' Min dy = ',dymin
             call error_abort("check_mesh error -  Grid stretching in y not supported")
@@ -1419,8 +1420,9 @@ contains
         !endif
         ! - - z - -
 
-        dzmax = maxval(zg(2:ncz)-zg(1:ncz-1))
-        dzmin = minval(zg(2:ncz)-zg(1:ncz-1))
+        dz = zg(1,1,2)-zg(1,1,1)
+        dzmax = maxval(zg(2:ncx+1,2:ncy+1,2:ncz+1)-zg(1:ncx,1:ncy,1:ncz))
+        dzmin = minval(zg(2:ncx+1,2:ncy+1,2:ncz+1)-zg(1:ncx,1:ncy,1:ncz))
         if (dzmax-dz.gt.0.00001d0 .or. dz-dzmin.gt.0.00001d0) then
             print'(3(a,f15.7))', 'Max dz = ', dzmax, ' dz = ', dz, ' Min dz = ',dzmin
             call error_abort("check_mesh error - Grid stretching in z not supported")
@@ -1696,7 +1698,7 @@ subroutine coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain, xyz_orig)
     deallocate(buf)
 
     ! Receive & Store array of global grid points
-    allocate(xg(ncx+1,ncy+1),yg(ncx+1,ncy+1),zg(ncz+1))
+    allocate(xg(ncx+1,ncy+1,ncz+1),yg(ncx+1,ncy+1,ncz+1),zg(ncx+1,ncy+1,ncz+1))
     call MPI_bcast(xg,size(xg),MPI_double_precision,0,CPL_INTER_COMM,ierr) !Receive
     call MPI_bcast(yg,size(yg),MPI_double_precision,0,CPL_INTER_COMM,ierr) !Receive
     call MPI_bcast(zg,size(zg),MPI_double_precision,0,CPL_INTER_COMM,ierr) !Receive 
@@ -1714,7 +1716,7 @@ subroutine coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain, xyz_orig)
 
     !Calculate the cell sizes dx,dy & dz
     dx = xL_cfd/ncx   !xg(2,1)-xg(1,1)
-    dy = yg(1,2)-yg(1,1) ! yL_cfd/ncy
+    dy = yL_cfd/ncy   !yg(1,2,1)-yg(1,1,1) ! yL_cfd/ncy
     dz = zL_cfd/ncz   !zg(2  )-zg(1  )
 
     !Define number of cells in overlap region
@@ -1851,24 +1853,30 @@ subroutine check_config_feasibility()
     if (rval .gt. rtoler) then
         string = "CPL_create_map error - MD/CFD domain sizes do not match in both x and z "   // &
                  "directions. Aborting simulation. "
-        print*, "xL_md = ", xL_md
+        print*, "xL_md = ",  xL_md
         print*, "xL_cfd = ", xL_cfd
-        print*, "zL_md = ", zL_md
+        print*, "zL_md = ",  zL_md
         print*, "zL_cfd = ", zL_cfd
         call error_abort(string)
     
     end if
 
+    !Check CFD and MD cell range
+    if (npy_md .lt. npy_cfd) then
+        call error_abort("get_md_cell_ranges error - number of MD " // &
+                         "processors in y must be greater than or equal" // &
+                         " to CFD processors in y")
+    endif
     ! Check there is only one overlap CFD proc in y
-    ival = nint( dble(ncy) / dble(npy_cfd) )
-    if (ncy_olap .gt. ival) then
+!    ival = nint( dble(ncy) / dble(npy_cfd) )
+!    if (ncy_olap .gt. ival) then
 
-        string = "CPL_create_map error - This coupler will not work if there is more than one "// &
-                 "CFD (y-coordinate) in the overlapping region. "       // &
-                 "Aborting simulation."
-        call error_abort(string)
+!        string = "CPL_create_map error - This coupler will not work if there is more than one "// &
+!                 "CFD processor (y-coordinate) in the overlapping region. "       // &
+!                 "Aborting simulation."
+!        call error_abort(string)
 
-    end if
+!    end if
 
     ! Check that MD processor size is an integer multiple of CFD cell size
     ! This test doesn't work if xL_xyz is slightly less than a multiple of dxyz
@@ -1881,8 +1889,8 @@ subroutine check_config_feasibility()
 
     if (rval .gt. rtoler) then
         print'(6(a,f10.5))', ' xL_md/dx = ',xL_md/dx, ' dx =', dx, & 
-                     ' yL_md/dy = ',yL_md/dy, ' dy =', dy, &
-                     ' zL_md/dz = ',zL_md/dz, ' dz =', dz
+                             ' yL_md/dy = ',yL_md/dy, ' dy =', dy, &
+                             ' zL_md/dz = ',zL_md/dz, ' dz =', dz
         string = "CPL_create_map error - MD region lengths must be an integer number of CFD " // &
                  "cell sizes (i.e. xL_md must be an integer multiple " // &
                  "of dx, etc. ), aborting simulation."
@@ -2036,11 +2044,6 @@ subroutine get_md_cell_ranges()
     end do  
 
     ! - - y - -
-    if (npy_md .lt. npy_cfd) then
-        call error_abort("get_md_cell_ranges error - number of MD " // &
-                         "processors in y must be greater than or equal" // &
-                         " to CFD processors in y")
-    endif
     ncy_md   = nint(yL_md/dy)
     ncy_mdonly = ncy_md - ncy_olap
     ncyP_md = ncy_md / npy_md
@@ -2467,7 +2470,8 @@ subroutine set_overlap_topology()
         enddo
 
         !Create graph topology for overlap region
-        call MPI_Graph_create(CPL_OLAP_COMM, nproc_olap, index, edges, reorder, CPL_GRAPH_COMM, ierr)
+        call MPI_Graph_create(CPL_OLAP_COMM, nproc_olap, index, &
+                              edges, reorder, CPL_GRAPH_COMM, ierr)
     else
         CPL_GRAPH_COMM = MPI_COMM_NULL
     endif
