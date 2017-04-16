@@ -20,7 +20,7 @@ ifndef BUILD
    BUILD = opt
 endif
 ifeq ($(strip $(BUILD)),debug)
-    FFLAGS += -O0 -g -ggdb -Wall
+    FFLAGS += -O0 -g -ggdb -Wall -cpp
     CFLAGS += -O0 -g -ggdb -Wall
 else
     FFLAGS += -O3 -cpp
