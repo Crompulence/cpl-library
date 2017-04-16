@@ -60,7 +60,7 @@ public:
     
     // Construct from no arguments 
     CPLSocketFOAM() : olapRegion(6), velBCRegion(6), cnstFRegion(6),
-                  velBCPortion(6), cnstFPortion(6) {}
+                      olapPortion(6), velBCPortion(6), cnstFPortion(6) {}
     
     // Invoke CPL_Library and store CFD realm communicator
     void initComms(int& argc, char**& argv);
@@ -69,15 +69,27 @@ public:
     void initCFD (const Foam::Time &runTime, const Foam::fvMesh &mesh);
 
     void getCellTopology();
-    void allocateBuffers();
+    void allocateBuffers(int);
 
     // Pack and unpack data into CPL-Library formats
+    double unpack(volVectorField &U, fvMesh &mesh);
     void packStress(volVectorField &U, dimensionedScalar &nu, fvMesh &mesh);
     double unpackVelocity(volVectorField &U, fvMesh &mesh);
+    double unpackPorousForce(volVectorField &F, volScalarField &eps, fvMesh &mesh);
+
+    // Pack and unpack data into CPL-Library formats
+    void pack(volVectorField &U, dimensionedScalar &nu, fvMesh &mesh, int);
 
     // Send and receive the data with CPL-Library
+    void send();
     void sendStress();
+    void recv();
     void recvVelocity();
+
+    int const DEBUG = -1;
+    int const PACKVELONLY = 0;
+    int const PACKSTRESSONLY = 1;
+    int const PACKVELSTRESS = 2;
 
 
 private:
@@ -115,6 +127,8 @@ private:
 
 
     // Data to be sent/received with CPL-Library
+    CPL::ndArray<double> sendBuf;
+    CPL::ndArray<double> recvBuf;
     CPL::ndArray<double> sendVelocityBuff;
     CPL::ndArray<double> sendStressBuff;
     CPL::ndArray<double> recvVelocityBuff;
@@ -126,10 +140,12 @@ private:
     std::vector<int> cnstFRegion;
 
     // Portions of the region in the local processor
+    std::vector<int> olapPortion;
     std::vector<int> velBCPortion;
     std::vector<int> cnstFPortion;
     
     // Number of cells in the portion in a region
+    int olapCells[3];
     int velBCCells[3];
     int cnstFCells[3];
 

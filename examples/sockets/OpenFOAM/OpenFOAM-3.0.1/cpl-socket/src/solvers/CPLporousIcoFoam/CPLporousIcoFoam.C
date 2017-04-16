@@ -55,6 +55,8 @@ int main(int argc, char *argv[])
     CPL.initCFD(runTime, mesh);
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    //dimensionedScalar rho("rho",  dimensionSet(1, -3, 0, 0, 0, 0, 0), 1.0);
+    scalar rho=1.0;
 
     Info<< "\nStarting time loop\n" << endl;
     while (runTime.loop())
@@ -62,22 +64,27 @@ int main(int argc, char *argv[])
 
         CPL.pack(U, nu, mesh, CPL.PACKVELONLY);
         CPL.send();
-        CPL.recvVelocity();
-        CPL.unpackVelocity(U, mesh);
+
+        CPL.recv();
+        CPL.unpackPorousForce(F, eps, mesh);
 
 
-        Info<< "Time = " << runTime.timeName() << nl << endl;
+        //Info<< "Time = " << CPLSocketFOAM::rankrealm << runTime.timeName() << nl << endl;
 
         #include "CourantNo.H"
 
         // Momentum predictor
+        //volVectorField epsU("epsU", eps*U);
 
         fvVectorMatrix UEqn
         (
             fvm::ddt(U)
           + fvm::div(phi, U)
           - fvm::laplacian(nu, U)
+          - F/rho
         );
+
+        F.correctBoundaryConditions();
 
         if (piso.momentumPredictor())
         {

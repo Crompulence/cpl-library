@@ -1,0 +1,13 @@
+Calling make here required source SOURCEME.sh to have been called in the LAMMPS directory so $LAMMPS_PATH is defined. Build is achieved by calling:
+
+make lmp_cpl
+
+This calls "enable-packages.sh" which changed diretory to "$LAMMPS_PATH/src" and loops through "lammps_packages.in", switching off and on packaged and then building LAMMPS as a shared library. The CPL socket code is then built with LAMMPS and CPL library linked in. 
+
+Troubleshooting:
+
+If packages are missing, then cd $LAMMPS_PATH/src and turn off packages off, for example to not build kokkos, use
+
+make no-kokkos 
+
+as required...

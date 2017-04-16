@@ -101,6 +101,20 @@ namespace CPL
         // Deallocate data, resizes to 0
         void clear();
 
+//        //Need value type, begin, end and iterator here
+//        typedef T value_type;
+//        std::begin();
+//        std::end();
+//        std::const_iterator();
+
+//        iterator begin() { return 0; }
+//        iterator end() { return this.size(); }
+//        iterator iter() {
+//            for( iter it = this.begin(); it != this.end(); ++i ) {
+//                // use *i ...
+//            }
+//        }
+
         // Number of elements of the ndArray along the dim axis
         int shape (const int dim);
 
@@ -118,32 +132,20 @@ namespace CPL
 
         // Element access - support up to 4 dimensions
         // 1D
-            T operator () (const int i0) const;
+            T operator ()  (const int i0) const;
             T& operator () (const int i0);
 
         // 2D
-            T operator () (const int i0, const int i1) const;
+            T operator ()  (const int i0, const int i1) const;
             T& operator () (const int i0, const int i1);
 
         // 3D
-            T operator () (const int i0, const int i1, const int i2) const;
+            T operator ()  (const int i0, const int i1, const int i2) const;
             T& operator () (const int i0, const int i1, const int i2);
 
         // 4D
-            T operator ()
-            (
-                const int i0,
-                const int i1,
-                const int i2,
-                const int i3
-            ) const;
-            T& operator ()
-            (
-                const int i0,
-                const int i1,
-                const int i2,
-                const int i3
-            );
+            T operator ()  (const int i0, const int i1, const int i2, const int i3) const;
+            T& operator () (const int i0, const int i1, const int i2, const int i3);
 
         // Assignment operator from single value
         ndArray& operator= (const T &rhs);
