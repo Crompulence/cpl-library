@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	// MPI_Init is called somewhere in the PStream library
     CPLSocketFOAM CPL;
     CPL.initComms(argc, argv);
-    socket.initCFD(runTime, mesh);
+    CPL.initCFD(runTime, mesh);
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

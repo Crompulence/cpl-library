@@ -37,10 +37,6 @@ Description
 
 int main(int argc, char *argv[])
 {
-
-
-    CPLSocketFOAM CPL;
-    CPL.initComms(argc, argv);
     
     #include "setRootCase.H"
     #include "createTime.H"
@@ -51,7 +47,8 @@ int main(int argc, char *argv[])
     #include "createFields.H"
     #include "initContinuityErrs.H"
     
-
+    CPLSocketFOAM CPL;
+    CPL.initComms(argc, argv);
     CPL.initCFD(runTime, mesh);
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -1592,11 +1592,11 @@ subroutine coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain, xyz_orig)
     ! Store & Send MD number of processors
     npx_md = npxyz_md(1);   npy_md = npxyz_md(2);   npz_md = npxyz_md(3)    
     nproc_md = npx_md * npy_md * npz_md
-    call MPI_bcast(npxyz_md,3,MPI_INTEGER,source,CPL_INTER_COMM,ierr) !Send
+    call MPI_bcast(npxyz_md, 3, MPI_INTEGER, source, CPL_INTER_COMM, ierr) !Send
 
     ! Receive & Store CFD processor rank to coord
     allocate(buf(3*nproc_cfd))
-    call MPI_bcast(buf,3*nproc_cfd,MPI_INTEGER,  0   ,CPL_INTER_COMM,ierr) !Receive
+    call MPI_bcast(buf, 3*nproc_cfd, MPI_INTEGER,  0   ,CPL_INTER_COMM,ierr) !Receive
     allocate(rank2coord_cfd(3,nproc_cfd),stat=ierr); rank2coord_cfd = reshape(buf,(/ 3,nproc_cfd /))
     deallocate(buf)
 
@@ -1609,7 +1609,7 @@ subroutine coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain, xyz_orig)
 
     ! Receive & Store CFD coordinate to rank mapping
     allocate(buf(nproc_cfd))
-    call MPI_bcast(buf,nproc_cfd ,MPI_INTEGER,  0   ,CPL_INTER_COMM,ierr)   !Receive
+    call MPI_bcast(buf, nproc_cfd ,MPI_INTEGER, 0, CPL_INTER_COMM, ierr)   !Receive
     allocate(coord2rank_cfd (npx_cfd,npy_cfd,npz_cfd))
     coord2rank_cfd = reshape(buf,(/ npx_cfd,npy_cfd,npz_cfd /))
     deallocate(buf)
@@ -1874,16 +1874,17 @@ subroutine check_config_feasibility()
                          "processors in y must be greater than or equal" // &
                          " to CFD processors in y")
     endif
+
     ! Check there is only one overlap CFD proc in y
-!    ival = nint( dble(ncy) / dble(npy_cfd) )
-!    if (ncy_olap .gt. ival) then
+    ival = nint( dble(ncy) / dble(npy_cfd) )
+    if (ncy_olap .gt. ival) then
 
-!        string = "CPL_create_map error - This coupler will not work if there is more than one "// &
-!                 "CFD processor (y-coordinate) in the overlapping region. "       // &
-!                 "Aborting simulation."
-!        call error_abort(string)
+        string = "CPL_create_map error - This coupler will not work if there is more than one "// &
+                 "CFD processor (y-coordinate) in the overlapping region. "       // &
+                 "Aborting simulation."
+        call error_abort(string)
 
-!    end if
+    end if
 
     ! Check that MD processor size is an integer multiple of CFD cell size
     ! This test doesn't work if xL_xyz is slightly less than a multiple of dxyz
@@ -2032,7 +2033,7 @@ subroutine get_md_cell_ranges()
 
     integer :: n
     integer :: olap_jmin_mdproc
-    integer :: ncxl, nczl!, ncyl
+    integer :: ncxl, ncyl, nczl
     integer :: ncy_mdonly, ncy_md, ncyP_md
     integer :: funit
 

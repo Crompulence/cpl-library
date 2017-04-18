@@ -75,10 +75,14 @@ public:
     // Pack and unpack data into CPL-Library formats
     void packStress(volVectorField &U, dimensionedScalar &nu, fvMesh &mesh);
     double unpackVelocity(volVectorField &U, fvMesh &mesh);
+    void pack(volVectorField &U, dimensionedScalar &nu, fvMesh &mesh, int);
+    double unpackPorousForce(volVectorField &F, volScalarField &eps, fvMesh &mesh);
 
     // Send and receive the data with CPL-Library
     void sendStress();
     void recvVelocity();
+    void send();
+    void recv();
 
     int const DEBUG = -1;
     int const PACKVELONLY = 0;
@@ -119,7 +123,6 @@ private:
 
     // Coordinates of the local processor
     std::vector<int> myCoords;
-
 
     // Data to be sent/received with CPL-Library
     CPL::ndArray<double> sendBuf;

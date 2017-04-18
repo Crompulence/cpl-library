@@ -128,7 +128,7 @@ void CPLSocketFOAM::initCFD (const Foam::Time &runTime, const Foam::fvMesh &mesh
     double xyz_orig[3] = {0.0, 0.0, 0.0};
 
     // Initialise CPL library
-	CPL::set_timing(0, nsteps, dt_cfd);
+	//CPL::set_timing(0, nsteps, dt_cfd);
     CPL::setup_cfd (cartComm, xyzL, xyz_orig, ncxyz);
 
     getCellTopology();
@@ -158,15 +158,13 @@ void CPLSocketFOAM::getCellTopology() {
     
     // Processor cell bounds for velocity BCs region
     velBCRegion = olapRegion;
-    velBCRegion[3] = velBCRegion[2];
+    //velBCRegion[3] = velBCRegion[2];
     CPL::my_proc_portion(velBCRegion.data(), velBCPortion.data());
-
     CPL::get_no_cells(velBCPortion.data(), velBCCells);
 
     // Processor cell bounds for the constrained region
     CPL::get_cnst_limits(cnstFRegion.data());
     CPL::my_proc_portion(cnstFRegion.data(), cnstFPortion.data());
-
     CPL::get_no_cells(cnstFPortion.data(), cnstFCells);
 }
 
@@ -269,11 +267,11 @@ void CPLSocketFOAM::pack(volVectorField &U,
 				            sendBuf(0,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xx();
 				            sendBuf(1,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
 				            sendBuf(2,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
-				            sendBuf(3,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yx();
+				            sendBuf(3,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
 				            sendBuf(4,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yy();
 				            sendBuf(5,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
-				            sendBuf(6,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zx();
-				            sendBuf(7,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zy();
+				            sendBuf(6,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
+				            sendBuf(7,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
 				            sendBuf(8,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zz();
 
 		//                    printf("stress %d %d %d %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f \n", loc_cell[0],loc_cell[1],loc_cell[2], 
@@ -293,11 +291,11 @@ void CPLSocketFOAM::pack(volVectorField &U,
 				            sendBuf(3,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xx();
 				            sendBuf(4,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
 				            sendBuf(5,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
-				            sendBuf(6,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yx();
+				            sendBuf(6,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
 				            sendBuf(7,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yy();
 				            sendBuf(8,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
-				            sendBuf(9,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zx();
-				            sendBuf(10,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zy();
+				            sendBuf(9,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
+				            sendBuf(10,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
 				            sendBuf(11,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zz();
 				        }
 				        else if (sendtype == DEBUG)
@@ -350,7 +348,7 @@ double CPLSocketFOAM::unpackVelocity(volVectorField &U, fvMesh &mesh) {
 		                    recvVelocityBuff(c, i, j, k) = total / static_cast<double> (N);
 		        }
 		    }
-		} 
+        } 
 
 		// Apply BCs only in certain directions.
 		int applyBCx = CPL::get<int> ("cpl_cfd_bc_x");
@@ -379,38 +377,77 @@ double CPLSocketFOAM::unpackVelocity(volVectorField &U, fvMesh &mesh) {
 				double facey = faceCenters[faceI].y();
 				double facez = faceCenters[faceI].z();
 
-		    // Find the cell indices for this position recvVelocity(:, ix, iy, iz)
-        	int glob_cell[3]; int loc_cell[3];
-		    CPL::map_coord2cell(facex, facey, facez, glob_cell);
-		    bool valid_cell = CPL::map_glob2loc_cell(velBCPortion.data(), glob_cell, loc_cell);
+		        // Find the cell indices for this position recvVelocity(:, ix, iy, iz)
+            	int glob_cell[3]; int loc_cell[3];
+		        CPL::map_coord2cell(facex, facey, facez, glob_cell);
+		        bool valid_cell = CPL::map_glob2loc_cell(velBCPortion.data(), glob_cell, loc_cell);
 
-        if (valid_cell) {
-            //std::cout << "cell: " << loc_cell[0] << " " << loc_cell[1] << " " << loc_cell[2] \
-               << "limits: " << velBCPortion[0] << " " << velBCPortion[1] << " " << velBCPortion[2] << " " << velBCPortion[3] << " " << velBCPortion[4] << " " << velBCPortion[5] << std::endl;
+                if (valid_cell) {
 
-            double m = recvVelocityBuff(3, loc_cell[0], loc_cell[1], loc_cell[2]); 
-            double recvvx = recvVelocityBuff(0, loc_cell[0], loc_cell[1], loc_cell[2])/m;
-            double recvvy = recvVelocityBuff(1, loc_cell[0], loc_cell[1], loc_cell[2])/m;
-            double recvvz = recvVelocityBuff(2, loc_cell[0], loc_cell[1], loc_cell[2])/m;
+                    double m = recvVelocityBuff(3, loc_cell[0], loc_cell[1], loc_cell[2]); 
+                    double recvvx = recvVelocityBuff(0, loc_cell[0], loc_cell[1], loc_cell[2])/m;
+                    double recvvy = recvVelocityBuff(1, loc_cell[0], loc_cell[1], loc_cell[2])/m;
+                    double recvvz = recvVelocityBuff(2, loc_cell[0], loc_cell[1], loc_cell[2])/m;
 
-            //Note here velocity is set straight to MD average value
-			//which may be correct or you may need to use interpolation
-            // with something like (recvvx + U[cell].x()) / 2.0; where
-			//cell = mesh.findCell (closestCellCentre);
-			if (applyBCx) rvPatch[faceI].x() = recvvx;
-			if (applyBCy) rvPatch[faceI].y() = recvvy;
-			if (applyBCz) rvPatch[faceI].z() = recvvz;
-        }
+                    //Note here velocity is set straight to MD average value
+			        //which may be correct or you may need to use interpolation
+                    // with something like (recvvx + U[cell].x()) / 2.0; where
+			        //cell = mesh.findCell (closestCellCentre);
+			        if (applyBCx) rvPatch[faceI].x() = recvvx;
+			        if (applyBCy) rvPatch[faceI].y() = recvvy;
+			        if (applyBCz) rvPatch[faceI].z() = recvvz;
+                }
 
-//    if (applyBCx) Foam::Info << "MD->CFD BC x-velocity applied." << Foam::endl;
-//    if (applyBCy) Foam::Info << "MD->CFD BC y-velocity applied." << Foam::endl;
-//    if (applyBCz) Foam::Info << "MD->CFD BC z-velocity applied." << Foam::endl;
-
-	}
+	        }
+    }
 }
 
+
+
+// Unpacks the components from the socket's
+double CPLSocketFOAM::unpackPorousForce(volVectorField &F, volScalarField &eps, fvMesh &mesh) {
+
+    for (int ix=0; ix<recvBuf.shape(1); ix++) {
+        for (int iy=0; iy<recvBuf.shape(2); iy++) {
+            for (int iz=0; iz<recvBuf.shape(3); iz++) {
+
+                double Fx = recvBuf(0, ix, iy, iz);
+                double Fy = recvBuf(1, ix, iy, iz);
+                double Fz = recvBuf(2, ix, iy, iz);
+                double e  = recvBuf(3, ix, iy, iz);
+
+                double glob_pos[3];
+                CPL::map_cell2coord(ix, iy, iz, glob_pos);
+                Foam::point closestCellCentre(glob_pos[0]+0.5*dx, glob_pos[1]+0.5*dy, glob_pos[2]+0.5*dz);
+                Foam::label cell = mesh.findCell(closestCellCentre);
+
+                eps[cell] = e;
+                F[cell].x() = Fx;
+                F[cell].y() = Fy;
+                F[cell].z() = Fz;
+
+            }
+        }
+    }
+
+
+//    forAll(mesh.C(), cell)
+//    {
+//        Foam::Info << rankRealm << " " << cell << " eps " 
+//               << eps[cell] << " "
+//          << mesh.C()[cell] << " Fx,y,z " 
+//                 << F[cell].x() << " " << 
+//                    F[cell].y() << " " << 
+//                    F[cell].z() << Foam::endl;
+
+//    }
+
+}
+
+
 // Sends buffer to overlapping MD processes.
-void CPLSocketFOAM::send() {
+void CPLSocketFOAM::send() 
+{
     CPL::send(sendBuf.data(), sendBuf.shapeData(), cnstFRegion.data());
 }
 
@@ -421,7 +458,8 @@ void CPLSocketFOAM::recv()
 }
 
 // Sends 9 components of the stress-tensor to overlapping MD processes.
-void CPLSocketFOAM::sendStress() {
+void CPLSocketFOAM::sendStress() 
+{
         CPL::send (sendStressBuff.data(), sendStressBuff.shapeData(),
                    cnstFRegion.data());
 }
@@ -433,5 +471,4 @@ void CPLSocketFOAM::recvVelocity()
               recvVelocityBuff.shapeData(), 
               velBCPortion.data());
 }
-  
-}
+
