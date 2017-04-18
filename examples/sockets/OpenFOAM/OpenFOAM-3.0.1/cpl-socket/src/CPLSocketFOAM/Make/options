@@ -9,7 +9,7 @@ EXE_INC = \
     -I$(FOAM_CPL_SOCKET_SRC)/CPLPstream/lnInclude \
 
 CPLLIBS = -L$(CPL_LIBRARY_PATH) -Wl,-rpath=$(CPL_LIBRARY_PATH) -lcpl \
-          -L$(FOAM_CPL_SOCKET_LIBBIN) -Wl,-rpath=$(FOAM_CPL_SOCKET_LIBBIN) -lCPLPstream
+          -L$(FOAM_CPL_SOCKET_LIBBIN) -Wl,-rpath=$(FOAM_CPL_SOCKET_LIBBIN)
 
 LIB_LIBS = \
     -lfiniteVolume $(CPLLIBS)

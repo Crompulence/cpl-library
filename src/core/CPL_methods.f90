@@ -90,7 +90,7 @@ module coupler
            CPL_map_cell2coord, CPL_map_coord2cell, CPL_get_no_cells, &
            CPL_map_glob2loc_cell, CPL_get_olap_limits, CPL_get_cnst_limits, & 
            CPL_map_cfd2md_coord, CPL_map_md2cfd_coord, CPL_overlap, CPL_realm, &
-           CPL_cart_coords, CPL_cfd_dt, CPL_md2cfd, CPL_cfd2md
+           CPL_cart_coords, CPL_cfd_dt, CPL_md2cfd, CPL_cfd2md, CPL_is_proc_inside
 
 contains
 
@@ -1936,18 +1936,6 @@ function CPL_overlap() result(p)
 end function CPL_overlap
 
 
-! Function to get current realm
-function CPL_realm() result(current_realm)
-    use coupler_module, only : realm
-    implicit none
-    
-    integer :: current_realm
-
-    current_realm = realm
-
-end function CPL_realm
-
-
 !============================================================================
 !
 ! Utility functions and subroutines that extract parameters from internal modules 
@@ -2080,8 +2068,7 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
     real(kind(0.d0)), optional, intent(out) :: yL_md,yL_cfd
     real(kind(0.d0)), optional, intent(out) :: zL_md,zL_cfd
 
-    real(kind(0.d0)), dimension(:,:),allocatable,optional,intent(out) :: xg,yg
-    real(kind(0.d0)), dimension(:)  ,allocatable,optional,intent(out) :: zg
+    real(kind(0.d0)), dimension(:,:,:),allocatable,optional,intent(out) :: xg,yg,zg
 
     !Overlap extents
     if (present(icmax_olap)) icmax_olap = icmax_olap_
@@ -2128,15 +2115,15 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
 
     !The mesh
     if (present(xg)) then
-        allocate(xg(size(xg_,1),size(xg_,2)))
+        allocate(xg(size(xg_,1),size(xg_,2),size(xg_,3)))
         xg = xg_
     endif
     if (present(yg)) then
-        allocate(yg(size(yg_,1),size(yg_,2)))
+        allocate(yg(size(yg_,1),size(yg_,2),size(xg_,3)))
         yg = yg_
     endif
     if (present(zg)) then
-        allocate(zg(size(zg_,1)))
+        allocate(zg(size(yg_,1),size(yg_,2),size(xg_,3)))
         zg = zg_
     endif
 
@@ -2185,6 +2172,29 @@ function CPL_comm_style()
 
 end function
 
+! Function to get current realm
+function CPL_realm()
+    use coupler_module, only : realm
+    implicit none
+    
+    integer :: CPL_realm
+
+    CPL_realm = realm
+
+end function CPL_realm
+
+
+subroutine CPL_meshgrid(xg, yg, zg)
+    implicit none
+
+    real(kind(0.d0)), dimension(:,:,:), & 
+        allocatable,intent(out) :: xg, yg, zg
+
+    call CPL_get(xg=xg, yg=yg, zg=zg)
+
+end subroutine CPL_meshgrid
+
+
 !=============================================================================
 !> Map global MD position to global CFD coordinate frame
 !-----------------------------------------------------------------------------
@@ -2204,6 +2214,7 @@ function CPL_map_md2cfd_coord(coord_md, coord_cfd) result(valid_coord)
                                       coord_limits_md(6)
     logical                        :: valid_coord
 
+
     coord_limits_md(1) = x_orig_md
     coord_limits_md(2) = x_orig_md + xL_md
     coord_limits_md(3) = y_orig_md
@@ -2217,9 +2228,9 @@ function CPL_map_md2cfd_coord(coord_md, coord_cfd) result(valid_coord)
         !Get size of MD domain which has no CFD cells overlapping
         !This should be general enough to include grid stretching
         !and total overlap in any directions 
-        md_only(1) = xL_md-abs(xg(icmax_olap+1,1) - xg(icmin_olap,1))
-        md_only(2) = yL_md-abs(yg(1,jcmax_olap+1) - yg(1,jcmin_olap))
-        md_only(3) = zL_md-abs(zg( kcmax_olap+1 ) - zg( kcmin_olap ))
+        md_only(1) = xL_md-abs(xg(icmax_olap+1,1,1) - xg(icmin_olap,1,1))
+        md_only(2) = yL_md-abs(yg(1,jcmax_olap+1,1) - yg(1,jcmin_olap,1))
+        md_only(3) = zL_md-abs(zg(1,1,kcmax_olap+1) - zg(1,1,kcmin_olap))
 
         ! CFD has origin at bottom left while MD origin at centre
         coord_limits_cfd(1) = x_orig_cfd
@@ -2228,7 +2239,6 @@ function CPL_map_md2cfd_coord(coord_md, coord_cfd) result(valid_coord)
         coord_limits_cfd(4) = y_orig_cfd + yL_cfd
         coord_limits_cfd(5) = z_orig_cfd
         coord_limits_cfd(6) = z_orig_cfd + zL_cfd
-
         !coord_md = coord_cfd + md_only + md_xyz_orig
         coord_cfd(1) = abs(coord_md(1) - x_orig_md - md_only(1)) + x_orig_cfd
         coord_cfd(2) = abs(coord_md(2) - y_orig_md - md_only(2)) + y_orig_cfd
@@ -2266,24 +2276,24 @@ function CPL_map_cfd2md_coord(coord_cfd, coord_md) result(valid_coord)
     coord_limits_cfd(5) = z_orig_cfd
     coord_limits_cfd(6) = z_orig_cfd + zL_cfd
 
+    coord_limits_md(1) = x_orig_md
+    coord_limits_md(2) = x_orig_md + xL_md
+    coord_limits_md(3) = y_orig_md
+    coord_limits_md(4) = y_orig_md + yL_md
+    coord_limits_md(5) = z_orig_md
+    coord_limits_md(6) = z_orig_md + zL_md
+
     valid_coord = is_coord_inside(coord_cfd, coord_limits_cfd)
     
     if (valid_coord) then
         !Get size of MD domain which has no CFD cells overlapping
         !This should be general enough to include grid stretching
         !and total overlap in any directions 
-        md_only(1) = xL_md-abs(xg(icmax_olap+1,1) - xg(icmin_olap,1))
-        md_only(2) = yL_md-abs(yg(1,jcmax_olap+1) - yg(1,jcmin_olap))
-        md_only(3) = zL_md-abs(zg( kcmax_olap+1 ) - zg( kcmin_olap ))
+        md_only(1) = xL_md-abs(xg(icmax_olap+1,1,1) - xg(icmin_olap,1,1))
+        md_only(2) = yL_md-abs(yg(1,jcmax_olap+1,1) - yg(1,jcmin_olap,1))
+        md_only(3) = zL_md-abs(zg(1,1,kcmax_olap+1) - zg(1,1,kcmin_olap))
 
         ! CFD has origin at bottom left while MD origin at centre
-        coord_limits_md(1) = x_orig_md
-        coord_limits_md(2) = x_orig_md + xL_md
-        coord_limits_md(3) = y_orig_md
-        coord_limits_md(4) = y_orig_md + yL_md
-        coord_limits_md(5) = z_orig_md
-        coord_limits_md(6) = z_orig_md + zL_md
-
         !coord_md = coord_cfd + md_only + md_xyz_orig
         coord_md(1) = abs(coord_cfd(1) - x_orig_cfd) + md_only(1) + x_orig_md
         coord_md(2) = abs(coord_cfd(2) - y_orig_cfd) + md_only(2) + y_orig_md
@@ -2327,7 +2337,6 @@ function CPL_cfd2md(coord_cfd) result(coord_md)
 !    endif    
 
 end function CPL_cfd2md
-
 !-----------------------------------------------------------------------------
 
 subroutine CPL_map_cell2coord(i, j, k, coord_xyz)
@@ -2349,9 +2358,9 @@ subroutine CPL_map_cell2coord(i, j, k, coord_xyz)
                          "Aborting simulation.") 
     end if
 
-    coord_xyz(1) = xg(i, j)
-    coord_xyz(2) = yg(i, j) 
-    coord_xyz(3) = zg(k)
+    coord_xyz(1) = xg(i, j, k)
+    coord_xyz(2) = yg(i, j, k) 
+    coord_xyz(3) = zg(i, j, k)
 
     if (realm .eq. md_realm) then
         aux_ret = CPL_map_cfd2md_coord(coord_xyz, coord_md)
@@ -2382,9 +2391,6 @@ function CPL_map_coord2cell(x, y, z, cell_ijk) result(ret)
     cell_ijk(3) = ceiling((z - olap_lo(3)) / dz)
 
     call CPL_get_olap_limits(olap_limits)
-
-    !print*, "CPL dx,dy,dz = ", dx, dy, dz, olap_lo
-
 
     ret = .true.
     if (.not. is_cell_inside(cell_ijk, olap_limits)) then
@@ -2430,7 +2436,7 @@ function CPL_map_glob2loc_cell(limits, glob_cell, loc_cell) result(ret)
         print*, "cell:" , glob_cell
         call error_abort("CPL_map_glob2loc_cell error - Cell is outside overlap region. " // &
                          "Aborting simulation.") 
-    endif
+    end if
 
     ! Check if global cell is within the limits of the region specified
     if (is_cell_inside(glob_cell, limits)) then
@@ -2441,7 +2447,7 @@ function CPL_map_glob2loc_cell(limits, glob_cell, loc_cell) result(ret)
     else
         loc_cell = VOID
         ret = .false.
-    endif
+    end if
 
 end function CPL_map_glob2loc_cell
 
@@ -2486,17 +2492,32 @@ end subroutine CPL_get_cnst_limits
 
 !-----------------------------------------------------------------------------
 
+function CPL_is_proc_inside(region) result(res)
+    use coupler_module, only: VOID
+
+    integer, intent(in) :: region(6)
+    logical :: res
+
+    res = .true.
+    if (any(region.eq.VOID)) then
+        res = .false.
+    end if
+end function CPL_is_proc_inside
+
 function is_cell_inside(cell, limits) result(res)
     use coupler_module, only :  icmin_olap, icmax_olap, & 
                                 jcmin_olap, jcmax_olap, & 
-                                kcmin_olap, kcmax_olap
+                                kcmin_olap, kcmax_olap, VOID
 
     integer, intent(in) :: cell(3)
     integer, intent(in) :: limits(6)
     logical :: res
     
     res = .true.
-    ! Check send limits are inside overlap region
+    ! Check send limits are inside a certain region
+    if (any(limits.eq.VOID)) then
+        res =.false.
+    end if
     if (cell(1) .lt. limits(1) .or. &
         cell(1) .gt. limits(2) .or. &
         cell(2) .lt. limits(3) .or. &
@@ -2519,7 +2540,7 @@ function is_coord_inside(coord, coord_limits) result(res)
     logical :: res
 
     res = .true.
-    ! Check send limits are inside overlap region
+    ! Check send limits are inside a certain region
     if (coord(1) .lt. coord_limits(1) .or. &
         coord(1) .gt. coord_limits(2) .or. &
         coord(2) .lt. coord_limits(3) .or. &
@@ -2591,7 +2612,6 @@ subroutine test_python (integer_p, double_p, bool_p, integer_pptr, double_pptr)
 
   print *, 'Integer: ', integer_p
   print *, 'Double: ', double_p
-
  end subroutine
 
 !------------------------------------------------------------------------------

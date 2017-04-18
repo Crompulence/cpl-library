@@ -39,40 +39,35 @@ Description
 */
 #include "CPLSocketFOAM.H"
 #include "blockMesh.H"
-#include "PstreamGlobals.H"
+#include <sstream>
+#include <unistd.h>
 
 
 // Initialise CFD realm communicator
-void CPLSocketFOAM::initComms (int& argc, char**& argv)
-{
+void CPLSocketFOAM::initComms (int& argc, char**& argv) {
 
-    MPI_Init(&argc, &argv);
-
-    // Split MPI_COMM_WORLD to md and cfd realm comms,
-    // store cfd realm comm in global variable for Pstream and
-    // store rank in realm
     CPL::init (CPL::cfd_realm, realmComm);
-    Foam::PstreamGlobals::CPLRealmComm = realmComm;
     MPI_Comm_rank (realmComm, &rankRealm);
 
 }
 
-
-
 // Analyse mesh topology and perform CFD-side CPL_init.
-void CPLSocketFOAM::initCFD (const Foam::Time &runTime, 
-                             const Foam::fvMesh &mesh) {
+void CPLSocketFOAM::initCFD (const Foam::Time &runTime, const Foam::fvMesh &mesh) {
+
+
+	meshSearcher = new Foam::meshSearch(mesh);
 
     Foam::Info << "CPLSocketFOAM: Analysing processor and mesh topology"
                << Foam::endl;
 
     // Read from decomposePar dictionary the number of processors in each
     // direction. Must be decomposed with the "simple" method.
-    Foam::IOdictionary decomposeDict
-    (
-        Foam::IOobject ("decomposeParDict", runTime.time().system(), runTime,
-                        IOobject::MUST_READ, IOobject::NO_WRITE, false)
-    );
+	//TODO: THis should not be necessary if the cell grid is defined in the config
+	//file for the overlap region
+    Foam::IOdictionary decomposeDict(Foam::IOobject ("decomposeParDict", 
+									 runTime.time().system(), runTime,
+                        			 IOobject::MUST_READ, IOobject::NO_WRITE,
+									 false));
     Foam::dictionary simpleCoeffs = decomposeDict.subDict ("simpleCoeffs");
     Foam::Vector<int> np = simpleCoeffs.lookup ("n");
     nprocs = np.x() * np.y() * np.z();
@@ -85,46 +80,16 @@ void CPLSocketFOAM::initCFD (const Foam::Time &runTime,
     periods[1] = 0;
     periods[2] = 1;
 
-    // Get info needed to calculate this processor's spatial coordinates
-    Foam::pointField points = mesh.points();
-    Foam::Vector<double> procMaxPoints (maxPoints (points));
-    Foam::Vector<double> procMinPoints (minPoints (points));
-
-    // Reduce all with min/max operator to find global min/max
-    Foam::Vector<double> globMaxPoints (procMaxPoints);
-    Foam::Vector<double> globMinPoints (procMinPoints);
-    Foam::reduce (globMaxPoints, maxOp<Foam::Vector<double>>());
-    Foam::reduce (globMinPoints, minOp<Foam::Vector<double>>());
-
-    Foam::Vector<double> domainLength (globMaxPoints - globMinPoints);
-
-//    std::cout << "domainlength " << domainLength.x() << " " << domainLength.y() << " " << domainLength.z() << std::endl;
-//    std::cout << "proc_min" << procMinPoints.x() << " " << procMinPoints.y() << " " << procMinPoints.z() \
-    << "glob_min" << globMinPoints.x() << " " << globMinPoints.y() << " " << globMinPoints.z() << std::endl;
-   
-    // Store this processor's coordinates in space
-    myCoords.push_back
-    (
-        nint (np.x() * ((procMinPoints.x() - globMinPoints.x())
-                       / domainLength.x()))
-    );
-    myCoords.push_back
-    (
-        nint (np.y() * ((procMinPoints.y() - globMinPoints.y())
-                       / domainLength.y()))
-    );
-    myCoords.push_back
-    (
-        nint (np.z() * ((procMinPoints.z() - globMinPoints.z())
-                       / domainLength.z()))
-    );
-
 
     Foam::Info << "CPLSocketFOAM: Defining new MPI Cartesian communicator"
                << Foam::endl;
 
     // Create custom cartesian communicator (cartComm) based on myCoords
-    //std::cout << "npxyz: " << npxyz[0] << " " << npxyz[1] << " " << npxyz[2] << "my_coords: " << myCoords[0] << " " << myCoords[1] << " " << myCoords[2] << std::endl;
+	// Assume xyz ordering (Simple decomposition)
+	myCoords[2] = Pstream::myProcNo() / (np.x()*np.y());
+	int mod_aux = Pstream::myProcNo() % (np.x()*np.y());
+	myCoords[1] = mod_aux / np.x();
+	myCoords[0] = mod_aux % np.x();
     CPL::Cart_create (realmComm, 3, npxyz, periods, 
                       myCoords.data(), &cartComm);
 
@@ -135,21 +100,20 @@ void CPLSocketFOAM::initCFD (const Foam::Time &runTime,
     double dt_cfd = runTime.deltaTValue();
     int nsteps = nint ((runTime.endTime().value() - \
                         runTime.startTime().value()) / dt_cfd);
+    Foam::IOdictionary blockMeshDict(Foam::IOobject ("polyMesh/blockMeshDict", 
+									 runTime.time().constant(), runTime,
+                        			 IOobject::MUST_READ, 
+									 IOobject::NO_WRITE, false));
+
+	Foam::List<Foam::Vector<double>> vertices(blockMeshDict.lookup("vertices"));
 
     // Domain dimensions
-    xyzL[0] = domainLength.x();
-    xyzL[1] = domainLength.y();
-    xyzL[2] = domainLength.z();
+    xyzL[0] = vertices[1][0] - vertices[0][0];
+    xyzL[1] = vertices[3][1] - vertices[0][1];
+    xyzL[2] = vertices[4][2] - vertices[0][2];
   
-    // dummy density for now TODO(djt06@ic.ac.uk) remove density from coupler
-    // cfd_init function input
-    double dummyDensity = -666.0;
 
-    Foam::IOdictionary blockMeshDict
-    (
-        Foam::IOobject ("blockMeshDict", "../constant/polyMesh", runTime,
-                        IOobject::MUST_READ, IOobject::NO_WRITE, false)
-    );
+    double dummyDensity = -666.0;
 
     Foam::word dummyRegionName("dummy");
     Foam::blockMesh blocks(blockMeshDict, dummyRegionName);
@@ -164,10 +128,10 @@ void CPLSocketFOAM::initCFD (const Foam::Time &runTime,
     double xyz_orig[3] = {0.0, 0.0, 0.0};
 
     // Initialise CPL library
+	CPL::set_timing(0, nsteps, dt_cfd);
     CPL::setup_cfd (cartComm, xyzL, xyz_orig, ncxyz);
 
     getCellTopology();
-    //allocateBuffers(1);
 
     // Store some values from CPL that are useful later
     CPLDensity = CPL::density_cfd();
@@ -179,27 +143,30 @@ void CPLSocketFOAM::initCFD (const Foam::Time &runTime,
 
 void CPLSocketFOAM::getCellTopology() {                                                                                                                                                                                                                       
 
+
     // Cell sizes
     dx = CPL::get<double> ("dx");
     dy = CPL::get<double> ("dy");
     dz = CPL::get<double> ("dz");
-
+   
     // Get overlap extents
     CPL::get_olap_limits(olapRegion.data());
-   
+    
     // Processor cell bounds for the overlap region
     CPL::my_proc_portion(olapRegion.data(), olapPortion.data());
     CPL::get_no_cells(olapPortion.data(), olapCells);
     
     // Processor cell bounds for velocity BCs region
     velBCRegion = olapRegion;
-    //velBCRegion[3] = velBCRegion[2];
+    velBCRegion[3] = velBCRegion[2];
     CPL::my_proc_portion(velBCRegion.data(), velBCPortion.data());
+
     CPL::get_no_cells(velBCPortion.data(), velBCCells);
 
     // Processor cell bounds for the constrained region
     CPL::get_cnst_limits(cnstFRegion.data());
     CPL::my_proc_portion(cnstFRegion.data(), cnstFPortion.data());
+
     CPL::get_no_cells(cnstFPortion.data(), cnstFCells);
 }
 
@@ -244,11 +211,9 @@ void CPLSocketFOAM::allocateBuffers(int sendtype) {
     // LAMMPS olap size field
     int recvShape[4] = {4, olapCells[0], olapCells[1], olapCells[2]};
     recvBuf.resize (4, recvShape);
-
-}
-
-
-// Packs the components of velocity and stress-tensor to the socket's CPL::ndArray
+}  
+    
+// Packs the 9 components of the stress-tensor to the socket's CPL::ndArray
 // storage.
 void CPLSocketFOAM::pack(volVectorField &U, 
                      dimensionedScalar &nu, 
@@ -256,260 +221,169 @@ void CPLSocketFOAM::pack(volVectorField &U,
                      int sendtype)
 {
 
-    // Evaluate the stress tensor sigma at all local cells 
-    // (forget pressure for now)
+    // Evaluate the stress tensor sigma at all local cells (forget pressure for
+    // now)
     Foam::dimensionedScalar mu(CPLDensity*nu);
-    Foam::volTensorField gradU(fvc::grad(U));
-    Foam::volTensorField sigma(mu*(gradU + gradU.T()));
+	Foam::volSymmTensorField sigma(nu*2*dev(symm(fvc::grad(U))));
 
     //Reallocate buffer depending on send type
     allocateBuffers(sendtype);
 
-    //printf("pack %d %d %d %d %d %d %d %d \n", sendShape[0], sendShape[1], sendShape[2], sendShape[3], 
-    //                                          sendBuf.shape(0), sendBuf.shape(1), sendBuf.shape(2), sendBuf.shape(3));
-    
-    // Loop over socket cells, -1 for Fortran to C++ indexing
-    int icmin = cnstFPortion[0];
-    int jcmin = cnstFPortion[2];
-    int kcmin = cnstFPortion[4];
+    //Foam::volTensorField gradU(fvc::grad(U));
+    //Foam::volTensorField sigma(mu*(gradU + gradU.T()));
 
-    for (int ix=0; ix<sendBuf.shape(1); ix++) {
-        for (int iy=0; iy<sendBuf.shape(2); iy++) {
-            for (int iz=0; iz<sendBuf.shape(3); iz++) {
+	if (CPL::is_proc_inside(cnstFPortion.data())) {
 
-                // Global position at cell center
-                Foam::point globalPos
-                (
-                    (static_cast<double>(ix + icmin) + 0.5) * dx,
-                    (static_cast<double>(iy + jcmin) + 0.5) * dy,
-                    (static_cast<double>(iz + kcmin) + 0.5) * dz
+		// Loop over socket cells
+		Foam::label cell;
+		Foam::point globalPos;
+		int glob_cell[3], loc_cell[3];
+		for (int ix = cnstFPortion[0]; ix <= cnstFPortion[1]; ix++) {
+			for (int iy = cnstFPortion[2]; iy <= cnstFPortion[3]; iy++) {
+				for (int iz = cnstFPortion[4]; iz <= cnstFPortion[5]; iz++) {
 
-                );
+					// Global position at cell center
+					glob_cell[0] = ix;
+					glob_cell[1] = iy;
+					glob_cell[2] = iz;
+					CPL::map_glob2loc_cell(cnstFPortion.data(), glob_cell, loc_cell);
+					globalPos = Foam::point((glob_cell[0] + 0.5) * dx,
+											(glob_cell[1] + 0.5) * dy, 
+											(glob_cell[2] + 0.5) * dz);
+					cell = meshSearcher->findNearestCell(globalPos);
+					if (cell != -1) {
 
-                Foam::label cell = mesh.findCell(globalPos);
-                if (sendtype == PACKVELONLY)
-                {
-                    // Get value of velocity 3D
-                    sendBuf(0,ix,iy,iz) = U[cell].x();
-                    sendBuf(1,ix,iy,iz) = U[cell].y();
-                    sendBuf(2,ix,iy,iz) = U[cell].z();
+				        if (sendtype == PACKVELONLY)
+				        {
+				            // Get value of velocity 3D
+				            sendBuf(0,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].x();
+				            sendBuf(1,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].y();
+				            sendBuf(2,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].z();
 
-//                    printf("vel %d %d %d %4.2f %4.2f %4.2f  \n", ix,iy,iz, 
-//                            sendBuf(0,ix,iy,iz), sendBuf(1,ix,iy,iz), sendBuf(2,ix,iy,iz));
-                }
-                else if (sendtype == PACKSTRESSONLY)
-                {
-                    // Get value of stress 9D by interpolating
-                    sendBuf(0,ix,iy,iz) = sigma[cell].xx();
-                    sendBuf(1,ix,iy,iz) = sigma[cell].xy();
-                    sendBuf(2,ix,iy,iz) = sigma[cell].xz();
-                    sendBuf(3,ix,iy,iz) = sigma[cell].yx();
-                    sendBuf(4,ix,iy,iz) = sigma[cell].yy();
-                    sendBuf(5,ix,iy,iz) = sigma[cell].yz();
-                    sendBuf(6,ix,iy,iz) = sigma[cell].zx();
-                    sendBuf(7,ix,iy,iz) = sigma[cell].zy();
-                    sendBuf(8,ix,iy,iz) = sigma[cell].zz();
+		//                    printf("vel %d %d %d %4.2f %4.2f %4.2f  \n", loc_cell[0],loc_cell[1],loc_cell[2], 
+		//                            sendBuf(0,loc_cell[0],loc_cell[1],loc_cell[2]), sendBuf(1,loc_cell[0],loc_cell[1],loc_cell[2]), sendBuf(2,loc_cell[0],loc_cell[1],loc_cell[2]));
+				        }
+				        else if (sendtype == PACKSTRESSONLY)
+				        {
+				            // Get value of stress 9D by interpolating
+				            sendBuf(0,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xx();
+				            sendBuf(1,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
+				            sendBuf(2,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
+				            sendBuf(3,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yx();
+				            sendBuf(4,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yy();
+				            sendBuf(5,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
+				            sendBuf(6,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zx();
+				            sendBuf(7,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zy();
+				            sendBuf(8,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zz();
 
-//                    printf("stress %d %d %d %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f \n", ix,iy,iz, 
-//                            sendBuf(0,ix,iy,iz), sendBuf(1,ix,iy,iz), sendBuf(2,ix,iy,iz), 
-//                            sendBuf(3,ix,iy,iz), sendBuf(4,ix,iy,iz), sendBuf(5,ix,iy,iz), 
-//                            sendBuf(6,ix,iy,iz), sendBuf(7,ix,iy,iz), sendBuf(8,ix,iy,iz));
+		//                    printf("stress %d %d %d %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f \n", loc_cell[0],loc_cell[1],loc_cell[2], 
+		//                            sendBuf(0,loc_cell[0],loc_cell[1],loc_cell[2]), sendBuf(1,loc_cell[0],loc_cell[1],loc_cell[2]), sendBuf(2,loc_cell[0],loc_cell[1],loc_cell[2]), 
+		//                            sendBuf(3,loc_cell[0],loc_cell[1],loc_cell[2]), sendBuf(4,loc_cell[0],loc_cell[1],loc_cell[2]), sendBuf(5,loc_cell[0],loc_cell[1],loc_cell[2]), 
+		//                            sendBuf(6,loc_cell[0],loc_cell[1],loc_cell[2]), sendBuf(7,loc_cell[0],loc_cell[1],loc_cell[2]), sendBuf(8,loc_cell[0],loc_cell[1],loc_cell[2]));
 
-                }
-                else if (sendtype == PACKVELSTRESS)
-                {
-                    // Get value of velocity 3D
-                    sendBuf(0,ix,iy,iz) = U[cell].x();
-                    sendBuf(1,ix,iy,iz) = U[cell].y();
-                    sendBuf(2,ix,iy,iz) = U[cell].z();
+				        }
+				        else if (sendtype == PACKVELSTRESS)
+				        {
+				            // Get value of velocity 3D
+				            sendBuf(0,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].x();
+				            sendBuf(1,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].y();
+				            sendBuf(2,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].z();
 
-                    // Get value of stress 9D by interpolating
-                    sendBuf(3,ix,iy,iz) = sigma[cell].xx();
-                    sendBuf(4,ix,iy,iz) = sigma[cell].xy();
-                    sendBuf(5,ix,iy,iz) = sigma[cell].xz();
-                    sendBuf(6,ix,iy,iz) = sigma[cell].yx();
-                    sendBuf(7,ix,iy,iz) = sigma[cell].yy();
-                    sendBuf(8,ix,iy,iz) = sigma[cell].yz();
-                    sendBuf(9,ix,iy,iz) = sigma[cell].zx();
-                    sendBuf(10,ix,iy,iz) = sigma[cell].zy();
-                    sendBuf(11,ix,iy,iz) = sigma[cell].zz();
-                }
-                else if (sendtype == DEBUG)
-                {
-                    sendBuf(0,ix,iy,iz) = globalPos[0];
-                    sendBuf(1,ix,iy,iz) = globalPos[1];
-                    sendBuf(2,ix,iy,iz) = globalPos[2];
-                }
+				            // Get value of stress 9D by interpolating
+				            sendBuf(3,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xx();
+				            sendBuf(4,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
+				            sendBuf(5,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
+				            sendBuf(6,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yx();
+				            sendBuf(7,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yy();
+				            sendBuf(8,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
+				            sendBuf(9,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zx();
+				            sendBuf(10,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zy();
+				            sendBuf(11,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zz();
+				        }
+				        else if (sendtype == DEBUG)
+				        {
+				            sendBuf(0,loc_cell[0],loc_cell[1],loc_cell[2]) = globalPos[0];
+				            sendBuf(1,loc_cell[0],loc_cell[1],loc_cell[2]) = globalPos[1];
+				            sendBuf(2,loc_cell[0],loc_cell[1],loc_cell[2]) = globalPos[2];
+				        }
 
-            }
+					}
+					else
+						std::cerr << "Warning: The point (" << (glob_cell[0]+0.5)*dx << "," << 
+									(glob_cell[1]+0.5)*dy << "," << (glob_cell[2]+0.5)*dz << 
+									") is outside the mesh for whatever reason! - Cell: " << 
+									cell << std::endl;
+
+             }
         }
     }
 
+	}
 }
-
-
-//// Unpacks scalar from socket
-//double CPLSocketFOAM::unpack(volScalarField &s, fvMesh &mesh) {
-
-//    for (int ix=0; ix<recvBuf.shape(1); ix++) {
-//        for (int iy=0; iy<recvBuf.shape(2); iy++) {
-//            for (int iz=0; iz<recvBuf.shape(3); iz++) {
-
-//                double e  = recvBuf(0, ix, iy, iz);
-//                double glob_pos[3];
-//                CPL::map_cell2coord(ix, iy, iz, glob_pos);
-//                Foam::point closestCellCentre (glob_pos[0], glob_pos[1], glob_pos[2]);
-//                Foam::label cell = mesh.findCell (closestCellCentre);
-
-//                s[cell] = e;
-
-//            }
-//        }
-//    }
-
-//}
-
-
-//// Unpacks vector from socket
-//double CPLSocketFOAM::unpack(volVectorField &F, fvMesh &mesh) {
-
-//    for (int ix=0; ix<recvBuf.shape(1); ix++) {
-//        for (int iy=0; iy<recvBuf.shape(2); iy++) {
-//            for (int iz=0; iz<recvBuf.shape(3); iz++) {
-
-//                double Fx = recvBuf(0, ix, iy, iz);
-//                double Fy = recvBuf(1, ix, iy, iz);
-//                double Fz = recvBuf(2, ix, iy, iz);
-
-//                double glob_pos[3];
-//                CPL::map_cell2coord(ix, iy, iz, glob_pos);
-//                Foam::point closestCellCentre (glob_pos[0], glob_pos[1], glob_pos[2]);
-//                Foam::label cell = mesh.findCell (closestCellCentre);
-
-//                F[cell].x() = Fx;
-//                F[cell].y() = Fy;
-//                F[cell].z() = Fz;
-
-//            }
-//        }
-//    }
-
-//}
-
-
-// Unpacks the components from the socket's
-double CPLSocketFOAM::unpackPorousForce(volVectorField &F, volScalarField &eps, fvMesh &mesh) {
-
-    for (int ix=0; ix<recvBuf.shape(1); ix++) {
-        for (int iy=0; iy<recvBuf.shape(2); iy++) {
-            for (int iz=0; iz<recvBuf.shape(3); iz++) {
-
-                double Fx = recvBuf(0, ix, iy, iz);
-                double Fy = recvBuf(1, ix, iy, iz);
-                double Fz = recvBuf(2, ix, iy, iz);
-                double e  = recvBuf(3, ix, iy, iz);
-
-                double glob_pos[3];
-                CPL::map_cell2coord(ix, iy, iz, glob_pos);
-                Foam::point closestCellCentre(glob_pos[0]+0.5*dx, glob_pos[1]+0.5*dy, glob_pos[2]+0.5*dz);
-                Foam::label cell = mesh.findCell(closestCellCentre);
-
-//                Foam::Info << " cell " << ix << " " << iy << " " << iz << " " 
-//                           << glob_pos[0]+0.5*dx << " " 
-//                           << glob_pos[1]+0.5*dy << " " 
-//                           << glob_pos[2]+0.5*dz << " " 
-//                           << mesh.C()[cell] << " " << Foam::endl;
-
-                eps[cell] = e;
-                F[cell].x() = Fx;
-                F[cell].y() = Fy;
-                F[cell].z() = Fz;
-
-            }
-        }
-    }
-
-
-//    forAll(mesh.C(), cell)
-//    {
-//        Foam::Info << rankRealm << " " << cell << " eps " 
-//               << eps[cell] << " "
-//          << mesh.C()[cell] << " Fx,y,z " 
-//                 << F[cell].x() << " " << 
-//                    F[cell].y() << " " << 
-//                    F[cell].z() << Foam::endl;
-
-//    }
-
-}
-
 
 // Unpacks the 3 components of the velocity-tensor from the socket's
 // recvVelocity (cpl::ndArray) storage into a boundary condition.
 double CPLSocketFOAM::unpackVelocity(volVectorField &U, fvMesh &mesh) {
 
-    // Take the mean across spanwise direction if specified by coupler
-    // y direction is axis #2
-    if (CPL::get<int>("cpl_cfd_bc_slice")) {
+	if (CPL::is_proc_inside(velBCPortion.data())) { 
 
-        Foam::Info << "CPL_CFD_BC_SLICE is on: averaging CFD recvVelocity "
-                      "in the x-z plane" << Foam::endl;
+		if (CPL::get<int>("cpl_cfd_bc_slice")) {
 
-        // Number of cells in the local processor in x-z plane
-        int N = recvVelocityBuff.shape(1) * recvVelocityBuff.shape(3);
+		    Foam::Info << "CPL_CFD_BC_SLICE is on: averaging CFD recvVelocity "
+		                  "in the x-z plane" << Foam::endl;
 
-        // For every component and y-value 
-        for (int j = 0; j < recvVelocityBuff.shape(2); ++j) {
-            for (int c = 0; c < recvVelocityBuff.shape(0); ++c) {
-            // Sum across the x-z plane 
-            double total = 0.0;
-                for (int k = 0; k < recvVelocityBuff.shape(3); ++k)
-                    for (int i = 0; i < recvVelocityBuff.shape(1); ++i)
-                        total += recvVelocityBuff(c, i, j, k);
+		    // Number of cells in the local processor in x-z plane
+		    int N = recvVelocityBuff.shape(1) * recvVelocityBuff.shape(3);
 
-            // Find mean by dividing sum by number of cells 
-                for (int k = 0; k < recvVelocityBuff.shape(3); ++k)
-                    for (int i = 0; i < recvVelocityBuff.shape(1); ++i)
-                        recvVelocityBuff(c, i, j, k) = total / static_cast<double> (N);
-            }
-        }
-    } 
+		    // For every component and y-value 
+		    for (int j = 0; j < recvVelocityBuff.shape(2); ++j) {
+		        for (int c = 0; c < recvVelocityBuff.shape(0); ++c) {
+		        // Sum across the x-z plane 
+		        double total = 0.0;
+		            for (int k = 0; k < recvVelocityBuff.shape(3); ++k)
+		                for (int i = 0; i < recvVelocityBuff.shape(1); ++i)
+		                    total += recvVelocityBuff(c, i, j, k);
 
-    int applyBCx = CPL::get<int> ("cpl_cfd_bc_x");
-    int applyBCy = CPL::get<int> ("cpl_cfd_bc_y");
-    int applyBCz = CPL::get<int> ("cpl_cfd_bc_z");
+		        // Find mean by dividing sum by number of cells 
+		            for (int k = 0; k < recvVelocityBuff.shape(3); ++k)
+		                for (int i = 0; i < recvVelocityBuff.shape(1); ++i)
+		                    recvVelocityBuff(c, i, j, k) = total / static_cast<double> (N);
+		        }
+		    }
+		} 
 
-    Foam::string receivePatchName ("CPLReceiveMD");
-    Foam::label rvPatchID = mesh.boundary().findPatchID(receivePatchName);
+		// Apply BCs only in certain directions.
+		int applyBCx = CPL::get<int> ("cpl_cfd_bc_x");
+		int applyBCy = CPL::get<int> ("cpl_cfd_bc_y");
+		int applyBCz = CPL::get<int> ("cpl_cfd_bc_z");
 
-    if (rvPatchID == -1) {
-        FatalErrorIn ( "CPLSocketFOAM::unpack()")
-            << " Could not find patch ID " << receivePatchName << ". "
-               " Aborting."
-            << exit(FatalError);
-    }
+		// Patch receiving B.Cs
+		Foam::string receivePatchName ("CPLReceiveMD");
+		Foam::label rvPatchID = mesh.boundary().findPatchID(receivePatchName);
 
-    Foam::fvPatchVectorField& rvPatch = U.boundaryField()[rvPatchID];
-    const Foam::vectorField faceCenters = mesh.boundary()[rvPatchID].Cf();
+		if (rvPatchID == -1) {
+		    FatalErrorIn ( "CPLSocketFOAM::unpack()")
+		        << " Could not find patch ID " << receivePatchName << ". "
+		           " Aborting."
+		        << exit(FatalError);
+		}
 
-    for (int faceI = 0; faceI != faceCenters.size(); ++faceI) {
+		Foam::fvPatchVectorField& rvPatch = U.boundaryField()[rvPatchID];
+		const Foam::vectorField faceCenters = mesh.boundary()[rvPatchID].Cf();
 
-        double facex = faceCenters[faceI].x();
-        double facey = faceCenters[faceI].y();
-        double facez = faceCenters[faceI].z();
+			Foam::label cell;
+			Foam::point closestCellCentre;
+			for (int faceI = 0; faceI != faceCenters.size(); ++faceI) {
 
-        // Find the cell indices for this position recvVelocity(:, ix, iy, iz)
-        int glob_cell[3]; int loc_cell[3];
-        CPL::map_coord2cell(facex, facey, facez, glob_cell);
-        glob_cell[1] += 1; //E.S. Added this line otherwise out of domain error from map_glob2loc_cell!!
-        bool valid_cell = CPL::map_glob2loc_cell(velBCPortion.data(), glob_cell, loc_cell);
+				double facex = faceCenters[faceI].x();
+				double facey = faceCenters[faceI].y();
+				double facez = faceCenters[faceI].z();
 
-//        printf("cells %d %d %d %d %d %d %d %d  \n", 
-//               rankRealm, valid_cell, loc_cell[0], loc_cell[1], loc_cell[2], 
-//               glob_cell[0], glob_cell[1], glob_cell[2]);
+		    // Find the cell indices for this position recvVelocity(:, ix, iy, iz)
+        	int glob_cell[3]; int loc_cell[3];
+		    CPL::map_coord2cell(facex, facey, facez, glob_cell);
+		    bool valid_cell = CPL::map_glob2loc_cell(velBCPortion.data(), glob_cell, loc_cell);
 
-        // For now, the coupler passes momentum and mass in velocity array
-        // This is due for review.
         if (valid_cell) {
             //std::cout << "cell: " << loc_cell[0] << " " << loc_cell[1] << " " << loc_cell[2] \
                << "limits: " << velBCPortion[0] << " " << velBCPortion[1] << " " << velBCPortion[2] << " " << velBCPortion[3] << " " << velBCPortion[4] << " " << velBCPortion[5] << std::endl;
@@ -519,36 +393,21 @@ double CPLSocketFOAM::unpackVelocity(volVectorField &U, fvMesh &mesh) {
             double recvvy = recvVelocityBuff(1, loc_cell[0], loc_cell[1], loc_cell[2])/m;
             double recvvz = recvVelocityBuff(2, loc_cell[0], loc_cell[1], loc_cell[2])/m;
 
-            // Received velocity was averaged in the cell region BELOW 
-            // the domain. So, to get the velocity required at the BOUNDARY, 
-            // we need to take the average of the velocities ABOVE (i.e. the 
-            // bottom OpenFOAM cell velocity) AND BELOW (i.e. the received 
-            // velocity) the domain face.
-            Foam::point closestCellCentre (facex, facey + 0.5*dy, facez);
-            Foam::label cell = mesh.findCell (closestCellCentre);
-            double vx = recvvx; 
-            double vy = recvvy; 
-            double vz = recvvz; 
-//            double vx = (recvvx + U[cell].x()) / 2.0;
-//            double vy = (recvvy + U[cell].y()) / 2.0;
-//            double vz = (recvvz + U[cell].z()) / 2.0;
-
-//            printf("vel %d %d %d %d %4.2f %4.2f %4.2f  \n", 
-//                   rankRealm, loc_cell[0], loc_cell[1], loc_cell[2], vx, vy, vz);
-
-            if (applyBCx) rvPatch[faceI].x() = vx;
-            if (applyBCy) rvPatch[faceI].y() = vy;
-            if (applyBCz) rvPatch[faceI].z() = vz;
-            //return recvvy + m + recvvx + recvvz;
-         }
-    }
+            //Note here velocity is set straight to MD average value
+			//which may be correct or you may need to use interpolation
+            // with something like (recvvx + U[cell].x()) / 2.0; where
+			//cell = mesh.findCell (closestCellCentre);
+			if (applyBCx) rvPatch[faceI].x() = recvvx;
+			if (applyBCy) rvPatch[faceI].y() = recvvy;
+			if (applyBCz) rvPatch[faceI].z() = recvvz;
+        }
 
 //    if (applyBCx) Foam::Info << "MD->CFD BC x-velocity applied." << Foam::endl;
 //    if (applyBCy) Foam::Info << "MD->CFD BC y-velocity applied." << Foam::endl;
 //    if (applyBCz) Foam::Info << "MD->CFD BC z-velocity applied." << Foam::endl;
 
+	}
 }
-
 
 // Sends buffer to overlapping MD processes.
 void CPLSocketFOAM::send() {
@@ -561,6 +420,11 @@ void CPLSocketFOAM::recv()
     CPL::recv(recvBuf.data(), recvBuf.shapeData(), olapPortion.data());
 }
 
+// Sends 9 components of the stress-tensor to overlapping MD processes.
+void CPLSocketFOAM::sendStress() {
+        CPL::send (sendStressBuff.data(), sendStressBuff.shapeData(),
+                   cnstFRegion.data());
+}
 
 // Receives 3 components of the velocity vector from overlapping MD processes.
 void CPLSocketFOAM::recvVelocity()
@@ -569,6 +433,5 @@ void CPLSocketFOAM::recvVelocity()
               recvVelocityBuff.shapeData(), 
               velBCPortion.data());
 }
-
-
-
+  
+}

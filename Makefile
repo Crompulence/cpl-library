@@ -15,6 +15,7 @@ MAKEINCPATH= ./make
 include $(MAKEINCPATH)/platform.inc
 
 
+
 #                          Definitions
 
 # Directories
@@ -31,11 +32,28 @@ fbinddir = $(binddir)/fortran
 cbinddir = $(binddir)/c
 cppbinddir = $(binddir)/cpp
 
+
 # Targets 
 lib = $(libdir)/libcpl.so
 
+
+
+# Check for building json support
+# TODO: Maybe move it to an inc file.
+3rdpartybuild = false 
+ifdef json-support
+	3rdpartybuild = true
+	io_src = CPL_io.f90
+	# Conditional code preprocessor macros. Could have been previously defined.
+	BUILDPPROCMACROS += JSON_SUPPORT
+	LFLAGS += -ljsonfortran
+else
+	io_src =
+endif
+	
 # Source files, headers and objects
-coresrc = CPL_module.f90 CPL_methods.f90 
+coresrc = CPL_module.f90 CPL_methods.f90 commondefs.f90 $(io_src)
+
 coresrcfiles = $(addprefix $(coresrcdir)/, $(coresrc))
 coreobjfiles = $(addprefix $(objdir)/, $(coresrc:.f90=.o))
 
@@ -74,7 +92,7 @@ CFLAGS += -fPIC
 default: core fortran c cpp utilities link
 
 debug: core fortran c cpp utilities link
-    FFLAGS = -fPIC -O0 -fbacktrace -fbounds-check $(FMODKEY)$(includedir)
+	FFLAGS = -fPIC -O0 -fbacktrace -Wall -fbounds-check $(FMODKEY)$(includedir)
 
 # Declare phony targets
 .phony.: fortran c cpp utilities
@@ -84,16 +102,28 @@ cpp: core $(fbindobjfile) $(cbindobjfile) $(cppbindobjfiles) $(utilsobjfiles)
 
 # Fortran bindings
 $(fbindobjfile): core $(fbindsrcfile)
+ifdef BUILDPPROCMACROS
+	$(F90) $(FFLAGS) -D$(BUILDPPROCMACROS) -c $(fbindsrcfile) -o $(fbindobjfile)
+else
 	$(F90) $(FFLAGS) -c $(fbindsrcfile) -o $(fbindobjfile)
+endif
 
 # C bindings: create the lib objects first, overwrite lib including CPLC
 $(cbindobjfile): core $(cbindsrcfile)
+ifdef BUILDPPROCMACROS
+	$(F90) $(FFLAGS) -D$(BUILDPPROCMACROS) -c $(cbindsrcfile) -o $(cbindobjfile)
+else
 	$(F90) $(FFLAGS) -c $(cbindsrcfile) -o $(cbindobjfile)
+endif
 	@cp $(cbindhdrfile) $(includedir)
 
 # C++ bindings: create lib and c bindings first, overwrite lib including CPLCPP
 $(cppbindobjfiles): core $(cbindobjfile) 
+ifdef BUILDPPROCMACROS
+	$(CPP) $(CFLAGS) -D$(BUILDPPROCMACROS) -I$(cbinddir) -c $(cppbindsrcfiles) -o $(cppbindobjfiles)
+else
 	$(CPP) $(CFLAGS) -I$(cbinddir) -c $(cppbindsrcfiles) -o $(cppbindobjfiles)
+endif
 	@cp $(cppbindhdrfiles) $(includedir)
 
 # Utilities
@@ -107,11 +137,19 @@ $(libdir):
 	mkdir -p $(libdir)
 $(includedir):
 	mkdir -p $(includedir)
+$(CPL_THIRD_PARTY_INC):
+	mkdir -p $(CPL_THIRD_PARTY_INC)
+$(CPL_THIRD_PARTY_LIB):
+	mkdir -p $(CPL_THIRD_PARTY_LIB)
 
 # Compilation rules for library object files (written in Fortran)
 core: $(objdir) $(libdir) $(includedir) $(coreobjfiles)
 $(coreobjfiles): $(objdir)/%.o : $(coresrcdir)/%.f90
-	$(F90) $(FFLAGS) -c $< -o $@
+ifeq ($(3rdpartybuild),true)
+		$(F90) $(FFLAGS) -I$(CPL_THIRD_PARTY_INC) -c $< -o $@
+else
+		$(F90) $(FFLAGS) -c $< -o $@
+endif
 
 # Utils compilation rules
 $(utilsobjfiles): $(objdir)/%.o : $(utilsdir)/%.cpp
@@ -119,16 +157,25 @@ $(utilsobjfiles): $(objdir)/%.o : $(utilsdir)/%.cpp
 
 # Link static lib to dynamic (shared) library
 link: $(objdir) $(libobjfiles) $(utilsobjfiles)
-	$(LINK) $(LSHAREDLIB) -o $(lib) $(allobjfiles) $(LFLAGS) 
+ifeq ($(3rdpartybuild),true)
+		$(LINK) $(LSHAREDLIB) -o $(lib) $(allobjfiles) -L$(CPL_THIRD_PARTY_LIB) -Wl,-rpath $(CPL_THIRD_PARTY_LIB) $(LFLAGS) 
+else
+		$(LINK) $(LSHAREDLIB) -o $(lib) $(allobjfiles) $(LFLAGS) 
+endif
 
+json-fortran: $(CPL_THIRD_PARTY_LIB) $(CPL_THIRD_PARTY_INC)
+	bash $(MAKEINCPATH)/json-fortran.build
+
+3rd-party: json-fortran
+	
 test-all:
-	py.test -v -s $(testdir)
+	py.test -v  $(testdir)
 	
 test-mapping:
-	py.test -v -s $(testdir)/mapping
+	py.test -v  $(testdir)/mapping
 
 test-initialisation:
-	py.test -v -s $(testdir)/initialisation
+	py.test -v  $(testdir)/initialisation
 
 test-examples:
 	./examples/sendrecv_globcell/test_all.sh
@@ -150,3 +197,7 @@ webdocs-all:
 # Clean
 clean:
 	rm -rf $(objdir) $(libdir) $(includedir) ./*.mod
+
+clean-all:
+	rm -rf $(objdir) $(libdir) $(includedir) ./*.mod
+	bash $(CPL_THIRD_PARTY)/clean.sh

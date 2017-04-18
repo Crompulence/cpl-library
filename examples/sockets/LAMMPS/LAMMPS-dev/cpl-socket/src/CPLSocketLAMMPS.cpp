@@ -66,7 +66,7 @@ initComms (int argc, char **argv) {
 
 void CPLSocketLAMMPS::\
 finalizeComms() {
-
+    CPL::finalize();
     MPI_Finalize();
 };
 
@@ -94,10 +94,13 @@ initMD (LAMMPS_NS::LAMMPS *lammps) {
    
     //TODO: get the origin from LAMMPS 
     double xyz_orig[3] = {0.0 ,0.0, 0.0};
-    // Call MD init, this->nsteps will be reset to correct value
+    //NOTE: Make sure set_timing is called before setup_cfd due to a unfixed bug
+    CPL::set_timing(initialstep, 100, dt);
     CPL::setup_md (icomm_grid, globaldomain, xyz_orig);
 
     // Setup
+    nsteps = CPL::get<int> ("nsteps_coupled");
+    //nsteps =5000;
     timestep_ratio = CPL::get<int> ("timestep_ratio");
     getCellTopology();
     setupFixMDtoCFD(lammps);
@@ -115,8 +118,9 @@ getCellTopology() {
     dz = CPL::get<double> ("dz");
    
     // Averaging region height below and above the boundary condition plane 
-    VELBC_BELOW = dy;
-    VELBC_ABOVE = 0.0;
+	// TODO: THis is for testing!!!!
+    VELBC_BELOW = 0.0;//dy/2.0;
+    VELBC_ABOVE = dy;///2.0;
 
     // Cell bounds for the overlap region
     CPL::get_olap_limits(olapRegion.data());
@@ -302,18 +306,14 @@ void CPLSocketLAMMPS::\
 sendVelocity() {
 
     // Send the data to CFD
-    CPL::gather(sendVelocityBuff.data(), sendVelocityBuff.shapeData(),
-                velBCRegion.data(), recvVelocityBuff.data(), 
-                recvVelocityBuff.shapeData());
+    CPL::send(sendVelocityBuff.data(), sendVelocityBuff.shapeData(),
+                velBCRegion.data());
 
 };
 
 void CPLSocketLAMMPS::\
 recvStress() {
-
     // Receive from CFD
-    CPL::scatter(sendStressBuff.data(), sendStressBuff.shapeData(),
-                 cnstFRegion.data(), recvStressBuff.data(),
-                 recvStressBuff.shapeData());
+    CPL::recv(recvStressBuff.data(),recvStressBuff.shapeData(), cnstFRegion.data()); 
 };
 

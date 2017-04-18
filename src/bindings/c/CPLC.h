@@ -44,6 +44,21 @@ Author(s)
 
 */
 
+/** MODULE IO **/
+
+#ifdef JSON_SUPPORT
+extern "C" void CPLC_load_param_file(const char* fname);
+extern "C" void CPLC_close_param_file();
+extern "C" void CPLC_get_real_param(const char* section, const char* param_name, double* real_param);
+extern "C" void CPLC_get_real_array_param(const char* section, const char* param_name, double** real_param_array, int* array_len);
+extern "C" void CPLC_get_int_param(const char* section, const char* param_name, int* int_param);
+extern "C" void CPLC_get_int_array_param(const char* section, const char* param_name, int** int_param_array, int* array_len);
+extern "C" void CPLC_get_boolean_param(const char* section, const char* param_name, bool* boolean_param);
+extern "C" void CPLC_get_boolean_array_param(const char* section, const char* param_name, bool** boolean_param_array, int* array_len);
+extern "C" void CPLC_get_string_param(const char* section, const char* param_name, char** string_param);
+extern "C" void CPLC_get_string_array_param(const char* section, const char* param_name, char** string_param_array, int* array_len);
+#endif 
+
 extern "C" void CPLC_init(int  calling_realm, int* returned_realm_comm);
 extern "C" void CPLC_finalize();
 extern "C" void CPLC_setup_cfd(int icomm_grid, double xyzL[], 
@@ -79,6 +94,7 @@ extern "C" void CPLC_get_cnst_limits(int limits[]);
 extern "C" bool CPLC_map_cfd2md_coord(double coord_cfd[], double coord_md[]);
 extern "C" bool CPLC_map_md2cfd_coord(double coord_md[], double coord_cfd[]);
 extern "C" bool CPLC_overlap();
+extern "C" bool CPLC_is_proc_inside(int region[]);
 
 // Setters
 extern "C" void CPLC_set_output_mode

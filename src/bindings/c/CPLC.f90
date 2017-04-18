@@ -48,7 +48,7 @@
 !
 !Author(s)
 !
-!   David Trevelyan
+!   David Trevelyan, Eduardo Ramos Fernandez
 !
 
 module CPLC
@@ -79,6 +79,313 @@ contains
             cbool = .false.
         endif
     end subroutine F_C_BOOL
+
+    !Convert fortran to C array of booleans
+    subroutine F_C_BOOL_ARRAY(fbool_array, cbool_array)
+        implicit none
+
+        logical, dimension(:), intent(in) :: fbool_array
+        logical(C_BOOL), dimension(:), intent(out) :: cbool_array
+        integer :: i
+
+        do i = 1, size(fbool_array)
+            call F_C_BOOL(fbool_array(i), cbool_array(i))
+        end do
+    end subroutine F_C_BOOL_ARRAY
+
+    !Convert C to fortran array of booleans
+    subroutine C_F_BOOL_ARRAY(cbool_array, fbool_array)
+        implicit none
+
+        logical(C_BOOL), dimension(:), intent(in) :: cbool_array
+        logical, dimension(:), intent(out) :: fbool_array
+        integer :: i
+
+        do i = 1, size(cbool_array)
+            call C_F_BOOL(cbool_array(i), fbool_array(i))
+        end do
+    end subroutine C_F_BOOL_ARRAY
+ 
+    ! CPL_io module routines
+
+    subroutine c_f_string(c_string, f_string)
+        implicit none 
+        type(C_PTR), intent(in) :: c_string
+        character(:), intent(out), allocatable :: f_string
+        ! Array for accessing string pointed at by C pointer 
+        character, pointer :: string_ptr(:)
+        integer :: i    ! string index
+        interface
+          ! Steal std C library function rather than writing our own.
+          function strlen(s) bind(c, name='strlen')
+            use iso_c_binding 
+            implicit none
+            !----
+            type(C_PTR), intent(in), value :: s
+            integer(c_size_t) :: strlen
+          end function strlen
+        end interface
+        !****
+        ! Map C pointer to fortran character array
+        call c_f_pointer(c_string, string_ptr, [strlen(c_string)])
+        ! Allocate fortran character variable to the c string's length
+        allocate(character(size(string_ptr)) :: f_string)
+        ! Copy across (with possible kind conversion) characters
+        do i = 1, size(string_ptr)
+            f_string(i:i) = string_ptr(i)
+        end do
+    end subroutine c_f_string      
+
+    subroutine f_c_string(f_string, c_string)
+        implicit none
+
+        type(C_PTR), intent(out) :: c_string
+        character(len=:), intent(inout), allocatable, target :: f_string
+
+        f_string = f_string//C_NULL_CHAR
+        c_string = c_loc(f_string)
+    end subroutine f_c_string
+
+    subroutine f_c_string_array(f_string_array, c_string_array)
+        use commondefs, only: CPL_STRING_MAX_LEN
+        implicit none
+
+        type(C_PTR), dimension(:), allocatable, intent(out) :: c_string_array
+        integer :: i, s_len
+        character(len=CPL_STRING_MAX_LEN), dimension(:), target, allocatable,intent(inout):: f_string_array
+
+        print*, "INSIDE0"
+        allocate(c_string_array(size(f_string_array)))
+        print*, "INSIDE1"
+        do i = 1, size(f_string_array)
+            s_len = len_trim(f_string_array(i))
+            print*, "loop:",i
+            f_string_array(i)(s_len+1:s_len+1) = C_NULL_CHAR
+            c_string_array(i) = c_loc(f_string_array(i))
+        end do
+
+        print*, "INSIDE2"
+
+    end subroutine f_c_string_array
+
+#ifdef JSON_SUPPORT
+    subroutine CPLC_load_param_file(fname) &
+        bind (C, name="CPLC_load_param_file")
+        use CPL, only: CPL_load_param_file
+        implicit none
+
+        type(C_PTR), intent(in), value :: fname
+        character(:), allocatable :: fname_f
+
+        call c_f_string(fname, fname_f)
+
+        call CPL_load_param_file(fname_f)
+
+    end subroutine  CPLC_load_param_file
+
+    subroutine CPLC_close_param_file() &
+        bind (C, name="CPLC_close_param_file")
+        use CPL, only: CPL_close_param_file
+        implicit none
+
+        call CPL_close_param_file()
+    end subroutine
+
+    subroutine CPLC_get_real_param(section, param_name, real_param) &
+        bind (C, name="CPLC_get_real_param")
+        use CPL, only: get_real_param 
+        implicit none
+        
+        real(C_DOUBLE), intent(out) :: real_param
+        type(C_PTR), intent(in), value :: param_name
+        type(C_PTR), intent(in), value :: section
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
+
+        call c_f_string(param_name, param_name_f)
+        call c_f_string(section, section_f)
+
+        call get_real_param(section_f, param_name_f, real_param)
+
+    end subroutine CPLC_get_real_param
+
+    subroutine CPLC_get_real_array_param(section, param_name, real_array_param, array_len) &
+        bind (C, name="CPLC_get_real_array_param")
+        use CPL, only: get_real_array_param
+        implicit none
+        
+        integer(C_INT), intent(out) :: array_len
+        type(C_PTR), intent(out) :: real_array_param
+
+        type(C_PTR), intent(in), value :: param_name
+        type(C_PTR), intent(in), value :: section
+
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
+        real(kind(0.d0)), dimension(:), allocatable, target, save:: real_array_param_f
+        !real(kind(0.d0)), dimension(:), pointer :: r_f
+
+        call c_f_string(param_name, param_name_f)
+        call c_f_string(section, section_f)
+
+        call get_real_array_param(section_f, param_name_f, real_array_param_f)
+
+        real_array_param = c_loc(real_array_param_f(1))
+        array_len = size(real_array_param_f)
+    end subroutine CPLC_get_real_array_param
+
+
+    subroutine CPLC_get_boolean_param(section, param_name, boolean_param) &
+        bind (C, name="CPLC_get_boolean_param")
+        use CPL, only: get_boolean_param
+        implicit none
+        
+        logical(C_BOOL), intent(out) :: boolean_param
+        type(C_PTR), intent(in), value :: param_name
+        type(C_PTR), intent(in), value :: section
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
+        logical :: boolean_param_f
+
+        call c_f_string(param_name, param_name_f)
+        call c_f_string(section, section_f)
+
+        call C_F_BOOL(boolean_param, boolean_param_f) 
+        call get_boolean_param(section_f, param_name_f, boolean_param_f)
+        call F_C_BOOL(boolean_param_f, boolean_param) 
+
+    end subroutine CPLC_get_boolean_param
+
+    subroutine CPLC_get_boolean_array_param(section, param_name, boolean_array_param, array_len) &
+        bind (C, name="CPLC_get_boolean_array_param")
+        use CPL, only: get_boolean_array_param
+        implicit none
+        
+        integer(C_INT), intent(out) :: array_len
+        type(C_PTR), intent(out) :: boolean_array_param
+
+        type(C_PTR), intent(in), value :: param_name
+        type(C_PTR), intent(in), value :: section
+
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
+        logical, dimension(:), allocatable :: boolean_array_param_f
+        logical(C_BOOL), dimension(:), allocatable, target, save:: boolean_array_param_c
+        !boolean(kind(0.d0)), dimension(:), pointer :: r_f
+
+        call c_f_string(param_name, param_name_f)
+        call c_f_string(section, section_f)
+
+        call get_boolean_array_param(section_f, param_name_f, boolean_array_param_f)
+        allocate(boolean_array_param_c(size(boolean_array_param_f)))
+        call F_C_BOOL_ARRAY(boolean_array_param_f, boolean_array_param_c)
+
+        boolean_array_param = c_loc(boolean_array_param_c(1))
+        array_len = size(boolean_array_param_c)
+    end subroutine CPLC_get_boolean_array_param
+ 
+    
+   subroutine CPLC_get_int_param(section, param_name, int_param) &
+        bind (C, name="CPLC_get_int_param")
+        use CPL, only: get_int_param
+        implicit none
+        
+        integer(C_INT), intent(out) :: int_param
+        type(C_PTR), intent(in), value :: param_name
+        type(C_PTR), intent(in), value :: section
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
+
+        call c_f_string(param_name, param_name_f)
+        call c_f_string(section, section_f)
+
+        call get_int_param(section_f, param_name_f, int_param)
+
+    end subroutine CPLC_get_int_param
+
+
+    subroutine CPLC_get_int_array_param(section, param_name, int_array_param, array_len) &
+        bind (C, name="CPLC_get_int_array_param")
+        use CPL, only: get_int_array_param
+        implicit none
+        
+        integer(C_INT), intent(out) :: array_len
+        type(C_PTR), intent(out) :: int_array_param
+
+        type(C_PTR), intent(in), value :: param_name
+        type(C_PTR), intent(in), value :: section
+
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
+        integer, dimension(:), allocatable, target, save :: int_array_param_f
+
+        call c_f_string(param_name, param_name_f)
+        call c_f_string(section, section_f)
+
+        call get_int_array_param(section_f, param_name_f, int_array_param_f)
+        int_array_param = c_loc(int_array_param_f)
+        array_len = size(int_array_param_f)
+    end subroutine CPLC_get_int_array_param
+
+   subroutine CPLC_get_string_param(section, param_name, string_param) &
+        bind (C, name="CPLC_get_string_param")
+        use CPL, only: get_string_param
+        implicit none
+
+        type(C_PTR), intent(out) :: string_param
+        type(C_PTR), intent(in), value :: param_name
+        type(C_PTR), intent(in), value :: section
+        character(len=:), allocatable, save:: string_param_f
+        character(:), allocatable :: section_f
+        character(:), allocatable :: param_name_f
+
+
+        call c_f_string(param_name, param_name_f)
+        call c_f_string(section, section_f)
+
+        call get_string_param(section_f, param_name_f, string_param_f)
+        call f_c_string(string_param_f, string_param)
+
+    end subroutine CPLC_get_string_param
+
+
+    subroutine CPLC_get_string_array_param(section, param_name, string_array_param, array_len) &
+        bind (C, name="CPLC_get_string_array_param")
+        use CPL, only: get_string_array_param, CPL_STRING_MAX_LEN
+        implicit none
+        
+        integer(C_INT), intent(out) :: array_len
+        type(C_PTR), dimension(:), allocatable, intent(out) :: string_array_param
+
+        type(C_PTR), intent(in), value :: param_name
+        type(C_PTR), intent(in), value :: section
+
+        character(:), allocatable :: param_name_f
+        character(:), allocatable :: section_f
+        character(len=CPL_STRING_MAX_LEN), dimension(:), allocatable, save:: string_array_param_f
+        character, dimension(:,:), allocatable, target, save:: f
+
+
+        call c_f_string(param_name, param_name_f)
+        call c_f_string(section, section_f)
+
+        call get_string_array_param(section_f, param_name_f, string_array_param_f)
+        !allocate(f(1, 5))
+        !f(1,1) = 'H'
+        !f(1,2) = 'O'
+        !f(1,3) = 'L'
+        !f(1,4) = 'A'
+        !f(1,5) = C_NULL_CHAR
+
+        print*, "ENTRA"
+
+        call f_c_string_array(string_array_param_f, string_array_param)
+
+        array_len = size(string_array_param_f)
+        print*, "SALE"
+    end subroutine CPLC_get_string_array_param
+#endif
+
 
     subroutine CPLC_init(calling_realm, returned_realm_comm) &
         bind (C, name="CPLC_init")
@@ -121,7 +428,7 @@ contains
         integer, dimension(:), pointer :: ncxyz_f
         real(kind(0.d0)), dimension(:), pointer :: xyzL_f, xyz_orig_f
 
-        ! Integers
+        !n Integers
         call C_F_POINTER(ncxyz, ncxyz_f, [3])
 
         ! Reals
@@ -167,8 +474,7 @@ contains
         integer, dimension(:,:), pointer :: icoord_f
         real(kind(0.d0)), dimension(:), pointer :: xyzL_f
         real(kind(0.d0)), dimension(:), pointer :: xyz_orig_f
-        real(kind(0.d0)), dimension(:), pointer :: zgrid_f
-        real(kind(0.d0)), dimension(:,:), pointer :: xgrid_f, ygrid_f
+        real(kind(0.d0)), dimension(:,:,:), pointer :: xgrid_f, ygrid_f, zgrid_f
 
         ! Convenient local variables to be stored
         integer :: npx, npy, npz, nprocs, ncx, ncy, ncz
@@ -203,9 +509,9 @@ contains
         ! Reals
         call C_F_POINTER(xyzL, xyzL_f, [3])
         call C_F_POINTER(xyz_orig, xyz_orig_f, [3])
-        call C_F_POINTER(xgrid, xgrid_f, [ncx+1, ncy+1])
-        call C_F_POINTER(ygrid, ygrid_f, [ncx+1, ncy+1])
-        call C_F_POINTER(zgrid, zgrid_f, [ncz+1])
+        call C_F_POINTER(xgrid, xgrid_f, [ncx+1, ncy+1, ncz+1])
+        call C_F_POINTER(ygrid, ygrid_f, [ncx+1, ncy+1, ncz+1])
+        call C_F_POINTER(zgrid, zgrid_f, [ncx+1, ncy+1, ncz+1])
 
         ! Call the old routine
         call coupler_cfd_init(icomm_grid, icoord_f, npxyz_cfd_f,  &
@@ -236,7 +542,6 @@ contains
        !Aux variables
        integer :: int_dimx, int_dimy
        integer :: doub_dimx, doub_dimy
-       integer :: i, j
 
        call C_F_POINTER(int_pptr_dims, int_pptr_dims_f, [2])
        call C_F_POINTER(doub_pptr_dims, doub_pptr_dims_f, [2])
@@ -662,6 +967,21 @@ contains
 
     end subroutine CPLC_my_proc_portion
 
+    logical(C_BOOL) function CPLC_is_proc_inside(region) &
+        bind(C, name="CPLC_is_proc_inside")
+        use CPL, only: CPL_is_proc_inside
+
+        type(C_PTR), value :: region ! (6)
+        integer, dimension(:), pointer :: region_f
+        call C_F_POINTER(region, region_f, [6])
+
+        region_f = region_f + 1
+
+        CPLC_is_proc_inside = CPL_is_proc_inside(region_f)
+
+        region_f = region_f - 1
+    end function CPLC_is_proc_inside
+        
 
     logical(C_BOOL) function CPLC_map_cfd2md_coord(coord_cfd, coord_md) &
         bind(C, name="CPLC_map_cfd2md_coord")
@@ -707,7 +1027,7 @@ contains
         use CPL, only: CPL_map_cell2coord
     
         ! Input position
-        integer, value :: i, j, k
+        integer(C_INT), value :: i, j, k
         type(C_PTR), value :: coord_xyz ! (3)
        
         ! Fortran equivalent array
@@ -725,7 +1045,7 @@ contains
         use CPL, only: CPL_map_coord2cell
     
         ! Input position
-        real(kind(0.d0)), value :: x, y, z
+        real(C_DOUBLE), value :: x, y, z
         type(C_PTR), value :: cell_ijk ! (3)
        
         ! Fortran equivalent array

@@ -8,8 +8,10 @@ import os
 # EXPLANATION:
 
 MD_FNAME = "lammps_vels.in"
+MD_ARGS = "-in " + MD_FNAME
 MD_EXEC = "lmp_cpl"
 CFD_FNAME = "dummyCFD.py"
+CFD_ARGS = CFD_FNAME
 CFD_EXEC = "python"
 TEST_TEMPLATE_DIR = os.path.join(os.environ["CPL_PATH"], "test/templates")
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -23,18 +25,18 @@ def prepare_config_fix(tmpdir):
 def compare_vels(tol, lammps_fname="lammps_vels.dat",
                  cfd_fname="cfd_vels.dat"):
 
-    # Line format of CFD script file -- > x z vx vy vz
+    # Line format of CFD script file -- > x y z vx vy vz
     with open(cfd_fname, "r") as cfd_file:
         cfd_lines = cfd_file.readlines()
     cfd_lines = [l[:-1].split(" ") for l in cfd_lines]
     cfd_cells = {}
     for l in cfd_lines:
-        cfd_cells[(float(l[0]), float(l[1]))] = np.array([float(l[2]),
-                                                         float(l[3]),
-                                                         float(l[4])])
+        cfd_cells[(float(l[0]), float(l[1]), float(l[2]))] = np.array([float(l[3]),
+                                                        	       float(l[4]),
+                                                         	       float(l[5])])
 
-    # Line format of LAMMPS file -- > chunk x z ncount vx vy vz
-    with open(lammps_fname) as lammps_file:
+    # Line format of LAMMPS file -- > chunk x y z ncount vx vy vz
+    with open(lammps_fname, "r") as lammps_file:
         lammps_lines = lammps_file.readlines()
     skip = int(lammps_lines[3].split(" ")[1])
     lammps_lines = lammps_lines[4:]
@@ -43,19 +45,16 @@ def compare_vels(tol, lammps_fname="lammps_vels.dat",
     lammps_cells = {}
     for l in lammps_lines:
         l = filter(None, l)
-        lammps_cells[(float(l[1]), float(l[2]))] = np.array([float(l[4]),
-                                                            float(l[5]),
-                                                            float(l[6])])
-    # Check if the number of cells are the same
-    if len(lammps_cells) != len(cfd_cells):
-        assert False
+        lammps_cells[(float(l[1]), float(l[2]), float(l[3]))] = np.array([float(l[5]),
+                                                            		  float(l[6]),
+                                                            		  float(l[7])])
 
     # Compare each cell velocity up to a certain tolerance
-    for cell in lammps_cells.keys():
+    for cell in cfd_cells.keys():
         try:
             diff_vel = abs(cfd_cells[cell] - lammps_cells[cell])
             if (np.any(diff_vel > tol)):
-                print "False"
+                print "Cell value disagreement:"
                 print cfd_cells[cell]
                 print lammps_cells[cell]
                 assert False
@@ -88,7 +87,7 @@ def test_velocitiesP2C(prepare_config_fix, cfdprocs, mdprocs, err_msg):
                      "cnst_zlo": 1, "cnst_zhi": 15,
                      "tstep_ratio": 1, }
 
-    correct = run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME,
-                       CFD_EXEC, CFD_FNAME, MD_PARAMS, CFD_PARAMS, err_msg)
+    correct = run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
+                       CFD_EXEC, CFD_FNAME, CFD_ARGS, MD_PARAMS, CFD_PARAMS, err_msg, True)
     if correct:
         compare_vels(1e-6)

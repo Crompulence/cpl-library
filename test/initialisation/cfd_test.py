@@ -60,3 +60,4 @@ if (nprocs_realm != NProcs):
 cart_comm = realm_comm.Create_cart([NPx, NPy, NPz])
 
 CPL.setup_cfd(cart_comm, xyzL, xyz_orig, ncxyz)
+CPL.finalize()
