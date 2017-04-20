@@ -92,10 +92,17 @@ class CFD():
         # === Plot both grids ===
 
         #Plot x component on grid
-        x = np.linspace(self.CPL.get("x_orig_cfd")+.5*self.dx,self.xoverlap-.5*self.dx,self.ioverlap)
-        z = np.linspace(self.CPL.get("z_orig_cfd")+.5*self.dz,self.zoverlap-.5*self.dz,self.koverlap)
-        for j in range(self.joverlap):
-            ax.plot(x, 0.5*self.dy*(self.recv_array[0,:,j,0]+1.+2*j), 's-')
+        x = np.linspace(self.CPL.get("x_orig_cfd")+.5*self.dx,
+                        self.xoverlap-.5*self.dx,self.ioverlap)
+        z = np.linspace(self.CPL.get("z_orig_cfd")+.5*self.dz,
+                        self.zoverlap-.5*self.dz,self.koverlap)
+
+
+        try:
+            for j in range(self.joverlap):
+                ax.plot(x, 0.5*self.dy*(self.recv_array[0,:,j,0]+1.+2*j), 's-')
+        except ValueError:
+            print("Arrays not equal:", x.shape, z.shape, self.recv_array.shape)
 
     def finalise(self):
 

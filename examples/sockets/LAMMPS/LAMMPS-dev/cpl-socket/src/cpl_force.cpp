@@ -2,23 +2,67 @@
 #include "cpl_force.h"
 #include <vector>
 #include "CPL.h"
+#include <math.h> 
 
 //Constructors
 CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){
     // Fields
     int fieldShape[4] = {nd, icells, jcells, kcells};
     field.resize(4, fieldShape);
+    for (int i = 0; i < 3; ++i){
+        min[i] = 0.0;
+        max[i] = 1.0;
+    }
+    set_dxyz();
 };
 
+//Should this be a std::shared_ptr <CPL::ndArray <double>> fieldin??
+//Surely a unique pointer is better is we have to use pointers at all
 CPLForce::CPLForce(CPL::ndArray<double> fieldin){
     field = fieldin;
+    for (int i = 0; i < 3; ++i){
+        min[i] = 0.0;
+        max[i] = 1.0;
+    }
+    set_dxyz();
+
 };
 
-//CPLForce::CPLForce(std::shared_ptr <CPL::ndArray <double>> fieldin){
-//    field = fieldin;
-//};
+//Set minimum and maximum values of field application
+void CPLForce::set_minmax(double min_in[], double max_in[]){
+    for (int i = 0; i < 3; ++i){
+        min[i] = min_in[i];
+        max[i] = max_in[i];
+    }
+    set_dxyz();
+};
 
+//If either min/max change or field object, we need to recalculate dx, dy and dz
+void CPLForce::set_dxyz(){
+    for (int i = 0; i < 3; ++i){
+        dxyz[i] = (max[i] - min[i])/field.shape(i+1);
+    }
 
+    dA[0] = dxyz[1]*dxyz[2];
+    dA[1] = dxyz[0]*dxyz[2];
+    dA[2] = dxyz[0]*dxyz[1];
+    dV = dxyz[0]*dxyz[1]*dxyz[2];
+}
+
+//Get cell from min/max and dx
+std::vector<int> CPLForce::get_cell(double r[]){
+    std::vector<int> cell(3);
+    for (int i = 0; i < 3; ++i){
+        cell[i] = floor((r[i]-min[i])/dxyz[i]);
+        //Check cell is within the domain
+        if (cell[i] > floor((max[i]-min[i])/dxyz[i]))
+            throw std::domain_error("get_cell Error: Input above domain");
+
+        if (cell[i] < 0)
+            throw std::domain_error("get_cell Error: Input below domain");
+    }
+    return cell;
+}
 
 void CPLForce::set_field(CPL::ndArray<double> fieldin){
 
@@ -42,94 +86,100 @@ CPL::ndArray<double> CPLForce::get_field(){
 CPLForceFlekkoy::CPLForceFlekkoy(CPL::ndArray<double> field) : CPLForce(field){
 
     initialisesums(field);
+
 }
 
 CPLForceFlekkoy::CPLForceFlekkoy(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
 
     initialisesums(field);
+}
 
+
+void CPLForceFlekkoy::resetsums(){
+
+    nSums = 0.0;  gSums = 0.0;
 }
 
 void CPLForceFlekkoy::initialisesums(CPL::ndArray<double> f){
 
-    int sumsShape[3] = {
-                            f.shape(1),
-                            f.shape(2),
-                            f.shape(3)
-                        };
-
+    int sumsShape[3] = {f.shape(1), f.shape(2), f.shape(3)};
     gSums.resize(3, sumsShape); // Sum of Flekkøy g weights
     nSums.resize(3, sumsShape); // Sum of number of particles  
-    nSums = 0.0;  gSums = 0.0;
+    resetsums();
 }
 
-
-//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-void pre_force(int icell, int jcell, int kcell) {
-    double g = flekkoyGWeight(x[i][1], cplforceregion->extent_ylo, 
-                              cplforceregion->extent_yhi);
-    nSums(icell, jcell, kcell) += 1.0; 
-    gSums(icell, jcell, kcell) += g;
-    std::cout << "FLEKKOY: " << gSums(icell, jcell, kcell) << " " << cplforceregion->extent_ylo\
-        << " " << cplforceregion->extent_yhi << " " << x[i][1]<< std::endl;
-
-}
-/*
-//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-void apply_force(int i, int icell, int jcell, int kcell, 
-                 std::shared_ptr <CPL::ndArray <double>> field){
-    double n = nSums(i, icell, jcell, kcell);
-    if (n < 1.0) {
-        std::cout << "Warning: 0 particles in cell (" 
-                  << icell << ", " << jcell << ", " << kcell << ")"
-                  << std::endl;
-    }
-    else {
-        double g = flekkoyGWeight (x[i][1], cplforceregion->extent_ylo,
-                                   cplforceregion->extent_yhi);
-
-        // Since the Flekkoy weight is considered only for 0 < y < L/2, for cells 
-        // that are completely in y < 0 gSums(i, j, k) will be always 0.0 so can 
-        // produce a NAN in the g/gSums division below.
-        if (gSums(icell, jcell, kcell) > 0.0) {
-            double gdA = (g/gSums(icell, jcell, kcell)) * dA;
-            // Normal to the X-Z plane is (0, 1, 0) so (tauxy, syy, tauxy)
-            // are the only components of the stress tensor that matter.
-            double fx = gdA * field->operator()(1, icell, jcell, kcell);
-            double fy = gdA * field->operator()(4, icell, jcell, kcell);
-            double fz = gdA * field->operator()(7, icell, jcell, kcell);
-
-        }
-    }
-}
 
 // See Flekkøy, Wagner & Feder, 2000 Europhys. Lett. 52 271, footnote p274
-double FixCPLForce::flekkoyGWeight(double y, double ymin, double ymax) {
-    
+double CPLForceFlekkoy::flekkoyGWeight(double y, double ymin, double ymax) {
+
+    if (y > ymax)
+        throw std::domain_error("flekkoyGWeight Error: Position argument y greater than ymin");
+
     // K factor regulates how to distribute the total force across the volume.
-    // 1/K represent the fraction of the constrain region volumen used.
+    // 1/K represent the fraction of the constrain region volume used.
     // Flekøy uses K = 2.
     double K = 1;
     // Define re-scaled coordinate 
     double L = ymax - ymin;
     //double yhat = y - ymin - 0.5*L; 
     double yhat = y - ymin - (1 - 1/K)*L;
-    double g = 0.0;
+    double g;
 
-
-//   if (yhat > 0.5*L) {
-    if (yhat > (1/K * L)) {
-        error->all(FLERR, "Position argument y to flekkoyGWeight "
-                          "(y, ymin, ymax) is greater than ymax. ");
-    }
-    else if (yhat > 0.0) {
+    if (yhat > 0.0)
         g = 2.0*(1.0/(L - K*yhat) - 1.0/L - K*yhat/(L*L));
-    }
+    else
+        g = 0.0;
     
     return g;
-    
+
 }
 
+//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
+void CPLForceFlekkoy::pre_force(double r[], double v[], double a[]) {
+
+    // Find in which cell number (local to processor) is the particle
+    // and sum all the Flekkøy weights for each cell.
+    std::vector<int> cell = get_cell(r);
+
+    double g = flekkoyGWeight(r[1], min[1], max[1]);
+    nSums(cell[0], cell[1], cell[2]) += 1.0; 
+    gSums(cell[0], cell[1], cell[2]) += g;
+
+//    std::cout << "FLEKKOY: " << icell << " " << jcell  << " " << kcell  
+//                << " " << g << " " << gSums(icell, jcell, kcell) << " " 
+//                << nSums(icell, jcell, kcell) << " " 
+//                << min[1] << " " <<  max[1] << " " << r[1]<< std::endl;
+
+}
+
+//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
+std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[]){
+
+    std::vector<int> cell = get_cell(r);
+    double n = nSums(cell[0], cell[1], cell[2]);
+    if (n < 1.0) {
+        std::cout << "Warning: 0 particles in cell (" 
+                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
+                  << std::endl;
+    } else {
+
+        // Since the Flekkoy weight is considered only for 0 < y < L/2, for cells 
+        // that are completely in y < 0 gSums(i, j, k) will be always 0.0 so can 
+        // produce a NAN in the g/gSums division below.
+        double g = flekkoyGWeight(r[1], min[1], max[1]);
+        if (gSums(cell[0], cell[1], cell[2]) > 0.0) {
+            double gdA = (g/gSums(cell[0], cell[1], cell[2])) * dA[1];
+            // Normal to the X-Z plane is (0, 1, 0) so (tauxy, syy, tauxy)
+            // are the only components of the stress tensor that matter.
+            double fx = gdA * field.operator()(1, cell[0], cell[1], cell[2]);
+            double fy = gdA * field.operator()(4, cell[0], cell[1], cell[2]);
+            double fz = gdA * field.operator()(7, cell[0], cell[1], cell[2]);
+
+        }
+    }
+}
+
+/*
 
 //=====================================================
 //The post force fix in LAMMPS would then become
@@ -191,7 +241,7 @@ void FixCPLForce::post_force (int vflag) {
             int jcell = loc_cell[1];
             int kcell = loc_cell[2];
 
-            //This is call to update pre-force 
+            //This is call to set pre-force 
             fxyz->pre_force(icell, jcell, kcell)
 
         }

@@ -34,36 +34,6 @@ class CPL_Force_Test : public ::testing::Test {
   // Objects declared here can be used by all tests in the test case for Foo.
 };
 
-// Tests that the Foo::Bar() method returns one.
-//TEST_F(CPL_Force_Test, CheckField) {
-//    int ncells=10;
-//    CPLForce c(1, ncells, 1, 1);
-//    int size = ncells;
-//    std::vector<double> array1(size);
-//    // Add increasing numbers
-//    for(int i=0; i<size; ++i){
-//      array1[i] = i;
-//    }
-//    c.set_field(array1);
-//    std::vector<double> array2 = c.get_field();
-//    ASSERT_THAT(array2, testing::ElementsAreArray(array1));
-//};
-
-
-//TEST_F(CPL_Force_Test, CellCheck) {
-//    int ncells=10;
-//    CPLForce c(1, ncells, 1, 1);
-//    int size = ncells;
-//    std::vector<double> array1(size);
-//    // Add increasing numbers
-//    for(int i=0; i<size; ++i){
-//      array1[i] = i;
-//    }
-//    c.set_field(array1);
-//    ASSERT_THAT(c.get_cell(5), array1[5]);
-//};
-
-
 TEST_F(CPL_Force_Test, test_CPL_array_size) {
     int nd = 9;
     int icell = 3;
@@ -146,6 +116,46 @@ TEST_F(CPL_Force_Test, test_CPL_force_get_set_field) {
 }
 
 
+TEST_F(CPL_Force_Test, test_CPL_get_cell) {
+
+    int nd = 3; int icell = 10; int jcell = 10; int kcell = 10;
+
+    //Call constructor using cell numbers
+    CPLForce c(nd, icell, jcell, kcell);
+
+    //Check simple example of three cells
+    double r[3] = {0.75,0.25,0.35};
+    std::vector<int> cell = c.get_cell(r);
+    ASSERT_EQ(cell[0], 7);
+    ASSERT_EQ(cell[1], 2);
+    ASSERT_EQ(cell[2], 3);
+
+    // Check edge case for 0.3 and 0.6 which 
+    // because of floor give unexpected results
+    r[0]=0.000000000001; r[1]=0.3; r[2]=0.6;
+    cell = c.get_cell(r);
+    EXPECT_EQ(cell[0], 0);
+    EXPECT_EQ(cell[1], 2);
+    EXPECT_EQ(cell[2], 5);
+
+    //Check out of domain values handled correctly
+    r[0]=-1.; r[1]=0.36; r[2]=0.67;
+    ASSERT_THROW(c.get_cell(r), std::domain_error);
+    try {
+        c.get_cell(r);
+    } catch (std::domain_error& ex) {
+        EXPECT_STREQ("get_cell Error: Input below domain", ex.what());
+    }
+
+    r[0]=0.5; r[1]=0.36; r[2]=2.3;
+    ASSERT_THROW(c.get_cell(r), std::domain_error);
+    try {
+        c.get_cell(r);
+    } catch (std::domain_error& ex) {
+        EXPECT_STREQ("get_cell Error: Input above domain", ex.what());
+    }
+}
+
 
 TEST_F(CPL_Force_Test, test_CPL_inhereted) {
 
@@ -166,6 +176,121 @@ TEST_F(CPL_Force_Test, test_CPL_inhereted) {
 
 }
 
+TEST_F(CPL_Force_Test, test_flekkoyGWeight) {
+
+    int nd = 1; int icell = 8; int jcell = 8; int kcell = 8;
+
+    //Call constructor using cell numbers
+    CPLForceFlekkoy c(nd, icell, jcell, kcell);
+
+    // Some basic tests for flekkoyGWeight here?
+//    for (int i = 0; i<100; ++i){
+//         ASSERT_DOUBLE_EQ(c.flekkoyGWeight(i/float(100), 0.0, 1.0), g);
+//    }
+
+    // Error test is flekkoyGWeight outside range but I can't get this working (need header from google tests in force)
+    ASSERT_THROW(c.flekkoyGWeight(1.1, 0.0, 1.0), std::domain_error);
+    try {
+        c.flekkoyGWeight(1.1, 0.0, 1.0);
+    } catch (std::domain_error& ex) {
+        EXPECT_STREQ("flekkoyGWeight Error: Position argument y greater than ymin", ex.what());
+    }
+    ASSERT_DOUBLE_EQ(c.flekkoyGWeight(-0.1, 0.0, 1.0), 0.0);
+
+}
+
+
+#define trplefor(Ni,Nj,Nz) for (int i = 0; i<Ni; ++i){ \
+                           for (int j = 0; j<Nj; ++j){ \
+                           for (int k = 0; k<Nz; ++k)
+
+TEST_F(CPL_Force_Test, test_pre_force) {
+
+    //Call constructor using cell numbers
+    int nd = 1; int icell = 8; int jcell = 8; int kcell = 8;
+    CPLForceFlekkoy c(nd, icell, jcell, kcell);
+
+    //Default is domain between 0.0 and 1.0
+    double r[3] = {0.5, 0.5, 0.5};
+    double v[3] = {0.0, 0.0, 0.0};
+    double a[3] = {0.0, 0.0, 0.0};
+
+    //Check division to correct locations and binning
+    trplefor(icell,jcell,kcell){
+        r[0] = i/float(icell);
+        r[1] = j/float(jcell);
+        r[2] = k/float(kcell);
+        c.pre_force(r, v, a);
+    } } }
+
+    int sum = 0;
+    trplefor(icell,jcell,kcell){
+        //Assert single result in each cell
+        ASSERT_EQ(c.nSums(i,j,k), 1);
+        //Add to sum to check this all cells correct
+        sum += c.nSums(i,j,k);
+        // Check adjacent gSum in cells in x and z have same value
+        // as only y is expected to be changing
+        if (i > 0)
+            ASSERT_DOUBLE_EQ(c.gSums(i-1,j,k), c.gSums(i,j,k));
+        if (k > 0)
+            ASSERT_DOUBLE_EQ(c.gSums(i,j,k-1), c.gSums(i,j,k));
+    } } }
+    //Check that sum of results is equal to Number of cells
+    ASSERT_EQ(sum, icell*jcell*kcell);
+
+    //Check that reset works
+    c.resetsums();   sum = 0;
+    trplefor(icell,jcell,kcell){
+        sum += c.nSums(i,j,k);
+    } } }
+    ASSERT_EQ(sum, 0);
+
+
+}
+
+TEST_F(CPL_Force_Test, test_pre_force_varydomain) {
+
+    //Call constructor using cell numbers
+    int nd = 1; int icell = 8; int jcell = 8; int kcell = 8;
+    CPLForceFlekkoy c(nd, icell, jcell, kcell);
+
+    //Default is domain between 0.0 and 1.0
+    double r[3] = {0.0, 0.0, 0.0};
+    double v[3] = {0.0, 0.0, 0.0};
+    double a[3] = {0.0, 0.0, 0.0};
+
+    //Adjust limits and check
+    double min[3] = {-3.0, -2.0, -5.0};
+    double max[3] = {3.0, 2.0, 5.0};
+    double range[3];
+    for (int i = 0; i<3; ++i){
+        range[i] = max[i]-min[i];
+    }
+    c.set_minmax(min, max);
+
+    //Check division to correct locations
+    trplefor(icell,jcell,kcell){
+        r[0] = (i*range[0])/float(icell) + min[0];
+        r[1] = (j*range[1])/float(jcell) + min[1];
+        r[2] = (k*range[2])/float(kcell) + min[2];
+        c.pre_force(r, v, a);
+    } } }
+    trplefor(icell,jcell,kcell){
+        ASSERT_EQ(c.nSums(i,j,k), 1);
+    } } }
+
+}
+
+
+TEST_F(CPL_Force_Test, test_get_force) {
+
+    //Call constructor using cell numbers
+    int nd = 9; int icell = 8; int jcell = 8; int kcell = 8;
+    CPLForceFlekkoy c(nd, icell, jcell, kcell);
+
+
+}
 
 
 

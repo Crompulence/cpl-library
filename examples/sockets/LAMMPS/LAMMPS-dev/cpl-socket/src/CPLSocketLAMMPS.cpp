@@ -53,8 +53,7 @@ Author(s)
 #include "CPL.h"
 
 
-void CPLSocketLAMMPS::\
-initComms (int argc, char **argv) {
+void CPLSocketLAMMPS::initComms (int argc, char **argv) {
 
     MPI_Init(&argc, &argv);
 
@@ -64,14 +63,12 @@ initComms (int argc, char **argv) {
 
 };
 
-void CPLSocketLAMMPS::\
-finalizeComms() {
+void CPLSocketLAMMPS::finalizeComms() {
     CPL::finalize();
     MPI_Finalize();
 };
 
-void CPLSocketLAMMPS::\
-initMD (LAMMPS_NS::LAMMPS *lammps) {
+void CPLSocketLAMMPS::initMD (LAMMPS_NS::LAMMPS *lammps) {
 
     // Store my own coordinates for later
     myCoords[0] = lammps->comm->myloc[0];
@@ -109,8 +106,7 @@ initMD (LAMMPS_NS::LAMMPS *lammps) {
 
 }
 
-void CPLSocketLAMMPS::\
-getCellTopology() {
+void CPLSocketLAMMPS::getCellTopology() {
 
     // Cell sizes
     dx = CPL::get<double> ("dx");
@@ -135,14 +131,12 @@ getCellTopology() {
     // Cell bounds for the constrained region
     CPL::get_cnst_limits(cnstFRegion.data());
     CPL::my_proc_portion (cnstFRegion.data(), cnstFPortion.data());
-
     CPL::get_no_cells(cnstFPortion.data(), cnstFCells);
 
 }
 
 
-void CPLSocketLAMMPS::\
-allocateBuffers() {
+void CPLSocketLAMMPS::allocateBuffers() {
     
     // Received stress field
     int zeroShapeStress[4] = {9, 0, 0, 0};
@@ -159,8 +153,7 @@ allocateBuffers() {
 
 
 
-void CPLSocketLAMMPS::\
-setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps) {
+void CPLSocketLAMMPS::setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps) {
 
     double botLeft[3];
     CPL::map_cell2coord(velBCRegion[0] , velBCRegion[2], velBCRegion[4], botLeft);
@@ -224,8 +217,7 @@ setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps) {
     
 };
 
-void CPLSocketLAMMPS::\
-setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps) {
+void CPLSocketLAMMPS::setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps) {
 
     double botLeft[3];
     CPL::map_cell2coord(cnstFRegion[0] , cnstFRegion[2], cnstFRegion[4], botLeft);
@@ -259,8 +251,7 @@ setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps) {
 
 // TODO develop a custom fix so that lammps doesn't need to do 
 // a global reduce (d.trevelyan@ic.ac.uk) ?
-void CPLSocketLAMMPS::\
-packVelocity (const LAMMPS_NS::LAMMPS *lammps) {
+void CPLSocketLAMMPS::packVelocity (const LAMMPS_NS::LAMMPS *lammps) {
 
     auto fixindex = lammps->modify->find_fix("cfdbcfix");
     auto fix = lammps->modify->fix[fixindex]; 
@@ -294,16 +285,14 @@ packVelocity (const LAMMPS_NS::LAMMPS *lammps) {
     
 }
 
-void CPLSocketLAMMPS::\
-unpackStress (const LAMMPS_NS::LAMMPS *lammps) {
+void CPLSocketLAMMPS::unpackStress (const LAMMPS_NS::LAMMPS *lammps) {
 
     shaPtrArrayDoub stress = std::make_shared<arrayDoub> (recvStressBuff);
     cplfix->updateStress (stress);
 
 };
 
-void CPLSocketLAMMPS::\
-sendVelocity() {
+void CPLSocketLAMMPS::sendVelocity() {
 
     // Send the data to CFD
     CPL::send(sendVelocityBuff.data(), sendVelocityBuff.shapeData(),
@@ -311,8 +300,7 @@ sendVelocity() {
 
 };
 
-void CPLSocketLAMMPS::\
-recvStress() {
+void CPLSocketLAMMPS::recvStress() {
     // Receive from CFD
     CPL::recv(recvStressBuff.data(),recvStressBuff.shapeData(), cnstFRegion.data()); 
 };

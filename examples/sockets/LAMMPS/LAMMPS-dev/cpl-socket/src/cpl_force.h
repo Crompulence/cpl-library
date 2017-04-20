@@ -60,6 +60,7 @@ class CPLForce{
 
 protected:
 
+    double min[3], max[3], dxyz[3], dA[3], dV;
     CPL::ndArray<double> field;
 
 public:
@@ -70,17 +71,22 @@ public:
 
     //Getters and setters
     void set_field(CPL::ndArray<double> field);
+    void set_minmax(double min_in[], double max_in[]);
     CPL::ndArray<double> get_field();
 
     //Get cell values
-    int get_cell(int icell);
+    std::vector<int> get_cell(double r[]);    
 
-    //Tests
-    int return_input(int icell);
+    //Actual code
+    void pre_force(double r[], double v[], double a[]);
+    std::vector<double> get_force(double r[], double v[], double a[]);
 
-    //Actual codes
-    void pre_force(int icell, int jcell, int kcell);
-    void apply_force(int i, int icell, int jcell, int kcell);
+    //Destructor
+    ~CPLForce() {}
+
+private:
+
+    void set_dxyz();
 
 };
 
@@ -92,7 +98,17 @@ public:
     CPLForceFlekkoy(CPL::ndArray<double> field);
     CPLForceFlekkoy(int nd, int icell, int jcell, int kcell);
 
+    void pre_force(double x[], double v[], double a[]);
+    std::vector<double> get_force(double r[], double v[], double a[]);
+
+    double flekkoyGWeight(double y, double ymin, double ymax);
+
+    void resetsums();
+
 private:
+
+    friend class CPL_Force_Test_test_pre_force_Test;
+    friend class CPL_Force_Test_test_pre_force_varydomain_Test;
 
     void initialisesums(CPL::ndArray<double> f);
 
