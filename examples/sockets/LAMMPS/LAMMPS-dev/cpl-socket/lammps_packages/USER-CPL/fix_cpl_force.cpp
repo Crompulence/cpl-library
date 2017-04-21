@@ -9,8 +9,9 @@
 #include<memory>
 #include<fstream>
 #include "CPL.h"
+#include "cpl_force.h"
 
-FixCPLForce::FixCPLForce 
+FixCPLForce::FixCPLForce
 (
     LAMMPS_NS::LAMMPS *lammps,
     int narg,
@@ -28,10 +29,21 @@ int FixCPLForce::setmask() {
 }
 
 
-void FixCPLForce::post_force (int vflag) {
+/* ---------------------------------------------------------------------- */
+
+void FixCPLForce::setup(int vflag)
+{
+    post_force(vflag);
+}
+
+
+void FixCPLForce::post_force(int vflag) {
+
 
     double **x = atom->x;
+    double **v = atom->v;
     double **f = atom->f;
+    double *rmass = atom->rmass;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
@@ -41,7 +53,6 @@ void FixCPLForce::post_force (int vflag) {
     double dA = dx*dz;
     double dV = dx*dy*dz;
     
-    //TODO: Pass this info as parameters of the fix
     char* groupstr = "cplforcegroup";
     char* regionstr = "cplforceregion";
 
@@ -53,23 +64,36 @@ void FixCPLForce::post_force (int vflag) {
 
     // Preliminary summation, only 1 value per cell so can slice
     // away cfdStress->shape(0)
-    int sumsShape[3] = {
-                         cfdStress->shape(1),
-                         cfdStress->shape(2),
-                         cfdStress->shape(3)
-                       };
+    int sumsShape[3] = {cfdStress->shape(1), cfdStress->shape(2), cfdStress->shape(3)};
     CPL::ndArray<double> gSums(3, sumsShape); // Sum of Flekkøy g weights
     CPL::ndArray<double> nSums(3, sumsShape); // Sum of number of particles
     nSums = 0.0;
     gSums = 0.0;
+
+    fxyz = CPLForceFlekkoy(9, cfdStress->shape(1), cfdStress->shape(2), cfdStress->shape(3));
+
+        // Communications
+//    cplsocket.recvStress();
+//    cplsocket.unpackStress(lammps);
+
+    double xi[3], vi[3], ai[3], fi[3];
+    std::vector<int> cell;
     for (int i = 0; i < nlocal; ++i)
     {
         if (mask[i] & groupbit)
         {
+
+            //Get local molecule data
+            for (int n=0; n<3; n++){
+                xi[n]=x[i][n]; 
+                vi[n]=v[i][n]; 
+                ai[n]=a[i][n];
+            }
+
             // Find in which cell number (local to processor) is the particle
             // and sum all the Flekkøy weights for each cell.
             int glob_cell[3];
-            CPL::map_coord2cell(x[i][0], x[i][1], x[i][2], glob_cell);
+            CPL::map_coord2cell(xi[0], xi[1], xi[2], glob_cell);
 
             int loc_cell[3];
             bool validCell = CPL::map_glob2loc_cell(procPortion.data(), glob_cell, loc_cell);
@@ -87,11 +111,18 @@ void FixCPLForce::post_force (int vflag) {
             int icell = loc_cell[0];
             int jcell = loc_cell[1];
             int kcell = loc_cell[2];
-            nSums(icell, jcell, kcell) += 1.0; 
+
+            cell = fxyz.get_cell(xi)
+            assert(cell[0], icell);
+            assert(cell[1], jcell);
+            assert(cell[2], kcell);
 
             double g = flekkoyGWeight (x[i][1], cplforceregion->extent_ylo, 
                                        cplforceregion->extent_yhi);
+            nSums(icell, jcell, kcell) += 1.0; 
             gSums(icell, jcell, kcell) += g;
+
+            fxyz.pre_force(xi, vi, ai);            
             //std::cout << "FLEKKOY: " << gSums(icell, jcell, kcell) << " " << cplforceregion->extent_ylo\
                 << " " << cplforceregion->extent_yhi << " " << x[i][1]<< std::endl;
         }
@@ -103,6 +134,14 @@ void FixCPLForce::post_force (int vflag) {
     {
         if (mask[i] & groupbit)
         {
+
+            //Get local molecule data
+            for (int n=0; n<3; n++){
+                xi[n]=x[i][n]; 
+                vi[n]=v[i][n]; 
+                ai[n]=a[i][n];
+            }
+
             int glob_cell[3];
             CPL::map_coord2cell(x[i][0], x[i][1], x[i][2], glob_cell);
 
@@ -134,16 +173,29 @@ void FixCPLForce::post_force (int vflag) {
                 // produce a NAN in the g/gSums division below.
                 if (gSums(icell, jcell, kcell) > 0.0) {
                     double gdA = (g/gSums(icell, jcell, kcell)) * dA;
-                    // Normal to the X-Z plane is (0, 1, 0) so (tauxy, syy, tauzy)
+
+                    // Normal to the X-Z plane is (0, 1, 0) so (tauxy, syy, tauxy)
                     // are the only components of the stress tensor that matter.
-                    double fx = gdA * cfdStress->operator()(1, icell, jcell, kcell);
-                    double fy = gdA * cfdStress->operator()(4, icell, jcell, kcell);
-                    double fz = gdA * cfdStress->operator()(7, icell, jcell, kcell);
+//                    double fx = gdA * cfdStress->operator()(1, icell, jcell, kcell);
+//                    double fy = gdA * cfdStress->operator()(4, icell, jcell, kcell);
+//                    double fz = gdA * cfdStress->operator()(7, icell, jcell, kcell);
+
+                    //TEMP, set to values from array directly
+                    double fx = rmass[i]*cfdStress->operator()(0, icell, jcell, kcell);
+                    double fy = rmass[i]*cfdStress->operator()(1, icell, jcell, kcell);
+                    double fz = rmass[i]*cfdStress->operator()(2, icell, jcell, kcell);
+
+                    fi = fxyz.get_force(ri, vi, ai);
+
+//                    std::cout << "Force " << i << " " << icell <<  " " << jcell << " " << kcell
+//                                  << " " << cfdStress->operator()(2, icell, jcell, kcell) << " " << 
+//                                  rmass[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << " "
+//                                  << fx << " " << fy << " " << fz << " " << v[i][2]  << std::endl;
+                    //TEMP, set to values from array directly
                     f[i][0] += fx;
-                    // Those should be zero for parallel flow! (CHECK WITH OPENFOAM). Unless one considers pressure from
-                    // the continuum domain acting on the interface.
                     f[i][1] += fy;
                     f[i][2] += fz;
+    
                     //ofs << x[i][1] << "\t" << 
                     //       jcell << "\t" << 
                     //       fx << "\t" << 
@@ -157,7 +209,7 @@ void FixCPLForce::post_force (int vflag) {
 }
 
 // See Flekkøy, Wagner & Feder, 2000 Europhys. Lett. 52 271, footnote p274
-double FixCPLForce::flekkoyGWeight (double y, double ymin, double ymax) {
+double FixCPLForce::flekkoyGWeight(double y, double ymin, double ymax) {
     
     // K factor regulates how to distribute the total force across the volume.
     // 1/K represent the fraction of the constrain region volumen used.
@@ -183,15 +235,10 @@ double FixCPLForce::flekkoyGWeight (double y, double ymin, double ymax) {
     
 }
 
-void FixCPLForce::updateVel (std::shared_ptr <CPL::ndArray <double>> vel) {
-
-    cfdVel = std::move(vel);
-}
-
 
 void FixCPLForce::updateStress (std::shared_ptr <CPL::ndArray <double>> stress) {
 
-    cfdStress = std::move (stress);
+    cfdStress = std::move(stress);
 }
 
 void FixCPLForce::updateProcPortion (int inputPortion[]) {

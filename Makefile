@@ -71,7 +71,7 @@ cppbindsrcfiles = $(addprefix $(cppbinddir)/, $(cppbindsrc))
 cppbindhdrfiles = $(addprefix $(cppbinddir)/, $(cppbindhdr))
 cppbindobjfiles = $(addprefix $(objdir)/, $(cppbindsrc:.cpp=.o))
 
-utilssrc = CPL_ndArray.cpp CPL_cartCreate.cpp CPL_vector3D.cpp \
+utilssrc = CPL_ndArray.cpp CPL_cartCreate.cpp CPL_vector3D.cpp CPL_force.cpp \
 #           CPL_usherBase.cpp
 utilsextrahdr = #CPL_usherExceptions.h
 utilshdr = $(utilssrc:.cpp=.h) $(utilsextrahdr)

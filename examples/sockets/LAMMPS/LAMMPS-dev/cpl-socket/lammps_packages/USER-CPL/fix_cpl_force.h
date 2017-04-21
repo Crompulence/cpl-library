@@ -22,7 +22,8 @@ public:
         char **arg
     );
     int setmask();
-    void post_force (int vflag); //todo add override
+    void setup (int vflag); 
+    void post_force (int vflag); //todo add override <=== es205 17/01/17 WTF does this mean?
     void updateStress (std::shared_ptr<CPL::ndArray<double>> stress);
     void updateProcPortion (int inputPortion[]);
 
