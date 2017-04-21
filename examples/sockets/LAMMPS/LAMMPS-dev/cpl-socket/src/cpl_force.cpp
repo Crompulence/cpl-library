@@ -4,6 +4,12 @@
 #include "CPL.h"
 #include <math.h> 
 
+///////////////////////////////////////////////////////////////////
+//                                                               //
+//                    CPLForce base class                        //
+//                                                               //
+///////////////////////////////////////////////////////////////////
+
 //Constructors
 CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){
     // Fields
@@ -77,10 +83,78 @@ CPL::ndArray<double> CPLForce::get_field(){
 };
 
 
-//==========================================================
-//The Flekkoy example of this would then be CPLForceFlekkoy
-// as Flekkoy's constraint IS A type of CPL force
-//==========================================================
+///////////////////////////////////////////////////////////////////
+//                                                               //
+//                    CPLForceVelocity                           //
+//                                                               //
+///////////////////////////////////////////////////////////////////
+
+//Constructor of datatype
+CPLForceVelocity::CPLForceVelocity(CPL::ndArray<double> field) : CPLForce(field){
+    initialisesums(field);
+}
+
+//Constructor using cells
+CPLForceVelocity::CPLForceVelocity(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
+    initialisesums(field);
+}
+
+
+void CPLForceVelocity::initialisesums(CPL::ndArray<double> f){
+    int vsumsShape[4] = {f.shape(0), f.shape(1), f.shape(2), f.shape(3)};
+    vSums.resize(4, vsumsShape); // Sum of Flekkøy g weights
+    int nsumsShape[3] = {f.shape(1), f.shape(2), f.shape(3)};
+    nSums.resize(3, nsumsShape); // Sum of number of particles  
+    resetsums();
+}
+
+void CPLForceVelocity::resetsums(){
+    nSums = 0.0;  vSums = 0.0;
+}
+
+//Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
+void CPLForceVelocity::pre_force(double r[], double v[], double a[]) {
+
+    // Find in which cell number (local to processor) is the particle
+    // and sum all the Flekkøy weights for each cell.
+    std::vector<int> cell = get_cell(r);
+
+    nSums(cell[0], cell[1], cell[2]) += 1.0; 
+    for (int i = 0; i<3; ++i)
+        vSums(i, cell[0], cell[1], cell[2]) += v[i];
+
+}
+
+
+//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
+std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a[]){
+
+    std::vector<double> f(3); 
+    std::vector<int> cell = get_cell(r);
+    int N = nSums(cell[0], cell[1], cell[2]);
+    if (N < 1.0) {
+        std::cout << "Warning: 0 particles in cell (" 
+                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
+                  << std::endl;
+        f[0]=0.0; f[1]=0.0; f[2]=0.0;
+        return f;
+    } else {
+        for (int i=0; i<3; i++){
+            f[i] = ( field(i, cell[0], cell[1], cell[2])
+                    -vSums(i, cell[0], cell[1], cell[2])/N);
+        }
+        return f;
+    }
+}
+
+
+
+///////////////////////////////////////////////////////////////////
+//                                                               //
+//                    CPLForceFlekkoy                            //
+//                                                               //
+///////////////////////////////////////////////////////////////////
+//The Flekkoy constraint IS A type of CPL force
 
 //Constructor of datatype
 CPLForceFlekkoy::CPLForceFlekkoy(CPL::ndArray<double> field) : CPLForce(field){
@@ -89,15 +163,10 @@ CPLForceFlekkoy::CPLForceFlekkoy(CPL::ndArray<double> field) : CPLForce(field){
 
 }
 
+//Constructor using cells
 CPLForceFlekkoy::CPLForceFlekkoy(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
 
     initialisesums(field);
-}
-
-
-void CPLForceFlekkoy::resetsums(){
-
-    nSums = 0.0;  gSums = 0.0;
 }
 
 void CPLForceFlekkoy::initialisesums(CPL::ndArray<double> f){
@@ -108,6 +177,10 @@ void CPLForceFlekkoy::initialisesums(CPL::ndArray<double> f){
     resetsums();
 }
 
+void CPLForceFlekkoy::resetsums(){
+
+    nSums = 0.0;  gSums = 0.0;
+}
 
 // See Flekkøy, Wagner & Feder, 2000 Europhys. Lett. 52 271, footnote p274
 double CPLForceFlekkoy::flekkoyGWeight(double y, double ymin, double ymax) {
@@ -134,7 +207,7 @@ double CPLForceFlekkoy::flekkoyGWeight(double y, double ymin, double ymax) {
 
 }
 
-//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
+//Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
 void CPLForceFlekkoy::pre_force(double r[], double v[], double a[]) {
 
     // Find in which cell number (local to processor) is the particle
@@ -145,22 +218,20 @@ void CPLForceFlekkoy::pre_force(double r[], double v[], double a[]) {
     nSums(cell[0], cell[1], cell[2]) += 1.0; 
     gSums(cell[0], cell[1], cell[2]) += g;
 
-//    std::cout << "FLEKKOY: " << icell << " " << jcell  << " " << kcell  
-//                << " " << g << " " << gSums(icell, jcell, kcell) << " " 
-//                << nSums(icell, jcell, kcell) << " " 
-//                << min[1] << " " <<  max[1] << " " << r[1]<< std::endl;
-
 }
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
 std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[]){
 
+    std::vector<double> f(3); 
     std::vector<int> cell = get_cell(r);
     double n = nSums(cell[0], cell[1], cell[2]);
     if (n < 1.0) {
         std::cout << "Warning: 0 particles in cell (" 
                   << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
                   << std::endl;
+        f[0]=0.0; f[1]=0.0; f[2]=0.0;
+        return f;
     } else {
 
         // Since the Flekkoy weight is considered only for 0 < y < L/2, for cells 
@@ -169,15 +240,35 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
         double g = flekkoyGWeight(r[1], min[1], max[1]);
         if (gSums(cell[0], cell[1], cell[2]) > 0.0) {
             double gdA = (g/gSums(cell[0], cell[1], cell[2])) * dA[1];
+
             // Normal to the X-Z plane is (0, 1, 0) so (tauxy, syy, tauxy)
             // are the only components of the stress tensor that matter.
             double fx = gdA * field.operator()(1, cell[0], cell[1], cell[2]);
             double fy = gdA * field.operator()(4, cell[0], cell[1], cell[2]);
             double fz = gdA * field.operator()(7, cell[0], cell[1], cell[2]);
-
+            f[0]=fx; f[1]=fy; f[2]=fz;
+            return f;
         }
     }
 }
+
+
+
+
+//Example print statement useful to copy in...
+//    std::cout << "FLEKKOY: " << cell[0] << " " << cell[1]  << " " << cell[2]  
+//                << nSums(icell, jcell, kcell) << " " 
+//                << min[1] << " " <<  max[1] << " " << r[1]<< std::endl;
+
+
+
+
+
+
+
+
+
+
 
 /*
 

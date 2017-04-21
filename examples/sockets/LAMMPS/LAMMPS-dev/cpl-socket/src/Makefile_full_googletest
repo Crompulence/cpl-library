@@ -20,9 +20,9 @@ INCS = ${CPL_INC}
 
 # Points to the root of Google Test, relative to where this file is.
 # Remember to tweak this if you move this file.
-BASE_DIR = ./packd_gtest/
-GTEST_DIR = ${BASE_DIR}
-GMOCK_DIR = ${BASE_DIR}
+BASE_DIR = ./googletest/
+GTEST_DIR = ${BASE_DIR}/googletest
+GMOCK_DIR = ${BASE_DIR}/googlemock
 
 # Where to find user code.
 USER_DIR = ./
@@ -30,7 +30,7 @@ USER_DIR = ./
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
 # the compiler doesn't generate warnings in Google Test headers.
-CPPFLAGS += -isystem $(GTEST_DIR) -isystem $(GMOCK_DIR)
+CPPFLAGS += -isystem $(GTEST_DIR)/include -isystem $(GMOCK_DIR)/include
 
 # Flags passed to the C++ compiler.
 CXX = mpic++
@@ -42,12 +42,15 @@ TESTS = cpl_force_unittest
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
-GTEST_HEADERS = $(GTEST_DIR)/gtest/*.h 
+GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
+                $(GTEST_DIR)/include/gtest/internal/*.h
 
 # All Google Mock headers. Note that all Google Test headers are
 # included here too, as they are #included by Google Mock headers.
 # Usually you shouldn't change this definition.	
-GMOCK_HEADERS = $(GMOCK_DIR)/gmock/*.h $(GTEST_HEADERS)
+GMOCK_HEADERS = $(GMOCK_DIR)/include/gmock/*.h \
+                $(GMOCK_DIR)/include/gmock/internal/*.h \
+                $(GTEST_HEADERS)
 
 # House-keeping build targets.
 
@@ -60,8 +63,8 @@ clean :
 
 # Usually you shouldn't tweak such internal variables, indicated by a
 # trailing _.
-GTEST_SRCS_ = $(GTEST_DIR)/*.cc $(GTEST_DIR)/*.h $(GTEST_HEADERS)
-GMOCK_SRCS_ = $(GMOCK_DIR)/*.cc $(GMOCK_HEADERS)
+GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
+GMOCK_SRCS_ = $(GMOCK_DIR)/src/*.cc $(GMOCK_HEADERS)
 
 
 # For simplicity and to avoid depending on implementation details of
@@ -69,18 +72,18 @@ GMOCK_SRCS_ = $(GMOCK_DIR)/*.cc $(GMOCK_HEADERS)
 # conservative and not optimized.  This is fine as Google Mock and
 # Google Test compile fast and for ordinary users their source rarely
 # changes.
-gmock-gtest-all.o : $(GMOCK_SRCS_) $(GMOCK_SRCS_)
+gtest-all.o : $(GTEST_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) -I$(GMOCK_DIR) $(CXXFLAGS) \
-            -c $(GMOCK_DIR)/gmock-gtest-all.cc
-
-gmock_main.o : $(GMOCK_SRCS_) gmock-gtest-all.o
+            -c $(GTEST_DIR)/src/gtest-all.cc
+gmock-all.o : $(GMOCK_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) -I$(GMOCK_DIR) $(CXXFLAGS) \
-            -c $(GMOCK_DIR)/gmock_main.cc
-
-gmock.a : gmock-gtest-all.o
+            -c $(GMOCK_DIR)/src/gmock-all.cc
+gmock_main.o : $(GMOCK_SRCS_)
+	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) -I$(GMOCK_DIR) $(CXXFLAGS) \
+            -c $(GMOCK_DIR)/src/gmock_main.cc
+gmock.a : gmock-all.o gtest-all.o
 	$(AR) $(ARFLAGS) $@ $^
-
-gmock_main.a : gmock_main.o
+gmock_main.a : gmock-all.o gtest-all.o gmock_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
 # Builds a test_cpl_force test.  A test should link with either gtest.a or
@@ -93,7 +96,7 @@ cpl_force_unittest.o : $(USER_DIR)/cpl_force_unittest.cpp \
                      $(USER_DIR)/cpl_force.h $(GMOCK_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/cpl_force_unittest.cpp
 
-cpl_force_unittest : cpl_force.o cpl_force_unittest.o gmock_main.a gmock.a
+cpl_force_unittest : cpl_force.o cpl_force_unittest.o gmock_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBS) -lpthread $^ -o $@ -lcpl
 
 

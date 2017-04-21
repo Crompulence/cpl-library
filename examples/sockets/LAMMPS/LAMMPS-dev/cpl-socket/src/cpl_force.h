@@ -77,12 +77,12 @@ public:
     //Get cell values
     std::vector<int> get_cell(double r[]);    
 
-    //Actual code
+    //Pre force collection and get force calculation
     void pre_force(double r[], double v[], double a[]);
     std::vector<double> get_force(double r[], double v[], double a[]);
 
     //Destructor
-    ~CPLForce() {}
+    virtual ~CPLForce() {}
 
 private:
 
@@ -91,29 +91,60 @@ private:
 };
 
 
+class CPLForceVelocity : public CPLForce {
+
+public:
+
+    //Constructors
+    CPLForceVelocity(CPL::ndArray<double> field);
+    CPLForceVelocity(int nd, int icell, int jcell, int kcell);
+
+    //Pre force collection and get force calculation
+    void pre_force(double x[], double v[], double a[]);
+    std::vector<double> get_force(double r[], double v[], double a[]);
+
+    void resetsums();
+private:
+
+    CPL::ndArray<double> vSums;
+    CPL::ndArray<double> nSums;
+
+    friend class CPL_Force_Test_test_velocity_pre_force_Test;
+
+    void initialisesums(CPL::ndArray<double> f);
+
+};
+
+
 class CPLForceFlekkoy : public CPLForce {
 
 public:
 
+    //Constructors
     CPLForceFlekkoy(CPL::ndArray<double> field);
     CPLForceFlekkoy(int nd, int icell, int jcell, int kcell);
 
+    //Pre force collection and get force calculation
     void pre_force(double x[], double v[], double a[]);
     std::vector<double> get_force(double r[], double v[], double a[]);
 
+    //Force specific things
     double flekkoyGWeight(double y, double ymin, double ymax);
 
-    void resetsums();
+
 
 private:
 
-    friend class CPL_Force_Test_test_pre_force_Test;
-    friend class CPL_Force_Test_test_pre_force_varydomain_Test;
-
-    void initialisesums(CPL::ndArray<double> f);
-
     CPL::ndArray<double> gSums;
     CPL::ndArray<double> nSums;
+
+    friend class CPL_Force_Test_test_flekkoy_pre_force_Test;
+    friend class CPL_Force_Test_test_flekkoy_pre_force_varydomain_Test;
+    friend class CPL_Force_Test_test_flekkoy_get_force_Test;
+
+    void initialisesums(CPL::ndArray<double> f);
+    void resetsums();
+
 
 };
 

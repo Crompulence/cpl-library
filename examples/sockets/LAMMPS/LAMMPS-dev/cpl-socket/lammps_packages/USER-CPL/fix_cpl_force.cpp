@@ -21,16 +21,14 @@ FixCPLForce::FixCPLForce
 }
 
 
-int FixCPLForce::\
-setmask() {
+int FixCPLForce::setmask() {
   int mask = 0;
   mask |= LAMMPS_NS::FixConst::POST_FORCE;
   return mask;
 }
 
 
-void FixCPLForce::\
-post_force (int vflag) {
+void FixCPLForce::post_force (int vflag) {
 
     double **x = atom->x;
     double **f = atom->f;
@@ -69,7 +67,7 @@ post_force (int vflag) {
         if (mask[i] & groupbit)
         {
             // Find in which cell number (local to processor) is the particle
-            // and sum all the Flekkoy weights for each cell.
+            // and sum all the Flekkøy weights for each cell.
             int glob_cell[3];
             CPL::map_coord2cell(x[i][0], x[i][1], x[i][2], glob_cell);
 
@@ -94,7 +92,7 @@ post_force (int vflag) {
             double g = flekkoyGWeight (x[i][1], cplforceregion->extent_ylo, 
                                        cplforceregion->extent_yhi);
             gSums(icell, jcell, kcell) += g;
-            //std::cout << "FLEKOY: " << gSums(icell, jcell, kcell) << " " << cplforceregion->extent_ylo\
+            //std::cout << "FLEKKOY: " << gSums(icell, jcell, kcell) << " " << cplforceregion->extent_ylo\
                 << " " << cplforceregion->extent_yhi << " " << x[i][1]<< std::endl;
         }
     }
@@ -131,7 +129,6 @@ post_force (int vflag) {
                 double g = flekkoyGWeight (x[i][1], cplforceregion->extent_ylo,
                                            cplforceregion->extent_yhi);
 
-
                 // Since the Flekkoy weight is considered only for 0 < y < L/2, for cells 
                 // that are completely in y < 0 gSums(i, j, k) will be always 0.0 so can 
                 // produce a NAN in the g/gSums division below.
@@ -147,6 +144,11 @@ post_force (int vflag) {
                     // the continuum domain acting on the interface.
                     f[i][1] += fy;
                     f[i][2] += fz;
+                    //ofs << x[i][1] << "\t" << 
+                    //       jcell << "\t" << 
+                    //       fx << "\t" << 
+                    //       fy << "\t" << 
+                    //       fz << "\t" << std::endl;
                     //f[i][1] -= (g/gsum) * dA * pressure
                 }
             }
@@ -155,10 +157,9 @@ post_force (int vflag) {
 }
 
 // See Flekkøy, Wagner & Feder, 2000 Europhys. Lett. 52 271, footnote p274
-double FixCPLForce::\
-flekkoyGWeight (double y, double ymin, double ymax) {
+double FixCPLForce::flekkoyGWeight (double y, double ymin, double ymax) {
     
-    // K factor regulates how to distribute the total force across the volumen.
+    // K factor regulates how to distribute the total force across the volume.
     // 1/K represent the fraction of the constrain region volumen used.
     // Flekøy uses K = 2.
     double K = 1;
@@ -177,19 +178,23 @@ flekkoyGWeight (double y, double ymin, double ymax) {
     else if (yhat > 0.0) {
         g = 2.0*(1.0/(L - K*yhat) - 1.0/L - K*yhat/(L*L));
     }
-    return 1; 
-   // return g;
+    
+    return g;
     
 }
 
-void FixCPLForce::\
-updateStress (std::shared_ptr <CPL::ndArray <double>> stress) {
+void FixCPLForce::updateVel (std::shared_ptr <CPL::ndArray <double>> vel) {
+
+    cfdVel = std::move(vel);
+}
+
+
+void FixCPLForce::updateStress (std::shared_ptr <CPL::ndArray <double>> stress) {
 
     cfdStress = std::move (stress);
 }
 
-void FixCPLForce::\
-updateProcPortion (int inputPortion[]) {
+void FixCPLForce::updateProcPortion (int inputPortion[]) {
 
     procPortion.resize(6);
     for (int i = 0; i < 6; ++i) {

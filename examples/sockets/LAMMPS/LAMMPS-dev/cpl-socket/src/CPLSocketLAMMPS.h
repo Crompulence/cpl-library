@@ -87,6 +87,10 @@ public:
     // Clean up MPI/CPL communicators
     void finalizeComms();
 
+    void setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps); 
+    void setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps); 
+
+
 private:
     
     double VELBC_BELOW = 0.0;
@@ -124,7 +128,7 @@ private:
 
 
     // Cell sizes
-    int dx, dy, dz;
+    double dx, dy, dz;
     
     // Fix that applies the momentum constrain
     FixCPLForce* cplfix;
@@ -137,9 +141,6 @@ private:
     // Internal routines
     void getCellTopology();
     void allocateBuffers();
-    void setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps); 
-    void setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps); 
-
 };
 
 #endif // CPL_SOCKET_H_INCLUDED

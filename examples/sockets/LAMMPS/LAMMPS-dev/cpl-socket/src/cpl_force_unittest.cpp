@@ -34,6 +34,17 @@ class CPL_Force_Test : public ::testing::Test {
   // Objects declared here can be used by all tests in the test case for Foo.
 };
 
+#define trplefor(Ni,Nj,Nz) for (int i = 0; i<Ni; ++i){ \
+                           for (int j = 0; j<Nj; ++j){ \
+                           for (int k = 0; k<Nz; ++k)
+
+
+///////////////////////////////////////////////////////////////////
+//                                                               //
+//                          CPL::ndArray                         //
+//                                                               //
+///////////////////////////////////////////////////////////////////
+//Test for CPL::ndArray - setup and array size 
 TEST_F(CPL_Force_Test, test_CPL_array_size) {
     int nd = 9;
     int icell = 3;
@@ -52,7 +63,7 @@ TEST_F(CPL_Force_Test, test_CPL_array_size) {
 
 };
 
-
+//Test for CPL::ndArray - set elements
 TEST_F(CPL_Force_Test, test_CPL_define) {
     int nd = 9;
     int icell = 3;
@@ -71,7 +82,12 @@ TEST_F(CPL_Force_Test, test_CPL_define) {
     ASSERT_NE(buf(1,1,1,1), 5.0);
 };
 
-
+///////////////////////////////////////////////////////////////////
+//                                                               //
+//                    CPLForce base class                        //
+//                                                               //
+///////////////////////////////////////////////////////////////////
+//Test for CPLForce base class - constructor 
 TEST_F(CPL_Force_Test, test_CPL_force_constructor) {
 
     int nd = 9; int icell = 3; int jcell = 3; int kcell = 3;
@@ -96,6 +112,7 @@ TEST_F(CPL_Force_Test, test_CPL_force_constructor) {
 
 };
 
+//Test for CPLForce base class - set field method
 TEST_F(CPL_Force_Test, test_CPL_force_get_set_field) {
 
     int nd = 9; int icell = 3; int jcell = 3; int kcell = 3;
@@ -115,7 +132,7 @@ TEST_F(CPL_Force_Test, test_CPL_force_get_set_field) {
 
 }
 
-
+//Test for CPLForce base class - get field methods
 TEST_F(CPL_Force_Test, test_CPL_get_cell) {
 
     int nd = 3; int icell = 10; int jcell = 10; int kcell = 10;
@@ -157,7 +174,152 @@ TEST_F(CPL_Force_Test, test_CPL_get_cell) {
 }
 
 
-TEST_F(CPL_Force_Test, test_CPL_inhereted) {
+///////////////////////////////////////////////////////////////////
+//                                                               //
+//                    CPLForceVelocity                           //
+//                                                               //
+///////////////////////////////////////////////////////////////////
+
+
+//Test for CPLForceVelocity - pre force calculations
+TEST_F(CPL_Force_Test, test_velocity_pre_force) {
+
+    //Call constructor using cell numbers
+    int nd = 3; int icell = 8; int jcell = 8; int kcell = 8;
+    CPLForceVelocity c(nd, icell, jcell, kcell);
+
+    //Default is domain between 0.0 and 1.0
+    double r[3] = {0.5, 0.5, 0.5};
+    double v[3] = {0.1, 0.2, 0.3};
+    double a[3] = {0.0, 0.0, 0.0};
+
+    //Check division to correct locations and binning
+    trplefor(icell,jcell,kcell){
+        r[0] = i/float(icell);
+        r[1] = j/float(jcell);
+        r[2] = k/float(kcell);
+        c.pre_force(r, v, a);
+    } } }
+
+    int sum = 0; double vsum[3] = {0.0,0.0,0.0};
+    trplefor(icell,jcell,kcell){
+
+        //Assert single result in each cell and sum to check cells
+        ASSERT_EQ(c.nSums(i,j,k), 1);
+        sum += c.nSums(i,j,k);
+
+        for (int n=1; n<3 ; n++){
+            ASSERT_DOUBLE_EQ(c.vSums(n,i,j,k), (n+1)*0.1);
+            vsum[n] += c.vSums(n,i,j,k);
+
+            // Check adjacent vSum in cells in x and z have same value
+            if (i > 0)
+                ASSERT_DOUBLE_EQ(c.vSums(n,i-1,j,k), c.vSums(n,i,j,k));
+            if (j > 0)
+                ASSERT_DOUBLE_EQ(c.vSums(n,i,j-1,k), c.vSums(n,i,j,k));
+            if (k > 0)
+                ASSERT_DOUBLE_EQ(c.vSums(n,i,j,k-1), c.vSums(n,i,j,k));
+        }
+    } } }
+    //Check that sum of results is equal to Number of cells
+    ASSERT_EQ(sum, icell*jcell*kcell);
+    for (int n=1; n<3 ; n++){
+       //Note these are not equal to double precision
+       ASSERT_FLOAT_EQ(vsum[n], (n+1)*0.1*icell*jcell*kcell);
+       EXPECT_LT(vsum[n]-(n+1)*0.1*icell*jcell*kcell,1e-8);
+    }
+    
+    //Check that reset works
+    c.resetsums();   sum = 0;
+    vsum[0]=0.0; vsum[1]=0.0; vsum[2]=0.0;
+    trplefor(icell,jcell,kcell){
+        sum += c.nSums(i,j,k);
+        for (int n=1; n<3 ; n++)
+            vsum[n] += c.vSums(n,i,j,k);
+    } } }
+    ASSERT_EQ(sum, 0);
+    for (int n=1; n<3 ; n++){
+       ASSERT_DOUBLE_EQ(vsum[n], 0.0);
+    }
+}
+
+
+//Test for CPLForceFlekkoy - get force
+TEST_F(CPL_Force_Test, test_velocity_get_force) {
+
+    //Call constructor using cell numbers
+    int nd = 3; int icell = 8; int jcell = 8; int kcell = 8;
+
+    //Setup a field which is 1 everywhere
+    CPL::ndArray<double> field;
+    int shape[4] = {nd, icell, jcell, kcell};
+    field.resize (4, shape);
+    trplefor(icell,jcell,kcell){
+        field(0, i, j, k) = 1.0;
+        field(1, i, j, k) = 2.0;
+        field(2, i, j, k) = 3.0;
+    } } }
+
+    //Create force field object
+    CPLForceVelocity fxyz(field);
+
+    //Setup one particle per cell
+    //and as zero no change
+    double r[3] = {0.0, 0.0, 0.0};
+    double v[3] = {0.0, 0.0, 0.0};
+    double a[3] = {0.0, 0.0, 0.0};
+    trplefor(icell,jcell,kcell){
+        r[0] = i/float(icell);
+        r[1] = j/float(jcell);
+        r[2] = k/float(kcell);
+        fxyz.pre_force(r, v, a);
+    } } }
+
+    std::vector<double> f(3);
+    std::vector<int> cell(3);
+    trplefor(icell,jcell,kcell){
+        r[0] = i/float(icell);
+        r[1] = j/float(jcell);
+        r[2] = k/float(kcell);
+        f = fxyz.get_force(r, v, a);
+        ASSERT_DOUBLE_EQ(f[0], 1.0);
+        ASSERT_DOUBLE_EQ(f[1], 2.0);
+        ASSERT_DOUBLE_EQ(f[2], 3.0);
+    } } }
+
+    //Reset sums and check with velocity 
+    //already at mean value of non-zero
+    fxyz.resetsums();
+    trplefor(icell,jcell,kcell){
+        r[0] = i/float(icell);
+        r[1] = j/float(jcell);
+        r[2] = k/float(kcell);
+        v[0] = 1.0; v[1] = 2.0; v[2] = 3.0;
+        fxyz.pre_force(r, v, a);
+    } } }
+
+    trplefor(icell,jcell,kcell){
+        r[0] = i/float(icell);
+        r[1] = j/float(jcell);
+        r[2] = k/float(kcell);
+        f = fxyz.get_force(r, v, a);
+        ASSERT_DOUBLE_EQ(f[0], 0.0);
+        ASSERT_DOUBLE_EQ(f[1], 0.0);
+        ASSERT_DOUBLE_EQ(f[2], 0.0);
+    } } }
+
+}
+
+
+
+///////////////////////////////////////////////////////////////////
+//                                                               //
+//                    CPLForceFlekkoy                            //
+//                                                               //
+///////////////////////////////////////////////////////////////////
+
+//Test for CPLForceFlekkoy - constructor and fields
+TEST_F(CPL_Force_Test, test_flekkoy_CPL_inhereted) {
 
     int nd = 9; int icell = 3; int jcell = 3; int kcell = 3;
 
@@ -176,6 +338,7 @@ TEST_F(CPL_Force_Test, test_CPL_inhereted) {
 
 }
 
+//Test for CPLForceFlekkoy - flekkoyGWeight method
 TEST_F(CPL_Force_Test, test_flekkoyGWeight) {
 
     int nd = 1; int icell = 8; int jcell = 8; int kcell = 8;
@@ -196,15 +359,10 @@ TEST_F(CPL_Force_Test, test_flekkoyGWeight) {
         EXPECT_STREQ("flekkoyGWeight Error: Position argument y greater than ymin", ex.what());
     }
     ASSERT_DOUBLE_EQ(c.flekkoyGWeight(-0.1, 0.0, 1.0), 0.0);
-
 }
 
-
-#define trplefor(Ni,Nj,Nz) for (int i = 0; i<Ni; ++i){ \
-                           for (int j = 0; j<Nj; ++j){ \
-                           for (int k = 0; k<Nz; ++k)
-
-TEST_F(CPL_Force_Test, test_pre_force) {
+//Test for CPLForceFlekkoy - pre force calculations
+TEST_F(CPL_Force_Test, test_flekkoy_pre_force) {
 
     //Call constructor using cell numbers
     int nd = 1; int icell = 8; int jcell = 8; int kcell = 8;
@@ -246,10 +404,10 @@ TEST_F(CPL_Force_Test, test_pre_force) {
     } } }
     ASSERT_EQ(sum, 0);
 
-
 }
 
-TEST_F(CPL_Force_Test, test_pre_force_varydomain) {
+//Test for CPLForceFlekkoy - pre force calculations with non-uniform domain
+TEST_F(CPL_Force_Test, test_flekkoy_pre_force_varydomain) {
 
     //Call constructor using cell numbers
     int nd = 1; int icell = 8; int jcell = 8; int kcell = 8;
@@ -282,14 +440,78 @@ TEST_F(CPL_Force_Test, test_pre_force_varydomain) {
 
 }
 
-
-TEST_F(CPL_Force_Test, test_get_force) {
+//Test for CPLForceFlekkoy - get force
+TEST_F(CPL_Force_Test, test_flekkoy_get_force) {
 
     //Call constructor using cell numbers
     int nd = 9; int icell = 8; int jcell = 8; int kcell = 8;
-    CPLForceFlekkoy c(nd, icell, jcell, kcell);
 
+    //Setup a field which is 1 everywhere
+    CPL::ndArray<double> field;
+    int shape[4] = {nd, icell, jcell, kcell};
+    field.resize (4, shape);
+    trplefor(icell,jcell,kcell){
+        field(1, i, j, k) = 1.0;
+    } } }
 
+    //Create force field object
+    CPLForceFlekkoy fxyz(field);
+
+    //Setup one particle per cell
+    double r[3] = {0.0, 0.0, 0.0};
+    double v[3] = {0.0, 0.0, 0.0};
+    double a[3] = {0.0, 0.0, 0.0};
+    trplefor(icell,jcell,kcell){
+        r[0] = i/float(icell);
+        r[1] = j/float(jcell);
+        r[2] = k/float(kcell);
+        fxyz.pre_force(r, v, a);
+    } } }
+
+    std::vector<double> f(3);
+    trplefor(icell,jcell,kcell){
+        r[0] = i/float(icell);
+        r[1] = j/float(jcell);
+        r[2] = k/float(kcell);
+        f = fxyz.get_force(r, v, a);
+        if (fxyz.gSums(i,j,k) != 0.){
+            ASSERT_DOUBLE_EQ(f[0], fxyz.dA[1]);
+        } else {
+            ASSERT_DOUBLE_EQ(f[0], 0.0);
+           
+        }
+        ASSERT_DOUBLE_EQ(f[1], 0.0);
+        ASSERT_DOUBLE_EQ(f[2], 0.0);
+    } } }
+
+    //Change field to gradient
+    //Set gsums and nsums to iunity throughout
+    fxyz.resetsums();
+    trplefor(icell,jcell,kcell){
+        field(1, i, j, k) = float(i);
+        field(4, i, j, k) = float(j);
+        field(7, i, j, k) = float(k);
+        fxyz.nSums(i,j,k) = 1.0;
+        fxyz.gSums(i,j,k) = 1.0;
+    } } }
+    //Update force field object
+    fxyz.set_field(field);
+
+    //check force at a range of random positions  
+    double g;
+    std::vector<int> cell;
+    for (int i = 0; i<10000; ++i){
+        double x = std::rand()/float(RAND_MAX);
+        double y = std::rand()/float(RAND_MAX);
+        double z = std::rand()/float(RAND_MAX);
+        r[0] = x; r[1] = y; r[2] = z;
+        f = fxyz.get_force(r, v, a);
+        g = fxyz.flekkoyGWeight(r[1], 0.0, 1.0);
+        cell = fxyz.get_cell(r);
+        ASSERT_DOUBLE_EQ(f[0], g*float(cell[0])*fxyz.dA[1]);
+        ASSERT_DOUBLE_EQ(f[1], g*float(cell[1])*fxyz.dA[1]);
+        ASSERT_DOUBLE_EQ(f[2], g*float(cell[2])*fxyz.dA[1]);
+    }
 }
 
 

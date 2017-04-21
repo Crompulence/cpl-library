@@ -53,7 +53,7 @@ Author(s)
 #include "CPL.h"
 
 
-void CPLSocketLAMMPS::initComms (int argc, char **argv) {
+void CPLSocketLAMMPS::initComms(int argc, char **argv) {
 
     MPI_Init(&argc, &argv);
 
@@ -64,11 +64,12 @@ void CPLSocketLAMMPS::initComms (int argc, char **argv) {
 };
 
 void CPLSocketLAMMPS::finalizeComms() {
+
     CPL::finalize();
     MPI_Finalize();
 };
 
-void CPLSocketLAMMPS::initMD (LAMMPS_NS::LAMMPS *lammps) {
+void CPLSocketLAMMPS::initMD(LAMMPS_NS::LAMMPS *lammps) {
 
     // Store my own coordinates for later
     myCoords[0] = lammps->comm->myloc[0];
@@ -96,8 +97,6 @@ void CPLSocketLAMMPS::initMD (LAMMPS_NS::LAMMPS *lammps) {
     CPL::setup_md (icomm_grid, globaldomain, xyz_orig);
 
     // Setup
-    nsteps = CPL::get<int> ("nsteps_coupled");
-    //nsteps =5000;
     timestep_ratio = CPL::get<int> ("timestep_ratio");
     getCellTopology();
     setupFixMDtoCFD(lammps);
@@ -131,6 +130,7 @@ void CPLSocketLAMMPS::getCellTopology() {
     // Cell bounds for the constrained region
     CPL::get_cnst_limits(cnstFRegion.data());
     CPL::my_proc_portion (cnstFRegion.data(), cnstFPortion.data());
+
     CPL::get_no_cells(cnstFPortion.data(), cnstFCells);
 
 }
@@ -176,17 +176,19 @@ void CPLSocketLAMMPS::setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps) {
     cmd += std::to_string (botLeft[2]) + " ";
     cmd += std::to_string (topRight[2]) + " ";
     cmd += "units box";
-    //std::cout << cmd << std::endl;
+    std::cout << cmd << std::endl;
     lammps->input->one (cmd.c_str());
 
-    // CFD BC compute chunk 2d bins in single y slice
-    cmd = "compute cfdbccompute all chunk/atom bin/2d";
-    cmd += " x lower " + std::to_string (dx);
-    cmd += " z lower " + std::to_string (dz);
+    // CFD BC compute chunk 3d bins in single y row
+    cmd = "compute cfdbccompute all chunk/atom bin/3d";
+    cmd += " x lower " + std::to_string(dx);
+    cmd += " y lower " + std::to_string(dy);
+    cmd += " z lower " + std::to_string(dz);
     cmd += " ids every";
     cmd += " region cfdbcregion"; 
     cmd += " units box";
-    lammps->input->one (cmd.c_str());
+    std::cout << cmd << std::endl;
+    lammps->input->one(cmd.c_str());s
 
     // CFD BC averaging fix 
     // Average values are generated every Nfreq time steps, taken
@@ -208,6 +210,7 @@ void CPLSocketLAMMPS::setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps) {
     cmd += std::to_string (Nfreq) + " "; 
     cmd += "cfdbccompute vx vy vz ";
     cmd += "norm all ";
+    std::cout << cmd << std::endl;
     lammps->input->one (cmd.c_str());
 
     // Work around what SEEMS to be a LAMMPS bug in allocation
@@ -234,7 +237,7 @@ void CPLSocketLAMMPS::setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps) {
     cmd += std::to_string(botLeft[1]) + " " + std::to_string(topRight[1]) + " ";
     cmd += std::to_string(botLeft[2]) + " " + std::to_string(topRight[2]) + " ";
     cmd += "units box"; 
-    //std::cout << cmd << std::endl;
+    std::cout << cmd << std::endl;
     lammps->input->one (cmd.c_str());
     // TODO (d.trevelyan@ic.ac.uk) every 1? , Maybe just every ratio timestep
     cmd = "group cplforcegroup dynamic all region cplforceregion every 1";
@@ -244,8 +247,7 @@ void CPLSocketLAMMPS::setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps) {
     cmd = "fix cplforcefix all cpl/force region cplforceregion";
     lammps->input->one (cmd.c_str());
     int fixindex = lammps->modify->find_fix ("cplforcefix");
-    cplfix = dynamic_cast<FixCPLForce*> 
-                  (lammps->modify->fix[fixindex]);
+    cplfix = dynamic_cast<FixCPLForce*>(lammps->modify->fix[fixindex]);
     cplfix->updateProcPortion (cnstFPortion.data());
 }
 
@@ -258,28 +260,39 @@ void CPLSocketLAMMPS::packVelocity (const LAMMPS_NS::LAMMPS *lammps) {
    
     int *npxyz_md = lammps->comm->procgrid;
     int nx = velBCCells[0];
+    int ny = velBCCells[1];
     int nz = velBCCells[2];
 
     for (int i = 0; i != nx; ++i)
     {
-        for (int k = 0; k != nz; ++k)
+        for (int j = 0; j != ny; ++j)
         {
-            int icoord = myCoords[0] * nx + i;
-            int kcoord = myCoords[2] * nz + k;
-            int row = icoord * nz * npxyz_md[2] + kcoord;
-            // Not needed - BEGIN
-            double x = fix->compute_array(row, 0);
-            double z = fix->compute_array(row, 1);  
-            double ncount = fix->compute_array(row, 2);  
-            // Not needed - END
-            double vx = fix->compute_array(row, 3);  
-            double vy = fix->compute_array(row, 4);  
-            double vz = fix->compute_array(row, 5);  
+		    for (int k = 0; k != nz; ++k)
+		    {
+            	int icoord = myCoords[0] * nx + i;
+                int jcoord = myCoords[1]*ny + j;
+            	int kcoord = myCoords[2] * nz + k;
+                row += 1;// icoord*ny*nz*npxyz_md[2] + jcoord*nz*npxyz_md[1] + kcoord;
 
-            sendVelocityBuff(0, i, 0, k) = vx; // vx;
-            sendVelocityBuff(1, i, 0, k) = vy; // vy;
-            sendVelocityBuff(2, i, 0, k) = vz; // vz;
-            sendVelocityBuff(3, i, 0, k) = 1.0;// dummydensity;
+                // v v v Not needed v v v 
+            double x = fix->compute_array(row, 0);
+                double y = fix->compute_array(row, 1);  
+                double z = fix->compute_array(row, 2);  
+                double ncount = fix->compute_array(row, 3);  
+                // ^ ^ ^ Not needed ^ ^ ^
+
+                double vx = fix->compute_array(row, 4);  
+                double vy = fix->compute_array(row, 5);  
+                double vz = fix->compute_array(row, 6);  
+
+//                std::cout << i << " " << j << " " << k << " " << x << " " << y << " " << z 
+//                               << " " << vx << " " << vy << " " << vz << "\n" << std::endl;
+
+                sendVelocityBuff(0, i, j, k) = vx; // vx;
+                sendVelocityBuff(1, i, j, k) = vy; // vy;
+                sendVelocityBuff(2, i, j, k) = vz; // vz;
+                sendVelocityBuff(3, i, j, k) = ncount;// dummydensity;
+            }
         }
     }
     
@@ -292,16 +305,30 @@ void CPLSocketLAMMPS::unpackStress (const LAMMPS_NS::LAMMPS *lammps) {
 
 };
 
+// Sends buffer to overlapping CFD processes.
+//void CPLSocketLAMMPS::send() 
+//{
+//    CPL::send(sendBuf.data(), sendBuf.shapeData(), velBCRegion.data());
+//}
+
+//// Receives recvBuf from overlapping CFD processes.
+//void CPLSocketLAMMPS::recv()
+//{
+//    CPL::recv(recvBuf.data(), recvBuf.shapeData(), cnstFRegion.data());
+//}
+
+
 void CPLSocketLAMMPS::sendVelocity() {
 
     // Send the data to CFD
-    CPL::send(sendVelocityBuff.data(), sendVelocityBuff.shapeData(),
-                velBCRegion.data());
+    CPL::send(sendVelocityBuff.data(), sendVelocityBuff.shapeData(), velBCRegion.data());
 
 };
 
 void CPLSocketLAMMPS::recvStress() {
+
     // Receive from CFD
-    CPL::recv(recvStressBuff.data(),recvStressBuff.shapeData(), cnstFRegion.data()); 
+    CPL::recv(recvStressBuff.data(), recvStressBuff.shapeData(), cnstFRegion.data());
+
 };
 
