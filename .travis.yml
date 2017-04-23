@@ -43,10 +43,10 @@ before_script:
 
 script:
     - make test-all
-    - make test-examples
+#    - make test-examples
 #    - make webdocs-all
     - make test-valgrind
-
+    - make test-gtests
 
 after_success:
      - echo "Build Success"
