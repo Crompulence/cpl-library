@@ -100,18 +100,18 @@ void CPLSocketFOAM::initCFD (const Foam::Time &runTime, const Foam::fvMesh &mesh
     double dt_cfd = runTime.deltaTValue();
     int nsteps = nint ((runTime.endTime().value() - \
                         runTime.startTime().value()) / dt_cfd);
-    Foam::IOdictionary blockMeshDict(Foam::IOobject ("polyMesh/blockMeshDict", 
+    Foam::IOdictionary blockMeshDict(Foam::IOobject("polyMesh/blockMeshDict", 
 									 runTime.time().constant(), runTime,
                         			 IOobject::MUST_READ, 
 									 IOobject::NO_WRITE, false));
 
 	Foam::List<Foam::Vector<double>> vertices(blockMeshDict.lookup("vertices"));
+    Foam::scalar convertToMeters(readScalar(blockMeshDict.lookup("convertToMeters")));
 
     // Domain dimensions
-    xyzL[0] = vertices[1][0] - vertices[0][0];
-    xyzL[1] = vertices[3][1] - vertices[0][1];
-    xyzL[2] = vertices[4][2] - vertices[0][2];
-  
+    xyzL[0] = (vertices[1][0] - vertices[0][0])*convertToMeters;
+    xyzL[1] = (vertices[3][1] - vertices[0][1])*convertToMeters;
+    xyzL[2] = (vertices[4][2] - vertices[0][2])*convertToMeters;  
 
     double dummyDensity = -666.0;
 
