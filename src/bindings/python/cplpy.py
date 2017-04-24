@@ -30,6 +30,8 @@ _CPL_GET_VARS = {"icmin_olap": c_int, "jcmin_olap": c_int, "kcmin_olap": c_int,
                  "icmax_olap": c_int, "jcmax_olap": c_int, "kcmax_olap": c_int,
                  "icmin_cnst": c_int, "jcmin_cnst": c_int, "kcmin_cnst": c_int,
                  "icmax_cnst": c_int, "jcmax_cnst": c_int, "kcmax_cnst": c_int,
+                 "icmin_bnry": c_int, "jcmin_bnry": c_int, "kcmin_bnry": c_int,
+                 "icmax_bnry": c_int, "jcmax_bnry": c_int, "kcmax_bnry": c_int,
                  "ncx": c_int, "ncy": c_int, "ncz": c_int,
                  "npx_md": c_int, "npy_md": c_int, "npz_md": c_int,
                  "npx_cfd": c_int, "npy_cfd": c_int, "npz_cfd": c_int,
@@ -453,6 +455,7 @@ class CPL:
         self.py_get_no_cells(limits, no_cells)
         return no_cells
 
+    #Limits of overlap region
     py_get_olap_limits = _cpl_lib.CPLC_get_olap_limits
     py_get_olap_limits.argtypes = \
         [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
@@ -463,6 +466,7 @@ class CPL:
         self.py_get_olap_limits(limits)
         return limits
 
+    #Limits of contraint region
     py_get_cnst_limits = _cpl_lib.CPLC_get_cnst_limits
     py_get_cnst_limits.argtypes = \
         [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
@@ -472,6 +476,18 @@ class CPL:
         limits = np.zeros(6, order='F', dtype=np.int32)
         self.py_get_cnst_limits(limits)
         return limits
+
+    #Limits of boundary region
+    py_get_bnry_limits = _cpl_lib.CPLC_get_bnry_limits
+    py_get_bnry_limits.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def get_bnry_limits(self):
+        limits = np.zeros(6, order='F', dtype=np.int32)
+        self.py_get_bnry_limits(limits)
+        return limits
+
 
     py_set_timing = _cpl_lib.CPLC_set_timing
     py_set_timing.argtypes = \

@@ -100,6 +100,7 @@ namespace CPL
 	bool map_glob2loc_cell(int limits[], int glob_cell[], int loc_cell[]);
     void get_olap_limits(int limits[]); 
     void get_cnst_limits(int limits[]);
+    void get_bnry_limits(int limits[]);
     bool map_cfd2md_coord(double cfd_coord[],double md_coord[]);
     bool map_md2cfd_coord(double md_coord[], double cfd_coord[]);
     bool overlap(); 
@@ -129,6 +130,12 @@ namespace CPL
         else if (name == "icmax_cnst") fp = reinterpret_cast<T(*)()> (&CPLC_icmax_cnst);
         else if (name == "jcmax_cnst") fp = reinterpret_cast<T(*)()> (&CPLC_jcmax_cnst);
         else if (name == "kcmax_cnst") fp = reinterpret_cast<T(*)()> (&CPLC_kcmax_cnst);
+        else if (name == "icmin_bnry") fp = reinterpret_cast<T(*)()> (&CPLC_icmin_bnry);
+        else if (name == "jcmin_bnry") fp = reinterpret_cast<T(*)()> (&CPLC_jcmin_bnry);
+        else if (name == "kcmin_bnry") fp = reinterpret_cast<T(*)()> (&CPLC_kcmin_bnry);
+        else if (name == "icmax_bnry") fp = reinterpret_cast<T(*)()> (&CPLC_icmax_bnry);
+        else if (name == "jcmax_bnry") fp = reinterpret_cast<T(*)()> (&CPLC_jcmax_bnry);
+        else if (name == "kcmax_bnry") fp = reinterpret_cast<T(*)()> (&CPLC_kcmax_bnry);
         else if (name == "timestep_ratio") fp = reinterpret_cast<T(*)()> (&CPLC_timestep_ratio);
         else if (name == "dx") fp = reinterpret_cast<T(*)()> (&CPLC_dx);
         else if (name == "dy") fp = reinterpret_cast<T(*)()> (&CPLC_dy);

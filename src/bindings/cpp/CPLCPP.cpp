@@ -207,6 +207,11 @@ void CPL::get_cnst_limits (int limits[]) {
     CPLC_get_cnst_limits(limits);
 }
 
+void CPL::get_bnry_limits (int limits[]) {
+    CPLC_get_bnry_limits(limits);
+}
+
+
 bool CPL::map_cfd2md_coord (double cfd_coord[], double md_coord[]) {
     return CPLC_map_cfd2md_coord (cfd_coord, md_coord);
 }

@@ -258,6 +258,16 @@ module coupler_module
         kcmin_cnst,       &
         kcmax_cnst
 
+    ! Boundary region 
+    integer, protected :: &
+        boundary_algo,    &
+        icmin_bnry,       &    
+        icmax_bnry,       &
+        jcmin_bnry,       &
+        jcmax_bnry,       &
+        kcmin_bnry,       &
+        kcmax_bnry
+
     ! Coupling CFD boundary condition direction flags
     integer, protected :: &
         cpl_cfd_bc_x, &
@@ -657,7 +667,7 @@ subroutine create_comm(MPMD_mode)
                     open(unitno, file=trim(filename), & 
                          action="write", iostat=ierr)
                     if (ierr .eq. 0) then
-                        write(unitno,*), port
+                        write(unitno,*) port
                         close(unitno)
                         print*, "Portname written to file ", filename
                     elseif (ierr .eq. 23) then
@@ -831,6 +841,26 @@ subroutine read_coupler_input()
         call error_abort("Ovelap extents unspecified in coupler input file.")
     end if
 
+
+    call locate(infileid, 'BOUNDARY_EXTENTS', found)
+    if (found) then
+        boundary_algo = 1
+        read(infileid,*) icmin_bnry
+        read(infileid,*) icmax_bnry
+        read(infileid,*) jcmin_bnry
+        read(infileid,*) jcmax_bnry
+        read(infileid,*) kcmin_bnry
+        read(infileid,*) kcmax_bnry
+    else
+        boundary_algo = 0
+        icmin_bnry = VOID
+        icmax_bnry = VOID
+        jcmin_bnry = VOID
+        jcmax_bnry = VOID
+        kcmin_bnry = VOID
+        kcmax_bnry = VOID
+    end if
+
     call locate(infileid, 'TIMESTEP_RATIO', found)
     if (found) then
         read(infileid,*) timestep_ratio !TODO name change
@@ -950,6 +980,16 @@ subroutine CPL_write_header(header_filename)
             write(infileid,*) 'maximum y cell of constrained region;  jcmax_cnst ;', jcmax_cnst
             write(infileid,*) 'minimum z cell of constrained region;  kcmin_cnst ;', kcmin_cnst
             write(infileid,*) 'maximum z cell of constrained region;  kcmax_cnst ;', kcmax_cnst
+        endif
+
+        if (boundary_algo .ne. 0) then
+            write(infileid,*) 'Boundary constrain specified;  boundary_algo ;', boundary_algo
+            write(infileid,*) 'minimum x cell of boundary region;  icmin_bnry ;', icmin_bnry
+            write(infileid,*) 'maximum x cell of boundary region;  icmax_bnry ;', icmax_bnry
+            write(infileid,*) 'minimum y cell of boundary region;  jcmin_bnry ;', jcmin_bnry
+            write(infileid,*) 'maximum y cell of boundary region;  jcmax_bnry ;', jcmax_bnry
+            write(infileid,*) 'minimum z cell of boundary region;  kcmin_bnry ;', kcmin_bnry
+            write(infileid,*) 'maximum z cell of boundary region;  kcmax_bnry ;', kcmax_bnry
         endif
 
         write(infileid,*) 'minimum x cell of overlap region;  icmin_olap ;', icmin_olap
@@ -2073,44 +2113,44 @@ subroutine get_md_cell_ranges()
 
         funit = CPL_new_fileunit()
         open(funit, file="cpl/map_MD", action="write", status="replace")
-        write(funit,*), ''
-        write(funit,*), '==========================================='
-        write(funit,*), '------------ M D   M A P ------------------'
-        write(funit,*), '==========================================='
-        write(funit,*), 'npx_md = ', npx_md
-        write(funit,*), 'ncx    = ', ncx
-        write(funit,*), 'ncxl   = ', ncxl
-        write(funit,*), '-------------------------------------------'
-        write(funit,*), '  icoord_md     icPmin_md     icPmax_md    '
-        write(funit,*), '-------------------------------------------'
+        write(funit,*) ''
+        write(funit,*) '==========================================='
+        write(funit,*) '------------ M D   M A P ------------------'
+        write(funit,*) '==========================================='
+        write(funit,*) 'npx_md = ', npx_md
+        write(funit,*) 'ncx    = ', ncx
+        write(funit,*) 'ncxl   = ', ncxl
+        write(funit,*) '-------------------------------------------'
+        write(funit,*) '  icoord_md     icPmin_md     icPmax_md    '
+        write(funit,*) '-------------------------------------------'
         do n=1,npx_md
-            write(funit,'(1x,3i11)'), n, icPmin_md(n), icPmax_md(n)
+            write(funit,'(1x,3i11)') n, icPmin_md(n), icPmax_md(n)
         end do  
-        write(funit,*), '-------------------------------------------'
-        write(funit,*), 'npy_md     = ', npy_md
-        write(funit,*), 'ncy_md     = ', ncy_md
-        write(funit,*), 'ncyP_md    = ', ncyP_md 
-        write(funit,*), 'ncy_olap   = ', ncy_olap
-        write(funit,*), 'ncy_mdonly = ', ncy_mdonly
-        write(funit,*), 'olap_jmin_mdproc = ', olap_jmin_mdproc
-        write(funit,*), 'dy         = ', dy
-        write(funit,*), '-------------------------------------------'
-        write(funit,*), '  jcoord_md     jcPmin_md       jcPmax_md  '
-        write(funit,*), '-------------------------------------------'
+        write(funit,*) '-------------------------------------------'
+        write(funit,*) 'npy_md     = ', npy_md
+        write(funit,*) 'ncy_md     = ', ncy_md
+        write(funit,*) 'ncyP_md    = ', ncyP_md 
+        write(funit,*) 'ncy_olap   = ', ncy_olap
+        write(funit,*) 'ncy_mdonly = ', ncy_mdonly
+        write(funit,*) 'olap_jmin_mdproc = ', olap_jmin_mdproc
+        write(funit,*) 'dy         = ', dy
+        write(funit,*) '-------------------------------------------'
+        write(funit,*) '  jcoord_md     jcPmin_md       jcPmax_md  '
+        write(funit,*) '-------------------------------------------'
         do n = 1,npy_md 
             write(funit,'(1x,3i11)') n, jcPmin_md(n), jcPmax_md(n)
         end do
-        write(funit,*), '-------------------------------------------'
-        write(funit,*), 'npz_md = ', npz_md
-        write(funit,*), 'ncz    = ', ncz
-        write(funit,*), 'nczl   = ', nczl
-        write(funit,*), '-------------------------------------------'
-        write(funit,*), '  kcoord_md     kcPmin_md       kcPmax_md  '
-        write(funit,*), '-------------------------------------------'
+        write(funit,*) '-------------------------------------------'
+        write(funit,*) 'npz_md = ', npz_md
+        write(funit,*) 'ncz    = ', ncz
+        write(funit,*) 'nczl   = ', nczl
+        write(funit,*) '-------------------------------------------'
+        write(funit,*) '  kcoord_md     kcPmin_md       kcPmax_md  '
+        write(funit,*) '-------------------------------------------'
         do n=1,npz_md
-            write(funit,'(1x,3i11)'), n, kcPmin_md(n), kcPmax_md(n)
+            write(funit,'(1x,3i11)') n, kcPmin_md(n), kcPmax_md(n)
         end do
-        write(funit,*), '-------------------------------------------'
+        write(funit,*) '-------------------------------------------'
         close(funit, status="keep")
 
     endif
@@ -2218,45 +2258,45 @@ subroutine get_overlap_blocks()
     
         funit = CPL_new_fileunit()
         open(funit, file="cpl/map_CFD", action="write", status="replace")
-        write(funit,*), ''
-        write(funit,*), '==========================================='
-        write(funit,*), '------------ C F D   M A P ----------------'
-        write(funit,*), '==========================================='
-        write(funit,*), 'npx_cfd = ', npx_cfd
-        write(funit,*), 'nolapsx = ', nolapsx
-        write(funit,*), '-------------------------------------------'
-        write(funit,*), '  icoord_cfd       olapmin     olapmax     ' 
-        write(funit,*), '-------------------------------------------'
+        write(funit,*) ''
+        write(funit,*) '==========================================='
+        write(funit,*) '------------ C F D   M A P ----------------'
+        write(funit,*) '==========================================='
+        write(funit,*) 'npx_cfd = ', npx_cfd
+        write(funit,*) 'nolapsx = ', nolapsx
+        write(funit,*) '-------------------------------------------'
+        write(funit,*) '  icoord_cfd       olapmin     olapmax     ' 
+        write(funit,*) '-------------------------------------------'
         do n=1,npx_cfd
-            write(funit,'(1x,3i11)'), n,               &
+            write(funit,'(1x,3i11)') n,               &
                   cfd_icoord2olap_md_icoords(n,1),         &
                   cfd_icoord2olap_md_icoords(n,nolapsx)
         end do  
-        write(funit,*), '-------------------------------------------'
+        write(funit,*) '-------------------------------------------'
 
-        write(funit,*), 'npy_cfd = ', npy_cfd
-        write(funit,*), 'nolapsy = ', nolapsy
-        write(funit,*), '-------------------------------------------'
-        write(funit,*), '  jcoord_cfd       olapmin     olapmax     ' 
-        write(funit,*), '-------------------------------------------'
+        write(funit,*) 'npy_cfd = ', npy_cfd
+        write(funit,*) 'nolapsy = ', nolapsy
+        write(funit,*) '-------------------------------------------'
+        write(funit,*) '  jcoord_cfd       olapmin     olapmax     ' 
+        write(funit,*) '-------------------------------------------'
         do n=1,npy_cfd
-            write(funit,'(1x,3i11)'), n,               &
+            write(funit,'(1x,3i11)') n,               &
                   cfd_jcoord2olap_md_jcoords(n,1),         &
                   cfd_jcoord2olap_md_jcoords(n,nolapsy)
         end do  
-        write(funit,*), '-------------------------------------------'
+        write(funit,*) '-------------------------------------------'
 
-        write(funit,*), 'npz_cfd = ', npz_cfd
-        write(funit,*), 'nolapsz = ', nolapsz
-        write(funit,*), '-------------------------------------------'
-        write(funit,*), '  kcoord_cfd       olapmin     olapmax     ' 
-        write(funit,*), '-------------------------------------------'
+        write(funit,*) 'npz_cfd = ', npz_cfd
+        write(funit,*) 'nolapsz = ', nolapsz
+        write(funit,*) '-------------------------------------------'
+        write(funit,*) '  kcoord_cfd       olapmin     olapmax     ' 
+        write(funit,*) '-------------------------------------------'
         do n=1,npz_cfd
-            write(funit,'(1x,3i11)'), n,               &
+            write(funit,'(1x,3i11)') n,               &
                   cfd_kcoord2olap_md_kcoords(n,1),         &
                   cfd_kcoord2olap_md_kcoords(n,nolapsz)
         end do  
-        write(funit,*), '-------------------------------------------'
+        write(funit,*) '-------------------------------------------'
         close(funit, status="keep")
 
     endif
@@ -2499,24 +2539,24 @@ subroutine print_overlap_comms
     integer :: trank
 
     if (myid_world.eq.0) then
-        write(7500+rank_realm,*), ''
-        write(7500+rank_realm,*), '----------- OVERLAP COMMS INFO ------------'
-        write(7500+rank_realm,*), '-------------------------------------------'
-        write(7500+rank_realm,*), '        RANKS              BROADCAST TEST  '
-        write(7500+rank_realm,*), '  world  realm  olap      testval( = group)'
-        write(7500+rank_realm,*), '-------------------------------------------'
+        write(7500+rank_realm,*) ''
+        write(7500+rank_realm,*) '----------- OVERLAP COMMS INFO ------------'
+        write(7500+rank_realm,*) '-------------------------------------------'
+        write(7500+rank_realm,*) '        RANKS              BROADCAST TEST  '
+        write(7500+rank_realm,*) '  world  realm  olap      testval( = group)'
+        write(7500+rank_realm,*) '-------------------------------------------'
     end if
     
     do trank = 1,nproc_world
         if (rank_world.eq.trank) then
-            write(7500+rank_realm,'(3i7,i16)'), rank_world,rank_realm, &
+            write(7500+rank_realm,'(3i7,i16)') rank_world,rank_realm, &
                                 rank_olap, testval  
         end if
     end do
 
     if (myid_world.eq.0) then
-        write(7500+rank_realm,*), '-------- END OVERLAP COMMS INFO  ----------'
-        write(7500+rank_realm,*), '==========================================='
+        write(7500+rank_realm,*) '-------- END OVERLAP COMMS INFO  ----------'
+        write(7500+rank_realm,*) '==========================================='
     end if
     
 end subroutine print_overlap_comms
@@ -2727,14 +2767,14 @@ subroutine printf(buf,dplaces_in)
         n = n + 1 !For the case of -0.something
     endif
     if (n+dplaces+space .le. 9) then
-        write(buf_precision,'(a,i1,a,i1)'), 'f',n+dplaces+space,'.', dplaces
+        write(buf_precision,'(a,i1,a,i1)') 'f',n+dplaces+space,'.', dplaces
     else
-        write(buf_precision,'(a,i2,a,i1)'), 'f',n+dplaces+space,'.', dplaces
+        write(buf_precision,'(a,i2,a,i1)') 'f',n+dplaces+space,'.', dplaces
     endif
 
     ! Build up format specifier string based on size of passed array
     string='(a6,i3,   ' // trim(buf_precision) // ')'
-    write(string(8:10),'(i3)'), size(buf) 
+    write(string(8:10),'(i3)') size(buf) 
 
     !Write formatted data 
     print(string),'printf',rank_world,buf

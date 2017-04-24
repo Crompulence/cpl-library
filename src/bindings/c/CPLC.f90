@@ -1149,6 +1149,25 @@ contains
 
     end subroutine CPLC_get_cnst_limits
 
+    subroutine CPLC_get_bnry_limits(limits) &
+        bind(C, name="CPLC_get_bnry_limits")
+        use CPL, only: CPL_get_bnry_limits
+    
+        ! Input position
+        type(C_PTR), value :: limits ! (6)
+       
+        ! Fortran equivalent array
+        integer, dimension(:), pointer :: limits_f
+       
+        call C_F_POINTER(limits, limits_f, [6])
+
+        call CPL_get_bnry_limits(limits_f)
+
+        limits_f = limits_f - 1
+
+    end subroutine CPLC_get_bnry_limits
+
+
 
     logical(C_BOOL) function CPLC_overlap() &
         bind(C, name="CPLC_overlap")

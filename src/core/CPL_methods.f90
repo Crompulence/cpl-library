@@ -88,9 +88,10 @@ module coupler
     public CPL_send, CPL_recv, CPL_gather, CPL_scatter, CPL_get, CPL_proc_extents,&
            CPL_my_proc_extents, CPL_proc_portion, CPL_my_proc_portion, &
            CPL_map_cell2coord, CPL_map_coord2cell, CPL_get_no_cells, &
-           CPL_map_glob2loc_cell, CPL_get_olap_limits, CPL_get_cnst_limits, & 
-           CPL_map_cfd2md_coord, CPL_map_md2cfd_coord, CPL_overlap, CPL_realm, &
-           CPL_cart_coords, CPL_cfd_dt, CPL_md2cfd, CPL_cfd2md, CPL_is_proc_inside
+           CPL_map_glob2loc_cell, CPL_get_olap_limits, CPL_get_cnst_limits, &
+           CPL_get_bnry_limits, CPL_map_cfd2md_coord, CPL_map_md2cfd_coord, & 
+           CPL_overlap, CPL_realm, CPL_cart_coords, CPL_cfd_dt, CPL_md2cfd, &
+           CPL_cfd2md, CPL_is_proc_inside
 
 contains
 
@@ -1343,19 +1344,19 @@ subroutine CPL_proc_extents(coord, realm, extents, ncells)
     select case(realm)
     case(md_realm)
         if (size(icPmax_md) .lt. coord(1)) then
-            write(strng,'(a,i8,a,i8,a)'), 'CPL_proc_extents error - MD proc ',       & 
+            write(strng,'(a,i8,a,i8,a)') 'CPL_proc_extents error - MD proc ',       & 
                                            coord(1), ' extents requested but only ', & 
                                            size(icPmax_md) , ' in x'
             call error_abort(trim(strng))
         endif
         if (size(jcPmax_md) .lt. coord(2)) then
-            write(strng,'(a,i8,a,i8,a)'), 'CPL_proc_extents error - MD proc ',       & 
+            write(strng,'(a,i8,a,i8,a)') 'CPL_proc_extents error - MD proc ',       & 
                                            coord(2), ' extents requested but only ', & 
                                            size(icPmax_md) , ' in y'
             call error_abort(trim(strng))
         endif
         if (size(kcPmax_md) .lt. coord(3)) then
-            write(strng,'(a,i8,a,i8,a)'), 'CPL_proc_extents error - MD proc ',       & 
+            write(strng,'(a,i8,a,i8,a)') 'CPL_proc_extents error - MD proc ',       & 
                                            coord(3), ' extents requested but only ', & 
                                            size(icPmax_md) , ' in z'
             call error_abort(trim(strng))
@@ -1365,19 +1366,19 @@ subroutine CPL_proc_extents(coord, realm, extents, ncells)
                     kcPmin_md(coord(3)),kcPmax_md(coord(3))/)
     case(cfd_realm)
         if (size(icPmax_cfd) .lt. coord(1)) then
-            write(strng,'(a,i8,a,i8,a)'), 'CPL_proc_extents error - CFD proc ',      & 
+            write(strng,'(a,i8,a,i8,a)') 'CPL_proc_extents error - CFD proc ',      & 
                                            coord(1), ' extents requested but only ', & 
                                            size(icPmax_cfd) , ' in x'
             call error_abort(trim(strng))
         endif
         if (size(jcPmax_cfd) .lt. coord(2)) then
-            write(strng,'(a,i8,a,i8,a)'), 'CPL_proc_extents error - CFD proc ',      & 
+            write(strng,'(a,i8,a,i8,a)') 'CPL_proc_extents error - CFD proc ',      & 
                                            coord(2), ' extents requested but only ', & 
                                            size(icPmax_cfd) , ' in y'
             call error_abort(trim(strng))
         endif
         if (size(kcPmax_cfd) .lt. coord(3)) then
-            write(strng,'(a,i8,a,i8,a)'), 'CPL_proc_extents error - CFD proc ',      & 
+            write(strng,'(a,i8,a,i8,a)') 'CPL_proc_extents error - CFD proc ',      & 
                                            coord(3), ' extents requested but only ', & 
                                            size(icPmax_cfd) , ' in z'
             call error_abort(trim(strng))
@@ -2454,7 +2455,6 @@ end function CPL_map_glob2loc_cell
 !-----------------------------------------------------------------------------
 
 subroutine CPL_get_olap_limits(limits)
-
     use coupler_module, only :  icmin_olap, icmax_olap, & 
                                 jcmin_olap, jcmax_olap, & 
                                 kcmin_olap, kcmax_olap
@@ -2473,8 +2473,6 @@ end subroutine CPL_get_olap_limits
 !-----------------------------------------------------------------------------
 
 subroutine CPL_get_cnst_limits(limits)
-
-
     use coupler_module, only :  icmin_cnst, icmax_cnst, & 
                                 jcmin_cnst, jcmax_cnst, & 
                                 kcmin_cnst, kcmax_cnst
@@ -2489,6 +2487,24 @@ subroutine CPL_get_cnst_limits(limits)
    limits(6) = kcmax_cnst
 
 end subroutine CPL_get_cnst_limits
+
+!-----------------------------------------------------------------------------
+
+subroutine CPL_get_bnry_limits(limits)
+    use coupler_module, only :  icmin_bnry, icmax_bnry, & 
+                                jcmin_bnry, jcmax_bnry, & 
+                                kcmin_bnry, kcmax_bnry
+
+   integer, intent(out) :: limits(6)
+
+   limits(1) = icmin_bnry
+   limits(2) = icmax_bnry
+   limits(3) = jcmin_bnry
+   limits(4) = jcmax_bnry
+   limits(5) = kcmin_bnry
+   limits(6) = kcmax_bnry
+
+end subroutine CPL_get_bnry_limits
 
 !-----------------------------------------------------------------------------
 

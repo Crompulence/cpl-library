@@ -157,8 +157,7 @@ void CPLSocketFOAM::getCellTopology() {
     CPL::get_no_cells(olapPortion.data(), olapCells);
     
     // Processor cell bounds for velocity BCs region
-    velBCRegion = olapRegion;
-    //velBCRegion[3] = velBCRegion[2];
+    CPL::get_bnry_limits(velBCRegion.data());
     CPL::my_proc_portion(velBCRegion.data(), velBCPortion.data());
     CPL::get_no_cells(velBCPortion.data(), velBCCells);
 
