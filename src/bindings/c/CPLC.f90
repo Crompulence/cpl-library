@@ -1420,6 +1420,61 @@ contains
         
     end function CPLC_kcmax_cnst
 
+
+    integer(C_INT) function CPLC_icmin_bnry() &
+        bind(C, name="CPLC_icmin_bnry")
+        use CPL, only: icmin_bnry
+        implicit none
+
+        CPLC_icmin_bnry = icmin_bnry - 1
+        
+    end function CPLC_icmin_bnry
+
+    integer(C_INT) function CPLC_jcmin_bnry() &
+        bind(C, name="CPLC_jcmin_bnry")
+        use CPL, only: jcmin_bnry
+        implicit none
+
+        CPLC_jcmin_bnry = jcmin_bnry - 1
+        
+    end function CPLC_jcmin_bnry
+
+    integer(C_INT) function CPLC_kcmin_bnry() &
+        bind(C, name="CPLC_kcmin_bnry")
+        use CPL, only: kcmin_bnry
+        implicit none
+
+        CPLC_kcmin_bnry = kcmin_bnry - 1
+        
+    end function CPLC_kcmin_bnry
+
+    integer(C_INT) function CPLC_icmax_bnry() &
+        bind(C, name="CPLC_icmax_bnry")
+        use CPL, only: icmax_bnry
+        implicit none
+
+        CPLC_icmax_bnry = icmax_bnry - 1
+        
+    end function CPLC_icmax_bnry
+
+    integer(C_INT) function CPLC_jcmax_bnry() &
+        bind(C, name="CPLC_jcmax_bnry")
+        use CPL, only: jcmax_bnry
+        implicit none
+
+        CPLC_jcmax_bnry = jcmax_bnry - 1
+        
+    end function CPLC_jcmax_bnry
+
+    integer(C_INT) function CPLC_kcmax_bnry() &
+        bind(C, name="CPLC_kcmax_bnry")
+        use CPL, only: kcmax_bnry
+        implicit none
+
+        CPLC_kcmax_bnry = kcmax_bnry - 1
+        
+    end function CPLC_kcmax_bnry
+
     integer(C_INT) function CPLC_timestep_ratio() &
         bind(C, name="CPLC_timestep_ratio")
         use CPL, only: timestep_ratio
