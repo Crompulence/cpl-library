@@ -182,7 +182,14 @@ test-examples:
 	./examples/sendrecv_globcell/test_all_port.sh
 
 test-valgrind:
-	./test/valgrind/debug_all.sh
+	py.test -v  $(testdir)/valgrind
+	#./test/valgrind/debug_all.sh
+
+test-gtests: CPL_force_unittest
+	cd $(testdir)/gtests/ && ./CPL_force_unittest
+
+CPL_force_unittest: 
+	make -C $(testdir)/gtests
 
 webdocs-api:
 	bash ./utils/update-webdocs-api.sh
