@@ -122,7 +122,7 @@ class GridPanel(wx.Panel):
         #Add minimum domain size input
         if Min:
             self.min_xyz = wx.Panel(self)
-            self.min_xyz.label = wx.StaticText(self,label="Min",size=(50,-1))
+            self.min_xyz.label = wx.StaticText(self,label="Origin",size=(50,-1))
             xmin = initialvalues.get('xmin',0.)
             self.min_xyz.xmin = FS.FloatSpin(self, -1, value=str(xmin))
             self.min_xyz.xmin.SetFormat("%f")
@@ -148,7 +148,7 @@ class GridPanel(wx.Panel):
         #Add maximum domain size input
         if Max:
             self.max_xyz = wx.Panel(self)
-            self.max_xyz.label = wx.StaticText(self,label="Max",size=(50,-1))
+            self.max_xyz.label = wx.StaticText(self,label="Domain",size=(50,-1))
             xmax = initialvalues.get('xmax',1.)
             self.max_xyz.xmax = FS.FloatSpin(self, -1, value=str(xmax))
             self.max_xyz.xmax.SetFormat("%f")
@@ -239,7 +239,7 @@ class CntrlPanel(wx.Panel):
         wx.Panel.__init__(self, parent, **kwargs)
 
         #Add three panels
-        self.CFDpanel = GridPanel(self, initialvalues={"ymin":0.75,"ymax":1.75}, title="CFD")
+        self.CFDpanel = GridPanel(self, initialvalues={"ymin":0.,"ymax":1.}, title="CFD")
         self.MDpanel = GridPanel(self, initialvalues={"nx":1,"ny":1,"nz":1}, title="MD", cells=False)
         self.CPLpanel = GridPanel(self, title="CPL", cells=False, procs=False, 
                                   Min=False, Max=False, minmaxcell=True)

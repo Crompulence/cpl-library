@@ -482,8 +482,7 @@ subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
     call MPI_comm_dup(CPL_REALM_COMM, RETURNED_REALM_COMM, ierr)
 
     !Print header if necessary
-    if (myid_world .eq. rootid_world .and. & 
-        (output_mode .ne. QUIET)) call print_cplheader
+    if (output_mode .ne. QUIET) call print_cplheader
 
 contains
 
@@ -492,21 +491,30 @@ contains
 !-----------------------------------------------------------------------------
 
 subroutine print_cplheader()
+    use mpi
     implicit none
 
-    print*, "                                                                 "
-    print*, "  ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________        "
-    print*, "   _____/\\\////////__\/\\\/////////\\\_\/\\\_____________       "
-    print*, "    ___/\\\/___________\/\\\_______\/\\\_\/\\\_____________      "
-    print*, "     __/\\\_____________\/\\\\\\\\\\\\\/__\/\\\_____________     "
-    print*, "      _\/\\\_____________\/\\\/////////____\/\\\_____________    "
-    print*, "       _\//\\\____________\/\\\_____________\/\\\_____________   "
-    print*, "        __\///\\\__________\/\\\_____________\/\\\_____________  "
-    print*, "         ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_ "
-    print*, "          _______\/////////__\///______________\///////////////__"
-    print*, "                                                                 "
-    print*, "                     C P L  -  L I B R A R Y                     "
-    print*, "                                                                 "
+    integer :: ierr
+
+    call MPI_Barrier(CPL_WORLD_COMM, ierr)
+    if (myid_world .eq. rootid_world) then
+
+        print*, "                                                                 "
+        print*, "  ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________        "
+        print*, "   _____/\\\////////__\/\\\/////////\\\_\/\\\_____________       "
+        print*, "    ___/\\\/___________\/\\\_______\/\\\_\/\\\_____________      "
+        print*, "     __/\\\_____________\/\\\\\\\\\\\\\/__\/\\\_____________     "
+        print*, "      _\/\\\_____________\/\\\/////////____\/\\\_____________    "
+        print*, "       _\//\\\____________\/\\\_____________\/\\\_____________   "
+        print*, "        __\///\\\__________\/\\\_____________\/\\\_____________  "
+        print*, "         ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_ "
+        print*, "          _______\/////////__\///______________\///////////////__"
+        print*, "                                                                 "
+        print*, "                     C P L  -  L I B R A R Y                     "
+        print*, "                                                                 "
+
+    endif
+    call MPI_Barrier(CPL_WORLD_COMM, ierr)
 
 end subroutine print_cplheader
 
@@ -1113,9 +1121,9 @@ subroutine CPL_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
     do i=1, ncxyz(1) + 1
     do j=1, ncxyz(2) + 1
     do k=1, ncxyz(3) + 1
-            xgrid(i, j, k) = (i-1) * dx
-            ygrid(i, j, k) = (j-1) * dy
-            zgrid(i, j, k) = (k-1) * dz
+            xgrid(i, j, k) = (i-1) * dx - xyz_orig(1)
+            ygrid(i, j, k) = (j-1) * dy - xyz_orig(2)
+            zgrid(i, j, k) = (k-1) * dz - xyz_orig(3)
     enddo
     enddo
     enddo
@@ -1365,7 +1373,7 @@ subroutine coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, ncxyz
     icmin = ijkcmin(1); jcmin = ijkcmin(2); kcmin = ijkcmin(3)
     icmax = ijkcmax(1); jcmax = ijkcmax(2); kcmax = ijkcmax(3)
     allocate(buf(6))
-    buf = (/ icmin,icmax,jcmin,jcmax,kcmin,kcmax /)
+    buf = (/ icmin, icmax, jcmin, jcmax, kcmin, kcmax /)
     call MPI_bcast(buf,6,MPI_INTEGER,source,CPL_INTER_COMM,ierr) !Send
     deallocate(buf)
 
@@ -1397,9 +1405,9 @@ subroutine coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, ncxyz
     call MPI_bcast(kcPmax_cfd,npz_cfd,MPI_INTEGER,source,CPL_INTER_COMM,ierr) !Send
 
     !Calculate the cell sizes dx,dy & dz
-    dx = xL_cfd/ncx   !xg(2,1)-xg(1,1)
-    dy = yL_cfd/ncy   !yg(1,2,1)-yg(1,1,1) ! This assumed grid stretching
-    dz = zL_cfd/ncz   !zg(2  )-zg(1  )
+    dx = xg(2,1,1)-xg(1,1,1)
+    dy = yg(1,2,1)-yg(1,1,1)
+    dz = zg(1,1,2)-zg(1,1,1)
 
     !Calculate number of cells in overlap region
     ncx_olap = icmax_olap - icmin_olap + 1
@@ -1412,6 +1420,7 @@ subroutine coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, ncxyz
     call MPI_bcast(ncy_olap,1,MPI_INTEGER,source,CPL_INTER_COMM,ierr)
 
     ! Establish mapping between MD and CFD
+    call MPI_Barrier(CPL_WORLD_COMM, ierr)
     call CPL_create_map()
 
     !Check for grid strectching and terminate process if found
@@ -1762,9 +1771,9 @@ subroutine coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain, xyz_orig)
     call MPI_bcast(kcPmax_cfd,npz_cfd,MPI_INTEGER,0,CPL_INTER_COMM,ierr) !Receive
 
     !Calculate the cell sizes dx,dy & dz
-    dx = xL_cfd/ncx   !xg(2,1)-xg(1,1)
-    dy = yL_cfd/ncy   !yg(1,2,1)-yg(1,1,1) ! yL_cfd/ncy
-    dz = zL_cfd/ncz   !zg(2  )-zg(1  )
+    dx = xg(2,1,1)-xg(1,1,1)
+    dy = yg(1,2,1)-yg(1,1,1) ! yL_cfd/ncy
+    dz = zg(1,1,2)-zg(1,1,1)
 
     !Define number of cells in overlap region
     ncx_olap = icmax_olap - icmin_olap + 1
@@ -1772,6 +1781,7 @@ subroutine coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain, xyz_orig)
     ncz_olap = kcmax_olap - kcmin_olap + 1
 
     ! Establish mapping between MD an CFD
+    call MPI_Barrier(CPL_WORLD_COMM, ierr)
     call CPL_create_map()
 
 end subroutine coupler_md_init
@@ -1905,7 +1915,6 @@ subroutine check_config_feasibility()
         print*, "zL_md = ",  zL_md
         print*, "zL_cfd = ", zL_cfd
         call error_abort(string)
-    
     end if
 
     !Check CFD and MD cell range

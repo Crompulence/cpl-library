@@ -149,4 +149,35 @@ private:
 
 };
 
+
+
+class CPLForceGranular : public CPLForce {
+
+public:
+
+    //Constructors
+    CPLForceGranular(CPL::ndArray<double> field);
+    CPLForceGranular(int nd, int icell, int jcell, int kcell);
+
+    //Pre force collection and get force calculation
+    void pre_force(double x[], double v[], double a[]);
+    std::vector<double> get_force(double r[], double v[], double a[]);
+
+    //Force specific things
+    double porousity_exponent(double Re);
+    double drag_coefficient(double Re);
+    double magnitude(std::vector<double> v);
+
+
+private:
+
+    CPL::ndArray<double> vSums;
+    CPL::ndArray<double> nSums;
+
+    void initialisesums(CPL::ndArray<double> f);
+    void resetsums();
+
+
+};
+
 #endif  // CPLForce_H_

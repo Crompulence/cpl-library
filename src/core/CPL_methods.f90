@@ -2381,6 +2381,7 @@ function CPL_map_coord2cell(x, y, z, cell_ijk) result(ret)
     real(kind(0.d0)), intent(in)  :: x, y, z
     integer, intent(out)         :: cell_ijk(3)
 
+    integer          :: ixyz
     real(kind(0.d0)) :: olap_lo(3)
     integer          :: olap_limits(6)
     logical          :: ret
@@ -2428,16 +2429,16 @@ function CPL_map_glob2loc_cell(limits, glob_cell, loc_cell) result(ret)
     integer, intent(out) :: loc_cell(3)
 
     logical :: ret
-    integer :: olap_limits(6)
+    !integer :: olap_limits(6)
 
-    call CPL_get_olap_limits(olap_limits)
+    !call CPL_get_olap_limits(olap_limits)
 
     ! Check if cell is inside the overlap region
-    if (.not. is_cell_inside(glob_cell, olap_limits)) then 
-        print*, "cell:" , glob_cell
-        call error_abort("CPL_map_glob2loc_cell error - Cell is outside overlap region. " // &
-                         "Aborting simulation.") 
-    end if
+!    if (.not. is_cell_inside(glob_cell, olap_limits)) then 
+!        print*, "cell:" , glob_cell
+!        call error_abort("CPL_map_glob2loc_cell error - Cell is outside overlap region. " // &
+!                         "Aborting simulation.") 
+!    end if
 
     ! Check if global cell is within the limits of the region specified
     if (is_cell_inside(glob_cell, limits)) then

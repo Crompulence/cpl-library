@@ -11,6 +11,14 @@
 //                                                               //
 ///////////////////////////////////////////////////////////////////
 
+
+// -> In the interest of dependency injection, I made a field 
+//    class with dxyz, min, max, interpolation and get cell. 
+//    Built with CPL_ndArray as dependency and can be used as input 
+//    to constructor of CPLForce here. SEE CPL_field.cpp
+// 
+
+
 //Constructors
 CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){
     // Fields
@@ -103,7 +111,7 @@ CPLForceVelocity::CPLForceVelocity(int nd, int icells, int jcells, int kcells) :
 
 void CPLForceVelocity::initialisesums(CPL::ndArray<double> f){
     int vsumsShape[4] = {f.shape(0), f.shape(1), f.shape(2), f.shape(3)};
-    vSums.resize(4, vsumsShape); // Sum of Flekkøy g weights
+    vSums.resize(4, vsumsShape); // Sum of velocity
     int nsumsShape[3] = {f.shape(1), f.shape(2), f.shape(3)};
     nSums.resize(3, nsumsShape); // Sum of number of particles  
     resetsums();
@@ -117,7 +125,7 @@ void CPLForceVelocity::resetsums(){
 void CPLForceVelocity::pre_force(double r[], double v[], double a[]) {
 
     // Find in which cell number (local to processor) is the particle
-    // and sum all the Flekkøy weights for each cell.
+    // and sum all the velocities for each cell.
     std::vector<int> cell = get_cell(r);
 
     nSums(cell[0], cell[1], cell[2]) += 1.0; 
@@ -252,6 +260,113 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
         }
     }
 }
+
+
+///////////////////////////////////////////////////////////////////
+//                                                               //
+//                    CPLForceGranular                           //
+//                                                               //
+///////////////////////////////////////////////////////////////////
+
+//Constructor of datatype
+CPLForceGranular::CPLForceGranular(CPL::ndArray<double> field) : CPLForce(field){
+
+    initialisesums(field);
+
+}
+
+//Constructor using cells
+CPLForceGranular::CPLForceGranular(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
+
+    initialisesums(field);
+}
+
+void CPLForceGranular::initialisesums(CPL::ndArray<double> f){
+
+    int vsumsShape[4] = {f.shape(0), f.shape(1), f.shape(2), f.shape(3)};
+    vSums.resize(4, vsumsShape); // Sum of velocity
+    int nsumsShape[3] = {f.shape(1), f.shape(2), f.shape(3)};
+    nSums.resize(3, nsumsShape); // Sum of porousity of particles  
+    resetsums();
+}
+
+void CPLForceGranular::resetsums(){
+    nSums = 0.0;  vSums = 0.0; 
+}
+
+// See Equation 12 in K. D. Kafui et al. / Chemical Engineering Science 57 (2002) 2395–2410
+double CPLForceGranular::porousity_exponent(double Re) {
+    return 3.7 - 0.65 * exp(pow(0.5*(-1.5 - log10(Re)),2));
+}
+
+// See Equation 13 in K. D. Kafui et al. / Chemical Engineering Science 57 (2002) 2395–2410
+double CPLForceGranular::drag_coefficient(double Re) {
+    return pow((0.63 + 4.8/pow(Re,0.5)),2);
+}
+
+double CPLForceGranular::magnitude(std::vector<double> v){
+    return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+} 
+
+//Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
+void CPLForceGranular::pre_force(double r[], double v[], double a[]) {
+
+    // Find in which cell number (local to processor) is the particle
+    // and sum all the velocities for each cell.
+    std::vector<int> cell = get_cell(r);
+
+    double volume = 1.0; // Here field.get_volume_in_cell(r) ??;
+    nSums(cell[0], cell[1], cell[2]) += volume; 
+}
+
+
+//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
+std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a[]){
+
+    std::vector<double> f(3), Ui(3), Ui_v(3);
+    std::vector<int> cell = get_cell(r);
+    //Porosity e is 1.0 - sum in volume
+    double e = 1.0 - nSums(cell[0], cell[1], cell[2]);
+    double rho = 1.0;
+    double mu = 1.0;
+    double d = 1.0;
+    //Should use std::vector<double> Ui(3) = field.interpolate(r);
+    for (int i=0; i<3; i++){
+        Ui[i] = field(i, cell[0], cell[1], cell[2]);
+        Ui_v[i] = Ui[i]-v[i];
+    }
+
+    //It is unclear here if Reynolds No. should be based
+    //on the mean cell velocity or particle velocity
+    double Re = rho * d * e * magnitude(Ui_v) / mu;
+    double Cd = drag_coefficient(Re);
+    double xi = porousity_exponent(Re);
+    //Calculate force
+    if (e < 1e-5) {
+        std::cout << "Warning: 0 particles in cell (" 
+                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
+                  << std::endl;
+        f[0]=0.0; f[1]=0.0; f[2]=0.0;
+        return f;
+    } else {
+        double A = 0.125*Cd*rho*M_PI*pow(d,2)*pow(e,2)*magnitude(Ui_v)*pow(e,xi-1.0);
+        for (int i = 0; i < 3; ++i){
+            f[i] = A*(Ui[i]-v[i]);
+        }
+        return f;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -248,6 +248,9 @@ void CPLSocketFOAM::pack(volVectorField &U,
 											(glob_cell[1] + 0.5) * dy, 
 											(glob_cell[2] + 0.5) * dz);
 					cell = meshSearcher->findNearestCell(globalPos);
+
+//                    printf("vel %d %d %d %4.2f %4.2f %4.2f  \n", loc_cell[0],loc_cell[1],loc_cell[2], 
+//                            globalPos[0], globalPos[1], globalPos[2]);
 					if (cell != -1) {
 
 				        if (sendtype == PACKVELONLY)
@@ -335,16 +338,16 @@ double CPLSocketFOAM::unpackVelocity(volVectorField &U, fvMesh &mesh) {
 		    // For every component and y-value 
 		    for (int j = 0; j < recvVelocityBuff.shape(2); ++j) {
 		        for (int c = 0; c < recvVelocityBuff.shape(0); ++c) {
-		        // Sum across the x-z plane 
-		        double total = 0.0;
+		            // Sum across the x-z plane 
+		            double total = 0.0;
 		            for (int k = 0; k < recvVelocityBuff.shape(3); ++k)
 		                for (int i = 0; i < recvVelocityBuff.shape(1); ++i)
 		                    total += recvVelocityBuff(c, i, j, k);
 
 		        // Find mean by dividing sum by number of cells 
-		            for (int k = 0; k < recvVelocityBuff.shape(3); ++k)
-		                for (int i = 0; i < recvVelocityBuff.shape(1); ++i)
-		                    recvVelocityBuff(c, i, j, k) = total / static_cast<double> (N);
+	            for (int k = 0; k < recvVelocityBuff.shape(3); ++k)
+	                for (int i = 0; i < recvVelocityBuff.shape(1); ++i)
+	                    recvVelocityBuff(c, i, j, k) = total / static_cast<double> (N);
 		        }
 		    }
         } 
@@ -368,36 +371,36 @@ double CPLSocketFOAM::unpackVelocity(volVectorField &U, fvMesh &mesh) {
 		Foam::fvPatchVectorField& rvPatch = U.boundaryField()[rvPatchID];
 		const Foam::vectorField faceCenters = mesh.boundary()[rvPatchID].Cf();
 
-			Foam::label cell;
-			Foam::point closestCellCentre;
-			for (int faceI = 0; faceI != faceCenters.size(); ++faceI) {
+		Foam::label cell;
+		Foam::point closestCellCentre;
+		for (int faceI = 0; faceI != faceCenters.size(); ++faceI) {
 
-				double facex = faceCenters[faceI].x();
-				double facey = faceCenters[faceI].y();
-				double facez = faceCenters[faceI].z();
+			double facex = faceCenters[faceI].x();
+			double facey = faceCenters[faceI].y();
+			double facez = faceCenters[faceI].z();
 
-		        // Find the cell indices for this position recvVelocity(:, ix, iy, iz)
-            	int glob_cell[3]; int loc_cell[3];
-		        CPL::map_coord2cell(facex, facey, facez, glob_cell);
-		        bool valid_cell = CPL::map_glob2loc_cell(velBCPortion.data(), glob_cell, loc_cell);
+	        // Find the cell indices for this position recvVelocity(:, ix, iy, iz)
+        	int glob_cell[3]; int loc_cell[3];
+	        CPL::map_coord2cell(facex, facey, facez, glob_cell);
+	        bool valid_cell = CPL::map_glob2loc_cell(velBCPortion.data(), glob_cell, loc_cell);
 
-                if (valid_cell) {
+            if (valid_cell) {
 
-                    double m = recvVelocityBuff(3, loc_cell[0], loc_cell[1], loc_cell[2]); 
-                    double recvvx = recvVelocityBuff(0, loc_cell[0], loc_cell[1], loc_cell[2])/m;
-                    double recvvy = recvVelocityBuff(1, loc_cell[0], loc_cell[1], loc_cell[2])/m;
-                    double recvvz = recvVelocityBuff(2, loc_cell[0], loc_cell[1], loc_cell[2])/m;
+                double m = recvVelocityBuff(3, loc_cell[0], loc_cell[1], loc_cell[2]); 
+                double recvvx = recvVelocityBuff(0, loc_cell[0], loc_cell[1], loc_cell[2])/m;
+                double recvvy = recvVelocityBuff(1, loc_cell[0], loc_cell[1], loc_cell[2])/m;
+                double recvvz = recvVelocityBuff(2, loc_cell[0], loc_cell[1], loc_cell[2])/m;
 
-                    //Note here velocity is set straight to MD average value
-			        //which may be correct or you may need to use interpolation
-                    // with something like (recvvx + U[cell].x()) / 2.0; where
-			        //cell = mesh.findCell (closestCellCentre);
-			        if (applyBCx) rvPatch[faceI].x() = recvvx;
-			        if (applyBCy) rvPatch[faceI].y() = recvvy;
-			        if (applyBCz) rvPatch[faceI].z() = recvvz;
-                }
+                //Note here velocity is set straight to MD average value
+		        //which may be correct or you may need to use interpolation
+                // with something like (recvvx + U[cell].x()) / 2.0; where
+		        //cell = mesh.findCell (closestCellCentre);
+		        if (applyBCx) rvPatch[faceI].x() = recvvx;
+		        if (applyBCy) rvPatch[faceI].y() = recvvy;
+		        if (applyBCz) rvPatch[faceI].z() = recvvz;
+            }
 
-	        }
+        }
     }
 }
 

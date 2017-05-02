@@ -1,12 +1,38 @@
 #!/usr/bin/env python
-
 import re
 try:
-    import subprocess32 as subp
+    import subprocess32 as sp
 except ImportError:
-    import subprocess  as subp
+    import subprocess  as sp
 import argparse
 import os 
+import atexit
+import signal
+import glob
+
+def kill_sp(pids):
+    """ensure processes killed if this script is killed"""
+    for pid in pids:
+        if pid is None:
+            pass
+        else:
+            try:
+                os.killpg(pid, signal.SIGTERM)
+            except OSError:
+                pass
+
+class cd:
+    """Context manager for changing the current working directory"""
+    def __init__(self, newPath):
+        self.newPath = os.path.expanduser(newPath)
+
+    def __enter__(self):
+        self.savedPath = os.getcwd()
+        os.chdir(self.newPath)
+
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.savedPath)
+
 
 # This script runs two codes seperatly in thier own directories
 # and ensure the coupled run works correctly. To do this:
@@ -24,7 +50,7 @@ def get_libraries(filename=None):
     """
      Get List of Librairies in Dictionary
     """
-    lddOut = subp.check_output(['ldd', filename])
+    lddOut = sp.check_output(['ldd', filename])
     libraries = {}
     for line in lddOut.splitlines():
         match = re.match(r'\t(.*) => (.*) \(0x', line)
@@ -35,82 +61,164 @@ def get_libraries(filename=None):
 
 
 #Keyword arguments
-parser = argparse.ArgumentParser(
-                       description="""
-                       Builds a Dict of linked libraries""")
+description = """
+Run coupled case. Note, only script.py needed for python.
+First argument after keywords is the exectuable and all other arguments are inputs.
+If using some form of debugger or testing (gdb, valgrind, etc) then you need to specify
+the executable seperatly.
+"""
+parser = argparse.ArgumentParser(description=description)
 
-parser.add_argument('-c', '--cfd', nargs=2, 
-                    metavar=('nprocs_CFD', 'CFD_exec'), 
-                    help='nprocs CFD_exec',
-                    default=[1,'./cfd'], required=True)
+parser.add_argument('-m', '--md', nargs=2,
+                    help='Specify two arguments: No. of MD processors and MD executable with all space seperated arguments in quotes', 
+                    required=True)
 
-parser.add_argument('-m', '--md', nargs=2, 
-                    help='nprocs MD_exec', 
-                    metavar=('nprocs_MD', 'MD_exec'),
-                    default=[1,'./md'], required=True)
+parser.add_argument('-c', '--cfd', nargs=2,
+                    help='Specify two arguments: No. of CFD processors and CFD executable with all space seperated arguments in quotes',
+                    required=True)
+
 
 args = vars(parser.parse_args())
-print(args,parser)
 
-nprocs_CFD, CFD = args['cfd']
-nprocs_MD, MD = args['md']
+nprocs_CFD = args['cfd'][0]
+arg = args['cfd'][1].split(" ")
+exec_CFD = arg[0]
+if len(arg) > 1:
+    args_CFD = arg[1:]
+else:
+    args_CFD = []
+nprocs_MD = args['md'][0]
+arg = args['md'][1].split(" ")
+exec_MD = arg[0]
+if len(arg) > 1:
+    args_MD = arg[1:]
+else:
+    args_MD = []
+#nprocs_CFD = args['cfd'][0]
+#if len(args['cfd']) == 1:
+#    print("No CFD executable supplied, trying ./cfd")
+#    exec_CFD = "./cfd"
+#else:
+#    exec_CFD = args['cfd'][1]
+#if len(args['cfd']) > 2:
+#    args_CFD = args['cfd'][2:]
+#else:
+#    args_CFD = []
 
-#Get libraries of each executable.
-CFDlib = get_libraries(CFD)
-MDlib  = get_libraries(MD)
+#nprocs_MD = args['md'][0]
+#if len(args['cfd']) == 1:
+#    print("No MD executable supplied, trying ./md")
+#    exec_MD = "./md"
+#else:
+#    exec_MD = args['md'][1]
+#if len(args['md']) > 2:
+#    args_MD = args['md'][2:]
+#else:
+#    args_MD = []
 
-#CPLlibs = [CFDlib, MDlib]
+#Create dict for run info
+CFDDict = {"exec":exec_CFD, "nproces":nprocs_CFD, "args":args_CFD}
+MDDict = {"exec":exec_MD, "nproces":nprocs_MD, "args":args_MD}
+Dicts = {"MD":MDDict, "CFD":CFDDict}
 
-#for libs in CPLlibs:
-#    for lib, lpath in libs.items():
-#        if "libcpl.so" in libs:
-#            print("CFD CPL", lib, lpath)
-#            CFD_cpl = lpath
+for k in Dicts:
+    #Check executables exist
+    d = Dicts[k]
+    e = d["exec"]
+    if not os.path.isfile(e):
+        msg = "Executable " + e + " not found. "
+        raise IOError(msg)
+
+    #Check if python script of executable
+    if ".py" in e:
+        d["ispython"] = True
+    else:
+        d["ispython"] = False
+
+    if d["ispython"]:
+        try:
+            from cplpy import CPL
+            d["cpl_path"] = CPL._lib_path + "/" + CPL._libname +".so"
+        except ImportError:
+            print("CPL library not importable in Python, " +
+                  "have you called source SOURCEME.sh in cpl-library")
+
+        try:
+            import mpi4py
+            mpibinpath = mpi4py.get_config()["mpicc"]
+            mpilibpath = "/" + mpibinpath.strip("/bin/mpicc") + "/lib/libmpi.so"
+            #libs = mpilibpath + "libmpi.so" #glob.glob(mpilibpath + "*mpi*")
+            if not os.path.isfile(mpilibpath):
+                msg = "libmpi.so not found under " + mpilibpath
+                raise IOError(msg)
+            else:
+                d["libs"] = {"libmpi.so":mpilibpath}
+        except ImportError:
+            print("CPL library not importable in Python, " +
+                  "have you called source SOURCEME.sh in cpl-library")
+
+
+    else:
+        d["libs"] = get_libraries(e)
+        for lib, lpath in d["libs"].items():
+            if "libcpl.so" in lib.lower():
+                #print(e + "CPL", lib, lpath)
+                d["cpl_path"] = os.path.normpath(lpath)
+
+if Dicts["MD"]["cpl_path"] != Dicts["CFD"]["cpl_path"]:
+    print("Warning -- different CPL linked into executables")
+else:
+    cpllib = get_libraries(Dicts["MD"]["cpl_path"])
+
 
 #Check version of cpl library is linked in correctly 
 # and is the same version for executables
-for lib, lpath in CFDlib.items():
-    if "libcpl.so" in lib.lower():
-        print("CFD CPL", lib, lpath)
-        CFD_cpl = os.path.normpath(lpath)
+#CFDlib = get_libraries(CFD)
+#for lib, lpath in CFDlib.items():
+#    if "libcpl.so" in lib.lower():
+#        print("CFD CPL", lib, lpath)
+#        CFD_cpl = os.path.normpath(lpath)
 
-for lib, lpath in MDlib.items():
-    if "libcpl.so" in lib.lower():
-        print("MD CPL", lib, lpath)
-        MD_cpl = os.path.normpath(lpath)
+#MDlib  = get_libraries(MD)
+#for lib, lpath in MDlib.items():
+#    if "libcpl.so" in lib.lower():
+#        print("MD CPL", lib, lpath)
+#        MD_cpl = os.path.normpath(lpath)
 
-#Check cpl library is actually linked in
-
-
-if MD_cpl != CFD_cpl:
-    print("Warning -- different CPL linked into executables")
-else:
-    cpllib = get_libraries(CFD_cpl)
+##Check cpl library is actually linked in
+#if MD_cpl != CFD_cpl:
+#    print("Warning -- different CPL linked into executables")
+#else:
+#    cpllib = get_libraries(CFD_cpl)
 
 #Check for MPI libraries for both cpl and executables are the same
 for lib, lpath in cpllib.items():
     if "mpi" in lib:
         print("CPL MPI libs", lib, lpath)
-        CPL_mpi = os.path.normpath(lpath)
+        CPL_mpi = os.path.realpath(lpath)
 
-for lib, lpath in CFDlib.items():
+for lib, lpath in Dicts["CFD"]["libs"].items():
     if "mpi" in lib:
         print("CFD MPI libs", lib, lpath)
-        CFD_mpi = os.path.normpath(lpath)
+        #CFD_mpi = os.path.normpath(lpath)
+        Dicts["CFD"]["MPI"] = os.path.realpath(lpath)
 
-for lib, lpath in MDlib.items():
+
+for lib, lpath in Dicts["MD"]["libs"].items():
     if "mpi" in lib:
         print("MD MPI libs", lib, lpath)
-        MD_mpi = os.path.normpath(lpath)
+        #MD_mpi = os.path.normpath(lpath)
+        Dicts["MD"]["MPI"] = os.path.realpath(lpath)
 
-if (MD_mpi != CFD_mpi) or (CPL_mpi != CFD_mpi):
+if (Dicts["MD"]["MPI"] != Dicts["CFD"]["MPI"]) or (CPL_mpi != Dicts["CFD"]["MPI"]):
     print("Warning -- different MPI linked into executables")
+    mpilibs = get_libraries(CPL_mpi)
 else:
     mpilibs = get_libraries(CPL_mpi)
 
 # Check fortran and c++ compilers are consistent 
 # for mpi, cpl and executables
-libs = [cpllib, mpilibs, MDlib, CFDlib]
+libs = [cpllib, mpilibs, Dicts["MD"]["libs"], Dicts["CFD"]["libs"]]
 compilers = ["gcc", "gfortran", "stdc++"]
 checkDict = {}
 for lib in libs:
@@ -126,22 +234,34 @@ for lib in libs:
 
 print("Compilers all the same : ", checkDict)
 
-# Run of the form 
-# mpiexec -n 16 args['MD'] PID=$! & mpiexec -n 4 .args['CFD'] ; wait $PID
-# But will also need to check for and copy port file if needed here because
+# We will also need to check for and copy port file if needed here because
 # executables are in different folders...
-#cmdstr = ["mpiexec", "-n", 
-#          str(nprocs_MD), MD, "PID=$! &",
-#          "mpiexec", "-n",                                    
-#          str(nprocs_CFD), CFD, 
-#          ";", "wait",  "$PID" ]
-#print(" ".join(cmdstr))
-#lddOut = subp.call(cmdstr)
 
-cmdstr_MD = ["mpiexec", "-n", str(nprocs_MD), MD]
-cmdstr_CFD = ["mpiexec", "-n", str(nprocs_CFD), CFD]
-p_MD  = subp.Popen(cmdstr_MD)
-p_CFD = subp.Popen(cmdstr_CFD)
+#Python scripts
+for k in Dicts:
+    d = Dicts[k]
+    if d["ispython"]:
+        d["exec"] = "python " + d["exec"]
+
+cmdstr_MD = ["mpiexec", "-n", str(nprocs_MD), MDDict["exec"]] + MDDict["args"]
+cmdstr_CFD = ["mpiexec", "-n", str(nprocs_CFD), CFDDict["exec"]] + CFDDict["args"]
+#p_CFD = sp.Popen(cmdstr_CFD)
+#p_MD  = sp.Popen(cmdstr_MD)
+
+# Create a processor group using preexec_fn=os.setsid
+# so they can be killed as one.
+# I don't think this works...
+p_CFD = sp.Popen(' '.join(cmdstr_CFD), shell=True,
+                  preexec_fn=os.setsid)
+p_MD = sp.Popen(' '.join(cmdstr_MD), shell=True,
+                  preexec_fn=os.setsid)
+
+#Register killer of subprocesses if python script killed 
+atexit.register(kill_sp, [os.getpgid(p_MD.pid), os.getpgid(p_CFD.pid)])
 
 p_MD.wait()
+p_CFD.wait()
+
+
+
 
