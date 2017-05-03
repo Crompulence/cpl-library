@@ -51,6 +51,8 @@ Author(s)
 #include "CPL.h"
 #include "fix_cpl_force.h"
 
+#include "fix_ave_chunk.h"
+#include "region.h"
 typedef CPL::ndArray<double> arrayDoub;
 typedef std::shared_ptr<arrayDoub> shaPtrArrayDoub;
 
@@ -70,7 +72,7 @@ public:
     int timestep_ratio;
     
     // Initialisation routines 
-    void initComms (int argc, char **argv);
+    void initComms ();
     void initMD (LAMMPS_NS::LAMMPS *lammps);
 
     // Data preparation and communication 
@@ -129,6 +131,8 @@ private:
 
     // Cell sizes
     double dx, dy, dz;
+    class LAMMPS_NS::Compute *cfdbccompute;
+    class LAMMPS_NS::Region *region;
     
     // Fix that applies the momentum constrain
     FixCPLForce* cplfix;

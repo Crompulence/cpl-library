@@ -53,9 +53,7 @@ Author(s)
 #include "CPL.h"
 
 
-void CPLSocketLAMMPS::initComms(int argc, char **argv) {
-
-    MPI_Init(&argc, &argv);
+void CPLSocketLAMMPS::initComms() {
 
     // Split MPI_COMM_WORLD into realm communicators
     CPL::init(CPL::md_realm, realmComm);
@@ -99,9 +97,9 @@ void CPLSocketLAMMPS::initMD(LAMMPS_NS::LAMMPS *lammps) {
     // Setup
     timestep_ratio = CPL::get<int> ("timestep_ratio");
     getCellTopology();
-    setupFixMDtoCFD(lammps);
-    setupFixCFDtoMD(lammps);
     allocateBuffers();
+    //setupFixMDtoCFD(lammps);
+    //setupFixCFDtoMD(lammps);
 
 }
 
@@ -118,11 +116,11 @@ void CPLSocketLAMMPS::getCellTopology() {
     VELBC_ABOVE = dy;///2.0;
 
     // Cell bounds for the overlap region
-    CPL::get_olap_limits(olapRegion.data());
+    CPL::get_bnry_limits(velBCRegion.data());
     
     // Cell bounds for velocity BCs region
-    velBCRegion = olapRegion;
-    velBCRegion[3] = velBCRegion[2];
+    //velBCRegion = olapRegion;
+    //velBCRegion[3] = velBCRegion[2];
     CPL::my_proc_portion (velBCRegion.data(), velBCPortion.data());
 
     CPL::get_no_cells(velBCPortion.data(), velBCCells);
@@ -165,6 +163,8 @@ void CPLSocketLAMMPS::setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps) {
     topRight[1] += VELBC_ABOVE;
     topRight[2] += dz;
 
+    // Cell sizes
+    std::cout << dx << " " << dz << std::endl;
     // LAMMPS commands to set up the fix
 
     // CFD BC region 
@@ -177,9 +177,9 @@ void CPLSocketLAMMPS::setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps) {
     cmd += std::to_string (topRight[2]) + " ";
     cmd += "units box";
     std::cout << cmd << std::endl;
-    lammps->input->one (cmd.c_str());
+    //lammps->input->one(cmd.c_str());
 
-    // CFD BC compute chunk 3d bins in single y row
+    // CFD BC compute chunk 3d bins in y slice
     cmd = "compute cfdbccompute all chunk/atom bin/3d";
     cmd += " x lower " + std::to_string(dx);
     cmd += " y lower " + std::to_string(dy);
@@ -188,7 +188,7 @@ void CPLSocketLAMMPS::setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps) {
     cmd += " region cfdbcregion"; 
     cmd += " units box";
     std::cout << cmd << std::endl;
-    lammps->input->one(cmd.c_str());s
+    //lammps->input->one(cmd.c_str());
 
     // CFD BC averaging fix 
     // Average values are generated every Nfreq time steps, taken
@@ -211,12 +211,16 @@ void CPLSocketLAMMPS::setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps) {
     cmd += "cfdbccompute vx vy vz ";
     cmd += "norm all ";
     std::cout << cmd << std::endl;
-    lammps->input->one (cmd.c_str());
+    //lammps->input->one(cmd.c_str());
 
     // Work around what SEEMS to be a LAMMPS bug in allocation
     // of fix ave/chunk's internal data during construction. This forces
     // allocation.
-    lammps->input->one ("run 0");
+    //lammps->input->one ("run 0");
+
+
+    //int fixindex = lammps->modify->find_fix("cfdbcfix");
+    //lammps->modify->fix[fixindex]->init();
     
 };
 
@@ -238,17 +242,24 @@ void CPLSocketLAMMPS::setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps) {
     cmd += std::to_string(botLeft[2]) + " " + std::to_string(topRight[2]) + " ";
     cmd += "units box"; 
     std::cout << cmd << std::endl;
-    lammps->input->one (cmd.c_str());
-    // TODO (d.trevelyan@ic.ac.uk) every 1? , Maybe just every ratio timestep
+    //lammps->input->one (cmd.c_str());
+
+    // Create a group based on this region
     cmd = "group cplforcegroup dynamic all region cplforceregion every 1";
-    lammps->input->one (cmd.c_str());
+    std::cout << cmd << std::endl;
+//    lammps->input->one (cmd.c_str());
 
     // Create a FixCPLForce instance
     cmd = "fix cplforcefix all cpl/force region cplforceregion";
-    lammps->input->one (cmd.c_str());
+    std::cout << cmd << std::endl;
+    //lammps->input->one (cmd.c_str());
     int fixindex = lammps->modify->find_fix ("cplforcefix");
     cplfix = dynamic_cast<FixCPLForce*>(lammps->modify->fix[fixindex]);
     cplfix->updateProcPortion (cnstFPortion.data());
+
+    //lammps->modify->fix[fixindex]->init();
+   //unpackStress(lammps);
+    //lammps->modify->fix[fixindex]->init();
 }
 
 // TODO develop a custom fix so that lammps doesn't need to do 
@@ -263,6 +274,8 @@ void CPLSocketLAMMPS::packVelocity (const LAMMPS_NS::LAMMPS *lammps) {
     int ny = velBCCells[1];
     int nz = velBCCells[2];
 
+    int row = -1;
+    //std::cout << nx << " " << ny << " " << nz << "\n" << std::endl;
     for (int i = 0; i != nx; ++i)
     {
         for (int j = 0; j != ny; ++j)
