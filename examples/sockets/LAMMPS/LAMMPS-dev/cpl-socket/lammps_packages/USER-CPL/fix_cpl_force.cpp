@@ -9,7 +9,6 @@
 #include<memory>
 #include<fstream>
 #include "CPL.h"
-#include "cpl_force.h"
 
 FixCPLForce::FixCPLForce
 (
@@ -76,8 +75,9 @@ void FixCPLForce::post_force(int vflag) {
 //    cplsocket.recvStress();
 //    cplsocket.unpackStress(lammps);
 
-    double xi[3], vi[3], ai[3], fi[3];
+    double xi[3], vi[3], ai[3];
     std::vector<int> cell;
+    std::vector<double> fi(3);
     for (int i = 0; i < nlocal; ++i)
     {
         if (mask[i] & groupbit)
@@ -87,7 +87,7 @@ void FixCPLForce::post_force(int vflag) {
             for (int n=0; n<3; n++){
                 xi[n]=x[i][n]; 
                 vi[n]=v[i][n]; 
-                ai[n]=a[i][n];
+                ai[n]=f[i][n];
             }
 
             // Find in which cell number (local to processor) is the particle
@@ -112,10 +112,10 @@ void FixCPLForce::post_force(int vflag) {
             int jcell = loc_cell[1];
             int kcell = loc_cell[2];
 
-            cell = fxyz.get_cell(xi)
-            assert(cell[0], icell);
-            assert(cell[1], jcell);
-            assert(cell[2], kcell);
+            cell = fxyz.get_cell(xi);
+            //std::assert(cell[0], icell);
+            //std::assert(cell[1], jcell);
+            //std::assert(cell[2], kcell);
 
             double g = flekkoyGWeight (x[i][1], cplforceregion->extent_ylo, 
                                        cplforceregion->extent_yhi);
@@ -139,7 +139,7 @@ void FixCPLForce::post_force(int vflag) {
             for (int n=0; n<3; n++){
                 xi[n]=x[i][n]; 
                 vi[n]=v[i][n]; 
-                ai[n]=a[i][n];
+                ai[n]=f[i][n];
             }
 
             int glob_cell[3];
@@ -185,7 +185,7 @@ void FixCPLForce::post_force(int vflag) {
                     double fy = rmass[i]*cfdStress->operator()(1, icell, jcell, kcell);
                     double fz = rmass[i]*cfdStress->operator()(2, icell, jcell, kcell);
 
-                    fi = fxyz.get_force(ri, vi, ai);
+                    fi = fxyz.get_force(xi, vi, ai);
 
 //                    std::cout << "Force " << i << " " << icell <<  " " << jcell << " " << kcell
 //                                  << " " << cfdStress->operator()(2, icell, jcell, kcell) << " " << 
