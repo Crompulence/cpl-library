@@ -102,7 +102,8 @@ class CPL:
     except KeyError as e:
         print("CPL info: ", "CPL_LIBRARY_PATH not defined. Looking in system directories...")
         try:
-            _cpl_lib = cdll.LoadLibrary(_libname)
+            _cpl_lib = cdll.LoadLibrary(_libname + ".so")
+            print("CPL info: ", "Success!")
         except OSError as e:
             raise CPLLibraryNotFound("Library libcpl.so not found!")
             #TODO: Check this
