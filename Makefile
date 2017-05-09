@@ -163,6 +163,9 @@ else
 		$(LINK) $(LSHAREDLIB) -o $(lib) $(allobjfiles) $(LFLAGS) 
 endif
 
+linkconda: $(objdir) $(libobjfiles) $(utilsobjfiles)
+		$(LINK) $(LSHAREDLIB) -o $(lib) $(allobjfiles) -Wl, -rpath $(LFLAGS) 
+
 json-fortran: $(CPL_THIRD_PARTY_LIB) $(CPL_THIRD_PARTY_INC)
 	bash $(MAKEINCPATH)/json-fortran.build
 

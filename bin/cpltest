@@ -1,0 +1,4 @@
+#!/bin/bash
+py.test -v test/
+#py.test -v test/initialisation
+#py.test -v test/mapping
