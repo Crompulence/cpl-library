@@ -24,7 +24,7 @@ objdir = obj
 srcdir = src
 libdir = lib
 #TODO: Add here 3partylibs dir for json-fortran and fdict
-includedir = include
+includedir = include/cpl
 coresrcdir = $(srcdir)/core
 binddir = $(srcdir)/bindings
 utilsdir = $(srcdir)/utils
@@ -65,8 +65,8 @@ cbindhdrfile = $(cbinddir)/CPLC.h
 cbindsrcfile = $(cbinddir)/CPLC.f90
 cbindobjfile = $(objdir)/CPLC.o
 
-cppbindsrc = CPLCPP.cpp
-cppbindhdr = $(cppbindsrc:.cpp=.h) CPL.h
+cppbindsrc = cpl.cpp
+cppbindhdr = $(cppbindsrc:.cpp=.h)
 cppbindsrcfiles = $(addprefix $(cppbinddir)/, $(cppbindsrc))
 cppbindhdrfiles = $(addprefix $(cppbinddir)/, $(cppbindhdr))
 cppbindobjfiles = $(addprefix $(objdir)/, $(cppbindsrc:.cpp=.o))
@@ -198,7 +198,7 @@ webdocs-all:
 
 # Clean
 clean:
-	rm -rf $(objdir) $(libdir) $(includedir) ./*.mod
+	rm -rf $(objdir) $(libdir) ./include ./*.mod
 
 clean-all:
 	rm -rf $(objdir) $(libdir) $(includedir) ./*.mod
