@@ -131,8 +131,11 @@ private:
 
     // Cell sizes
     double dx, dy, dz;
+    //Appropriate region, compute and fix    
+    class LAMMPS_NS::Region *cfdbcregion, *cplforceregion;
     class LAMMPS_NS::Compute *cfdbccompute;
-    class LAMMPS_NS::Region *region;
+    class LAMMPS_NS::Fix *cfdbcfix, *cplforcefix;
+    class LAMMPS_NS::Group *cplforcegroup;
     
     // Fix that applies the momentum constrain
     FixCPLForce* cplfix;

@@ -10,12 +10,7 @@ fixCPLInit::fixCPLInit(LAMMPS_NS::LAMMPS *lammps, int narg, char **arg)
     class LAMMPS *lmp=lammps;
     cplsocket.initComms();
     cplsocket.initMD(lmp);
-    cplsocket.setupFixMDtoCFD(lmp);
-    cplsocket.setupFixCFDtoMD(lmp);
 
-    //This is needed to prevent seg fault from
-    //use of unallocated pointer
-    cplsocket.unpackStress(lmp);
 }
 
 int fixCPLInit::setmask() {
@@ -25,9 +20,20 @@ int fixCPLInit::setmask() {
 }
 
 
+void fixCPLInit::init()
+{
+   cplsocket.setupFixMDtoCFD(lmp);
+   cplsocket.setupFixCFDtoMD(lmp);
+
+    //This is needed to prevent seg fault from
+    //use of unallocated pointer
+    cplsocket.unpackStress(lmp);
+
+}
+
+
 void fixCPLInit::setup(int vflag)
 {
-
    end_of_step();
 
 }

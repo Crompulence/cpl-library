@@ -69,7 +69,7 @@ void FixCPLForce::post_force(int vflag) {
     nSums = 0.0;
     gSums = 0.0;
 
-    fxyz = CPLForceFlekkoy(9, cfdStress->shape(1), cfdStress->shape(2), cfdStress->shape(3));
+    auto fxyz = CPLForceFlekkoy(9, cfdStress->shape(1), cfdStress->shape(2), cfdStress->shape(3));
 
         // Communications
 //    cplsocket.recvStress();

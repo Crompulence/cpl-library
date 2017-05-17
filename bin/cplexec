@@ -194,19 +194,19 @@ else:
 #Check for MPI libraries for both cpl and executables are the same
 for lib, lpath in cpllib.items():
     if "mpi" in lib:
-        print("CPL MPI libs", lib, lpath)
+        #print("CPL MPI libs", lib, lpath)
         CPL_mpi = os.path.realpath(lpath)
 
 for lib, lpath in Dicts["CFD"]["libs"].items():
     if "mpi" in lib:
-        print("CFD MPI libs", lib, lpath)
+        #print("CFD MPI libs", lib, lpath)
         #CFD_mpi = os.path.normpath(lpath)
         Dicts["CFD"]["MPI"] = os.path.realpath(lpath)
 
 
 for lib, lpath in Dicts["MD"]["libs"].items():
     if "mpi" in lib:
-        print("MD MPI libs", lib, lpath)
+        #print("MD MPI libs", lib, lpath)
         #MD_mpi = os.path.normpath(lpath)
         Dicts["MD"]["MPI"] = os.path.realpath(lpath)
 
@@ -242,6 +242,10 @@ for k in Dicts:
     d = Dicts[k]
     if d["ispython"]:
         d["exec"] = "python " + d["exec"]
+
+
+#Remove previous port file
+sp.Popen("rm ./port", shell=True)
 
 cmdstr_MD = ["mpiexec", "-n", str(nprocs_MD), MDDict["exec"]] + MDDict["args"]
 cmdstr_CFD = ["mpiexec", "-n", str(nprocs_CFD), CFDDict["exec"]] + CFDDict["args"]
