@@ -19,7 +19,7 @@ CPLField::CPLField(int nd, int icells, int jcells, int kcells){
 
 //Should this be a std::shared_ptr <CPL::ndArray <double>> arrayin??
 //Surely a unique pointer is better is we have to use pointers at all
-CPLField::CPLField(CPL::ndArray<double> arrayin){
+CPLField::CPLField(const CPL::ndArray<double>& arrayin){
     field = arrayin;
     for (int i = 0; i < 3; ++i){
         min[i] = 0.0;

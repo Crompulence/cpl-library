@@ -65,7 +65,6 @@ int main(int argc, char *argv[])
         CPL.recvVelocity();
         CPL.unpackVelocity(U, mesh);
 
-
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         #include "CourantNo.H"

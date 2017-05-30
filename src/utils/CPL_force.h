@@ -56,6 +56,7 @@ Author(s)
 #include <iostream>
 
 #include "CPL_ndArray.h"
+#include "CPL_field.h"
 
 class CPLForce{
 
@@ -68,7 +69,8 @@ public:
 
     //Constructors
     CPLForce(int nd, int icell, int jcell, int kcell);
-    CPLForce(CPL::ndArray<double>);
+    CPLForce(const CPL::ndArray<double>&);
+    CPLField(const CPLField&);
 
     //Getters and setters
     void set_field(CPL::ndArray<double> field);

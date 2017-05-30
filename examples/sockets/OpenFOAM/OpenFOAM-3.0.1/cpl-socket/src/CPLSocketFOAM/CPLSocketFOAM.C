@@ -382,7 +382,14 @@ double CPLSocketFOAM::unpackVelocity(volVectorField &U, fvMesh &mesh) {
 	        // Find the cell indices for this position recvVelocity(:, ix, iy, iz)
         	int glob_cell[3]; int loc_cell[3];
 	        CPL::map_coord2cell(facex, facey, facez, glob_cell);
+            glob_cell[1] += 1; // Add one as boundary outside overlap by construction
 	        bool valid_cell = CPL::map_glob2loc_cell(velBCPortion.data(), glob_cell, loc_cell);
+
+//            Foam::Info << rankRealm << " " << faceI << " " <<  glob_cell[0] << " " << glob_cell[1] << " " << glob_cell[2] << " "
+//                     << facex << " " <<   facey<< " " <<  facez << " " 
+//                     << recvVelocityBuff(0, loc_cell[0], loc_cell[1], loc_cell[2]) << " " << 
+//                        recvVelocityBuff(1, loc_cell[0], loc_cell[1], loc_cell[2]) << " " << 
+//                        recvVelocityBuff(2, loc_cell[0], loc_cell[1], loc_cell[2]) << Foam::endl;
 
             if (valid_cell) {
 

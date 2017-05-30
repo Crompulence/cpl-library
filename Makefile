@@ -91,8 +91,8 @@ CFLAGS += -fPIC
 # Default: make both the fortran and the c libraries
 default: core fortran c cpp utilities link
 
-debug: core fortran c cpp utilities link
-	FFLAGS = -fPIC -O0 -fbacktrace -Wall -fbounds-check $(FMODKEY)$(includedir)
+#debug: core fortran c cpp utilities link
+#	FFLAGS = -O0 -fbacktrace -Wall -fbounds-check $(FMODKEY)$(includedir) -fPIC 
 
 # Declare phony targets
 .phony.: fortran c cpp utilities
@@ -200,6 +200,16 @@ webdocs-examples:
 webdocs-all:
 	bash ./utils/update-webdocs-api.sh
 	bash ./utils/update-webdocs-examples.sh
+
+install:
+	mkdir -p /usr/include/cpl
+	cp -r ./include/* /usr/include/cpl/
+	mkdir -p /usr/lib/cpl
+	cp -r ./lib/* /usr/lib/cpl/
+	chmod 0755 /usr/lib/cpl/libcpl.so
+	ln -sf /usr/lib/cpl/libcpl.so /usr/lib/libcpl.so
+	#ldconfig -n -v /usr/lib/
+	ldconfig
 
 # Clean
 clean:

@@ -55,8 +55,7 @@ CPL::ndArray<T>::ndArray()
 
 
 // Constructor taking in number of dimensions, shape and optional order
-template<class T>
-CPL::ndArray<T>::ndArray
+template<class T> CPL::ndArray<T>::ndArray
 (
     const int nd,
     const int shape[],
@@ -73,8 +72,7 @@ CPL::ndArray<T>::ndArray
     
 // Construct from pointer to existing data, number of dimensions and
 // shape, with optional ordering
-template<class T>
-CPL::ndArray<T>::ndArray
+template<class T> CPL::ndArray<T>::ndArray
 (
     const T* existingData,
     const int nd,
@@ -93,8 +91,7 @@ CPL::ndArray<T>::ndArray
 //}
 
 // Deallocate data, resizes to 0
-template<class T>
-void CPL::ndArray<T>::clear()
+template<class T> void CPL::ndArray<T>::clear()
 {
     shapeVector.clear();
     ndArrayData.clear();
@@ -102,36 +99,31 @@ void CPL::ndArray<T>::clear()
 }
 
 // Number of elements of the ndArray along the dim axis
-template<class T>
-int CPL::ndArray<T>::shape (const int dim)
+template<class T> int CPL::ndArray<T>::shape (const int dim)
 {
     return shapeVector.at(dim);
 }
 
 // Pointer to the front of the shapeVector array
-template<class T>
-int* CPL::ndArray<T>::shapeData()
+template<class T> int* CPL::ndArray<T>::shapeData()
 {
     return shapeVector.data();
 }
 
 // Pointer to front of internal array
-template<class T>
-T* CPL::ndArray<T>::data()
+template<class T> T* CPL::ndArray<T>::data()
 {
     return ndArrayData.data();
 }
 
 // Number of elements
-template<class T>
-int CPL::ndArray<T>::size()
+template<class T> int CPL::ndArray<T>::size()
 {
     return nElements;
 }
 
 // Allocation after empty construction
-template<class T>
-void CPL::ndArray<T>::resize (const int nd, const int shape[])
+template<class T> void CPL::ndArray<T>::resize (const int nd, const int shape[])
 {
     nDims = nd;
 

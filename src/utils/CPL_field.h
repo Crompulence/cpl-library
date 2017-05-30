@@ -21,7 +21,7 @@ public:
 
     //Constructors
     CPLField(int nd, int icell, int jcell, int kcell);
-    CPLField(CPL::ndArray<double>);
+    CPLField(const CPL::ndArray<double>&);
 
     //Getters and setters
     void set_field(CPL::ndArray<double> field);
