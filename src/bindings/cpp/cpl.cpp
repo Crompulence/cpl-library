@@ -38,7 +38,7 @@ Description
     bindings provided by cpl/src/bindings/c/CPLC.[f90&&h]
 
 */
-#include "CPLCPP.h"
+#include "cpl.h"
 #include <iostream>
 #include <sstream>
 

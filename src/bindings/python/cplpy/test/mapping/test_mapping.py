@@ -1,5 +1,5 @@
 import pytest
-from cplpy import run_test, prepare_config
+from cplpy import run_test, prepare_config, get_test_dir
 import os
 
 # -----MAPPING TESTS-----
@@ -13,7 +13,8 @@ MD_EXEC = "python"
 CFD_FNAME = "cfd_test.py"
 CFD_ARGS = CFD_FNAME
 CFD_EXEC = "python"
-TEST_TEMPLATE_DIR = os.path.join(os.environ["CPL_PATH"], "test/templates")
+#TEST_TEMPLATE_DIR = os.path.join(os.environ["CPL_PATH"], "test/templates")
+TEST_TEMPLATE_DIR = os.path.join(get_test_dir(), "templates")
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
