@@ -5,6 +5,7 @@
 #include "CPL_ndArray.h"
 #include "CPL_force.h"
 #include "CPL_field.h"
+#include <stdexcept>
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
@@ -22,21 +23,20 @@
 
 //Constructors
 CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){
-    field = CPL::Field(nd, icells, jcells, kcells);
+    field = CPL::CPLField(nd, icells, jcells, kcells);
 };
 
-CPLForce::CPLForce(const CPL::ndArray<double>& fieldin){
-    field = CPL::Field(fieldin)
+CPLForce::CPLForce(CPL::ndArray<double> arrayin){
+    field = CPL::CPLField(arrayin)
+
 };
 
-CPLForce::CPLForce(const CPLField& fieldin){
-    field = fieldin;
-};
-
-
+//CPLForce::CPLForce(CPLField fieldin){
+//    field = fieldin;
+//};
 //Set minimum and maximum values of field application
 void CPLForce::set_minmax(double min_in[], double max_in[]){
-    field.set_minmax(min, max);
+    field.set_minmax(min_in, max_in);
 };
 
 //If either min/max change or field object, we need to recalculate dx, dy and dz
@@ -56,7 +56,8 @@ void CPLForce::set_field(CPL::ndArray<double> fieldin){
 };
 
 void CPLForce::set_field(const CPL::ndArray<double>& fieldin){
-    field = fieldin;   
+    field = fieldin;
+    
 };
 
 CPL::ndArray<double> CPLForce::get_field(){
@@ -168,8 +169,10 @@ void CPLForceFlekkoy::resetsums(){
 // See Flekkøy, Wagner & Feder, 2000 Europhys. Lett. 52 271, footnote p274
 double CPLForceFlekkoy::flekkoyGWeight(double y, double ymin, double ymax) {
 
-    if (y > ymax)
+    if (y > ymax) {
+		std::cout << "y: " << y << " ymax: " << ymax << std::endl;
         throw std::domain_error("flekkoyGWeight Error: Position argument y greater than ymin");
+	}
 
     // K factor regulates how to distribute the total force across the volume.
     // 1/K represent the fraction of the constrain region volume used.

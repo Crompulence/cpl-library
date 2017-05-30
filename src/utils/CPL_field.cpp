@@ -3,6 +3,7 @@
 
 #include "CPL_ndArray.h"
 #include "CPL_field.h"
+#include <stdexcept>
 
 
 //Constructors

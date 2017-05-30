@@ -1,5 +1,5 @@
 from __future__ import print_function, division
-from ctypes import c_char_p, c_char, c_int, c_double, c_bool, c_void_p, byref, POINTER, util, pointer
+from ctypes import c_char_p, c_char, c_int, c_double, c_bool, c_void_p, byref, POINTER, util, pointer, cdll
 import ctypes
 from mpi4py import MPI
 import numpy as np
@@ -17,6 +17,9 @@ __all__ = ["CPL", "cart_create", "run_test", "prepare_config", "parametrize_file
 
 
 class OpenMPI_Not_Supported(Exception):
+    pass
+
+class CPLLibraryNotFound(Exception):
     pass
 
 # TODO: Raise exception of library not loaded
@@ -93,48 +96,19 @@ class CPL:
     SEND_RECEIVE = 2
     NULL_REALM = 0
     _libname = "libcpl"
-    _lib_path = os.environ.get("CPL_LIBRARY_PATH")
-    # Try using CPL_LIBRARY_PATH and if not look
-    # in system path (or ctype path)
     try:
+        _lib_path = os.environ["CPL_LIBRARY_PATH"]
         _cpl_lib = load_library(_libname, _lib_path)
-    except OSError as e:
-        print("OSError: ", e)
-        print("WARNING - " + _libname + " not found under path specified by \
-              CPL_LIBRARY_PATH variable: " + _lib_path)
-        print("Attempting to find system version")
-        _lib_path = util.find_library(_libname)
-    # If not found, try to look around the current directory system
-    # for the library
-    else:
+    except KeyError as e:
+        print("CPL info: ", "CPL_LIBRARY_PATH not defined. Looking in system directories...")
         try:
-            _cpl_lib = load_library(_libname, _lib_path)
-        except OSError:
-            print("WARNING - " + _libname + " not found in system path or \
-                  $CPL_LIBRARY_PATH: " + _lib_path)
-            print("Attempting to search current folder system")
-            trydir = ''
-            found = False
-            for level in range(10):
-                if not found:
-                    trydir += "../"
-                for root, dirs, files in os.walk(trydir):
-                    print(level, trydir, root)
-                    if "libcpl.so" in files:
-                        print("A version of " + _libname + " is found under \
-                              path: " + root + ". Attempting to use this..")
-                        found = True
-                        _lib_path = root
-                        break
-
-            if found:
-                _cpl_lib = load_library(_libname, _lib_path)
-            else:
-                print(_libname + " not found, please ensure you have \
-                      compiled correctly")
-                print(" and set CPL_LIBRARY_PATH appropitely")
-                time.sleep(2)
-                MPI.COMM_WORLD.Abort(errorcode=1)
+            _cpl_lib = cdll.LoadLibrary(_libname + ".so")
+            print("CPL info: ", "Success!")
+        except OSError as e:
+            raise CPLLibraryNotFound("Library libcpl.so not found!")
+            #TODO: Check this
+            #time.sleep(2)
+            #MPI.COMM_WORLD.Abort(errorcode=1)
 
     # Check for JSON support by cheking if load_param_file symbol exists
     JSON_SUPPORT = True

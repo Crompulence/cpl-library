@@ -13,7 +13,7 @@
 # but shouldn't modify.
 
 #Add CPL library includes
-CPL_INC = -I$(CPL_PATH)/include
+CPL_INC = -I$(CPL_PATH)/include/cpl
 CPL_LIB = -L$(CPL_LIBRARY_PATH) -Wl,-rpath=$(CPL_LIBRARY_PATH)
 LIBS = ${CPL_LIB}
 INCS = ${CPL_INC}

@@ -6,4 +6,3 @@
   intersecting the overlap region.
 - Debug mode
 - Add automatically to the .bashrc the path variables
-- Remove any gather/scatter, use send/recv

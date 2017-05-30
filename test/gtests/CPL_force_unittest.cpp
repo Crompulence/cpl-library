@@ -2,7 +2,10 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include <vector>
-#include "CPL.h"
+#include "cpl.h"
+#include "CPL_field.h"
+#include "CPL_force.h"
+#include "CPL_ndArray.h"
 
 // The fixture for testing class Foo.
 class CPL_Force_Test : public ::testing::Test {

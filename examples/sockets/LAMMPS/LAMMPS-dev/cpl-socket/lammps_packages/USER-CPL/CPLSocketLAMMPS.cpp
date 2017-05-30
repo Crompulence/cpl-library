@@ -42,7 +42,6 @@ Author(s)
 
 */
 #include<iostream>
-#include "CPLSocketLAMMPS.h"
 #include "update.h"
 #include "modify.h"
 #include "fix_ave_chunk.h"
@@ -50,8 +49,9 @@ Author(s)
 #include "universe.h"
 #include "input.h"
 #include "comm.h"
-#include "CPL.h"
 #include "error.h"
+#include "CPLSocketLAMMPS.h"
+#include "cpl/CPL_cartCreate.h"
 
 void CPLSocketLAMMPS::initComms() {
 
@@ -115,11 +115,12 @@ void CPLSocketLAMMPS::getCellTopology() {
     VELBC_ABOVE = dy;///2.0;
 
     // Cell bounds for the overlap region
-    CPL::get_bnry_limits(velBCRegion.data());
+    //CPL::get_bnry_limits(velBCRegion.data());
+	 CPL::get_olap_limits(olapRegion.data());
     
     // Cell bounds for velocity BCs region
-    //velBCRegion = olapRegion;
-    //velBCRegion[3] = velBCRegion[2];
+    velBCRegion = olapRegion;
+    velBCRegion[3] = velBCRegion[2];
     CPL::my_proc_portion (velBCRegion.data(), velBCPortion.data());
 
     CPL::get_no_cells(velBCPortion.data(), velBCCells);
@@ -217,13 +218,17 @@ void CPLSocketLAMMPS::setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps) {
     //////////////////////////////////////////
     //This is the code that would set the compute
     //////////////////////////////////////////
-    char dxstr[20], dystr[20], dzstr[20];
+    char dxstr[20], dystr[20], dzstr[20], low_y[20], hi_y[20];
     ret = sprintf(dxstr, "%f6", dx);
     ret = sprintf(dystr, "%f6", dy);
     ret = sprintf(dzstr, "%f6", dz);
+    ret = sprintf(low_y, "%f6", 200.0);
+    ret = sprintf(hi_y, "%f6", 220.0);
+
+
 
     // CFD BC compute chunk 3d bins in y slice
-    char **computearg = new char*[19];
+    char **computearg = new char*[23];
     computearg[0] = (char *) "cfdbccompute";
     computearg[1] = (char *) "all";
     computearg[2] = (char *) "chunk/atom";
@@ -243,7 +248,11 @@ void CPLSocketLAMMPS::setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps) {
     computearg[16] = (char *) "cfdbcregion";
     computearg[17] = (char *) "units";
     computearg[18] = (char *) "box";
-    lammps->modify->add_compute(19, computearg);
+    computearg[19] = (char *) "bound";
+    computearg[20] = (char *) "y";
+    computearg[21] = (char *) low_y;
+    computearg[22] = (char *) hi_y;
+    lammps->modify->add_compute(23, computearg);
     //Get handle for compute
     int icompute = lammps->modify->find_compute("cfdbccompute");
     if (icompute < 0) lammps->error->all(FLERR,"Fix ID for compute cfdbccompute does not exist");
@@ -301,7 +310,7 @@ void CPLSocketLAMMPS::setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps) {
     ret = sprintf(Nrepeatstr, "%d", Nrepeat);
     ret = sprintf(Nfreqstr, "%d", Nfreq);
 
-    char **fixarg = new char*[12];
+    char **fixarg = new char*[14];
     fixarg[0] = (char *) "cfdbcfix";
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "ave/chunk";
@@ -314,7 +323,9 @@ void CPLSocketLAMMPS::setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps) {
     fixarg[9] = (char *) "vz";
     fixarg[10] = (char *) "norm";
     fixarg[11] = (char *) "all";
-    lammps->modify->add_fix(12, fixarg);
+    fixarg[12] = (char *) "file";
+    fixarg[13] = (char *) "debug.vels";
+    lammps->modify->add_fix(14, fixarg);
     delete [] fixarg;
 
     //~ Set pointers for this newly-created fix
@@ -440,12 +451,9 @@ void CPLSocketLAMMPS::setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps) {
 // TODO develop a custom fix so that lammps doesn't need to do 
 // a global reduce (d.trevelyan@ic.ac.uk) ?
 void CPLSocketLAMMPS::packVelocity (const LAMMPS_NS::LAMMPS *lammps) {
+	if (CPL::is_proc_inside(velBCPortion.data())) {
 
-    //std::cout << "packVelocity\n" << std::endl;
-
-    //auto fixindex = lammps->modify->find_fix("cfdbcfix");
-    //auto fix = lammps->modify->fix[fixindex]; 
-   
+/**
     int *npxyz_md = lammps->comm->procgrid;
     int nx = velBCCells[0];
     int ny = velBCCells[1];
@@ -460,10 +468,7 @@ void CPLSocketLAMMPS::packVelocity (const LAMMPS_NS::LAMMPS *lammps) {
         {
 		    for (int k = 0; k != nz; ++k)
 		    {
-            	int icoord = myCoords[0] * nx + i;
-                int jcoord = myCoords[1]*ny + j;
-            	int kcoord = myCoords[2] * nz + k;
-                row += 1;// icoord*ny*nz*npxyz_md[2] + jcoord*nz*npxyz_md[1] + kcoord;
+                row += 1;
 
                 // v v v Not needed v v v 
                 double x = cfdbcfix->compute_array(row, 0);
@@ -487,26 +492,58 @@ void CPLSocketLAMMPS::packVelocity (const LAMMPS_NS::LAMMPS *lammps) {
         }
     }
     
+**/    
+
+
+    int *npxyz_md = lammps->comm->procgrid;
+	int nc_velBCRegion[3];
+    CPL::get_no_cells(velBCRegion.data(), nc_velBCRegion);
+    int row;
+	int glob_cell[3], loc_cell[3];
+    //std::cout << nx << " " << ny << " " << nz << "\n" << std::endl;
+    //std::cout << "test cfdbcfix " << cfdbcfix->style << " " << cfdbcfix->compute_array(0, 0) << std::endl;
+    for (int i = velBCPortion[0]; i <= velBCPortion[1]; i++)
+    {
+        for (int j = velBCPortion[2]; j <= velBCPortion[3]; j++)
+        {
+		    for (int k = velBCPortion[4]; k <= velBCPortion[5]; k++)
+		    {
+                row = i*nc_velBCRegion[1]*nc_velBCRegion[2] + j*nc_velBCRegion[2] + k;
+				 
+				std::cout << "Row: " << row << std::endl;
+				std::cout << "porx :" << velBCPortion[0] << " pory: " << velBCPortion[1] << " i: " << i << "ncy: " << nc_velBCRegion[1] << " ncz: " << nc_velBCRegion[2] << std::endl;
+
+                // v v v Not needed v v v 
+                double x = cfdbcfix->compute_array(row, 0);
+                double y = cfdbcfix->compute_array(row, 1);  
+                double z = cfdbcfix->compute_array(row, 2);  
+                double ncount = cfdbcfix->compute_array(row, 3);  
+                // ^ ^ ^ Not needed ^ ^ ^
+
+                double vx = cfdbcfix->compute_array(row, 4);  
+                double vy = cfdbcfix->compute_array(row, 5);  
+                double vz = cfdbcfix->compute_array(row, 6);  
+
+                ///std::cout << i << " " << j << " " << k << " " << x << " " << y << " " << z 
+                //               << " " << vx << " " << vy << " " << vz << "\n" << std::endl;
+				glob_cell[0] = i; glob_cell[1] = j; glob_cell[2] = k;
+				CPL::map_glob2loc_cell(velBCPortion.data(), glob_cell, loc_cell);
+
+                sendVelocityBuff(0, loc_cell[0], loc_cell[1], loc_cell[2]) = vx;
+                sendVelocityBuff(1, loc_cell[0], loc_cell[1], loc_cell[2]) = vy;
+                sendVelocityBuff(2, loc_cell[0], loc_cell[1], loc_cell[2]) = vz; 
+                sendVelocityBuff(3, loc_cell[0], loc_cell[1], loc_cell[2]) = ncount; 
+            }
+        }
+    }
+}
 }
 
 void CPLSocketLAMMPS::unpackStress (const LAMMPS_NS::LAMMPS *lammps) {
 
-    shaPtrArrayDoub stress = std::make_shared<arrayDoub> (recvStressBuff);
-    cplfix->updateStress (stress);
+    cplfix->updateStress (recvStressBuff);
 
 };
-
-// Sends buffer to overlapping CFD processes.
-//void CPLSocketLAMMPS::send() 
-//{
-//    CPL::send(sendBuf.data(), sendBuf.shapeData(), velBCRegion.data());
-//}
-
-//// Receives recvBuf from overlapping CFD processes.
-//void CPLSocketLAMMPS::recv()
-//{
-//    CPL::recv(recvBuf.data(), recvBuf.shapeData(), cnstFRegion.data());
-//}
 
 
 void CPLSocketLAMMPS::sendVelocity() {

@@ -45,8 +45,8 @@ Author(s)
 
 */
 
-#ifndef CPLCPP_H_INCLUDED
-#define CPLCPP_H_INCLUDED
+#ifndef CPL_H_INCLUDED
+#define CPL_H_INCLUDED
 #include <string>
 #include <vector>
 #include "CPLC.h"
@@ -202,4 +202,4 @@ namespace CPL
 
 }
 
-#endif // CPLCPP_H_INCLUDED
+#endif // CPL_H_INCLUDED

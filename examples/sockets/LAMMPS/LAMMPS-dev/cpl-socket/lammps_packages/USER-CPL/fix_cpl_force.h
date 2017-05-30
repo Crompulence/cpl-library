@@ -8,8 +8,10 @@ FixStyle(cpl/force, FixCPLForce)
 #define LMP_FIX_CPL_FORCE_H
 
 #include "fix.h"
-#include "CPL.h"
-#include<memory>
+#include "cpl/cpl.h"
+#include "cpl/CPL_ndArray.h"
+#include "cpl/CPL_force.h"
+#include <memory>
 
 class FixCPLForce : public LAMMPS_NS::Fix {
 
@@ -23,13 +25,13 @@ public:
     );
     int setmask();
     void setup (int vflag); 
-    void post_force (int vflag); //todo add override <=== es205 17/01/17 WTF does this mean?
-    void updateStress (std::shared_ptr<CPL::ndArray<double>> stress);
+    void end_of_step (); //todo add override <=== es205 17/01/17 WTF does this mean?
+    void updateStress (CPL::ndArray<double>& stress);
     void updateProcPortion (int inputPortion[]);
 
 private:
 
-    std::shared_ptr<CPL::ndArray<double>> cfdStress;
+	CPL::ndArray<double>* cfdStress;
     std::vector<int> procPortion;
     double flekkoyGWeight (double y, double ymin, double ymax);
 

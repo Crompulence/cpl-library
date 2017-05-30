@@ -69,8 +69,7 @@ public:
 
     //Constructors
     CPLForce(int nd, int icell, int jcell, int kcell);
-    CPLForce(const CPL::ndArray<double>&);
-    CPLField(const CPLField&);
+    CPLForce(CPL::ndArray<double>);
 
     //Getters and setters
     void set_field(CPL::ndArray<double> field);
