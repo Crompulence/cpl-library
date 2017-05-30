@@ -1,0 +1,71 @@
+# This file runs a simple bouncing ball simulation in LAMMPS.
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+# Initialisation ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+units		si # This means m, kg, s for base units.
+boundary	p p f
+atom_style	sphere
+dimension	3
+newton		off
+comm_modify	mode single vel yes
+
+# Create particles ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+atom_modify 	map array # specifies how neighbour list is set up
+read_data	Bouncing_Ball.lj
+
+# Pre-fix settings ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+neighbor	0.001 bin # ~10% of diameter of largest particle
+neigh_modify	delay 0 every 1
+
+# New Hertzian contact model: parameters are shear modulus, Poisson's ratio and friction coefficient
+pair_style      gran/shm/history 2.9e4 0.2 0.25
+pair_coeff	* *
+timestep	1e-5
+run_style	verlet
+
+fix		    1 all nve/sphere
+variable	g equal 9.81 # Add gravity
+fix 		2 all gravity $g vector 0 0 -1
+# Add wall position and contact parameters
+fix 		3 all wall/gran 2.9e4 0.2 0.25 zplane 0.000000 1.000000
+
+variable 	step equal step
+variable	xz equal z[1]
+variable	vz equal vz[1]
+variable	forcez equal fz[1]
+
+fix 		4 all print 5 "${step} ${xz} ${vz} ${forcez}" file thermo_output.txt screen yes
+dump        5 all dcd 10 vmd_out.dcd
+fix         6 all cpl/init region all
+
+run		    10000
+
+
+
+#===================================================================
+# === This was all automated as part of the coupler setup before ===
+#=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=v=
+
+#region cfdbcregion block 0.000000 0.001500 0.000000 0.001500 0.000000 0.002500 units box
+#compute cfdbccompute all chunk/atom bin/3d x lower 0.000188 y lower 0.000188 z lower 0.000313 ids every region cfdbcregion units box
+#fix cfdbcfix all ave/chunk 1 1 50 cfdbccompute vx vy vz norm all
+
+#region cplforceregion block 0.000000 0.001500 0.000000 0.001500 0.000000 0.002500 units box
+#group cplforcegroup dynamic all region cplforceregion every 1
+#fix cplforcefix all cpl/force region cplforceregion
+
+#=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=^=
+# === This was all automated as part of the coupler setup before ===
+#===================================================================
+
+
+
+
+
+# IMPORTANT for not messing the internal average for BCs in the CPLSocket for LAMMPS
+#reset_timestep 0
+
+
+
+#run		    0

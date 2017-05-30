@@ -1,0 +1,5 @@
+TESTS 
+
+1) This case of a bouncing ball should test free fall part as well as included as a regression test for the part where wall/particle interact. This can then be extended to include extra terms (drag, added mass) etc.  
+
+2) Use a varying coupled field and split into a number of constant accelerations regions based on an independant reading of the applied fiedl
