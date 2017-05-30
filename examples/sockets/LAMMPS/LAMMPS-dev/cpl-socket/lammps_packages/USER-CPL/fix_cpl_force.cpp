@@ -8,7 +8,7 @@
 #include<iostream>
 #include<memory>
 #include<fstream>
-#include "CPL.h"
+#include "cpl/CPL_ndArray.h"
 
 FixCPLForce::FixCPLForce
 (
@@ -18,12 +18,14 @@ FixCPLForce::FixCPLForce
 )
     : Fix (lammps, narg, arg)
 {
+   //nevery = 1;//cplsocket.timestep_ratio;
 }
 
-
+//NOTE: It is called from fixCPLInit initial_integrate() now.
 int FixCPLForce::setmask() {
   int mask = 0;
-  mask |= LAMMPS_NS::FixConst::POST_FORCE;
+  //mask |= LAMMPS_NS::FixConst::POST_FORCE;
+  //mask |= LAMMPS_NS::FixConst::END_OF_STEP;
   return mask;
 }
 
@@ -32,12 +34,17 @@ int FixCPLForce::setmask() {
 
 void FixCPLForce::setup(int vflag)
 {
-    post_force(vflag);
+    //post_force(vflag);
+	//end_of_step();
 }
 
 
-void FixCPLForce::post_force(int vflag) {
+//void FixCPLForce::post_force(int vflag) {
+void FixCPLForce::end_of_step() {
 
+	static int c = 0;
+	std::cout << "APLYING FORCE: " << c << std::endl;
+	c++;
 
     double **x = atom->x;
     double **v = atom->v;
@@ -69,7 +76,25 @@ void FixCPLForce::post_force(int vflag) {
     nSums = 0.0;
     gSums = 0.0;
 
-    auto fxyz = CPLForceFlekkoy(9, cfdStress->shape(1), cfdStress->shape(2), cfdStress->shape(3));
+    //auto fxyz = CPLForceFlekkoy(9, cfdStress->shape(1), cfdStress->shape(2), cfdStress->shape(3));
+	//TODO: CHANGE THIS!
+	double min[3];
+	double max[3];
+	/**
+    std::vector<int> cnstFPortion(6);
+    std::vector<int> cnstFRegion(6);
+    CPL::get_cnst_limits(cnstFRegion.data());
+    CPL::my_proc_portion (cnstFRegion.data(), cnstFPortion.data());
+	//MIN
+	CPL::map_cell2coord(cnstFPortion[0], cnstFPortion[2], cnstFPortion[4], min);
+	//MAX
+	CPL::map_cell2coord(cnstFPortion[1], cnstFPortion[3], cnstFPortion[5], max);
+	max[0] += dx;
+	max[1] += dy;
+	max[2] += dz;
+	**/
+	//fxyz.set_minmax(min, max);
+	//TODO:CHANGE THIS END
 
         // Communications
 //    cplsocket.recvStress();
@@ -102,17 +127,14 @@ void FixCPLForce::post_force(int vflag) {
             std::cout << "local: " << icell << " " << jcell << " " << kcell << " global: " << glob_cell[0] << " " << glob_cell[1] << " " << glob_cell[2] \
             << "portion:" << procPortion[0] << " "<< procPortion[1] << " "<< procPortion[2] << " "<< procPortion[3] << " "<< procPortion[4] << " "<< procPortion[5] << " " << std::endl;
             **/
-            if (! validCell) {
-               // std::cout << "Warning: an atom in the constrained region is within an invalid cell. \n"
-               //           << "This should never happen and it is likely a BUG. Report." << std::endl;
+            if (! validCell)
                 continue;
-            }
 
             int icell = loc_cell[0];
             int jcell = loc_cell[1];
             int kcell = loc_cell[2];
 
-            cell = fxyz.get_cell(xi);
+            //cell = fxyz.get_cell(xi);
             //std::assert(cell[0], icell);
             //std::assert(cell[1], jcell);
             //std::assert(cell[2], kcell);
@@ -122,11 +144,13 @@ void FixCPLForce::post_force(int vflag) {
             nSums(icell, jcell, kcell) += 1.0; 
             gSums(icell, jcell, kcell) += g;
 
-            fxyz.pre_force(xi, vi, ai);            
+            //fxyz.pre_force(xi, vi, ai);            
             //std::cout << "FLEKKOY: " << gSums(icell, jcell, kcell) << " " << cplforceregion->extent_ylo\
                 << " " << cplforceregion->extent_yhi << " " << x[i][1]<< std::endl;
         }
     }
+
+	std::cout << "Checkpoint 1" << std::endl;
 
 
     // Calculate force and apply
@@ -176,21 +200,20 @@ void FixCPLForce::post_force(int vflag) {
 
                     // Normal to the X-Z plane is (0, 1, 0) so (tauxy, syy, tauxy)
                     // are the only components of the stress tensor that matter.
-//                    double fx = gdA * cfdStress->operator()(1, icell, jcell, kcell);
-//                    double fy = gdA * cfdStress->operator()(4, icell, jcell, kcell);
-//                    double fz = gdA * cfdStress->operator()(7, icell, jcell, kcell);
+                    double fx = gdA * cfdStress->operator()(1, icell, jcell, kcell);
+                    double fy = gdA * cfdStress->operator()(4, icell, jcell, kcell);
+                    double fz = gdA * cfdStress->operator()(7, icell, jcell, kcell);
 
                     //TEMP, set to values from array directly
-                    double fx = rmass[i]*cfdStress->operator()(0, icell, jcell, kcell);
-                    double fy = rmass[i]*cfdStress->operator()(1, icell, jcell, kcell);
-                    double fz = rmass[i]*cfdStress->operator()(2, icell, jcell, kcell);
+   //                 double fx = rmass[i]*cfdStress->operator()(0, icell, jcell, kcell);
+   //                 double fy = rmass[i]*cfdStress->operator()(1, icell, jcell, kcell);
+   //                 double fz = rmass[i]*cfdStress->operator()(2, icell, jcell, kcell);
 
-                    fi = fxyz.get_force(xi, vi, ai);
-
-//                    std::cout << "Force " << i << " " << icell <<  " " << jcell << " " << kcell
-//                                  << " " << cfdStress->operator()(2, icell, jcell, kcell) << " " << 
-//                                  rmass[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << " "
-//                                  << fx << " " << fy << " " << fz << " " << v[i][2]  << std::endl;
+                    //fi = fxyz.get_force(xi, vi, ai);
+                    std::cout << "Force " << i << " " << icell <<  " " << jcell << " " << kcell
+                                  << " " << cfdStress->operator()(2, icell, jcell, kcell) << " " 
+                                  << f[i][0] << " " << f[i][1] << " " << f[i][2] << " "
+                                  << fx << " " << fy << " " << fz << std::endl;
                     //TEMP, set to values from array directly
                     f[i][0] += fx;
                     f[i][1] += fy;
@@ -236,9 +259,9 @@ double FixCPLForce::flekkoyGWeight(double y, double ymin, double ymax) {
 }
 
 
-void FixCPLForce::updateStress (std::shared_ptr <CPL::ndArray <double>> stress) {
+void FixCPLForce::updateStress (CPL::ndArray<double>& stress) {
 
-    cfdStress = std::move(stress);
+    cfdStress = &stress;
 }
 
 void FixCPLForce::updateProcPortion (int inputPortion[]) {

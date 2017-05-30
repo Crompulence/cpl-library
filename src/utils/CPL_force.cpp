@@ -4,6 +4,8 @@
 
 #include "CPL_ndArray.h"
 #include "CPL_force.h"
+#include "CPL_field.h"
+#include <stdexcept>
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
@@ -18,71 +20,43 @@
 //    to constructor of CPLForce here. SEE CPL_field.cpp
 // 
 
-
 //Constructors
 CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){
-    // Fields
-    int fieldShape[4] = {nd, icells, jcells, kcells};
-    field.resize(4, fieldShape);
-    for (int i = 0; i < 3; ++i){
-        min[i] = 0.0;
-        max[i] = 1.0;
-    }
-    set_dxyz();
+    field = CPL::CPLField(nd, icells, jcells, kcells);
 };
 
-//Should this be a std::shared_ptr <CPL::ndArray <double>> fieldin??
-//Surely a unique pointer is better is we have to use pointers at all
-CPLForce::CPLForce(CPL::ndArray<double> fieldin){
-    field = fieldin;
-    for (int i = 0; i < 3; ++i){
-        min[i] = 0.0;
-        max[i] = 1.0;
-    }
-    set_dxyz();
-
+CPLForce::CPLForce(CPL::ndArray<double> arrayin){
+    field = CPL::CPLField(arrayin)
 };
+
+//CPLForce::CPLForce(CPLField fieldin){
+//    field = fieldin;
+//};
+
 
 //Set minimum and maximum values of field application
 void CPLForce::set_minmax(double min_in[], double max_in[]){
-    for (int i = 0; i < 3; ++i){
-        min[i] = min_in[i];
-        max[i] = max_in[i];
-    }
-    set_dxyz();
+    field.set_minmax(min_in, max_in);
 };
 
 //If either min/max change or field object, we need to recalculate dx, dy and dz
 void CPLForce::set_dxyz(){
-    for (int i = 0; i < 3; ++i){
-        dxyz[i] = (max[i] - min[i])/field.shape(i+1);
-    }
-
-    dA[0] = dxyz[1]*dxyz[2];
-    dA[1] = dxyz[0]*dxyz[2];
-    dA[2] = dxyz[0]*dxyz[1];
-    dV = dxyz[0]*dxyz[1]*dxyz[2];
+    field.set_dxyz();
 }
 
 //Get cell from min/max and dx
 std::vector<int> CPLForce::get_cell(double r[]){
     std::vector<int> cell(3);
-    for (int i = 0; i < 3; ++i){
-        cell[i] = floor((r[i]-min[i])/dxyz[i]);
-        //Check cell is within the domain
-        if (cell[i] > floor((max[i]-min[i])/dxyz[i]))
-            throw std::domain_error("get_cell Error: Input above domain");
-
-        if (cell[i] < 0)
-            throw std::domain_error("get_cell Error: Input below domain");
-    }
+    cell = field.get_cell();
     return cell;
 }
 
 void CPLForce::set_field(CPL::ndArray<double> fieldin){
+    field.set_field(fieldin);   
+};
 
-    field = fieldin;
-    
+void CPLForce::set_field(const CPL::ndArray<double>& fieldin){
+    field = fieldin;   
 };
 
 CPL::ndArray<double> CPLForce::get_field(){
@@ -194,8 +168,10 @@ void CPLForceFlekkoy::resetsums(){
 // See Flekkøy, Wagner & Feder, 2000 Europhys. Lett. 52 271, footnote p274
 double CPLForceFlekkoy::flekkoyGWeight(double y, double ymin, double ymax) {
 
-    if (y > ymax)
+    if (y > ymax) {
+		std::cout << "y: " << y << " ymax: " << ymax << std::endl;
         throw std::domain_error("flekkoyGWeight Error: Position argument y greater than ymin");
+	}
 
     // K factor regulates how to distribute the total force across the volume.
     // 1/K represent the fraction of the constrain region volume used.

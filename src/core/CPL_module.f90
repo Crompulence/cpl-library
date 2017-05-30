@@ -1121,9 +1121,9 @@ subroutine CPL_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
     do i=1, ncxyz(1) + 1
     do j=1, ncxyz(2) + 1
     do k=1, ncxyz(3) + 1
-            xgrid(i, j, k) = (i-1) * dx - xyz_orig(1)
-            ygrid(i, j, k) = (j-1) * dy - xyz_orig(2)
-            zgrid(i, j, k) = (k-1) * dz - xyz_orig(3)
+            xgrid(i, j, k) = (i-1) * dx + xyz_orig(1)
+            ygrid(i, j, k) = (j-1) * dy + xyz_orig(2)
+            zgrid(i, j, k) = (k-1) * dz + xyz_orig(3)
     enddo
     enddo
     enddo

@@ -62,18 +62,18 @@ class CPLForce{
 protected:
 
     double min[3], max[3], dxyz[3], dA[3], dV;
-    CPL::ndArray<double> field;
+    CPL::CPLField field;
 
 public:
 
     //Constructors
     CPLForce(int nd, int icell, int jcell, int kcell);
-    CPLForce(CPL::ndArray<double>);
+    CPLForce(CPL::CPLField);
 
     //Getters and setters
-    void set_field(CPL::ndArray<double> field);
+    void set_field(CPL::CPLField);
     void set_minmax(double min_in[], double max_in[]);
-    CPL::ndArray<double> get_field();
+    CPL::CPLField get_field();
 
     //Get cell values
     std::vector<int> get_cell(double r[]);    
@@ -97,7 +97,7 @@ class CPLForceVelocity : public CPLForce {
 public:
 
     //Constructors
-    CPLForceVelocity(CPL::ndArray<double> field);
+    CPLForceVelocity(CPL::CPLField field);
     CPLForceVelocity(int nd, int icell, int jcell, int kcell);
 
     //Pre force collection and get force calculation
@@ -107,12 +107,12 @@ public:
     void resetsums();
 private:
 
-    CPL::ndArray<double> vSums;
-    CPL::ndArray<double> nSums;
+    CPL::CPLField vSums;
+    CPL::CPLField nSums;
 
     friend class CPL_Force_Test_test_velocity_pre_force_Test;
 
-    void initialisesums(CPL::ndArray<double> f);
+    void initialisesums(CPL::CPLField f);
 
 };
 
@@ -122,7 +122,7 @@ class CPLForceFlekkoy : public CPLForce {
 public:
 
     //Constructors
-    CPLForceFlekkoy(CPL::ndArray<double> field);
+    CPLForceFlekkoy(CPL::CPLField field);
     CPLForceFlekkoy(int nd, int icell, int jcell, int kcell);
 
     //Pre force collection and get force calculation
@@ -136,14 +136,14 @@ public:
 
 private:
 
-    CPL::ndArray<double> gSums;
-    CPL::ndArray<double> nSums;
+    CPL::CPLField gSums;
+    CPL::CPLField nSums;
 
     friend class CPL_Force_Test_test_flekkoy_pre_force_Test;
     friend class CPL_Force_Test_test_flekkoy_pre_force_varydomain_Test;
     friend class CPL_Force_Test_test_flekkoy_get_force_Test;
 
-    void initialisesums(CPL::ndArray<double> f);
+    void initialisesums(CPL::CPLField f);
     void resetsums();
 
 
@@ -156,7 +156,7 @@ class CPLForceGranular : public CPLForce {
 public:
 
     //Constructors
-    CPLForceGranular(CPL::ndArray<double> field);
+    CPLForceGranular(CPL::CPLField field);
     CPLForceGranular(int nd, int icell, int jcell, int kcell);
 
     //Pre force collection and get force calculation
@@ -171,10 +171,10 @@ public:
 
 private:
 
-    CPL::ndArray<double> vSums;
-    CPL::ndArray<double> nSums;
+    CPL::CPLField vSums;
+    CPL::CPLField nSums;
 
-    void initialisesums(CPL::ndArray<double> f);
+    void initialisesums(CPL::CPLField f);
     void resetsums();
 
 

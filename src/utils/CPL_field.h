@@ -15,6 +15,8 @@
 
 #include "CPL_ndArray.h"
 
+namespace CPL ̣̣{
+
 class CPLField{
 
 public:
@@ -34,14 +36,16 @@ public:
 
     //Destructor
     virtual ~CPLField() {}
+    CPL::ndArray<double> field;
 
 private:
 
     double min[3], max[3], dxyz[3], dA[3], dV;
-    CPL::ndArray<double> field;
 
     void set_dxyz();
 
 };
+
+}
 
 #endif  // CPLField_H_
