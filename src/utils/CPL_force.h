@@ -63,16 +63,17 @@ class CPLForce{
 protected:
 
     double min[3], max[3], dxyz[3], dA[3], dV;
-    CPL::ndArray<double> field;
+    CPL::ndArray<double> array;
+    CPL::CPLField *fieldptr;
 
 public:
 
     //Constructors
     CPLForce(int nd, int icell, int jcell, int kcell);
-    CPLForce(CPL::ndArray<double>);
+    CPLForce(CPL::ndArray<double> arrayin);
 
     //Getters and setters
-    void set_field(CPL::ndArray<double> field);
+    void set_field(CPL::ndArray<double> arrayin);
     void set_minmax(double min_in[], double max_in[]);
     CPL::ndArray<double> get_field();
 

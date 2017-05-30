@@ -1,11 +1,11 @@
-
 #include <vector>
 #include <math.h> 
+#include <stdexcept>
 
 #include "CPL_ndArray.h"
 #include "CPL_force.h"
 #include "CPL_field.h"
-#include <stdexcept>
+
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
@@ -23,46 +23,42 @@
 
 //Constructors
 CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){
-    field = CPL::CPLField(nd, icells, jcells, kcells);
+    CPL::CPLField field(nd, icells, jcells, kcells);
+    fieldptr = &field;
+    array = field.array;
 };
 
 CPLForce::CPLForce(CPL::ndArray<double> arrayin){
-    field = CPL::CPLField(arrayin)
-
+    CPL::CPLField field(arrayin);
+    fieldptr = &field;
+    array = field.array;
 };
 
-//CPLForce::CPLForce(CPLField fieldin){
-//    field = fieldin;
-//};
+
 //Set minimum and maximum values of field application
 void CPLForce::set_minmax(double min_in[], double max_in[]){
-    field.set_minmax(min_in, max_in);
+    fieldptr->set_minmax(min_in, max_in);
 };
 
 //If either min/max change or field object, we need to recalculate dx, dy and dz
 void CPLForce::set_dxyz(){
-    field.set_dxyz();
+    fieldptr->set_dxyz();
 }
 
 //Get cell from min/max and dx
 std::vector<int> CPLForce::get_cell(double r[]){
     std::vector<int> cell(3);
-    cell = field.get_cell();
+    cell = fieldptr->get_cell(r);
     return cell;
 }
 
-void CPLForce::set_field(CPL::ndArray<double> fieldin){
-    field.set_field(fieldin);   
-};
-
-void CPLForce::set_field(const CPL::ndArray<double>& fieldin){
-    field = fieldin;
-    
+void CPLForce::set_field(CPL::ndArray<double> arrayin){
+    fieldptr->set_field(arrayin);   
 };
 
 CPL::ndArray<double> CPLForce::get_field(){
 
-    return field;
+    return array;
 
 };
 
@@ -74,13 +70,13 @@ CPL::ndArray<double> CPLForce::get_field(){
 ///////////////////////////////////////////////////////////////////
 
 //Constructor of datatype
-CPLForceVelocity::CPLForceVelocity(CPL::ndArray<double> field) : CPLForce(field){
-    initialisesums(field);
+CPLForceVelocity::CPLForceVelocity(CPL::ndArray<double> array) : CPLForce(array){
+    initialisesums(array);
 }
 
 //Constructor using cells
 CPLForceVelocity::CPLForceVelocity(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
-    initialisesums(field);
+    initialisesums(array);
 }
 
 
@@ -124,7 +120,7 @@ std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a
         return f;
     } else {
         for (int i=0; i<3; i++){
-            f[i] = ( field(i, cell[0], cell[1], cell[2])
+            f[i] = ( array(i, cell[0], cell[1], cell[2])
                     -vSums(i, cell[0], cell[1], cell[2])/N);
         }
         return f;
@@ -141,16 +137,16 @@ std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a
 //The Flekkoy constraint IS A type of CPL force
 
 //Constructor of datatype
-CPLForceFlekkoy::CPLForceFlekkoy(CPL::ndArray<double> field) : CPLForce(field){
+CPLForceFlekkoy::CPLForceFlekkoy(CPL::ndArray<double> array) : CPLForce(array){
 
-    initialisesums(field);
+    initialisesums(array);
 
 }
 
 //Constructor using cells
 CPLForceFlekkoy::CPLForceFlekkoy(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
 
-    initialisesums(field);
+    initialisesums(array);
 }
 
 void CPLForceFlekkoy::initialisesums(CPL::ndArray<double> f){
@@ -229,9 +225,9 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
 
             // Normal to the X-Z plane is (0, 1, 0) so (tauxy, syy, tauxy)
             // are the only components of the stress tensor that matter.
-            double fx = gdA * field.operator()(1, cell[0], cell[1], cell[2]);
-            double fy = gdA * field.operator()(4, cell[0], cell[1], cell[2]);
-            double fz = gdA * field.operator()(7, cell[0], cell[1], cell[2]);
+            double fx = gdA * array.operator()(1, cell[0], cell[1], cell[2]);
+            double fy = gdA * array.operator()(4, cell[0], cell[1], cell[2]);
+            double fz = gdA * array.operator()(7, cell[0], cell[1], cell[2]);
             f[0]=fx; f[1]=fy; f[2]=fz;
             return f;
         }
@@ -246,16 +242,16 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
 ///////////////////////////////////////////////////////////////////
 
 //Constructor of datatype
-CPLForceGranular::CPLForceGranular(CPL::ndArray<double> field) : CPLForce(field){
+CPLForceGranular::CPLForceGranular(CPL::ndArray<double> array) : CPLForce(array){
 
-    initialisesums(field);
+    initialisesums(array);
 
 }
 
 //Constructor using cells
 CPLForceGranular::CPLForceGranular(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
 
-    initialisesums(field);
+    initialisesums(array);
 }
 
 void CPLForceGranular::initialisesums(CPL::ndArray<double> f){
@@ -309,7 +305,7 @@ std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a
     double d = 1.0;
     //Should use std::vector<double> Ui(3) = field.interpolate(r);
     for (int i=0; i<3; i++){
-        Ui[i] = field(i, cell[0], cell[1], cell[2]);
+        Ui[i] = array(i, cell[0], cell[1], cell[2]);
         Ui_v[i] = Ui[i]-v[i];
     }
 

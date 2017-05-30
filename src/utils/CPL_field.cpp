@@ -5,12 +5,13 @@
 #include "CPL_field.h"
 #include <stdexcept>
 
+using namespace CPL;
 
 //Constructors
 CPLField::CPLField(int nd, int icells, int jcells, int kcells){
     // Fields
-    int fieldShape[4] = {nd, icells, jcells, kcells};
-    field.resize(4, fieldShape);
+    int arrayShape[4] = {nd, icells, jcells, kcells};
+    array.resize(4, arrayShape);
     for (int i = 0; i < 3; ++i){
         min[i] = 0.0;
         max[i] = 1.0;
@@ -20,14 +21,13 @@ CPLField::CPLField(int nd, int icells, int jcells, int kcells){
 
 //Should this be a std::shared_ptr <CPL::ndArray <double>> arrayin??
 //Surely a unique pointer is better is we have to use pointers at all
-CPLField::CPLField(const CPL::ndArray<double>& arrayin){
-    field = arrayin;
+CPLField::CPLField(CPL::ndArray<double> arrayin){
+    array = arrayin;
     for (int i = 0; i < 3; ++i){
         min[i] = 0.0;
         max[i] = 1.0;
     }
     set_dxyz();
-
 }
 
 //Set minimum and maximum values of field application
@@ -42,7 +42,7 @@ void CPLField::set_minmax(double min_in[], double max_in[]){
 //If either min/max change or field object, we need to recalculate dx, dy and dz
 void CPLField::set_dxyz(){
     for (int i = 0; i < 3; ++i){
-        dxyz[i] = (max[i] - min[i])/field.shape(i+1);
+        dxyz[i] = (max[i] - min[i])/array.shape(i+1);
     }
 
     dA[0] = dxyz[1]*dxyz[2];
@@ -72,14 +72,14 @@ std::vector<double> CPLField::interpolate(double r[]){
 
     int interp[3];
     std::vector<int> cell = get_cell(r);
-    std::vector<double> val(field.shape(0));
+    std::vector<double> val(array.shape(0));
     std::vector<double> rc(3);
     double f,g,h;
 
 
     //Check if at edge of domain and use one sided if needed
     for (int n = 0; n < 3; n++){
-        if (cell[n]+1>field.shape(n)){
+        if (cell[n]+1>array.shape(n)){
             interp[n] = -1;
         } else if (cell[0]-1<0){  
             interp[n] = 1;
@@ -91,41 +91,41 @@ std::vector<double> CPLField::interpolate(double r[]){
     }
 
     //Interpolate based on both adjacent cells
-    for (int n = 0; n<field.shape(0); n++){
+    for (int n = 0; n<array.shape(0); n++){
         if (interp[0] == 0){
-            f =  (   field(n, cell[0]+1,cell[1],  cell[2]  )
-                  -2*field(n, cell[0],  cell[1],  cell[2]  )  
-                   + field(n, cell[0]-1,cell[1],  cell[2]  ))/2.*dxyz[0];
+            f =  (   array(n, cell[0]+1,cell[1],  cell[2]  )
+                  -2*array(n, cell[0],  cell[1],  cell[2]  )  
+                   + array(n, cell[0]-1,cell[1],  cell[2]  ))/2.*dxyz[0];
         } else if (interp[0] == 1){
-            f =  (   field(n, cell[0]+1,cell[1],  cell[2]  )
-                    -field(n, cell[0],  cell[1],  cell[2]  ))/dxyz[0];
+            f =  (   array(n, cell[0]+1,cell[1],  cell[2]  )
+                    -array(n, cell[0],  cell[1],  cell[2]  ))/dxyz[0];
         } else if (interp[0] == -1){
-            f =  (   field(n, cell[0],  cell[1],  cell[2]  )
-                    -field(n, cell[0]-1,cell[1],  cell[2]  ))/dxyz[0];
+            f =  (   array(n, cell[0],  cell[1],  cell[2]  )
+                    -array(n, cell[0]-1,cell[1],  cell[2]  ))/dxyz[0];
         }
 
         if (interp[1] == 0){
-            g =  (   field(n, cell[0],  cell[1]+1,cell[2]  )
-                  -2*field(n, cell[0],  cell[1],  cell[2]  )  
-                   + field(n, cell[0],  cell[1]-1,cell[2]  ))/2.*dxyz[1];
+            g =  (   array(n, cell[0],  cell[1]+1,cell[2]  )
+                  -2*array(n, cell[0],  cell[1],  cell[2]  )  
+                   + array(n, cell[0],  cell[1]-1,cell[2]  ))/2.*dxyz[1];
         } else if (interp[1] == 1){
-            g =  (   field(n, cell[0],  cell[1]+1,cell[2]  )
-                  -  field(n, cell[0],  cell[1],  cell[2]  ))/dxyz[1];
+            g =  (   array(n, cell[0],  cell[1]+1,cell[2]  )
+                  -  array(n, cell[0],  cell[1],  cell[2]  ))/dxyz[1];
         } else if (interp[1] == -1){
-            g =  (   field(n, cell[0],  cell[1]  ,cell[2]  )
-                   - field(n, cell[0],  cell[1]-1,cell[2]  ))/dxyz[1];
+            g =  (   array(n, cell[0],  cell[1]  ,cell[2]  )
+                   - array(n, cell[0],  cell[1]-1,cell[2]  ))/dxyz[1];
         }
 
         if (interp[2] == 0){
-            h =  (   field(n, cell[0],  cell[1],  cell[2]+1)
-                  -2*field(n, cell[0],  cell[1],  cell[2]  ) 
-                   + field(n, cell[0],  cell[1],  cell[2]-1))/2.*dxyz[2];
+            h =  (   array(n, cell[0],  cell[1],  cell[2]+1)
+                  -2*array(n, cell[0],  cell[1],  cell[2]  ) 
+                   + array(n, cell[0],  cell[1],  cell[2]-1))/2.*dxyz[2];
         } else if (interp[2] == 1){
-            h =  (   field(n, cell[0],  cell[1],  cell[2]+1)
-                   - field(n, cell[0],  cell[1],  cell[2]  ))/dxyz[2];
+            h =  (   array(n, cell[0],  cell[1],  cell[2]+1)
+                   - array(n, cell[0],  cell[1],  cell[2]  ))/dxyz[2];
         } else if (interp[2] == -1){
-            h =  (   field(n, cell[0],  cell[1],  cell[2]  )
-                  -2*field(n, cell[0],  cell[1],  cell[2]-1))/dxyz[2];
+            h =  (   array(n, cell[0],  cell[1],  cell[2]  )
+                  -2*array(n, cell[0],  cell[1],  cell[2]-1))/dxyz[2];
         }
 
         val[n] = f*rc[0] + g*rc[1] + h*rc[2];
@@ -137,13 +137,13 @@ std::vector<double> CPLField::interpolate(double r[]){
 
 void CPLField::set_field(CPL::ndArray<double> arrayin){
 
-    field = arrayin;
+    array = arrayin;
     
 }
 
 CPL::ndArray<double> CPLField::get_field(){
 
-    return field;
+    return array;
 
 }
 

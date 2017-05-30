@@ -15,7 +15,7 @@
 
 #include "CPL_ndArray.h"
 
-namespace CPL ̣̣{
+namespace CPL{
 
 class CPLField{
 
@@ -23,11 +23,12 @@ public:
 
     //Constructors
     CPLField(int nd, int icell, int jcell, int kcell);
-    CPLField(const CPL::ndArray<double>&);
+    CPLField(CPL::ndArray<double> arrayin);
 
     //Getters and setters
-    void set_field(CPL::ndArray<double> field);
+    void set_field(CPL::ndArray<double> array);
     void set_minmax(double min_in[], double max_in[]);
+    void set_dxyz();
     CPL::ndArray<double> get_field();
 
     //Get cell values
@@ -36,13 +37,11 @@ public:
 
     //Destructor
     virtual ~CPLField() {}
-    CPL::ndArray<double> field;
+    CPL::ndArray<double> array;
 
 private:
 
     double min[3], max[3], dxyz[3], dA[3], dV;
-
-    void set_dxyz();
 
 };
 
