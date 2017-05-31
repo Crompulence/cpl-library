@@ -54,17 +54,20 @@ Author(s)
 
 #include <vector>
 #include <iostream>
+#include <memory>
 
 #include "CPL_ndArray.h"
 #include "CPL_field.h"
+
+//typedef std::unique_ptr<CPL::CPLField> CPLFieldPtr;
 
 class CPLForce{
 
 protected:
 
     double min[3], max[3], dxyz[3], dA[3], dV;
-    CPL::ndArray<double> array;
-    CPL::CPLField *fieldptr;
+    //CPL::ndArray<double> array;
+    CPL::CPLField* fieldptr;
 
 public:
 
@@ -85,7 +88,9 @@ public:
     std::vector<double> get_force(double r[], double v[], double a[]);
 
     //Destructor
-    virtual ~CPLForce() {}
+    virtual ~CPLForce() {
+        delete fieldptr;
+    }
 
 private:
 

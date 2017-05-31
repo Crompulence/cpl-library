@@ -23,15 +23,11 @@
 
 //Constructors
 CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){
-    CPL::CPLField field(nd, icells, jcells, kcells);
-    fieldptr = &field;
-    array = field.array;
+    fieldptr = new CPL::CPLField(nd, icells, jcells, kcells);
 };
 
 CPLForce::CPLForce(CPL::ndArray<double> arrayin){
-    CPL::CPLField field(arrayin);
-    fieldptr = &field;
-    array = field.array;
+    fieldptr = new CPL::CPLField(arrayin);
 };
 
 
@@ -53,13 +49,11 @@ std::vector<int> CPLForce::get_cell(double r[]){
 }
 
 void CPLForce::set_field(CPL::ndArray<double> arrayin){
-    fieldptr->set_field(arrayin);   
+    fieldptr->set_array(arrayin);   
 };
 
 CPL::ndArray<double> CPLForce::get_field(){
-
-    return array;
-
+    return fieldptr->get_array();
 };
 
 
@@ -69,21 +63,20 @@ CPL::ndArray<double> CPLForce::get_field(){
 //                                                               //
 ///////////////////////////////////////////////////////////////////
 
-//Constructor of datatype
-CPLForceVelocity::CPLForceVelocity(CPL::ndArray<double> array) : CPLForce(array){
-    initialisesums(array);
-}
-
 //Constructor using cells
 CPLForceVelocity::CPLForceVelocity(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
-    initialisesums(array);
+    initialisesums(fieldptr->get_array());
 }
 
+//Constructor of datatype
+CPLForceVelocity::CPLForceVelocity(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
+    initialisesums(arrayin);
+}
 
-void CPLForceVelocity::initialisesums(CPL::ndArray<double> f){
-    int vsumsShape[4] = {f.shape(0), f.shape(1), f.shape(2), f.shape(3)};
+void CPLForceVelocity::initialisesums(CPL::ndArray<double> arrayin){
+    int vsumsShape[4] = {arrayin.shape(0), arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     vSums.resize(4, vsumsShape); // Sum of velocity
-    int nsumsShape[3] = {f.shape(1), f.shape(2), f.shape(3)};
+    int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     nSums.resize(3, nsumsShape); // Sum of number of particles  
     resetsums();
 }
@@ -111,6 +104,7 @@ std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a
 
     std::vector<double> f(3); 
     std::vector<int> cell = get_cell(r);
+    CPL::ndArray<double> array = fieldptr->get_array();
     int N = nSums(cell[0], cell[1], cell[2]);
     if (N < 1.0) {
         std::cout << "Warning: 0 particles in cell (" 
@@ -136,29 +130,25 @@ std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a
 ///////////////////////////////////////////////////////////////////
 //The Flekkoy constraint IS A type of CPL force
 
-//Constructor of datatype
-CPLForceFlekkoy::CPLForceFlekkoy(CPL::ndArray<double> array) : CPLForce(array){
-
-    initialisesums(array);
-
-}
-
 //Constructor using cells
 CPLForceFlekkoy::CPLForceFlekkoy(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
-
-    initialisesums(array);
+    initialisesums(fieldptr->get_array());
 }
 
-void CPLForceFlekkoy::initialisesums(CPL::ndArray<double> f){
+//Constructor of datatype
+CPLForceFlekkoy::CPLForceFlekkoy(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
+    initialisesums(arrayin);
+}
 
-    int sumsShape[3] = {f.shape(1), f.shape(2), f.shape(3)};
+void CPLForceFlekkoy::initialisesums(CPL::ndArray<double> arrayin){
+
+    int sumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     gSums.resize(3, sumsShape); // Sum of Flekkøy g weights
     nSums.resize(3, sumsShape); // Sum of number of particles  
     resetsums();
 }
 
 void CPLForceFlekkoy::resetsums(){
-
     nSums = 0.0;  gSums = 0.0;
 }
 
@@ -196,7 +186,7 @@ void CPLForceFlekkoy::pre_force(double r[], double v[], double a[]) {
     // and sum all the Flekkøy weights for each cell.
     std::vector<int> cell = get_cell(r);
 
-    double g = flekkoyGWeight(r[1], min[1], max[1]);
+    double g = flekkoyGWeight(r[1], fieldptr->min[1], fieldptr->max[1]);
     nSums(cell[0], cell[1], cell[2]) += 1.0; 
     gSums(cell[0], cell[1], cell[2]) += g;
 
@@ -207,6 +197,7 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
 
     std::vector<double> f(3); 
     std::vector<int> cell = get_cell(r);
+    CPL::ndArray<double> array = fieldptr->get_array();
     double n = nSums(cell[0], cell[1], cell[2]);
     if (n < 1.0) {
         std::cout << "Warning: 0 particles in cell (" 
@@ -219,7 +210,7 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
         // Since the Flekkoy weight is considered only for 0 < y < L/2, for cells 
         // that are completely in y < 0 gSums(i, j, k) will be always 0.0 so can 
         // produce a NAN in the g/gSums division below.
-        double g = flekkoyGWeight(r[1], min[1], max[1]);
+        double g = flekkoyGWeight(r[1], fieldptr->min[1], fieldptr->max[1]);
         if (gSums(cell[0], cell[1], cell[2]) > 0.0) {
             double gdA = (g/gSums(cell[0], cell[1], cell[2])) * dA[1];
 
@@ -241,24 +232,21 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
 //                                                               //
 ///////////////////////////////////////////////////////////////////
 
-//Constructor of datatype
-CPLForceGranular::CPLForceGranular(CPL::ndArray<double> array) : CPLForce(array){
-
-    initialisesums(array);
-
-}
-
 //Constructor using cells
 CPLForceGranular::CPLForceGranular(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
-
-    initialisesums(array);
+    initialisesums(fieldptr->get_array());
 }
 
-void CPLForceGranular::initialisesums(CPL::ndArray<double> f){
+//Constructor of datatype
+CPLForceGranular::CPLForceGranular(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
+    initialisesums(arrayin);
+}
 
-    int vsumsShape[4] = {f.shape(0), f.shape(1), f.shape(2), f.shape(3)};
+void CPLForceGranular::initialisesums(CPL::ndArray<double> arrayin){
+
+    int vsumsShape[4] = {arrayin.shape(0), arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     vSums.resize(4, vsumsShape); // Sum of velocity
-    int nsumsShape[3] = {f.shape(1), f.shape(2), f.shape(3)};
+    int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     nSums.resize(3, nsumsShape); // Sum of porousity of particles  
     resetsums();
 }
@@ -298,6 +286,7 @@ std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a
 
     std::vector<double> f(3), Ui(3), Ui_v(3);
     std::vector<int> cell = get_cell(r);
+    CPL::ndArray<double> array = fieldptr->get_array();
     //Porosity e is 1.0 - sum in volume
     double e = 1.0 - nSums(cell[0], cell[1], cell[2]);
     double rho = 1.0;

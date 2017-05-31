@@ -132,20 +132,20 @@ namespace CPL
 
         // Element access - support up to 4 dimensions
         // 1D
-            T operator ()  (const int i0) const;
-            T& operator () (const int i0);
+        T operator ()  (const int i0) const;
+        T& operator () (const int i0);
 
         // 2D
-            T operator ()  (const int i0, const int i1) const;
-            T& operator () (const int i0, const int i1);
+        T operator ()  (const int i0, const int i1) const;
+        T& operator () (const int i0, const int i1);
 
         // 3D
-            T operator ()  (const int i0, const int i1, const int i2) const;
-            T& operator () (const int i0, const int i1, const int i2);
+        T operator ()  (const int i0, const int i1, const int i2) const;
+        T& operator () (const int i0, const int i1, const int i2);
 
         // 4D
-            T operator ()  (const int i0, const int i1, const int i2, const int i3) const;
-            T& operator () (const int i0, const int i1, const int i2, const int i3);
+        T operator ()  (const int i0, const int i1, const int i2, const int i3) const;
+        T& operator () (const int i0, const int i1, const int i2, const int i3);
 
         // Assignment operator from single value
         ndArray& operator= (const T &rhs);

@@ -112,7 +112,6 @@ TEST_F(CPL_Force_Test, test_CPL_force_constructor) {
     ASSERT_EQ(buf1.shape(2), buf2.shape(2));
     ASSERT_EQ(buf1.shape(3), buf2.shape(3));
 
-
 };
 
 //Test for CPLForce base class - set field method

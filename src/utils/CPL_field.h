@@ -26,10 +26,11 @@ public:
     CPLField(CPL::ndArray<double> arrayin);
 
     //Getters and setters
-    void set_field(CPL::ndArray<double> array);
+    void set_array(CPL::ndArray<double> arrayin);
     void set_minmax(double min_in[], double max_in[]);
     void set_dxyz();
-    CPL::ndArray<double> get_field();
+
+    CPL::ndArray<double> get_array();
 
     //Get cell values
     std::vector<int> get_cell(double r[]);
@@ -37,9 +38,11 @@ public:
 
     //Destructor
     virtual ~CPLField() {}
+
+    //Variables
     CPL::ndArray<double> array;
 
-private:
+//private:
 
     double min[3], max[3], dxyz[3], dA[3], dV;
 

@@ -1,9 +1,10 @@
 #include <vector>
 #include <math.h> 
+#include <stdexcept>
 
 #include "CPL_ndArray.h"
 #include "CPL_field.h"
-#include <stdexcept>
+
 
 using namespace CPL;
 
@@ -66,6 +67,15 @@ std::vector<int> CPLField::get_cell(double r[]){
     return cell;
 }
 
+
+
+void CPLField::set_array(CPL::ndArray<double> arrayin){
+    array = arrayin;
+}
+
+CPL::ndArray<double> CPLField::get_array(){
+    return array;
+}
 
 //Get interpolate of field
 std::vector<double> CPLField::interpolate(double r[]){
@@ -134,17 +144,5 @@ std::vector<double> CPLField::interpolate(double r[]){
     return val;
 }
 
-
-void CPLField::set_field(CPL::ndArray<double> arrayin){
-
-    array = arrayin;
-    
-}
-
-CPL::ndArray<double> CPLField::get_field(){
-
-    return array;
-
-}
 
 
