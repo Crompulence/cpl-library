@@ -19,10 +19,9 @@ public:
     fixCPLInit(class LAMMPS_NS::LAMMPS *lammps, int narg, char **arg);
 	~fixCPLInit();
     int setmask();
-    void setup (int vflag); 
-    //void end_of_step();
-	void post_force(int vflag);
 	void init();
+    void setup (int vflag); 
+	void post_force(int vflag);
     CPLSocketLAMMPS cplsocket;
 
 private:

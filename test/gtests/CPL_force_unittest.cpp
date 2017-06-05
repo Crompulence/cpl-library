@@ -175,6 +175,66 @@ TEST_F(CPL_Force_Test, test_CPL_get_cell) {
     }
 }
 
+///////////////////////////////////////////////////////////////////
+//                                                               //
+//                       CPLForceTest                            //
+//                                                               //
+///////////////////////////////////////////////////////////////////
+//Test for CPLForce base class - constructor 
+TEST_F(CPL_Force_Test, test_CPL_ForceTest_constructor) {
+
+    //Setup a field which is 1 everywhere
+    int nd = 3; int icell = 3; int jcell = 3; int kcell = 3;
+    CPL::ndArray<double> field;
+    int shape[4] = {nd, icell, jcell, kcell};
+    field.resize (4, shape);
+    field = 0;
+    trplefor(icell,jcell,kcell){
+        field(0, i, j, k) = 1.0;
+    } } }
+
+    //Create force field object
+    CPLForceTest fxyz(field);
+
+    std::vector<double> f(3);
+    double r[3];
+    double v[3] = {0.5, 0.5, 0.5};
+    double a[3] = {0.5, 0.5, 0.5};
+
+    //Check field is uniform
+    trplefor(icell,jcell,kcell){
+        r[0] = i/float(icell);
+        r[1] = j/float(jcell);
+        r[2] = k/float(kcell);
+        f = fxyz.get_force(r, v, a);
+        ASSERT_DOUBLE_EQ(f[0], 1.0);
+        ASSERT_DOUBLE_EQ(f[1], 0.0);
+        ASSERT_DOUBLE_EQ(f[2], 0.0);
+    } } }
+
+    //Set field to new value
+    trplefor(icell,jcell,kcell){
+        field(0, i, j, k) = 0.0;
+        field(1, i, j, k) = 6.0;
+        field(2, i, j, k) = 2.0;
+    } } }
+
+    //Update force field object
+    fxyz.set_field(field);
+
+    //Check field is uniform
+    trplefor(icell,jcell,kcell){
+        r[0] = i/float(icell);
+        r[1] = j/float(jcell);
+        r[2] = k/float(kcell);
+        f = fxyz.get_force(r, v, a);
+        ASSERT_DOUBLE_EQ(f[0], 0.0);
+        ASSERT_DOUBLE_EQ(f[1], 6.0);
+        ASSERT_DOUBLE_EQ(f[2], 2.0);
+    } } }
+
+
+};
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
@@ -471,13 +531,14 @@ TEST_F(CPL_Force_Test, test_flekkoy_get_force) {
     } } }
 
     std::vector<double> f(3);
+    std::vector<double> dA = fxyz.get_dA(); 
     trplefor(icell,jcell,kcell){
         r[0] = i/float(icell);
         r[1] = j/float(jcell);
         r[2] = k/float(kcell);
         f = fxyz.get_force(r, v, a);
         if (fxyz.gSums(i,j,k) != 0.){
-            ASSERT_DOUBLE_EQ(f[0], fxyz.dA[1]);
+            ASSERT_DOUBLE_EQ(f[0], dA[1]);
         } else {
             ASSERT_DOUBLE_EQ(f[0], 0.0);
            
@@ -510,13 +571,37 @@ TEST_F(CPL_Force_Test, test_flekkoy_get_force) {
         f = fxyz.get_force(r, v, a);
         g = fxyz.flekkoyGWeight(r[1], 0.0, 1.0);
         cell = fxyz.get_cell(r);
-        ASSERT_DOUBLE_EQ(f[0], g*float(cell[0])*fxyz.dA[1]);
-        ASSERT_DOUBLE_EQ(f[1], g*float(cell[1])*fxyz.dA[1]);
-        ASSERT_DOUBLE_EQ(f[2], g*float(cell[2])*fxyz.dA[1]);
+        ASSERT_DOUBLE_EQ(f[0], g*float(cell[0])*dA[1]);
+        ASSERT_DOUBLE_EQ(f[1], g*float(cell[1])*dA[1]);
+        ASSERT_DOUBLE_EQ(f[2], g*float(cell[2])*dA[1]);
     }
 }
 
 
 
+///////////////////////////////////////////////////////////////////
+//                                                               //
+//                    CPLForceGranular                            //
+//                                                               //
+///////////////////////////////////////////////////////////////////
 
+//Test for CPLForceFlekkoy - constructor and fields
+TEST_F(CPL_Force_Test, test_Granular_CPL_inhereted) {
+
+    int nd = 9; int icell = 3; int jcell = 3; int kcell = 3;
+
+    //Call constructor using cell numbers
+    CPLForceGranular c(nd, icell, jcell, kcell);
+    CPL::ndArray<double> buf1 = c.get_field();
+    CPLForceGranular d(buf1);
+
+    buf1(4,0,2,1) = 5.;
+    c.set_field(buf1);
+    d.set_field(buf1);
+    CPL::ndArray<double> buf2 = c.get_field();
+    ASSERT_DOUBLE_EQ(buf2(4,0,2,1), 5.0);
+    buf2 = d.get_field();
+    ASSERT_DOUBLE_EQ(buf2(4,0,2,1), 5.0);
+
+}
 

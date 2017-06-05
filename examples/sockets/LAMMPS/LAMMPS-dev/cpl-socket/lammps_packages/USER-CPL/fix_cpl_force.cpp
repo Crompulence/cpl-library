@@ -1,3 +1,8 @@
+#include<iostream>
+#include<memory>
+#include<fstream>
+#include <cmath>
+
 #include "fix_cpl_force.h"
 #include "atom.h"
 #include "universe.h"
@@ -5,10 +10,9 @@
 #include "group.h"
 #include "domain.h"
 #include "region.h"
-#include<iostream>
-#include<memory>
-#include<fstream>
+
 #include "cpl/CPL_ndArray.h"
+#include "cpl/CPL_force.h"
 
 FixCPLForce::FixCPLForce
 (
@@ -25,7 +29,6 @@ FixCPLForce::FixCPLForce
 int FixCPLForce::setmask() {
   int mask = 0;
   //mask |= LAMMPS_NS::FixConst::POST_FORCE;
-  //mask |= LAMMPS_NS::FixConst::END_OF_STEP;
   return mask;
 }
 
@@ -34,17 +37,11 @@ int FixCPLForce::setmask() {
 
 void FixCPLForce::setup(int vflag)
 {
-    //post_force(vflag);
-	//end_of_step();
+    post_force(vflag);
 }
 
 
-//void FixCPLForce::post_force(int vflag) {
-void FixCPLForce::end_of_step() {
-
-	static int c = 0;
-	std::cout << "APLYING FORCE: " << c << std::endl;
-	c++;
+void FixCPLForce::post_force(int vflag) {
 
     double **x = atom->x;
     double **v = atom->v;
@@ -71,16 +68,30 @@ void FixCPLForce::end_of_step() {
     // Preliminary summation, only 1 value per cell so can slice
     // away cfdStress->shape(0)
     int sumsShape[3] = {cfdStress->shape(1), cfdStress->shape(2), cfdStress->shape(3)};
-    CPL::ndArray<double> gSums(3, sumsShape); // Sum of Flekkøy g weights
-    CPL::ndArray<double> nSums(3, sumsShape); // Sum of number of particles
-    nSums = 0.0;
-    gSums = 0.0;
+    gSums.resize(3, sumsShape); // Sum of Flekkøy g weights
+    nSums.resize(3, sumsShape); // Sum of number of particles
+    nSums = 0.0; gSums = 0.0;
 
-    //auto fxyz = CPLForceFlekkoy(9, cfdStress->shape(1), cfdStress->shape(2), cfdStress->shape(3));
-	//TODO: CHANGE THIS!
-	double min[3];
-	double max[3];
-	/**
+    std::string CPLForce = "test";
+//    if (CPLForce == "Flekkoy"){
+        auto fxyz = CPLForceFlekkoy(9, cfdStress->shape(1), 
+                                       cfdStress->shape(2), 
+                                       cfdStress->shape(3));
+//    } else if (CPLForce == "Velocity") {
+//        auto fxyz = CPLForceVelocity(3, cfdStress->shape(1), 
+//                                        cfdStress->shape(2), 
+//                                        cfdStress->shape(3));
+//    } else if (CPLForce == "test") {
+//        auto fxyz = CPLForceTest(3, cfdStress->shape(1), 
+//                                    cfdStress->shape(2), 
+//                                    cfdStress->shape(3));
+//    } else if (CPLForce == "Granular") {
+//        auto fxyz = CPLForceGranular(3, cfdStress->shape(1), 
+//                                        cfdStress->shape(2), 
+//                                        cfdStress->shape(3));
+//    }
+
+	double min[3]; double max[3];
     std::vector<int> cnstFPortion(6);
     std::vector<int> cnstFRegion(6);
     CPL::get_cnst_limits(cnstFRegion.data());
@@ -92,15 +103,39 @@ void FixCPLForce::end_of_step() {
 	max[0] += dx;
 	max[1] += dy;
 	max[2] += dz;
-	**/
-	//fxyz.set_minmax(min, max);
-	//TODO:CHANGE THIS END
+    //These are global coordinates
+//    min[0] = cplforceregion->extent_xlo;
+//    min[1] = cplforceregion->extent_ylo;
+//    min[2] = cplforceregion->extent_zlo;
+//    max[0] = cplforceregion->extent_xhi;
+//    max[1] = cplforceregion->extent_yhi;
+//    max[2] = cplforceregion->extent_zhi;
+	fxyz.set_minmax(min, max);
 
-        // Communications
-//    cplsocket.recvStress();
-//    cplsocket.unpackStress(lammps);
+//    std::cout << "cells " << min[0] << " " << min[1] << " " << min[2] << " " <<
+//                             max[0] << " " << max[1] << " " << max[2] << " " << 
+//                             cplforceregion->extent_xlo << " " << 
+//                             cplforceregion->extent_ylo << " " <<  
+//                             cplforceregion->extent_zlo << " " << 
+//                             cplforceregion->extent_xhi << " " <<  
+//                             cplforceregion->extent_yhi << " " <<  
+//                             cplforceregion->extent_zhi << " " << std::endl;
 
-    double xi[3], vi[3], ai[3];
+//    std::cout << "cells " << min[0] << " " << min[1] << " " << min[2] << " " <<
+//                             max[0] << " " << max[1] << " " << max[2] << " " << std::endl;
+//    std::cout << sumsShape[0] << " " << sumsShape[1] << " " << sumsShape[2]  << " " <<
+//                cnstFPortion[0] << " " << cnstFPortion[1] << " " << cnstFPortion[2] << " " <<
+//                cnstFPortion[3] << " " << cnstFPortion[4] << " " << cnstFPortion[5] << std::endl;
+//    for (int i = cnstFPortion.data()[0]; i<cnstFPortion.data()[1]; ++i){ 
+//        for (int j = cnstFPortion.data()[2]; j<cnstFPortion.data()[3]; ++j){ 
+//            for (int k = cnstFPortion.data()[4]; k<cnstFPortion.data()[5]; ++k){
+//                    std::cout << "Pre-loop nsum " << i << " " << j << " " << k << " " 
+//                              << nSums(i,j,k) << std::endl;
+//    }}}
+
+
+    double fx=0., fy=0., fz=0.;
+    double mi, xi[3], vi[3], ai[3];
     std::vector<int> cell;
     std::vector<double> fi(3);
     for (int i = 0; i < nlocal; ++i)
@@ -109,6 +144,7 @@ void FixCPLForce::end_of_step() {
         {
 
             //Get local molecule data
+            mi = rmass[i];
             for (int n=0; n<3; n++){
                 xi[n]=x[i][n]; 
                 vi[n]=v[i][n]; 
@@ -124,34 +160,55 @@ void FixCPLForce::end_of_step() {
             bool validCell = CPL::map_glob2loc_cell(procPortion.data(), glob_cell, loc_cell);
             /**
             if (validCell)
-            std::cout << "local: " << icell << " " << jcell << " " << kcell << " global: " << glob_cell[0] << " " << glob_cell[1] << " " << glob_cell[2] \
-            << "portion:" << procPortion[0] << " "<< procPortion[1] << " "<< procPortion[2] << " "<< procPortion[3] << " "<< procPortion[4] << " "<< procPortion[5] << " " << std::endl;
+            std::cout << "local: " << icell << " " << jcell << " " << kcell << 
+                        " global: " << glob_cell[0] << " " << glob_cell[1] << " " << glob_cell[2] \
+                     << "portion:" << procPortion[0] << " "<< procPortion[1] << " "<< procPortion[2] 
+                     << " "<< procPortion[3] << " "<< procPortion[4] << " "<< procPortion[5] << " " << std::endl;
             **/
-            if (! validCell)
+            if (! validCell) {
+               std::cout << "Warning: an atom in the constrained region is within an invalid cell. \n"
+                          << "This should never happen and it is likely a BUG. Report." << std::endl;
                 continue;
+            }
 
             int icell = loc_cell[0];
             int jcell = loc_cell[1];
             int kcell = loc_cell[2];
 
-            //cell = fxyz.get_cell(xi);
-            //std::assert(cell[0], icell);
-            //std::assert(cell[1], jcell);
-            //std::assert(cell[2], kcell);
+            cell = fxyz.get_cell(xi);
 
-            double g = flekkoyGWeight (x[i][1], cplforceregion->extent_ylo, 
+            if (cell[0] != icell)
+                throw std::domain_error("x cell Error CPL map_coord2cell doesn't match CPL_force");
+            if (cell[1] != jcell)
+                throw std::domain_error("y cell Error CPL map_coord2cell doesn't match CPL_force");
+            if (cell[2] != kcell)
+                throw std::domain_error("z cell Error CPL map_coord2cell doesn't match CPL_force");
+
+            double g = flekkoyGWeight (xi[1], 
+                                       cplforceregion->extent_ylo, 
                                        cplforceregion->extent_yhi);
             nSums(icell, jcell, kcell) += 1.0; 
             gSums(icell, jcell, kcell) += g;
 
-            //fxyz.pre_force(xi, vi, ai);            
+            fxyz.pre_force(xi, vi, ai);            
             //std::cout << "FLEKKOY: " << gSums(icell, jcell, kcell) << " " << cplforceregion->extent_ylo\
-                << " " << cplforceregion->extent_yhi << " " << x[i][1]<< std::endl;
+                << " " << cplforceregion->extent_yhi << " " << xi[1]<< std::endl;
         }
     }
-
-	std::cout << "Checkpoint 1" << std::endl;
-
+    for (int i = cnstFPortion.data()[0]; i<cnstFPortion.data()[1]; ++i){ 
+        for (int j = cnstFPortion.data()[2]; j<cnstFPortion.data()[3]; ++j){ 
+            for (int k = cnstFPortion.data()[4]; k<cnstFPortion.data()[5]; ++k){
+                if (std::abs(fxyz.nSums(i,j,k)-nSums(i,j,k)) > 1e-5){
+                    std::cout << "Error in nsum " << i << " " << j << " " << k << " " 
+                              << fxyz.nSums(i,j,k) << " " << nSums(i,j,k) << " end" << std::endl;
+                    //throw std::domain_error("CPL fix nsum doesn't match CPL_force");
+                }
+                if (std::abs(fxyz.gSums(i,j,k)-gSums(i,j,k)) > 1e-5){
+                    std::cout << "Error in gsum " << i << " " << j << " " << k << " " 
+                              << fxyz.gSums(i,j,k) << " " << gSums(i,j,k) << std::endl;
+                    //throw std::domain_error("CPL fix gsum doesn't match CPL_force");
+                }
+    }}}
 
     // Calculate force and apply
     for (int i = 0; i < nlocal; ++i)
@@ -160,6 +217,7 @@ void FixCPLForce::end_of_step() {
         {
 
             //Get local molecule data
+            mi = rmass[i];
             for (int n=0; n<3; n++){
                 xi[n]=x[i][n]; 
                 vi[n]=v[i][n]; 
@@ -167,7 +225,7 @@ void FixCPLForce::end_of_step() {
             }
 
             int glob_cell[3];
-            CPL::map_coord2cell(x[i][0], x[i][1], x[i][2], glob_cell);
+            CPL::map_coord2cell(xi[0], xi[1], xi[2], glob_cell);
 
             int loc_cell[3];
             bool validCell = CPL::map_glob2loc_cell(procPortion.data(), glob_cell, loc_cell);
@@ -179,6 +237,10 @@ void FixCPLForce::end_of_step() {
                 continue;
             }
 
+            //Get force from object
+            fxyz.set_field(*cfdStress);
+            fi = fxyz.get_force(xi, vi, ai);
+
             int icell = loc_cell[0];
             int jcell = loc_cell[1];
             int kcell = loc_cell[2];
@@ -189,7 +251,8 @@ void FixCPLForce::end_of_step() {
                           << std::endl;
             }
             else {
-                double g = flekkoyGWeight (x[i][1], cplforceregion->extent_ylo,
+                double g = flekkoyGWeight (xi[1], 
+                                           cplforceregion->extent_ylo,
                                            cplforceregion->extent_yhi);
 
                 // Since the Flekkoy weight is considered only for 0 < y < L/2, for cells 
@@ -200,33 +263,41 @@ void FixCPLForce::end_of_step() {
 
                     // Normal to the X-Z plane is (0, 1, 0) so (tauxy, syy, tauxy)
                     // are the only components of the stress tensor that matter.
-                    double fx = gdA * cfdStress->operator()(1, icell, jcell, kcell);
-                    double fy = gdA * cfdStress->operator()(4, icell, jcell, kcell);
-                    double fz = gdA * cfdStress->operator()(7, icell, jcell, kcell);
+                    fx = gdA * cfdStress->operator()(1, icell, jcell, kcell);
+                    fy = gdA * cfdStress->operator()(4, icell, jcell, kcell);
+                    fz = gdA * cfdStress->operator()(7, icell, jcell, kcell);
 
-                    //TEMP, set to values from array directly
-   //                 double fx = rmass[i]*cfdStress->operator()(0, icell, jcell, kcell);
-   //                 double fy = rmass[i]*cfdStress->operator()(1, icell, jcell, kcell);
-   //                 double fz = rmass[i]*cfdStress->operator()(2, icell, jcell, kcell);
-
-                    //fi = fxyz.get_force(xi, vi, ai);
-                    std::cout << "Force " << i << " " << icell <<  " " << jcell << " " << kcell
-                                  << " " << cfdStress->operator()(2, icell, jcell, kcell) << " " 
-                                  << f[i][0] << " " << f[i][1] << " " << f[i][2] << " "
-                                  << fx << " " << fy << " " << fz << std::endl;
-                    //TEMP, set to values from array directly
-                    f[i][0] += fx;
-                    f[i][1] += fy;
-                    f[i][2] += fz;
-    
-                    //ofs << x[i][1] << "\t" << 
-                    //       jcell << "\t" << 
-                    //       fx << "\t" << 
-                    //       fy << "\t" << 
-                    //       fz << "\t" << std::endl;
-                    //f[i][1] -= (g/gsum) * dA * pressure
                 }
             }
+
+            if (fi[0] != fx){
+                std::cout << "Error in Force fx " << i << " " << icell << " " << jcell << " " << kcell << " " 
+                          << fi[0] << " " << fx << " end" << std::endl;
+                throw std::domain_error("Force Error -- doesn't match CPL_force implementation");
+            }
+            if (fi[1] != fy){
+                std::cout << "Error in fy " << i << " " << icell << " " << jcell << " " << kcell << " " 
+                          << fi[1] << " " << fy << " end" << std::endl;
+                throw std::domain_error("Force Error -- doesn't match CPL_force implementation");
+
+            }
+            if (fi[2] != fz){
+                std::cout << "Error in fz " << i << " " << icell << " " << jcell << " " << kcell << " "
+                          << fi[2] << " " << fz << " end" << std::endl;
+                throw std::domain_error("Force Error -- doesn't match CPL_force implementation");
+
+            }
+
+            //Apply force
+            f[i][0] += fi[0];
+            f[i][1] += fi[1];
+            f[i][2] += fi[2];
+
+            std::cout << "Force " << i << " " << icell <<  " " << jcell << " " << kcell << " " <<
+                          cfdStress->operator()(7, icell, jcell, kcell) << " " <<
+                          mi << " " << fi[0] << " " << fi[1] << " " << fi[2] << " "
+                          << fx << " " << fy << " " << fz << " " << vi[2] << " "  
+                          << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
         }
     }
 }
@@ -237,11 +308,10 @@ double FixCPLForce::flekkoyGWeight(double y, double ymin, double ymax) {
     // K factor regulates how to distribute the total force across the volume.
     // 1/K represent the fraction of the constrain region volumen used.
     // Flekøy uses K = 2.
-    double K = 1;
+    double K = 1.0;
     // Define re-scaled coordinate 
     double L = ymax - ymin;
-    //double yhat = y - ymin - 0.5*L; 
-    double yhat = y - ymin - (1 - 1/K)*L;
+    double yhat = y - ymin - (1.0 - 1.0/K)*L;
     double g = 0.0;
 
 

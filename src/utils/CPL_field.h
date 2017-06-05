@@ -34,6 +34,7 @@ public:
 
     //Get cell values
     std::vector<int> get_cell(double r[]);
+    std::vector<double> get_dA();    
     std::vector<double> interpolate(double r[]);    
 
     //Destructor

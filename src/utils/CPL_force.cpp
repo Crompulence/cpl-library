@@ -23,10 +23,13 @@
 
 //Constructors
 CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){
+    //fieldptr = std::make_shared<CPL::CPLField>(nd, icells, jcells, kcells);
     fieldptr = new CPL::CPLField(nd, icells, jcells, kcells);
+
 };
 
 CPLForce::CPLForce(CPL::ndArray<double> arrayin){
+    //fieldptr = std::make_shared<CPL::CPLField>(arrayin);
     fieldptr = new CPL::CPLField(arrayin);
 };
 
@@ -40,6 +43,12 @@ void CPLForce::set_minmax(double min_in[], double max_in[]){
 void CPLForce::set_dxyz(){
     fieldptr->set_dxyz();
 }
+
+//Get dA
+std::vector<double> CPLForce::get_dA(){
+    return fieldptr->get_dA();
+}
+
 
 //Get cell from min/max and dx
 std::vector<int> CPLForce::get_cell(double r[]){
@@ -55,6 +64,33 @@ void CPLForce::set_field(CPL::ndArray<double> arrayin){
 CPL::ndArray<double> CPLForce::get_field(){
     return fieldptr->get_array();
 };
+
+///////////////////////////////////////////////////////////////////
+//                                                               //
+//                      CPLForceTest                             //
+//                                                               //
+///////////////////////////////////////////////////////////////////
+
+//Constructor using cells
+CPLForceTest::CPLForceTest(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
+}
+
+//Constructor of datatype
+CPLForceTest::CPLForceTest(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
+}
+
+//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
+std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[]){
+
+    std::vector<double> f(3); 
+    std::vector<int> cell = get_cell(r);
+    CPL::ndArray<double> array = fieldptr->get_array();
+    f[0] = array(0, cell[0], cell[1], cell[2]);
+    f[1] = array(1, cell[0], cell[1], cell[2]);
+    f[2] = array(2, cell[0], cell[1], cell[2]);
+
+    return f;
+}
 
 
 ///////////////////////////////////////////////////////////////////
@@ -163,11 +199,11 @@ double CPLForceFlekkoy::flekkoyGWeight(double y, double ymin, double ymax) {
     // K factor regulates how to distribute the total force across the volume.
     // 1/K represent the fraction of the constrain region volume used.
     // Flekøy uses K = 2.
-    double K = 1;
+    double K = 1.0;
+
     // Define re-scaled coordinate 
     double L = ymax - ymin;
-    //double yhat = y - ymin - 0.5*L; 
-    double yhat = y - ymin - (1 - 1/K)*L;
+    double yhat = y - ymin - (1.0 - 1.0/K)*L;
     double g;
 
     if (yhat > 0.0)
@@ -195,10 +231,12 @@ void CPLForceFlekkoy::pre_force(double r[], double v[], double a[]) {
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
 std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[]){
 
+    std::vector<double> dA = fieldptr->get_dA(); 
     std::vector<double> f(3); 
     std::vector<int> cell = get_cell(r);
     CPL::ndArray<double> array = fieldptr->get_array();
     double n = nSums(cell[0], cell[1], cell[2]);
+
     if (n < 1.0) {
         std::cout << "Warning: 0 particles in cell (" 
                   << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
@@ -211,18 +249,19 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
         // that are completely in y < 0 gSums(i, j, k) will be always 0.0 so can 
         // produce a NAN in the g/gSums division below.
         double g = flekkoyGWeight(r[1], fieldptr->min[1], fieldptr->max[1]);
+
         if (gSums(cell[0], cell[1], cell[2]) > 0.0) {
             double gdA = (g/gSums(cell[0], cell[1], cell[2])) * dA[1];
 
             // Normal to the X-Z plane is (0, 1, 0) so (tauxy, syy, tauxy)
             // are the only components of the stress tensor that matter.
-            double fx = gdA * array.operator()(1, cell[0], cell[1], cell[2]);
-            double fy = gdA * array.operator()(4, cell[0], cell[1], cell[2]);
-            double fz = gdA * array.operator()(7, cell[0], cell[1], cell[2]);
-            f[0]=fx; f[1]=fy; f[2]=fz;
+            f[0] = gdA * array(1, cell[0], cell[1], cell[2]);
+            f[1] = gdA * array(4, cell[0], cell[1], cell[2]);
+            f[2] = gdA * array(7, cell[0], cell[1], cell[2]);
             return f;
         }
     }
+
 }
 
 
@@ -287,6 +326,7 @@ std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a
     std::vector<double> f(3), Ui(3), Ui_v(3);
     std::vector<int> cell = get_cell(r);
     CPL::ndArray<double> array = fieldptr->get_array();
+
     //Porosity e is 1.0 - sum in volume
     double e = 1.0 - nSums(cell[0], cell[1], cell[2]);
     double rho = 1.0;

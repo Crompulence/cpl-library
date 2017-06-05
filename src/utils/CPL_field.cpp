@@ -52,6 +52,20 @@ void CPLField::set_dxyz(){
     dV = dxyz[0]*dxyz[1]*dxyz[2];
 }
 
+
+//Get dA
+std::vector<double> CPLField::get_dA(){
+
+    std::vector<double> retrnd_dA(3);
+
+    retrnd_dA[0] = dA[0];
+    retrnd_dA[1] = dA[1];
+    retrnd_dA[2] = dA[2];
+
+    return retrnd_dA;
+}
+
+
 //Get cell from min/max and dx
 std::vector<int> CPLField::get_cell(double r[]){
     std::vector<int> cell(3);
@@ -71,6 +85,7 @@ std::vector<int> CPLField::get_cell(double r[]){
 
 void CPLField::set_array(CPL::ndArray<double> arrayin){
     array = arrayin;
+    set_dxyz();
 }
 
 CPL::ndArray<double> CPLField::get_array(){

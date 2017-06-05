@@ -7,11 +7,11 @@ FixStyle(cpl/force, FixCPLForce)
 #ifndef LMP_FIX_CPL_FORCE_H
 #define LMP_FIX_CPL_FORCE_H
 
+#include<memory>
+
 #include "fix.h"
 #include "cpl/cpl.h"
 #include "cpl/CPL_ndArray.h"
-#include "cpl/CPL_force.h"
-#include <memory>
 
 class FixCPLForce : public LAMMPS_NS::Fix {
 
@@ -25,7 +25,7 @@ public:
     );
     int setmask();
     void setup (int vflag); 
-    void end_of_step (); //todo add override <=== es205 17/01/17 WTF does this mean?
+    void post_force (int vflag);
     void updateStress (CPL::ndArray<double>& stress);
     void updateProcPortion (int inputPortion[]);
 
@@ -35,6 +35,8 @@ private:
     std::vector<int> procPortion;
     double flekkoyGWeight (double y, double ymin, double ymax);
 
+    CPL::ndArray<double> gSums; // Sum of Flekkøy g weights
+    CPL::ndArray<double> nSums; // Sum of number of particles
 };
 
 #endif

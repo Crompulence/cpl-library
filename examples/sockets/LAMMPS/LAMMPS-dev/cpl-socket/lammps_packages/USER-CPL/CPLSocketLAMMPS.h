@@ -46,16 +46,18 @@ Author(s)
 
 #include<vector>
 #include<memory>
+
 #include "mpi.h"
 #include "lammps.h"
+#include "cpl/CPL.h"
 #include "fix_cpl_force.h"
 #include "CPLSocketLAMMPS.h"
-#include "cpl/cpl.h"
 #include "cpl/CPL_ndArray.h"
-
 #include "fix_ave_chunk.h"
 #include "region.h"
+
 typedef CPL::ndArray<double> arrayDoub;
+typedef std::shared_ptr<arrayDoub> shaPtrArrayDoub;
 
 
 class CPLSocketLAMMPS
@@ -92,6 +94,8 @@ public:
 
     void setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps); 
     void setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps); 
+
+    // Fix that applies the momentum constrain
     FixCPLForce* cplfix;
 
 
@@ -139,8 +143,7 @@ private:
     class LAMMPS_NS::Compute *cfdbccompute;
     class LAMMPS_NS::Fix *cfdbcfix, *cplforcefix;
     class LAMMPS_NS::Group *cplforcegroup;
-    
-    // Fix that applies the momentum constrain
+
     // Internal grid
     arrayDoub cfd_xg; 
     arrayDoub cfd_yg;

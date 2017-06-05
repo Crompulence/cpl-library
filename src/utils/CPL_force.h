@@ -67,7 +67,9 @@ protected:
 
     double min[3], max[3], dxyz[3], dA[3], dV;
     //CPL::ndArray<double> array;
+
     CPL::CPLField* fieldptr;
+    //std::shared_ptr<CPL::CPLField> fieldptr;
 
 public:
 
@@ -82,6 +84,7 @@ public:
 
     //Get cell values
     std::vector<int> get_cell(double r[]);    
+    std::vector<double> get_dA();
 
     //Pre force collection and get force calculation
     void pre_force(double r[], double v[], double a[]);
@@ -95,6 +98,19 @@ public:
 private:
 
     void set_dxyz();
+
+};
+
+class CPLForceTest : public CPLForce {
+
+public:
+
+    //Constructors
+    CPLForceTest(CPL::ndArray<double> field);
+    CPLForceTest(int nd, int icell, int jcell, int kcell);
+
+    //Pre force collection and get force calculation
+    std::vector<double> get_force(double r[], double v[], double a[]);
 
 };
 
@@ -112,6 +128,7 @@ public:
     std::vector<double> get_force(double r[], double v[], double a[]);
 
     void resetsums();
+
 private:
 
     CPL::ndArray<double> vSums;
@@ -139,12 +156,10 @@ public:
     //Force specific things
     double flekkoyGWeight(double y, double ymin, double ymax);
 
-
-
-private:
-
     CPL::ndArray<double> gSums;
     CPL::ndArray<double> nSums;
+
+private:
 
     friend class CPL_Force_Test_test_flekkoy_pre_force_Test;
     friend class CPL_Force_Test_test_flekkoy_pre_force_varydomain_Test;
