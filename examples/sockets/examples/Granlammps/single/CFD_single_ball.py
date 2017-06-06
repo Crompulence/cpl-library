@@ -74,7 +74,7 @@ for time in range(100000):
 
     # send data to update
     send_array = freq*np.ones((9, cnst_ncxl, cnst_ncyl, cnst_nczl), order='F', dtype=np.float64)
-    send_array[2,:,:,:] = 0.0#-9.81 #5.836e-7
+    send_array[2,:,:,:] = -5.9490638385009208e-08*9.81# * mi
     CPL.send(send_array, cnst_portion)
 
     # recv data and plot

@@ -87,8 +87,10 @@ public:
     std::vector<double> get_dA();
 
     //Pre force collection and get force calculation
-    void pre_force(double r[], double v[], double a[]);
-    std::vector<double> get_force(double r[], double v[], double a[]);
+    virtual void pre_force(double r[], double v[], double a[])= 0;
+    virtual std::vector<double> get_force(double r[], double v[], double a[])=0;
+
+    bool calc_preforce = false;
 
     //Destructor
     virtual ~CPLForce() {
@@ -110,6 +112,7 @@ public:
     CPLForceTest(int nd, int icell, int jcell, int kcell);
 
     //Pre force collection and get force calculation
+    void pre_force(double x[], double v[], double a[]);
     std::vector<double> get_force(double r[], double v[], double a[]);
 
 };
@@ -128,6 +131,8 @@ public:
     std::vector<double> get_force(double r[], double v[], double a[]);
 
     void resetsums();
+
+    bool calc_preforce = true;
 
 private:
 
@@ -159,6 +164,8 @@ public:
     CPL::ndArray<double> gSums;
     CPL::ndArray<double> nSums;
 
+    bool calc_preforce = true;
+
 private:
 
     friend class CPL_Force_Test_test_flekkoy_pre_force_Test;
@@ -167,7 +174,6 @@ private:
 
     void initialisesums(CPL::ndArray<double> f);
     void resetsums();
-
 
 };
 
@@ -190,6 +196,7 @@ public:
     double drag_coefficient(double Re);
     double magnitude(std::vector<double> v);
 
+    bool calc_preforce = true;
 
 private:
 
@@ -198,7 +205,6 @@ private:
 
     void initialisesums(CPL::ndArray<double> f);
     void resetsums();
-
 
 };
 

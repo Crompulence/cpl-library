@@ -57,6 +57,20 @@ std::vector<int> CPLForce::get_cell(double r[]){
     return cell;
 }
 
+
+
+//Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
+void CPLForce::pre_force(double r[], double v[], double a[]) {
+//    throw std::runtime_error("CPLForce::pre_force is not defined");
+}
+
+
+//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
+std::vector<double> CPLForce::get_force(double r[], double v[], double a[]){
+//    throw std::runtime_error("CPLForce::get_force is not defined");
+}
+
+
 void CPLForce::set_field(CPL::ndArray<double> arrayin){
     fieldptr->set_array(arrayin);   
 };
@@ -80,6 +94,12 @@ CPLForceTest::CPLForceTest(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
 }
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
+void CPLForceTest::pre_force(double r[], double v[], double a[]){
+    throw std::runtime_error("CPLForceTest::pre_force is not defined");
+}
+
+
+//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
 std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[]){
 
     std::vector<double> f(3); 
@@ -88,6 +108,10 @@ std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[]){
     f[0] = array(0, cell[0], cell[1], cell[2]);
     f[1] = array(1, cell[0], cell[1], cell[2]);
     f[2] = array(2, cell[0], cell[1], cell[2]);
+
+//    std::cout << "CPLForceTest " <<  
+//              cell[0] << " " << cell[1] << " " <<  cell[2] << " " 
+//              << f[0] << " " << f[1] << " " << f[2] << std::endl;
 
     return f;
 }

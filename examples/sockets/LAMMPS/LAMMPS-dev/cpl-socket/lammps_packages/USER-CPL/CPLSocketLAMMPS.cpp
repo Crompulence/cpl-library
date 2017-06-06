@@ -459,7 +459,11 @@ void CPLSocketLAMMPS::packVelocity (const LAMMPS_NS::LAMMPS *lammps) {
                 row = i*nc_velBCRegion[1]*nc_velBCRegion[2] + j*nc_velBCRegion[2] + k;
 				 
 				//std::cout << "Row: " << row << std::endl;
-				//std::cout << "porx :" << velBCPortion[0] << " pory: " << velBCPortion[1] << " i: " << i << " ncy: " << nc_velBCRegion[1] << " ncz: " << nc_velBCRegion[2] << std::endl;
+				//std::cout << "porx :" << velBCPortion[0] << 
+                //            " pory: " << velBCPortion[1] << 
+                //            " i: " << i << " ncy: " << 
+                //                       nc_velBCRegion[1] << 
+                //            " ncz: " << nc_velBCRegion[2] << std::endl;
 
                 // v v v Not needed v v v 
                 double x = cfdbcfix->compute_array(row, 0);
@@ -472,11 +476,11 @@ void CPLSocketLAMMPS::packVelocity (const LAMMPS_NS::LAMMPS *lammps) {
                 double vy = cfdbcfix->compute_array(row, 5);  
                 double vz = cfdbcfix->compute_array(row, 6);  
 
-                if (ncount > 0)
-                    std::cout << "Velocity " << ncount << " " <<
-                                i << " " << j << " " << k << " " << 
-                                x << " " << y << " " << z << " " << 
-                               vx << " " << vy << " " << vz << std::endl;
+//                if (ncount > 0)
+//                    std::cout << "Velocity " << ncount << " " <<
+//                                i << " " << j << " " << k << " " << 
+//                                x << " " << y << " " << z << " " << 
+//                               vx << " " << vy << " " << vz << std::endl;
 				glob_cell[0] = i; glob_cell[1] = j; glob_cell[2] = k;
 				CPL::map_glob2loc_cell(velBCPortion.data(), glob_cell, loc_cell);
 

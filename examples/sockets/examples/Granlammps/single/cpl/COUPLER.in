@@ -68,6 +68,27 @@ CONSTRAINT_INFO
 
 ###############################################################################
 #
+#   boundary_extents (6 * integers)
+#     - define the CFD boundary region cells
+#
+#     1. icmin_bnry
+#     2. icmax_bnry
+#     3. jcmin_bnry
+#     4. jcmax_bnry
+#     5. kcmin_bnry
+#     6. kcmax_bnry
+#
+# -----------------------------------------------------------------------------
+BOUNDARY_EXTENTS
+1
+8
+1
+8
+1
+8
+
+###############################################################################
+#
 #   timestep ratio (integer) 
 #     - number of molecular time steps per continuum time step 
 #
