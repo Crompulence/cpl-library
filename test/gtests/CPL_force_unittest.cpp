@@ -87,7 +87,7 @@ TEST_F(CPL_Force_Test, test_CPL_define) {
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
-//                    CPLForce base class                        //
+//                       CPLForceTest                            //
 //                                                               //
 ///////////////////////////////////////////////////////////////////
 //Test for CPLForce base class - constructor 
@@ -96,14 +96,14 @@ TEST_F(CPL_Force_Test, test_CPL_force_constructor) {
     int nd = 9; int icell = 3; int jcell = 3; int kcell = 3;
 
     //Call constructor using cell numbers
-    CPLForce c(nd, icell, jcell, kcell);
+    CPLForceTest c(nd, icell, jcell, kcell);
     CPL::ndArray<double> buf1 = c.get_field();
 
     //Call constructor using buf object
     CPL::ndArray<double> buf2;
     int shape[4] = {nd, icell, jcell, kcell};
     buf2.resize(4, shape);
-    CPLForce d(buf2);
+    CPLForceTest d(buf2);
 
     //Check they give the same values
     ASSERT_EQ(buf1.size(), buf2.size());
@@ -120,9 +120,9 @@ TEST_F(CPL_Force_Test, test_CPL_force_get_set_field) {
     int nd = 9; int icell = 3; int jcell = 3; int kcell = 3;
 
     //Call constructor using cell numbers
-    CPLForce c(nd, icell, jcell, kcell);
+    CPLForceTest c(nd, icell, jcell, kcell);
     CPL::ndArray<double> buf1 = c.get_field();
-    CPLForce d(buf1);
+    CPLForceTest d(buf1);
 
     buf1(4,0,2,1) = 5.;
     c.set_field(buf1);
@@ -140,7 +140,7 @@ TEST_F(CPL_Force_Test, test_CPL_get_cell) {
     int nd = 3; int icell = 10; int jcell = 10; int kcell = 10;
 
     //Call constructor using cell numbers
-    CPLForce c(nd, icell, jcell, kcell);
+    CPLForceTest c(nd, icell, jcell, kcell);
 
     //Check simple example of three cells
     double r[3] = {0.75,0.25,0.35};
@@ -175,11 +175,6 @@ TEST_F(CPL_Force_Test, test_CPL_get_cell) {
     }
 }
 
-///////////////////////////////////////////////////////////////////
-//                                                               //
-//                       CPLForceTest                            //
-//                                                               //
-///////////////////////////////////////////////////////////////////
 //Test for CPLForce base class - constructor 
 TEST_F(CPL_Force_Test, test_CPL_ForceTest_constructor) {
 
