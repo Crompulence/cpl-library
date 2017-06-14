@@ -2120,11 +2120,11 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
         xg = xg_
     endif
     if (present(yg)) then
-        allocate(yg(size(yg_,1),size(yg_,2),size(xg_,3)))
+        allocate(yg(size(yg_,1),size(yg_,2),size(yg_,3)))
         yg = yg_
     endif
     if (present(zg)) then
-        allocate(zg(size(yg_,1),size(yg_,2),size(xg_,3)))
+        allocate(zg(size(zg_,1),size(zg_,2),size(zg_,3)))
         zg = zg_
     endif
 
@@ -2225,7 +2225,7 @@ function CPL_map_md2cfd_coord(coord_md, coord_cfd) result(valid_coord)
 
     valid_coord = is_coord_inside(coord_md, coord_limits_md)
     
-    !if (valid_coord) then
+    if (valid_coord) then
         !Get size of MD domain which has no CFD cells overlapping
         !This should be general enough to include grid stretching
         !and total overlap in any directions 
@@ -2245,7 +2245,7 @@ function CPL_map_md2cfd_coord(coord_md, coord_cfd) result(valid_coord)
         coord_cfd(2) = abs(coord_md(2) - y_orig_md - md_only(2)) + y_orig_cfd
         coord_cfd(3) = abs(coord_md(3) - z_orig_md - md_only(3)) + z_orig_cfd
         valid_coord = is_coord_inside(coord_cfd, coord_limits_cfd)
-    !endif
+    endif
 
 end function CPL_map_md2cfd_coord
 
@@ -2376,21 +2376,40 @@ end subroutine CPL_map_cell2coord
 function CPL_map_coord2cell(x, y, z, cell_ijk) result(ret)
 
     use coupler_module, only: dx, dy, dz, &
-                              icmin_olap, jcmin_olap, kcmin_olap
+                              icmin_olap, jcmin_olap, kcmin_olap, &
+                              icmax_olap, jcmax_olap, kcmax_olap
 
     real(kind(0.d0)), intent(in)  :: x, y, z
     integer, intent(out)         :: cell_ijk(3)
+    integer :: cell_ijk_dummy(3)
 
     integer          :: ixyz
-    real(kind(0.d0)) :: olap_lo(3)
+    real(kind(0.d0)) :: olap_lo(3), olap_hi(3)
     integer          :: olap_limits(6)
     logical          :: ret
 
+    ! Returns coordinates in the correct realm already
     call CPL_map_cell2coord(icmin_olap, jcmin_olap, kcmin_olap, olap_lo)
+    cell_ijk(1) = floor(abs(x - olap_lo(1)) / dx) + 1
+    cell_ijk(2) = floor(abs(y - olap_lo(2)) / dy) + 1
+    cell_ijk(3) = floor(abs(z - olap_lo(3)) / dz) + 1
 
-    cell_ijk(1) = ceiling((x - olap_lo(1)) / dx)
-    cell_ijk(2) = ceiling((y - olap_lo(2)) / dy)
-    cell_ijk(3) = ceiling((z - olap_lo(3)) / dz)
+    !NOTE: The highest coordinate would give a cell number outside the 
+    ! grid so one has to be subtracted to the cell number.
+    ! Returns coordinates in the correct realm already
+    call CPL_map_cell2coord(icmax_olap, jcmax_olap, kcmax_olap, olap_hi)
+    ! Get the maximun coordinate in the domain
+    olap_hi = olap_hi + (/dx, dy, dz/)
+
+    if (x == olap_hi(1)) then
+        cell_ijk(1) = cell_ijk(1) - 1
+    end if
+    if (y == olap_hi(2)) then
+        cell_ijk(2) = cell_ijk(2) - 1
+    end if
+    if (z == olap_hi(3)) then
+        cell_ijk(3) = cell_ijk(3) - 1
+    end if
 
     call CPL_get_olap_limits(olap_limits)
 
@@ -2429,16 +2448,6 @@ function CPL_map_glob2loc_cell(limits, glob_cell, loc_cell) result(ret)
     integer, intent(out) :: loc_cell(3)
 
     logical :: ret
-    !integer :: olap_limits(6)
-
-    !call CPL_get_olap_limits(olap_limits)
-
-    ! Check if cell is inside the overlap region
-!    if (.not. is_cell_inside(glob_cell, olap_limits)) then 
-!        print*, "cell:" , glob_cell
-!        call error_abort("CPL_map_glob2loc_cell error - Cell is outside overlap region. " // &
-!                         "Aborting simulation.") 
-!    end if
 
     ! Check if global cell is within the limits of the region specified
     if (is_cell_inside(glob_cell, limits)) then
@@ -2570,8 +2579,6 @@ function is_coord_inside(coord, coord_limits) result(res)
 end function is_coord_inside
 
 
-
-
 !-----------------------------------------------------------------------------
  
 function coupler_md_get_save_period() result(p)
@@ -2634,15 +2641,15 @@ subroutine test_python (integer_p, double_p, bool_p, integer_pptr, double_pptr)
 !------------------------------------------------------------------------------
 
 subroutine MPI_errorcheck(ierr)
-	use mpi
+    use mpi
 
     integer, intent(in) :: ierr
 
-	integer             :: resultlen, newierr
-	character(12)       :: err_buffer
+    integer             :: resultlen, newierr
+    character(12)       :: err_buffer
 
-	call MPI_Error_string(ierr, err_buffer, resultlen, newierr)
-	print*, err_buffer
+    call MPI_Error_string(ierr, err_buffer, resultlen, newierr)
+    print*, err_buffer
 
 end subroutine MPI_errorcheck
 
