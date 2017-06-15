@@ -662,7 +662,7 @@ def prepare_config(tmpdir, test_dir, md_fname, cfd_fname):
 
 
 def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
-             cfd_fname, cfd_args, md_params, cfd_params, err_msg, debug=False, mpirun="port"):
+             cfd_fname, cfd_args, md_params, cfd_params, err_msg, debug=False, mpirun="split"):
 
     parametrize_config(template_dir, config_params)
     #Save parameter dictonaries to be read by md/cfd codes

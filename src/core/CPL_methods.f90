@@ -47,17 +47,16 @@
 !!
 ! SIMULATION SIMULATION SIMULATION SIMULATION SIMULATION SIMULATION SIMULATION
 !!
-!! - CPL_send_data            (cfd+md)   sends grid data exchanged between
+!! - CPL_send            (cfd+md)   sends grid data exchanged between
 !!                                      realms ( generic interface)
 !!
-!! - CPL_recv_data            (cfd+md)   receives data exchanged between realms
+!! - CPL_recv            (cfd+md)   receives data exchanged between realms
 !!                                      ( generic interface)
 !!
-!! - CPL_cfd_get               (cfd)    returns coupler internal parameters
+!! - CPL_cfd_get         (cfd)    returns coupler internal parameters
 !!                                      for CFD realm
 !!
-!! - CPL_md_get                 (md)    returns coupler internal parameters
-!!                                      for MD realm
+!! - CPL_get             (md)    returns coupler internal parameters
 !!
 !! - CPL_md_get_save_period     (md)    auxiliary used for testing
 !!
@@ -65,17 +64,6 @@
 !!
 !! - CPL_md_get_md_per_cfd_dt   (md)    returns the number of step MD does for 
 !!                                      each CFD step
-!!
-!! - CPL_md_get_nsteps          (md)    returm CFD nsteps  
-!!
-!! - CPL_md_get_dt_cfd          (md)    returns MD dt
-!!
-!! - CPL_md_set                 (md)    sets zL if CFD is 2D
-!!
-!! - CPL_md_get_density         (md)    gets CFD density
-!!
-!! - CPL_md_get_cfd_id          (md)    id for CFD code, possible values set 
-!!                                      in coupler_parameters
 !!
 !! @see coupler_module
 !=============================================================================
@@ -737,7 +725,7 @@ subroutine CPL_send(asend, limits, send_flag)
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
                                rank_world, realm, rank_realm,rank_olap, & 
                                iblock_realm,jblock_realm,kblock_realm,ierr, VOID, &
-							   CPL_setup_complete, REALM_NAME, realm
+                               CPL_setup_complete, REALM_NAME, realm
     implicit none
 
     
@@ -760,10 +748,10 @@ subroutine CPL_send(asend, limits, send_flag)
     integer,dimension(6)                :: portion, myportion, portion_CFD
     real(kind=kind(0.d0)), allocatable  :: vbuf(:)
 
-	!Check setup is complete
-	if (CPL_setup_complete .ne. 1) then
-		call error_abort("Error CPL_send called before CPL_setup_"//REALM_NAME(realm))
-	endif
+    !Check setup is complete
+    if (CPL_setup_complete .ne. 1) then
+       call error_abort("Error CPL_send called before CPL_setup_"//REALM_NAME(realm))
+    endif
 
     ! This local CFD domain is outside MD overlap zone 
     if (olap_mask(rank_world) .eqv. .false.) return
@@ -920,7 +908,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
                                rank_world, realm, rank_realm, rank_olap, & 
                                iblock_realm,jblock_realm,kblock_realm,VOID,ierr, &
-							   CPL_setup_complete, REALM_NAME, realm
+                               CPL_setup_complete, REALM_NAME, realm
     implicit none
 
     logical, intent(out), optional  :: recv_flag  !Flag set if processor has received data
@@ -943,10 +931,10 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     integer,dimension(:,:),allocatable :: status
     real(kind(0.d0)),dimension(:), allocatable ::  vbuf
 
-	!Check setup is complete
-	if (CPL_setup_complete .ne. 1) then
-		call error_abort("Error CPL_recv called before CPL_setup_"//REALM_NAME(realm))
-	endif
+    !Check setup is complete
+    if (CPL_setup_complete .ne. 1) then
+        call error_abort("Error CPL_recv called before CPL_setup_"//REALM_NAME(realm))
+    endif
  
     ! This local CFD domain is outside MD overlap zone 
     if (olap_mask(rank_world).eqv. .false.) return
@@ -1336,10 +1324,10 @@ subroutine CPL_proc_extents(coord, realm, extents, ncells)
     integer, intent(out) :: extents(6)
     integer, optional, intent(out) :: ncells
 
-	!Check setup is complete
-	!if (CPL_setup_complete .ne. 1) then
-	!	call error_abort("Error CPL_extents/portion called before CPL_setup_"//REALM_NAME(realm))
-	!endif
+    !Check setup is complete
+    !if (CPL_setup_complete .ne. 1) then
+    !	call error_abort("Error CPL_extents/portion called before CPL_setup_"//REALM_NAME(realm))
+    !endif
 
     select case(realm)
     case(md_realm)
@@ -1467,7 +1455,7 @@ subroutine CPL_olap_extents(coord,realm,extents,ncells)
         extents(5) = max(kcPmin_cfd(coord(3)),kcmin_olap) 
         extents(6) = min(kcPmax_cfd(coord(3)),kcmax_olap) 
     case default
-		call error_abort('CPL_olap_extents error - Wrong realm in CPL_olap_extents')
+        call error_abort('CPL_olap_extents error - Wrong realm in CPL_olap_extents')
     end select
 
     if (present(ncells)) then
@@ -1891,12 +1879,12 @@ subroutine CPL_get_rank(COMM, rank)
         rank = rank_graph
         return
     elseif(COMM .eq. CPL_REALM_INTERSECTION_COMM) then
-		call error_abort("CPL_get_rank Error - Intersection COMM not programmed")
+        call error_abort("CPL_get_rank Error - Intersection COMM not programmed")
     elseif(COMM .eq. CPL_INTER_COMM) then
-		call error_abort("CPL_get_rank Error - No rank in Intercomm" // &
+        call error_abort("CPL_get_rank Error - No rank in Intercomm" // &
                                  " - use realm comms instead")
     else 
-		call error_abort("CPL_get_rank Error - Unknown COMM")
+        call error_abort("CPL_get_rank Error - Unknown COMM")
     endif
     
 
@@ -2554,6 +2542,8 @@ function is_cell_inside(cell, limits) result(res)
         res = .false.
     end if
 end function is_cell_inside
+
+!PRIVATE FUNCTION
 
 function is_coord_inside(coord, coord_limits) result(res)
     use coupler_module, only :  icmin_olap, icmax_olap, & 
