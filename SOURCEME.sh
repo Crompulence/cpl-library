@@ -8,6 +8,7 @@ export CPL_PATH
 export CPL_BIN_PATH="$CPL_PATH/bin"
 PATH=${CPL_BIN_PATH}:$PATH 
 export CPL_LIBRARY_PATH="$CPL_PATH/lib"
+export CPL_INCLUDE_PATH="$CPL_PATH/include"
 if [ -z "$PYTHONPATH" ] 
 then
     export PYTHONPATH="$CPL_PATH/src/bindings/python"
