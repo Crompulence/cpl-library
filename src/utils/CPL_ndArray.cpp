@@ -45,8 +45,7 @@ Author(s)
 
 #include "CPL_ndArray.h"
 
-template<class T>
-CPL::ndArray<T>::ndArray()
+template<class T> CPL::ndArray<T>::ndArray()
 {
     nDims = 0;
     nElements = 0;
@@ -120,6 +119,30 @@ template<class T> T* CPL::ndArray<T>::data()
 template<class T> int CPL::ndArray<T>::size()
 {
     return nElements;
+}
+
+// Minimum value
+template<class T> double CPL::ndArray<T>::min()
+{
+    double min = ndArrayData[0];
+    for (int i=1; i<nElements; i++)
+    {
+        double temp = ndArrayData[i];
+        min = std::min(min, temp);
+    }
+    return min;
+}
+
+// Minimum value
+template<class T> double CPL::ndArray<T>::max()
+{
+    double max = ndArrayData[0];
+    for (int i=1; i<nElements; i++)
+    {
+        double temp = ndArrayData[i];
+        max = std::max(max, temp);
+    }
+    return max;
 }
 
 // Allocation after empty construction
@@ -225,51 +248,41 @@ template<class T> void CPL::ndArray<T>::resize (const int nd, const int shape[])
     }
 
 // Assignment operator from single value
-template<class T>
-CPL::ndArray<T>& CPL::ndArray<T>::operator= (const T &rhs)
+template<class T> CPL::ndArray<T>& CPL::ndArray<T>::operator= (const T &rhs)
 {
-    for (T &e : ndArrayData)
-    {
-        e = rhs;
-    }
+    for (T &e : ndArrayData) e = rhs;
     return *this;
 }
 
 // Arithmetic operators from single value
-template<class T>
-CPL::ndArray<T>& CPL::ndArray<T>::operator+= (const T &rhs)
+template<class T> CPL::ndArray<T>& CPL::ndArray<T>::operator+= (const T &rhs)
 {
     for (T &e : ndArrayData) e += rhs;
     return *this;
 }
-template<class T>
-CPL::ndArray<T>& CPL::ndArray<T>::operator-= (const T &rhs)
+template<class T> CPL::ndArray<T>& CPL::ndArray<T>::operator-= (const T &rhs)
 {
     for (T &e : ndArrayData) e -= rhs;
     return *this;
 }
-template<class T>
-CPL::ndArray<T>& CPL::ndArray<T>::operator*= (const T &rhs)
+template<class T> CPL::ndArray<T>& CPL::ndArray<T>::operator*= (const T &rhs)
 {
     for (T &e : ndArrayData) e *= rhs;
     return *this;
 }
-template<class T>
-CPL::ndArray<T> CPL::ndArray<T>::operator+ (const T &rhs)
+template<class T> CPL::ndArray<T> CPL::ndArray<T>::operator+ (const T &rhs)
 {
     CPL::ndArray<T> result(*this);
     result += rhs;
     return result;
 }
-template<class T>
-CPL::ndArray<T> CPL::ndArray<T>::operator- (const T &rhs)
+template<class T> CPL::ndArray<T> CPL::ndArray<T>::operator- (const T &rhs)
 {
     ndArray result(*this);
     result -= rhs;
     return result;
 }
-template<class T>
-CPL::ndArray<T> CPL::ndArray<T>::operator* (const T &rhs)
+template<class T> CPL::ndArray<T> CPL::ndArray<T>::operator* (const T &rhs)
 {
     CPL::ndArray<T> result(*this);
     result *= rhs;
@@ -277,8 +290,7 @@ CPL::ndArray<T> CPL::ndArray<T>::operator* (const T &rhs)
 }
 
 // Check dimensionality is a certain value
-template<class T>
-bool CPL::ndArray<T>::checkDimsEquals (const int dims) const
+template<class T> bool CPL::ndArray<T>::checkDimsEquals (const int dims) const
 {
     if (nDims != dims)
     {
@@ -289,8 +301,7 @@ bool CPL::ndArray<T>::checkDimsEquals (const int dims) const
 }
 
 // Return information about the object
-template<class T>
-std::string CPL::ndArray<T>::info()
+template<class T> std::string CPL::ndArray<T>::info()
 {
     std::ostringstream os;
     os << "<CPL::ndArray of shape (";
@@ -304,8 +315,7 @@ std::string CPL::ndArray<T>::info()
 }
 
 // Return string all the elements of the internal data
-template<class T>
-std::string CPL::ndArray<T>::infoData()
+template<class T> std::string CPL::ndArray<T>::infoData()
 {
     std::ostringstream os;
     os << "Internal data elements: " << std::endl;
@@ -317,8 +327,7 @@ std::string CPL::ndArray<T>::infoData()
     return os.str();
 }
 
-template<class T>
-std::string CPL::ndArray<T>::infoArray()
+template<class T> std::string CPL::ndArray<T>::infoArray()
 {
 
     if (order == 'F')
@@ -385,13 +394,11 @@ std::string CPL::ndArray<T>::infoArray()
 }
 
 // Convert nd indices to 1D index position
-template<class T>
-int CPL::ndArray<T>::flatIndex(int i0) const
+template<class T> int CPL::ndArray<T>::flatIndex(int i0) const
 {
     return    i0;
 }
-template<class T>
-int CPL::ndArray<T>::flatIndex(int i0, int i1) const
+template<class T> int CPL::ndArray<T>::flatIndex(int i0, int i1) const
 {
     if (order == 'F')
     {
@@ -404,8 +411,7 @@ int CPL::ndArray<T>::flatIndex(int i0, int i1) const
                 + i1;
     }
 }
-template<class T>
-int CPL::ndArray<T>::flatIndex(int i0, int i1, int i2) const
+template<class T> int CPL::ndArray<T>::flatIndex(int i0, int i1, int i2) const
 {
     if (order == 'F')
     {
@@ -420,8 +426,7 @@ int CPL::ndArray<T>::flatIndex(int i0, int i1, int i2) const
                 + i2;
     }
 }
-template<class T>
-int CPL::ndArray<T>::flatIndex(int i0, int i1, int i2, int i3) const
+template<class T> int CPL::ndArray<T>::flatIndex(int i0, int i1, int i2, int i3) const
 {
     if (order == 'F')
     {

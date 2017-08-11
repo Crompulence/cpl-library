@@ -124,9 +124,9 @@ void CPLSocketLAMMPS::getCellTopology() {
 
 void CPLSocketLAMMPS::allocateBuffers() {
     
-    // Received stress field
+    // Received Buf field
     int recvShape[4] = {9, cnstFCells[0], cnstFCells[1], cnstFCells[2]};
-    recvStressBuff.resize(4, recvShape);
+    recvBuf.resize(4, recvShape);
 
     // LAMMPS computed velocity field
     int sendShape[4] = {4, velBCCells[0], velBCCells[1], velBCCells[2]};
@@ -441,6 +441,10 @@ void CPLSocketLAMMPS::setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps) {
 // TODO develop a custom fix so that lammps doesn't need to do 
 // a global reduce (d.trevelyan@ic.ac.uk) ?
 void CPLSocketLAMMPS::packVelocity (const LAMMPS_NS::LAMMPS *lammps) {
+    // For some reason, this is not called as it should be as part of loop.
+    // Explictly called here to ensure velocity ready to be packed.
+    cfdbcfix->end_of_step();
+    //std::cout << "cfdbcfix->end_of_step called in CPLSocketLAMMPS::packVelocity but nevery=" << cfdbcfix->nevery << std::endl;   
 	if (CPL::is_proc_inside(velBCPortion.data())) {
 
     int *npxyz_md = lammps->comm->procgrid;
@@ -476,11 +480,13 @@ void CPLSocketLAMMPS::packVelocity (const LAMMPS_NS::LAMMPS *lammps) {
                 double vy = cfdbcfix->compute_array(row, 5);  
                 double vz = cfdbcfix->compute_array(row, 6);  
 
-//                if (ncount > 0)
-//                    std::cout << "Velocity " << ncount << " " <<
+//                if (ncount > 0){
+//                    std::cout.precision(17);
+//                    std::cout << "Velocity " << ncount << " " << row << " " <<
 //                                i << " " << j << " " << k << " " << 
 //                                x << " " << y << " " << z << " " << 
 //                               vx << " " << vy << " " << vz << std::endl;
+//                }
 				glob_cell[0] = i; glob_cell[1] = j; glob_cell[2] = k;
 				CPL::map_glob2loc_cell(velBCPortion.data(), glob_cell, loc_cell);
 
@@ -494,9 +500,8 @@ void CPLSocketLAMMPS::packVelocity (const LAMMPS_NS::LAMMPS *lammps) {
 }
 }
 
-void CPLSocketLAMMPS::unpackStress (const LAMMPS_NS::LAMMPS *lammps) {
-
-    cplfix->updateStress (recvStressBuff);
+void CPLSocketLAMMPS::unpackBuf (const LAMMPS_NS::LAMMPS *lammps) {
+    cplfix->updateBuf(recvBuf);
 
 };
 
@@ -508,10 +513,10 @@ void CPLSocketLAMMPS::sendVelocity() {
 
 };
 
-void CPLSocketLAMMPS::recvStress() {
+void CPLSocketLAMMPS::receiveBuf() {
 
     // Receive from CFD
-    CPL::recv(recvStressBuff.data(), recvStressBuff.shapeData(), cnstFRegion.data());
+    CPL::recv(recvBuf.data(), recvBuf.shapeData(), cnstFRegion.data());
 
 };
 

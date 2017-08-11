@@ -81,8 +81,8 @@ public:
     // Data preparation and communication 
     void packVelocity(const LAMMPS_NS::LAMMPS *lammps);
     void sendVelocity();
-    void unpackStress(const LAMMPS_NS::LAMMPS *lammps);
-    void recvStress();
+    void unpackBuf(const LAMMPS_NS::LAMMPS *lammps);
+    void receiveBuf();
 
     // Useful information for main level program
     const MPI_Comm realmCommunicator() {return realmComm;}
@@ -131,9 +131,7 @@ private:
 
     // Data to be sent/received with CPL-Library
     arrayDoub sendVelocityBuff;
-    arrayDoub sendStressBuff;
-    arrayDoub recvVelocityBuff;
-    arrayDoub recvStressBuff;
+    arrayDoub recvBuf;
 
 
     // Cell sizes

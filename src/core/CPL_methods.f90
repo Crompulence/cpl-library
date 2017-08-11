@@ -2364,40 +2364,21 @@ end subroutine CPL_map_cell2coord
 function CPL_map_coord2cell(x, y, z, cell_ijk) result(ret)
 
     use coupler_module, only: dx, dy, dz, &
-                              icmin_olap, jcmin_olap, kcmin_olap, &
-                              icmax_olap, jcmax_olap, kcmax_olap
+                              icmin_olap, jcmin_olap, kcmin_olap
 
     real(kind(0.d0)), intent(in)  :: x, y, z
     integer, intent(out)         :: cell_ijk(3)
-    integer :: cell_ijk_dummy(3)
 
     integer          :: ixyz
-    real(kind(0.d0)) :: olap_lo(3), olap_hi(3)
+    real(kind(0.d0)) :: olap_lo(3)
     integer          :: olap_limits(6)
     logical          :: ret
 
-    ! Returns coordinates in the correct realm already
     call CPL_map_cell2coord(icmin_olap, jcmin_olap, kcmin_olap, olap_lo)
-    cell_ijk(1) = floor(abs(x - olap_lo(1)) / dx) + 1
-    cell_ijk(2) = floor(abs(y - olap_lo(2)) / dy) + 1
-    cell_ijk(3) = floor(abs(z - olap_lo(3)) / dz) + 1
 
-    !NOTE: The highest coordinate would give a cell number outside the 
-    ! grid so one has to be subtracted to the cell number.
-    ! Returns coordinates in the correct realm already
-    call CPL_map_cell2coord(icmax_olap, jcmax_olap, kcmax_olap, olap_hi)
-    ! Get the maximun coordinate in the domain
-    olap_hi = olap_hi + (/dx, dy, dz/)
-
-    if (x == olap_hi(1)) then
-        cell_ijk(1) = cell_ijk(1) - 1
-    end if
-    if (y == olap_hi(2)) then
-        cell_ijk(2) = cell_ijk(2) - 1
-    end if
-    if (z == olap_hi(3)) then
-        cell_ijk(3) = cell_ijk(3) - 1
-    end if
+    cell_ijk(1) = ceiling((x - olap_lo(1)) / dx)
+    cell_ijk(2) = ceiling((y - olap_lo(2)) / dy)
+    cell_ijk(3) = ceiling((z - olap_lo(3)) / dz)
 
     call CPL_get_olap_limits(olap_limits)
 
@@ -2407,6 +2388,58 @@ function CPL_map_coord2cell(x, y, z, cell_ijk) result(ret)
     end if
     
 end function CPL_map_coord2cell
+
+
+
+!-----------------------------------------------------------------------------
+! This is the new version introduced by Edu which causes an error in my code
+!function CPL_map_coord2cell(x, y, z, cell_ijk) result(ret)
+
+!    use coupler_module, only: dx, dy, dz, &
+!                              icmin_olap, jcmin_olap, kcmin_olap, &
+!                              icmax_olap, jcmax_olap, kcmax_olap
+
+!    real(kind(0.d0)), intent(in)  :: x, y, z
+!    integer, intent(out)         :: cell_ijk(3)
+!    integer :: cell_ijk_dummy(3)
+
+!    integer          :: ixyz
+!    real(kind(0.d0)) :: olap_lo(3), olap_hi(3)
+!    integer          :: olap_limits(6)
+!    logical          :: ret
+
+!    ! Returns coordinates in the correct realm already
+!    call CPL_map_cell2coord(icmin_olap, jcmin_olap, kcmin_olap, olap_lo)
+!    cell_ijk(1) = floor(abs(x - olap_lo(1)) / dx) + 1
+!    cell_ijk(2) = floor(abs(y - olap_lo(2)) / dy) + 1
+!    cell_ijk(3) = floor(abs(z - olap_lo(3)) / dz) + 1
+
+!    !NOTE: The highest coordinate would give a cell number outside the 
+!    ! grid so one has to be subtracted to the cell number.
+!    ! Returns coordinates in the correct realm already
+!    call CPL_map_cell2coord(icmax_olap, jcmax_olap, kcmax_olap, olap_hi)
+!    ! Get the maximun coordinate in the domain
+!    olap_hi = olap_hi + (/dx, dy, dz/)
+
+!    if (x == olap_hi(1)) then
+!        cell_ijk(1) = cell_ijk(1) - 1
+!    end if
+!    if (y == olap_hi(2)) then
+!        cell_ijk(2) = cell_ijk(2) - 1
+!    end if
+!    if (z == olap_hi(3)) then
+!        cell_ijk(3) = cell_ijk(3) - 1
+!    end if
+
+!    call CPL_get_olap_limits(olap_limits)
+
+!    ret = .true.
+!    if (.not. is_cell_inside(cell_ijk, olap_limits)) then
+!        ret = .false.
+!    end if
+!    
+!end function CPL_map_coord2cell
+
 
 
 !-----------------------------------------------------------------------------

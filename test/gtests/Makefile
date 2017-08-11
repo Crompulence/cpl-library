@@ -38,7 +38,7 @@ CXXFLAGS += -g -Wall -Wextra -pthread $(INCS)
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = CPL_force_unittest
+TESTS = CPL_force_unittest interp_unittest
 
 # All Google Test headers.  Usually you shouldn't change this
 GTEST_HEADERS = $(GTEST_DIR)/gtest/*.h 
@@ -84,6 +84,12 @@ CPL_force_unittest.o : $(USER_DIR)/CPL_force_unittest.cpp $(GMOCK_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/CPL_force_unittest.cpp
 
 CPL_force_unittest : CPL_force_unittest.o gmock_main.a gmock.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBS) -lpthread $^ -o $@ -lcpl
+
+interp_unittest.o : $(USER_DIR)/interp_unittest.cpp $(GMOCK_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/interp_unittest.cpp
+
+interp_unittest : interp_unittest.o gmock_main.a gmock.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LIBS) -lpthread $^ -o $@ -lcpl
 
 

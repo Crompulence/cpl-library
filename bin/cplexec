@@ -245,7 +245,7 @@ for k in Dicts:
 
 
 #Remove previous port file
-sp.Popen("rm ./port", shell=True)
+sp.Popen("rm -f ./port", shell=True)
 
 cmdstr_MD = ["mpiexec", "-n", str(nprocs_MD), MDDict["exec"]] + MDDict["args"]
 cmdstr_CFD = ["mpiexec", "-n", str(nprocs_CFD), CFDDict["exec"]] + CFDDict["args"]

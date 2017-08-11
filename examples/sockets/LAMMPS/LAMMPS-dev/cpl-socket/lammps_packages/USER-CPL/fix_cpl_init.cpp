@@ -1,5 +1,6 @@
 #include<iostream>
 #include "fix_cpl_init.h"
+#include "update.h"
 
 fixCPLInit::fixCPLInit(LAMMPS_NS::LAMMPS *lammps, int narg, char **arg)
     : Fix (lammps, narg, arg)
@@ -7,7 +8,7 @@ fixCPLInit::fixCPLInit(LAMMPS_NS::LAMMPS *lammps, int narg, char **arg)
    class LAMMPS_NS::LAMMPS *lmp=lammps;
     cplsocket.initComms();
     cplsocket.initMD(lmp);
-   //nevery = cplsocket.timestep_ratio;
+    nevery = 50;//cplsocket.timestep_ratio;
 
 }
 
@@ -25,9 +26,8 @@ void fixCPLInit::init()
 
     //This is needed to prevent seg fault from
     //use of unallocated pointer
-    cplsocket.unpackStress(lmp);
-
-    //cplsocket.cplfix->updateStress()
+    cplsocket.unpackBuf(lmp);
+    //cplsocket.cplfix->updateBuf()
 }
 
 
@@ -43,12 +43,15 @@ void fixCPLInit::setup(int vflag)
 void fixCPLInit::post_force(int vflag)
 {
     // Communications
-    cplsocket.recvStress();
+    if (update->ntimestep%nevery == 0)
+        cplsocket.receiveBuf();
 	cplsocket.cplfix->post_force(vflag);
 
 	cplsocket.packVelocity(lmp);
-    cplsocket.sendVelocity();
-}
+    if (update->ntimestep%nevery == 0){
+        cplsocket.sendVelocity();
+    }
+}    
 
 fixCPLInit::~fixCPLInit(){
 	cplsocket.finalizeComms();

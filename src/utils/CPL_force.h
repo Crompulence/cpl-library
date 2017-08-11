@@ -178,6 +178,25 @@ private:
 };
 
 
+class CPLForceDrag : public CPLForce {
+
+public:
+
+    //Constructors
+    CPLForceDrag(CPL::ndArray<double> field);
+    CPLForceDrag(int nd, int icell, int jcell, int kcell);
+
+    //Pre force collection and get force calculation
+    void pre_force(double x[], double v[], double a[]);
+    std::vector<double> get_force(double r[], double v[], double a[]);
+
+    //Force specific things
+    double drag_coefficient();
+
+    bool calc_preforce = false;
+
+};
+
 
 class CPLForceGranular : public CPLForce {
 

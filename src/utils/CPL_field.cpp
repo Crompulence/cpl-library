@@ -5,6 +5,8 @@
 #include "CPL_ndArray.h"
 #include "CPL_field.h"
 
+//#include "interpolate/lagrange_interp_nd.hpp"
+int lagrange_interp_nd_size ( int, int* );
 
 using namespace CPL;
 
@@ -73,10 +75,12 @@ std::vector<int> CPLField::get_cell(double r[]){
         cell[i] = floor((r[i]-min[i])/dxyz[i]);
         //Check cell is within the domain
         if (cell[i] > floor((max[i]-min[i])/dxyz[i]))
-            throw std::domain_error("get_cell Error: Input above domain");
+            cell[i] = floor((max[i]-min[i])/dxyz[i]);
+            //throw std::domain_error("get_cell Error: Input above domain");
 
         if (cell[i] < 0)
-            throw std::domain_error("get_cell Error: Input below domain");
+            cell[i] = 0;
+            //throw std::domain_error("get_cell Error: Input below domain");
     }
     return cell;
 }
@@ -93,70 +97,145 @@ CPL::ndArray<double> CPLField::get_array(){
 }
 
 //Get interpolate of field
-std::vector<double> CPLField::interpolate(double r[]){
+//std::vector<double> CPLField::interpolate(double r[]){
 
-    int interp[3];
-    std::vector<int> cell = get_cell(r);
-    std::vector<double> val(array.shape(0));
-    std::vector<double> rc(3);
-    double f,g,h;
+//    int interp[3];
+//    std::vector<int> cell = get_cell(r);
+//    std::vector<double> val(array.shape(0));
+//    std::vector<double> rc(3);
+//    double f,g,h;
 
 
-    //Check if at edge of domain and use one sided if needed
-    for (int n = 0; n < 3; n++){
-        if (cell[n]+1>array.shape(n)){
-            interp[n] = -1;
-        } else if (cell[0]-1<0){  
-            interp[n] = 1;
-        } else {
-            interp[n] = 0;
-        }
-        // Get position relative to cell minimum
-        rc[n] = r[n] - cell[n]*dxyz[n];
+//    //Check if at edge of domain and use one sided if needed
+//    for (int n = 0; n < 3; n++){
+//        if (cell[n]+1>array.shape(n)){
+//            interp[n] = -1;
+//        } else if (cell[0]-1<0){  
+//            interp[n] = 1;
+//        } else {
+//            interp[n] = 0;
+//        }
+//        // Get position relative to cell minimum
+//        rc[n] = r[n] - cell[n]*dxyz[n];
+//    }
+
+//    //Interpolate based on both adjacent cells
+//    for (int n = 0; n<array.shape(0); n++){
+//        if (interp[0] == 0){
+//            f =  (   array(n, cell[0]+1,cell[1],  cell[2]  )
+//                  -2*array(n, cell[0],  cell[1],  cell[2]  )  
+//                   + array(n, cell[0]-1,cell[1],  cell[2]  ))/2.*dxyz[0];
+//        } else if (interp[0] == 1){
+//            f =  (   array(n, cell[0]+1,cell[1],  cell[2]  )
+//                    -array(n, cell[0],  cell[1],  cell[2]  ))/dxyz[0];
+//        } else if (interp[0] == -1){
+//            f =  (   array(n, cell[0],  cell[1],  cell[2]  )
+//                    -array(n, cell[0]-1,cell[1],  cell[2]  ))/dxyz[0];
+//        }
+
+//        if (interp[1] == 0){
+//            g =  (   array(n, cell[0],  cell[1]+1,cell[2]  )
+//                  -2*array(n, cell[0],  cell[1],  cell[2]  )  
+//                   + array(n, cell[0],  cell[1]-1,cell[2]  ))/2.*dxyz[1];
+//        } else if (interp[1] == 1){
+//            g =  (   array(n, cell[0],  cell[1]+1,cell[2]  )
+//                  -  array(n, cell[0],  cell[1],  cell[2]  ))/dxyz[1];
+//        } else if (interp[1] == -1){
+//            g =  (   array(n, cell[0],  cell[1]  ,cell[2]  )
+//                   - array(n, cell[0],  cell[1]-1,cell[2]  ))/dxyz[1];
+//        }
+
+//        if (interp[2] == 0){
+//            h =  (   array(n, cell[0],  cell[1],  cell[2]+1)
+//                  -2*array(n, cell[0],  cell[1],  cell[2]  ) 
+//                   + array(n, cell[0],  cell[1],  cell[2]-1))/2.*dxyz[2];
+//        } else if (interp[2] == 1){
+//            h =  (   array(n, cell[0],  cell[1],  cell[2]+1)
+//                   - array(n, cell[0],  cell[1],  cell[2]  ))/dxyz[2];
+//        } else if (interp[2] == -1){
+//            h =  (   array(n, cell[0],  cell[1],  cell[2]  )
+//                  -2*array(n, cell[0],  cell[1],  cell[2]-1))/dxyz[2];
+//        }
+
+//        val[n] = f*rc[0] + g*rc[1] + h*rc[2];
+//    }
+
+//    return val;
+//}
+
+
+// Use the block of 26 cells around a specified cell by "ic, jc, kc" into the nodes on that cell
+CPL::ndArray<double> CPLField::celltonode(CPL::ndArray<double> cell, int n, int ic, int jc, int kc)
+{
+
+    CPL::ndArray<double> node;
+    int arrayShape[4] = {1, 2, 2, 2};
+    node.resize(4, arrayShape);
+
+    for (int i = 0; i < 2; i++ ){
+    for (int j = 0; j < 2; j++ ){
+    for (int k = 0; k < 2; k++ ){
+        node(0,i,j,k) = 0.125*(   cell(n, ic+i  , jc+j  , kc+k  )
+                                + cell(n, ic+i+1, jc+j  , kc+k  )
+                                + cell(n, ic+i  , jc+j+1, kc+k  )
+                                + cell(n, ic+i  , jc+j  , kc+k+1)
+                                + cell(n ,ic+i  , jc+j+1, kc+k+1)
+                                + cell(n, ic+i+1, jc+j  , kc+k+1)
+                                + cell(n, ic+i+1, jc+j+1, kc+k  )
+                                + cell(n, ic+i+1, jc+j+1, kc+k+1));
+
+        //cout << "NODES " <<  i << " " << j << " " << k << " " << node(0,i,j,k) << "\n";
+    }}}
+
+    return node;
+
+}
+
+
+
+//Assume 3D
+std::vector<double> CPLField::interpolate(double r[], CPL::ndArray<double> cell_array, int n, int order)
+{
+    double *a;
+    double *b;
+    int i;
+    int j;
+    int m;
+    int *n_1d;
+    int nd;
+    int ni;
+    int seed;
+    double *xd;
+    double *xi;
+    double *zd;
+    double *ze;
+    double *zi;
+
+    //Assume 3D and set order to input
+    m = 3;
+    n_1d = new int[m];
+    for ( i = 0; i < m; i++ )
+    {
+        n_1d[i] = order;
     }
 
-    //Interpolate based on both adjacent cells
-    for (int n = 0; n<array.shape(0); n++){
-        if (interp[0] == 0){
-            f =  (   array(n, cell[0]+1,cell[1],  cell[2]  )
-                  -2*array(n, cell[0],  cell[1],  cell[2]  )  
-                   + array(n, cell[0]-1,cell[1],  cell[2]  ))/2.*dxyz[0];
-        } else if (interp[0] == 1){
-            f =  (   array(n, cell[0]+1,cell[1],  cell[2]  )
-                    -array(n, cell[0],  cell[1],  cell[2]  ))/dxyz[0];
-        } else if (interp[0] == -1){
-            f =  (   array(n, cell[0],  cell[1],  cell[2]  )
-                    -array(n, cell[0]-1,cell[1],  cell[2]  ))/dxyz[0];
-        }
+    auto cell = get_cell(r);
+    int ic = cell[0];
+    int jc = cell[1];
+    int kc = cell[2];
 
-        if (interp[1] == 0){
-            g =  (   array(n, cell[0],  cell[1]+1,cell[2]  )
-                  -2*array(n, cell[0],  cell[1],  cell[2]  )  
-                   + array(n, cell[0],  cell[1]-1,cell[2]  ))/2.*dxyz[1];
-        } else if (interp[1] == 1){
-            g =  (   array(n, cell[0],  cell[1]+1,cell[2]  )
-                  -  array(n, cell[0],  cell[1],  cell[2]  ))/dxyz[1];
-        } else if (interp[1] == -1){
-            g =  (   array(n, cell[0],  cell[1]  ,cell[2]  )
-                   - array(n, cell[0],  cell[1]-1,cell[2]  ))/dxyz[1];
-        }
+    CPL::ndArray<double> node = celltonode(cell_array, n, ic, jc, kc);
+    zd = node.data();
 
-        if (interp[2] == 0){
-            h =  (   array(n, cell[0],  cell[1],  cell[2]+1)
-                  -2*array(n, cell[0],  cell[1],  cell[2]  ) 
-                   + array(n, cell[0],  cell[1],  cell[2]-1))/2.*dxyz[2];
-        } else if (interp[2] == 1){
-            h =  (   array(n, cell[0],  cell[1],  cell[2]+1)
-                   - array(n, cell[0],  cell[1],  cell[2]  ))/dxyz[2];
-        } else if (interp[2] == -1){
-            h =  (   array(n, cell[0],  cell[1],  cell[2]  )
-                  -2*array(n, cell[0],  cell[1],  cell[2]-1))/dxyz[2];
-        }
+    //Setup grid and size
+    //nd = lagrange_interp_nd_size(m, n_1d);
+    //xd = lagrange_interp_nd_grid(m, n_1d, a, b, nd);
+    //zi = lagrange_interp_nd_value(m, n_1d, a, b, nd, zd, 1, r);
 
-        val[n] = f*rc[0] + g*rc[1] + h*rc[2];
-    }
+    std::vector<double> vec = {zi[0], zi[1], zi[2]};
 
-    return val;
+    return vec;
+
 }
 
 

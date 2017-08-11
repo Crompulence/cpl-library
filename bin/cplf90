@@ -16,9 +16,9 @@ CPL_VERSION=1.0
 
 exec_prefix=${prefix}/bin
 sysconfdir=${prefix}/etc
-includedir=${prefix}/include
+includedir=${prefix}/include/cpl
 libdir=${prefix}/lib
-modincdir=${prefix}/include
+modincdir=${prefix}/include/cpl
 
 
 # Default settings for compiler, flags, and libraries
