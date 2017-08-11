@@ -232,8 +232,8 @@ std::vector<double> CPLField::interpolate(double r[], CPL::ndArray<double> cell_
     //xd = lagrange_interp_nd_grid(m, n_1d, a, b, nd);
     //zi = lagrange_interp_nd_value(m, n_1d, a, b, nd, zd, 1, r);
 
-    std::vector<double> vec = {zi[0], zi[1], zi[2]};
-
+    //std::vector<double> vec = {zi[0], zi[1], zi[2]};
+    std::vector<double> vec = {0., 0., 0.};
     return vec;
 
 }
