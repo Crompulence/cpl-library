@@ -1901,13 +1901,17 @@ subroutine check_config_feasibility()
     integer :: ival
     real(kind(0.d0)) :: rval, rtoler
     character(len=256) :: string
+    logical :: error
 
     ! Check that CFD and MD domains agree in x and z directions
     rtoler = 1.d-4
     rval = 0.d0
+    error = .false.
     rval = rval + abs(xL_md - xL_cfd)
+    if (rval .gt. rtoler) error = .true.
     rval = rval + abs(zL_md - zL_cfd)
-    if (rval .gt. rtoler) then
+    if (rval .gt. rtoler) error = .true.
+    if (error) then
         string = "CPL_create_map error - MD/CFD domain sizes do not match in both x and z "   // &
                  "directions. Aborting simulation. "
         print*, "xL_md = ",  xL_md
@@ -1940,11 +1944,15 @@ subroutine check_config_feasibility()
     ! We avoid this by adding the required tolerence to the mod and taking away after
     rtoler = 1.d-4
     rval = 0.d0
-    rval = rval + abs(mod( xL_md+rtoler, dx )-rtoler)
-    rval = rval + abs(mod( yL_md+rtoler, dy )-rtoler)
-    rval = rval + abs(mod( zL_md+rtoler, dz )-rtoler)
+    error = .false.
+    rval = abs(mod( xL_md+rtoler, dx )-rtoler)
+    if (rval .gt. rtoler) error = .true.
+    rval = abs(mod( yL_md+rtoler, dy )-rtoler)
+    if (rval .gt. rtoler) error = .true.
+    rval = abs(mod( zL_md+rtoler, dz )-rtoler)
+    if (rval .gt. rtoler) error = .true.
 
-    if (rval .gt. rtoler) then
+    if (error) then
         print'(6(a,f10.5))', ' xL_md/dx = ',xL_md/dx, ' dx =', dx, & 
                              ' yL_md/dy = ',yL_md/dy, ' dy =', dy, &
                              ' zL_md/dz = ',zL_md/dz, ' dz =', dz

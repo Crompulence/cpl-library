@@ -2,6 +2,7 @@
 module CPL
     use coupler_module
     use coupler
+    use coupler_write
 #ifdef JSON_SUPPORT
     use io
 #endif 

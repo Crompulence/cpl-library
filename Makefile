@@ -43,12 +43,12 @@ lib = $(libdir)/libcpl.so
 3rdpartybuild = false 
 ifdef json-support
 	3rdpartybuild = true
-	io_src = CPL_io.f90
+	io_src = CPL_io.f90 CPL_write.f90
 	# Conditional code preprocessor macros. Could have been previously defined.
 	BUILDPPROCMACROS += JSON_SUPPORT
 	LFLAGS += -ljsonfortran
 else
-	io_src =
+	io_src = CPL_write.f90
 endif
 	
 # Source files, headers and objects
