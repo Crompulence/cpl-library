@@ -146,7 +146,7 @@ for k in Dicts:
         try:
             import mpi4py
             mpibinpath = mpi4py.get_config()["mpicc"]
-            mpilibpath = "/" + mpibinpath.strip("/bin/mpicc") + "/lib/libmpi.so"
+            mpilibpath = "/" + mpibinpath.replace("/bin/mpicc", "/lib/libmpi.so")
             #libs = mpilibpath + "libmpi.so" #glob.glob(mpilibpath + "*mpi*")
             if not os.path.isfile(mpilibpath):
                 msg = "libmpi.so not found under " + mpilibpath
