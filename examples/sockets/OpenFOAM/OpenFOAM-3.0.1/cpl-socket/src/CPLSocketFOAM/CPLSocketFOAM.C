@@ -436,47 +436,6 @@ double CPLSocketFOAM::unpackVelocity(volVectorField &U, fvMesh &mesh) {
 }
 
 
-
-// Unpacks the components from the socket's
-double CPLSocketFOAM::unpackPorousForce(volVectorField &F, volScalarField &eps, fvMesh &mesh) {
-
-    for (int ix=0; ix<recvBuf.shape(1); ix++) {
-        for (int iy=0; iy<recvBuf.shape(2); iy++) {
-            for (int iz=0; iz<recvBuf.shape(3); iz++) {
-
-                double Fx = recvBuf(0, ix, iy, iz);
-                double Fy = recvBuf(1, ix, iy, iz);
-                double Fz = recvBuf(2, ix, iy, iz);
-                double e  = recvBuf(3, ix, iy, iz);
-
-                double glob_pos[3];
-                CPL::map_cell2coord(ix, iy, iz, glob_pos);
-                Foam::point closestCellCentre(glob_pos[0]+0.5*dx, glob_pos[1]+0.5*dy, glob_pos[2]+0.5*dz);
-                Foam::label cell = meshSearcher->findNearestCell(closestCellCentre);
-                eps[cell] = e;
-                F[cell].x() = Fx;
-                F[cell].y() = Fy;
-                F[cell].z() = Fz;
-
-            }
-        }
-    }
-
-
-//    forAll(mesh.C(), cell)
-//    {
-//        Foam::Info << rankRealm << " " << cell << " eps " 
-//               << eps[cell] << " "
-//          << mesh.C()[cell] << " Fx,y,z " 
-//                 << F[cell].x() << " " << 
-//                    F[cell].y() << " " << 
-//                    F[cell].z() << Foam::endl;
-
-//    }
-
-}
-
-
 // Unpacks the components from the socket's
 double CPLSocketFOAM::unpackPorousForce(volVectorField &F, volScalarField &eps, fvMesh &mesh) {
 
@@ -514,20 +473,23 @@ volVectorField CPLSocketFOAM::divideFieldsVectorbyScalar(volVectorField &F, volS
                 CPL::map_cell2coord(ix, iy, iz, glob_pos);
                 Foam::point closestCellCentre(glob_pos[0]+0.5*dx, glob_pos[1]+0.5*dy, glob_pos[2]+0.5*dz);
                 Foam::label cell = meshSearcher->findNearestCell(closestCellCentre);
-                e = eps[cell];
-                Fx = F[cell].x();
-                Fy = F[cell].y();
-                Fz = F[cell].z();
 
-                out[cell].x() = Fx/e
-                out[cell].y() = Fy/e
-                out[cell].z() = Fz/e
+                if (eps[cell] > 1e-6) {
+                    F[cell].x() = F[cell].x()/eps[cell];
+                    F[cell].y() = F[cell].y()/eps[cell];
+                    F[cell].z() = F[cell].z()/eps[cell];
+                } else {
+		            FatalErrorIn ( "CPLSocketFOAM::divideFieldsVectorbyScalar()")
+		                     << "Porosity is zero "<< cell << " " << eps[cell] 
+                            << " " << F[cell].x() << " " << F[cell].y() 
+                            << " " << F[cell].z() << exit(FatalError);
+                }
 
             }
         }
     }
 
-    return out
+    return F;
 }
 
 

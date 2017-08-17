@@ -79,6 +79,7 @@ public:
     double unpackVelocity(volVectorField &U, fvMesh &mesh);
     void pack(volVectorField &U, dimensionedScalar &nu, fvMesh &mesh, int);
     double unpackPorousForce(volVectorField &F, volScalarField &eps, fvMesh &mesh);
+    volVectorField divideFieldsVectorbyScalar(volVectorField &F, volScalarField &eps, fvMesh &mesh);
 
     // Send and receive the data with CPL-Library
     void sendStress();

@@ -70,8 +70,8 @@ int main(int argc, char *argv[])
 
         #include "CourantNo.H"
 
-        // Momentum predictor
-        //volVectorField epsU("epsU", eps*U);
+        // Get momentum divided by eps
+        F = CPL.divideFieldsVectorbyScalar(F, eps, mesh);
 
         fvVectorMatrix UEqn
         (
