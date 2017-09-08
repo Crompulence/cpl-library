@@ -12,7 +12,6 @@
 
 #include <vector>
 #include <iostream>
-
 #include "CPL_ndArray.h"
 
 namespace CPL{
@@ -43,10 +42,12 @@ public:
     //Variables
     CPL::ndArray<double> array;
 
-//private:
-
     double min[3], max[3], dxyz[3], dA[3], dV;
 
+//private:
+
+    CPL::ndArray<double> celltonode(CPL::ndArray<double> cell, int n, int ic, int jc, int kc);
+    std::vector<double> interpolate(double r[], CPL::ndArray<double> cell_array, int n, int order);
 };
 
 }

@@ -1,0 +1,26 @@
+ Simulation run on Date;  sim_date ;20170707
+ Simulation start time ;  sim_start_time ;112553.740
+ CFD density;  density_cfd ;  0.50000000000000000     
+ choice of constraint algorithm;  constraint_algo ;           3
+ CV form of constraint;  constraint_CVflag ;           0
+ minimum x cell of constrained region;  icmin_cnst ;           1
+ maximum x cell of constrained region;  icmax_cnst ;           8
+ minimum y cell of constrained region;  jcmin_cnst ;           1
+ maximum y cell of constrained region;  jcmax_cnst ;           8
+ minimum z cell of constrained region;  kcmin_cnst ;           1
+ maximum z cell of constrained region;  kcmax_cnst ;           8
+ Boundary constrain specified;  boundary_algo ;           1
+ minimum x cell of boundary region;  icmin_bnry ;           1
+ maximum x cell of boundary region;  icmax_bnry ;           8
+ minimum y cell of boundary region;  jcmin_bnry ;           1
+ maximum y cell of boundary region;  jcmax_bnry ;           8
+ minimum z cell of boundary region;  kcmin_bnry ;           1
+ maximum z cell of boundary region;  kcmax_bnry ;           8
+ minimum x cell of overlap region;  icmin_olap ;           1
+ maximum x cell of overlap region;  icmax_olap ;           8
+ minimum y cell of overlap region;  jcmin_olap ;           1
+ maximum y cell of overlap region;  jcmax_olap ;           8
+ minimum z cell of overlap region;  kcmin_olap ;           1
+ maximum z cell of overlap region;  kcmax_olap ;           8
+ MD timesteps per CFD timestep;  timestep_ratio ;          50
+ Enforce cellsize matching;  md_cfd_match_cellsize ;           0

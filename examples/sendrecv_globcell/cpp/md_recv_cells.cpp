@@ -1,8 +1,10 @@
-#include "CPL.h"
 #include "mpi.h"
 #include <iostream>
 #include <stdio.h>
 #include <string>
+
+#include "cpl.h"
+#include "CPL_ndArray.h"
 
 using namespace std;
 

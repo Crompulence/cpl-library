@@ -26,12 +26,12 @@ public:
     int setmask();
     void setup (int vflag); 
     void post_force (int vflag);
-    void updateStress (CPL::ndArray<double>& stress);
+    void updateBuf (CPL::ndArray<double>& stress);
     void updateProcPortion (int inputPortion[]);
 
 private:
 
-	CPL::ndArray<double>* cfdStress;
+	CPL::ndArray<double>* cfdBuf;
     std::vector<int> procPortion;
     double flekkoyGWeight (double y, double ymin, double ymax);
 

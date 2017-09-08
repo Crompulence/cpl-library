@@ -1,0 +1,32 @@
+TESTS 
+===============
+Single Particle 
+===============
+1) Particle with fully periodic system and subject to a force in y 
+    a) Force constant, check vs constant acceleration equations
+    b) Force varies as a function of time from positive to negative  to ensure time evolving force applied correctly with Initial velocity in x and z so full field is explored.
+    c) Force constant in time but varies as a function of space, check vs constant acceleration equations
+    d) As above but cycle x, y and z
+
+    
+2) Particle with wall in y direction and subject to a force in y
+    a) Test free fall part vs constant acceleration 
+    b) A regression test for the part where wall/particle interact. 
+
+
+3) Particle rolling on surface? Bouncing on a surface?
+    a) Coupler could apply rotating forces to model different slopes
+
+===============
+ Two Particles 
+===============
+
+1) Two particle colliding
+    a) Apply force to both
+
+
+
+
+This can then be extended to include extra terms (drag, added mass) etc.  
+
+2) Use a varying coupled field and split into a number of constant accelerations regions based on an independant reading of the applied field

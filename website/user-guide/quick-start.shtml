@@ -173,10 +173,10 @@
         <div class="code"> 
 
             $  mpif90 ./cfd_init.f90 \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                      -I${CPL_PATH}/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      -I${CPL_PATH}/include/cpl \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                       -L${CPL_PATH}/lib  \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                      -Wl,-rpath=${CPL_PATH}/lib/ -lcpl \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                      -o ./mdProgram
+                      -Wl,-rpath=${CPL_PATH}/lib/ \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      -o ./mdProgram -lcpl
 
         </div>
 
@@ -243,10 +243,10 @@
         <div class="code"> 
 
             $ mpic++ ./cfd_init.cpp \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                     -I${CPL_PATH}/include \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
+                     -I${CPL_PATH}/include/cpl \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
                      -L${CPL_PATH}/lib  \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                     -Wl,-rpath=${CPL_PATH}/lib/ -lcpl  \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                     -o ./cfdProgram  <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                     -Wl,-rpath=${CPL_PATH}/lib/ \ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                     -o ./cfdProgram -lcpl  <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
 
         </div>
 

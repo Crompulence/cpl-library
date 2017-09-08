@@ -1,4 +1,4 @@
-#include "CPL.h"
+#include "cpl.h"
 #include "mpi.h"
 #include <iostream>
 #include <math.h>       /* sin */

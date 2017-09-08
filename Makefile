@@ -43,12 +43,12 @@ lib = $(libdir)/libcpl.so
 3rdpartybuild = false 
 ifdef json-support
 	3rdpartybuild = true
-	io_src = CPL_io.f90
+	io_src = CPL_io.f90 CPL_write.f90
 	# Conditional code preprocessor macros. Could have been previously defined.
 	BUILDPPROCMACROS += JSON_SUPPORT
 	LFLAGS += -ljsonfortran
 else
-	io_src =
+	io_src = CPL_write.f90
 endif
 	
 # Source files, headers and objects
@@ -172,20 +172,20 @@ json-fortran: $(CPL_THIRD_PARTY_LIB) $(CPL_THIRD_PARTY_INC)
 3rd-party: json-fortran
 	
 test-all:
-	python $(testdir)/pytests all
+	python2 $(testdir)/pytests all
 	
 test-mapping:
-	python $(testdir)/pytests mapping
+	python2 $(testdir)/pytests mapping
 
 test-initialisation:
-	python $(testdir)/pytests initialisation
+	python2 $(testdir)/pytests initialisation
 
 test-examples:
 	./examples/sendrecv_globcell/test_all.sh
 	./examples/sendrecv_globcell/test_all_port.sh
 
 test-valgrind:
-	py.test -v  $(testdir)/valgrind
+	py.test2 -v  $(testdir)/valgrind
 	#./test/valgrind/debug_all.sh
 
 test-gtests: CPL_force_unittest

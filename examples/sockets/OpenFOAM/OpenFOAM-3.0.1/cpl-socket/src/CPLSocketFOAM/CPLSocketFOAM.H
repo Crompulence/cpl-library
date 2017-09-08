@@ -45,8 +45,10 @@ Description
 #include "mpi.h"
 #include "fvCFD.H"
 #include "error.H"
-#include "CPL.h"
 #include "meshSearch.H"
+
+#include "cpl/CPL_ndArray.h"
+#include "cpl/CPL.h"
 
 // Nearest integer
 int nint(double d)
@@ -77,6 +79,7 @@ public:
     double unpackVelocity(volVectorField &U, fvMesh &mesh);
     void pack(volVectorField &U, dimensionedScalar &nu, fvMesh &mesh, int);
     double unpackPorousForce(volVectorField &F, volScalarField &eps, fvMesh &mesh);
+    volVectorField divideFieldsVectorbyScalar(volVectorField &F, volScalarField &eps, fvMesh &mesh);
 
     // Send and receive the data with CPL-Library
     void sendStress();
