@@ -678,7 +678,7 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
                                 cfd_exec, cfd_args, "; wait $PID"])
             else:
                 cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_args,
-                            ":", "-n", str(cfdprocs), cfd_exec, cfd_fname])
+                            ":", "-n", str(cfdprocs), cfd_exec, cfd_args])
             if debug:
                 print ("\nMPI run: " + cmd)
             check_output(cmd, stderr=STDOUT, shell=True)
