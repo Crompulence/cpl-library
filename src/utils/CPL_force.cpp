@@ -60,13 +60,13 @@ std::vector<int> CPLForce::get_cell(double r[]){
 
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForce::pre_force(double r[], double v[], double a[]) {
+void CPLForce::pre_force(double r[], double v[], double a[], double m, double s, double e) {
 //    throw std::runtime_error("CPLForce::pre_force is not defined");
 }
 
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForce::get_force(double r[], double v[], double a[]){
+std::vector<double> CPLForce::get_force(double r[], double v[], double a[], double m, double s, double e){
 //    throw std::runtime_error("CPLForce::get_force is not defined");
 }
 
@@ -93,14 +93,18 @@ CPLForceTest::CPLForceTest(int nd, int icells, int jcells, int kcells) : CPLForc
 CPLForceTest::CPLForceTest(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
 }
 
+
+void CPLForceTest::resetsums(){
+}
+
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceTest::pre_force(double r[], double v[], double a[]){
+void CPLForceTest::pre_force(double r[], double v[], double a[], double m, double s, double e){
 //    throw std::runtime_error("CPLForceTest::pre_force is not defined");
 }
 
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[]){
+std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[], double m, double s, double e){
 
     std::vector<double> f(3); 
     std::vector<int> cell = get_cell(r);
@@ -146,7 +150,7 @@ void CPLForceVelocity::resetsums(){
 }
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceVelocity::pre_force(double r[], double v[], double a[]) {
+void CPLForceVelocity::pre_force(double r[], double v[], double a[], double m, double s, double e) {
 
     // Find in which cell number (local to processor) is the particle
     // and sum all the velocities for each cell.
@@ -160,7 +164,7 @@ void CPLForceVelocity::pre_force(double r[], double v[], double a[]) {
 
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a[]){
+std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a[], double m, double s, double e){
 
     std::vector<double> f(3); 
     std::vector<int> cell = get_cell(r);
@@ -216,7 +220,7 @@ void CPLForceFlekkoy::resetsums(){
 double CPLForceFlekkoy::flekkoyGWeight(double y, double ymin, double ymax) {
 
     if (y > ymax) {
-		std::cout << "y: " << y << " ymax: " << ymax << std::endl;
+		//std::cout << "y: " << y << " ymax: " << ymax << std::endl;
         throw std::domain_error("flekkoyGWeight Error: Position argument y greater than ymin");
 	}
 
@@ -240,7 +244,7 @@ double CPLForceFlekkoy::flekkoyGWeight(double y, double ymin, double ymax) {
 }
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceFlekkoy::pre_force(double r[], double v[], double a[]) {
+void CPLForceFlekkoy::pre_force(double r[], double v[], double a[], double m, double s, double e) {
 
     // Find in which cell number (local to processor) is the particle
     // and sum all the Flekkøy weights for each cell.
@@ -253,7 +257,7 @@ void CPLForceFlekkoy::pre_force(double r[], double v[], double a[]) {
 }
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[]){
+std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[], double m, double s, double e){
 
     std::vector<double> dA = fieldptr->get_dA(); 
     std::vector<double> f(3); 
@@ -298,25 +302,51 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
 
 //Constructor using cells
 CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
+    initialisesums(fieldptr->get_array());
 }
 
 //Constructor of datatype
 CPLForceDrag::CPLForceDrag(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
+    initialisesums(arrayin);
+}
+
+
+void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
+
+    int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    nSums.resize(3, nsumsShape); // Sum of number of particles
+
+    int esumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    eSums.resize(3, esumsShape); // Sum of porosity of particles  
+
+    int FsumsShape[4] = {3, arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    FSums.resize(4, FsumsShape); // Sum of force on particles  
+    resetsums();
+}
+
+void CPLForceDrag::resetsums(){
+    nSums = 0.0; eSums = 0.0; FSums=0.0;
 }
 
 //Arbitary constant
 double CPLForceDrag::drag_coefficient() {
-    return 0.0001;
+    return 0.00001;
 }
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceDrag::pre_force(double r[], double v[], double a[]) {
+void CPLForceDrag::pre_force(double r[], double v[], double a[], double m, double s, double e) {
 
-    //Nothing to do here
+    // Should use field.add_volume(r, radius);
+    double radius = s;
+    double volume = (4./3.)*M_PI*pow(radius,3); 
+    std::vector<int> cell = get_cell(r);
+    nSums(cell[0], cell[1], cell[2]) += 1; 
+    eSums(cell[0], cell[1], cell[2]) += volume; 
+
 }
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[]){
+std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], double m, double s, double e){
 
     std::vector<double> f(3), Ui(3), Ui_v(3);
     std::vector<int> cell = get_cell(r);
@@ -332,13 +362,14 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[]){
 
     //Calculate force
     for (int i = 0; i < 3; ++i){
-            f[i] = Cd*Ui_v[i];
-//            std::cout << "Drag Force " << i << " " 
-//                      << r[i] << " " << v[i] << " "
-//                      << f[i] << " " << Ui[i] << " " 
-//                      << v[i] << " " << std::endl;
-
+        f[i] = Cd*Ui_v[i];
+        FSums(i, cell[0], cell[1], cell[2]) += f[i];
     }
+
+//    std::cout << "Drag Force "  
+//              << r[2] << " " << v[2] << " "
+//              << f[2] << " " << Ui[2] << std::endl;
+
     return f;
 }
 
@@ -351,26 +382,33 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[]){
 
 
 //Constructor using cells
-CPLForceGranular::CPLForceGranular(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
+CPLForceGranular::CPLForceGranular(int nd, int icells, int jcells, int kcells) : CPLForceDrag(nd, icells, jcells, kcells){
     initialisesums(fieldptr->get_array());
 }
 
 //Constructor of datatype
-CPLForceGranular::CPLForceGranular(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
+CPLForceGranular::CPLForceGranular(CPL::ndArray<double> arrayin) : CPLForceDrag(arrayin){
     initialisesums(arrayin);
 }
 
-void CPLForceGranular::initialisesums(CPL::ndArray<double> arrayin){
+void CPLForceGranular::initialisesums(CPL::ndArray<double> arrayin){    
+
+    int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    nSums.resize(3, nsumsShape); // Sum of number of particles
+
+    int esumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    eSums.resize(3, esumsShape); // Sum of porosity of particles  
+
+    int FsumsShape[4] = {3, arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    FSums.resize(4, FsumsShape); // Sum of force on particles  
 
     int vsumsShape[4] = {arrayin.shape(0), arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     vSums.resize(4, vsumsShape); // Sum of velocity
-    int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
-    nSums.resize(3, nsumsShape); // Sum of porousity of particles  
     resetsums();
 }
 
 void CPLForceGranular::resetsums(){
-    nSums = 0.0;  vSums = 0.0; 
+    nSums = 0.0; eSums = 0.0; vSums = 0.0; FSums=0.0;
 }
 
 // See Equation 12 in K. D. Kafui et al. / Chemical Engineering Science 57 (2002) 2395–2410
@@ -388,34 +426,36 @@ double CPLForceGranular::magnitude(std::vector<double> v){
 } 
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceGranular::pre_force(double r[], double v[], double a[]) {
-
-    //radius = &args
+void CPLForceGranular::pre_force(double r[], double v[], double a[], double m, double s, double e) {
 
     // Find in which cell number (local to processor) is the particle
     // and sum all the velocities for each cell.
     std::vector<int> cell = get_cell(r);
 
     // Should use field.add_volume(r, radius);
-    double radius = 0.01;
-    double volume = (4./3.)*M_PI*pow(radius,3); 
-    nSums(cell[0], cell[1], cell[2]) += volume; 
+    double radius = s;
+    double volume = (4./3.)*M_PI*pow(radius,3);
+    nSums(cell[0], cell[1], cell[2]) += 1.; 
+    eSums(cell[0], cell[1], cell[2]) += volume; 
 }
 
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a[]){
+std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a[], double m, double s, double e) {
 
     std::vector<double> f(3), Ui(3), Ui_v(3);
     std::vector<int> cell = get_cell(r);
     CPL::ndArray<double> array = fieldptr->get_array();
 
+    double radius = s;
+    double volume = (4./3.)*M_PI*pow(radius,3); 
+
     //Porosity e is cell volume - sum in volume
     double cellvolume = fieldptr->dV;
-    double e = (1.0 - nSums(cell[0], cell[1], cell[2]))/cellvolume;
-    double rho = 1.0;
+    double eps = 1.0 - eSums(cell[0], cell[1], cell[2])/cellvolume;
+    double rho = 1.0; //m/volume;
     double mu = 1.0;
-    double d = 1.0;
+    double d = 2.0*radius;
     //Should use std::vector<double> Ui(3) = field.interpolate(r);
     for (int i=0; i<3; i++){
         Ui[i] = array(i, cell[0], cell[1], cell[2]);
@@ -424,20 +464,21 @@ std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a
 
     //It is unclear here if Reynolds No. should be based
     //on the mean cell velocity or particle velocity
-    double Re = rho * d * e * magnitude(Ui_v) / mu;
+    double Re = rho * d * eps * magnitude(Ui_v) / mu;
     double Cd = drag_coefficient(Re);
     double xi = porousity_exponent(Re);
     //Calculate force
-    if (e < 1e-5) {
+    if (eps < 1e-5) {
         std::cout << "Warning: 0 particles in cell (" 
                   << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
                   << std::endl;
         f[0]=0.0; f[1]=0.0; f[2]=0.0;
         return f;
     } else {
-        double A = 0.125*Cd*rho*M_PI*pow(d,2)*pow(e,2)*magnitude(Ui_v)*pow(e,xi-1.0);
+        double A = 0.125*Cd*rho*M_PI*pow(d,2)*pow(eps,2)*magnitude(Ui_v)*pow(eps,xi-1.0);
         for (int i = 0; i < 3; ++i){
             f[i] = A*(Ui[i]-v[i]);
+            FSums(i, cell[0], cell[1], cell[2]) += f[i];
         }
         return f;
     }
@@ -445,31 +486,10 @@ std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 //Example print statement useful to copy in...
 //    std::cout << "FLEKKOY: " << cell[0] << " " << cell[1]  << " " << cell[2]  
 //                << nSums(icell, jcell, kcell) << " " 
 //                << min[1] << " " <<  max[1] << " " << r[1]<< std::endl;
-
-
-
-
-
-
-
-
-
 
 
 /*
