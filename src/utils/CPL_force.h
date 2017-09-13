@@ -87,8 +87,12 @@ public:
     std::vector<double> get_dA();
 
     //Pre force collection and get force calculation
-    virtual void pre_force(double r[], double v[], double a[])= 0;
-    virtual std::vector<double> get_force(double r[], double v[], double a[])=0;
+    // position, velocity, acceleration, mass, sigma, epsilon
+    virtual void pre_force(double r[], double v[], double a[], 
+                           double m, double s, double e) = 0;
+    virtual std::vector<double> get_force(double r[], double v[], double a[], 
+                                          double m, double s, double e) = 0;
+    virtual void resetsums() = 0;
 
     bool calc_preforce = false;
 
@@ -112,8 +116,15 @@ public:
     CPLForceTest(int nd, int icell, int jcell, int kcell);
 
     //Pre force collection and get force calculation
-    void pre_force(double x[], double v[], double a[]);
-    std::vector<double> get_force(double r[], double v[], double a[]);
+    // position, velocity, acceleration, mass, sigma, epsilon
+    void pre_force(double r[], double v[], double a[], 
+                   double m, double s, double e);
+    std::vector<double> get_force(double r[], double v[], double a[], 
+                                  double m, double s, double e);
+
+    void resetsums();
+
+    bool calc_preforce = false;
 
 };
 
@@ -127,11 +138,13 @@ public:
     CPLForceVelocity(int nd, int icell, int jcell, int kcell);
 
     //Pre force collection and get force calculation
-    void pre_force(double x[], double v[], double a[]);
-    std::vector<double> get_force(double r[], double v[], double a[]);
+    // position, velocity, acceleration, mass, sigma, epsilon
+    void pre_force(double r[], double v[], double a[], 
+                   double m, double s, double e);
+    std::vector<double> get_force(double r[], double v[], double a[], 
+                                  double m, double s, double e);
 
     void resetsums();
-
     bool calc_preforce = true;
 
 private:
@@ -155,8 +168,11 @@ public:
     CPLForceFlekkoy(int nd, int icell, int jcell, int kcell);
 
     //Pre force collection and get force calculation
-    void pre_force(double x[], double v[], double a[]);
-    std::vector<double> get_force(double r[], double v[], double a[]);
+    // position, velocity, acceleration, mass, sigma, epsilon
+    void pre_force(double r[], double v[], double a[], 
+                   double m, double s, double e);
+    std::vector<double> get_force(double r[], double v[], double a[], 
+                                  double m, double s, double e);
 
     //Force specific things
     double flekkoyGWeight(double y, double ymin, double ymax);
@@ -187,18 +203,29 @@ public:
     CPLForceDrag(int nd, int icell, int jcell, int kcell);
 
     //Pre force collection and get force calculation
-    void pre_force(double x[], double v[], double a[]);
-    std::vector<double> get_force(double r[], double v[], double a[]);
+    // position, velocity, acceleration, mass, radius, interaction
+    void pre_force(double r[], double v[], double a[], 
+                   double m, double s, double e);
+    std::vector<double> get_force(double r[], double v[], double a[], 
+                                  double m, double s, double e);
 
     //Force specific things
     double drag_coefficient();
 
-    bool calc_preforce = false;
+    bool calc_preforce = true;
 
+    CPL::ndArray<double> nSums;
+    CPL::ndArray<double> eSums;
+    CPL::ndArray<double> FSums;
+
+private:
+
+    void initialisesums(CPL::ndArray<double> f);
+    void resetsums();
 };
 
 
-class CPLForceGranular : public CPLForce {
+class CPLForceGranular : public CPLForceDrag {
 
 public:
 
@@ -207,8 +234,11 @@ public:
     CPLForceGranular(int nd, int icell, int jcell, int kcell);
 
     //Pre force collection and get force calculation
-    void pre_force(double x[], double v[], double a[]);
-    std::vector<double> get_force(double r[], double v[], double a[]);
+    // position, velocity, acceleration, mass, radius, interaction
+    void pre_force(double r[], double v[], double a[], 
+                   double m, double s, double e);
+    std::vector<double> get_force(double r[], double v[], double a[], 
+                                  double m, double s, double e);
 
     //Force specific things
     double porousity_exponent(double Re);
@@ -217,10 +247,12 @@ public:
 
     bool calc_preforce = true;
 
-private:
-
     CPL::ndArray<double> vSums;
     CPL::ndArray<double> nSums;
+    CPL::ndArray<double> eSums;
+    CPL::ndArray<double> FSums;
+
+private:
 
     void initialisesums(CPL::ndArray<double> f);
     void resetsums();
