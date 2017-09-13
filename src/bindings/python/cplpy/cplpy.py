@@ -664,6 +664,8 @@ def prepare_config(tmpdir, test_dir, md_fname, cfd_fname):
 def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
              cfd_fname, cfd_args, md_params, cfd_params, err_msg, debug=False, mpirun="split"):
 
+    from distutils.spawn import find_executable
+    import sys
     parametrize_config(template_dir, config_params)
     #Save parameter dictonaries to be read by md/cfd codes
     cPickle.dump(md_params, open("md_params.dic", "wb"))
@@ -671,7 +673,19 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
     try:
         mdprocs = md_params["npx"] * md_params["npy"] * md_params["npz"]
         cfdprocs = cfd_params["npx"] * cfd_params["npy"] * cfd_params["npz"]
+        if find_executable("mpiexec") is None:
+            print("Error: mpiexec not found.")
+            sys.exit(1)
+        if find_executable(md_exec)is None:
+            print("Error: %s not found." % md_exec)
+            sys.exit(1)
+        if find_executable(cfd_exec)is None:
+            print("Error: %s not found." % cfd_exec)
+            sys.exit(1)
+
+            
         if os.path.exists(md_fname) and os.path.exists(cfd_fname):
+
             if mpirun == "port":
                 cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_args, 
                                 "& PID=$!;", "mpiexec", "-n", str(cfdprocs), 
