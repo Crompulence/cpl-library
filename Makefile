@@ -185,7 +185,7 @@ test-examples:
 	./examples/sendrecv_globcell/test_all_port.sh
 
 test-valgrind:
-	py.test2 -v  $(testdir)/valgrind
+	py.test -v  $(testdir)/valgrind
 	#./test/valgrind/debug_all.sh
 
 test-gtests: CPL_force_unittest
