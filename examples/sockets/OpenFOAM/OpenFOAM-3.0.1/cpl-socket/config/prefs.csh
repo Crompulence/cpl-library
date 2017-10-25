@@ -61,9 +61,10 @@ setenv WM_COMPILE_OPTION Opt
 #    WM_MPLIB = SYSTEMOPENMPI | OPENMPI | MPICH | MPICH-GM | HPMPI
 #               | GAMMA | MPI | QSMPI | SGIMPI | SYSTEMMPI
 # Modify the MPI_ROOT to the root folder of your mpi library i.e /opt/mpich3.2
-setenv MPI_ROOT ""
+set mpidir = `mpicc -show | sed -e 's/.*-I\([^ ]*\).*/\1/'`
+setenv MPI_ROOT `dirname $mpidir`
 setenv MPI_ARCH_INC "-I$MPI_ROOT/include"
-setenv MPI_ARCH_LIBS "-L$MPI_ROOT/lib -Wl,-rpath -Wl,/opt/mpich3.2-gcc4.9/lib -Wl,--enable-new-dtags -lmpi"
+setenv MPI_ARCH_LIBS "-L$MPI_ROOT/lib -Wl,-rpath -Wl,$MPI_ROOT/lib -Wl,--enable-new-dtags -lmpi"
 setenv MPI_ARCH_FLAGS ""
 setenv WM_MPLIB SYSTEMMPI
 

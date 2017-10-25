@@ -1,0 +1,52 @@
+LAMMPS_DIR =/home/es205/codes/coupling_codes/sediFoam/lammps-1Feb14/src
+/*LAMMPS_DIR = ../lammps-1Feb14/src*/
+CPP_DIRECTIVE = -std=c++11
+
+EXE_INC = \
+    $(CPP_DIRECTIVE) \
+    -I$(FOAM_CPL_SOCKET_SRC)/CPLSocketFOAM/lnInclude \
+    -I$lammpsFoamTurbulenceModels/include \
+    -I$(PWD)/include \
+    -I$(LAMMPS_DIR)/   \
+    -I$(LAMMPS_DIR)/GRANULAR   \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(MPI_ARCH_PATH)/include \
+    -I$(CPL_PATH)/include \
+    -I$(FOAM_SRC)/lagrangian/basic/lnInclude \
+    -I$(FOAM_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/cfdTools/incompressible \
+    -I$(LIB_SRC)/cfdTools/general/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude     \
+    -I$(LIB_SRC)/randomProcesses/lnInclude     \
+    -I$(LIB_SRC)/triSurface/lnInclude     \
+    -IchPressureGrad/lnInclude \
+    -I$(LIB_SRC)/transportModels \
+    -I$(LIB_SRC)/transportModels/incompressible/singlePhaseTransportModel \
+    -I$(LIB_SRC)/TurbulenceModels/turbulenceModels/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/incompressible/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/phaseIncompressible/lnInclude \
+    -IdragModels/lnInclude
+
+MPILIBS = -L$(MPI_ARCH_PATH)/lib -lmpifort -lmpicxx -Wl,-rpath -Wl,$(MPI_ARCH_PATH)/lib -Wl,--enable-new-dtags -lmpi
+FORTRANLIBS = -lgfortran 
+CPLLIBS = -L$(FOAM_CPL_SOCKET_LIBBIN) -lCPLSocketFOAM -L$(CPL_LIBRARY_PATH) -Wl,-rpath=$(CPL_LIBRARY_PATH) -lcpl
+
+EXE_LIBS = \
+    -lfiniteVolume \
+    -lblockMesh \
+    $(MPILIBS) \
+    $(FORTRANLIBS) \
+    $(CPLLIBS) 
+    -L$(FOAM_USER_LIBBIN) \
+    -lLagrangianInterfacialModels  \
+    -lfiniteVolume \
+    -lrandomProcesses \
+    -lmeshTools  \
+    -llagrangian \
+    -ltriSurface \
+    -lchPressureGrad-DEM \
+    -lincompressibleTransportModels \
+    -lturbulenceModels \
+    -lincompressibleTurbulenceModels \
+    -llammpsFoamTurbulenceModels \
+    -lstdc++

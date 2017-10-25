@@ -38,7 +38,7 @@ Description
 
 Author(s)
 
-    David Trevelyan
+    David Trevelyan, Edward Smith
 
 */
 #ifndef CPL_SOCKET_H_INCLUDED
@@ -49,12 +49,13 @@ Author(s)
 
 #include "mpi.h"
 #include "lammps.h"
-#include "cpl/CPL.h"
-#include "fix_cpl_force.h"
-#include "CPLSocketLAMMPS.h"
-#include "cpl/CPL_ndArray.h"
 #include "fix_ave_chunk.h"
 #include "region.h"
+
+#include "cpl/cpl.h"
+#include "cpl/CPL_ndArray.h"
+#include "cpl/CPL_force.h"
+#include "fix_cpl_force.h"
 
 typedef CPL::ndArray<double> arrayDoub;
 typedef std::shared_ptr<arrayDoub> shaPtrArrayDoub;
@@ -80,9 +81,11 @@ public:
 
     // Data preparation and communication 
     void packVelocity(const LAMMPS_NS::LAMMPS *lammps);
-    void sendVelocity();
+    void packGran (const LAMMPS_NS::LAMMPS *lammps);
+    void pack (const LAMMPS_NS::LAMMPS *lammps, int sendtype);
+    void send();
     void unpackBuf(const LAMMPS_NS::LAMMPS *lammps);
-    void receiveBuf();
+    void receive();
 
     // Useful information for main level program
     const MPI_Comm realmCommunicator() {return realmComm;}
@@ -92,13 +95,19 @@ public:
     // Clean up MPI/CPL communicators
     void finalizeComms();
 
-    void setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps); 
-    void setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps); 
+    void setupFixMDtoCFD(LAMMPS_NS::LAMMPS *lammps);
+    void setupFixCFDtoMD(LAMMPS_NS::LAMMPS *lammps, std::shared_ptr<std::string> forcetype);  
 
     // Fix that applies the momentum constrain
     FixCPLForce* cplfix;
 
-
+    //Bitwise mask coefficients
+    int const VEL = 1; // 2^0, bit 0
+    int const NBIN = 2;  // 2^1, bit 1
+    int const FORCE = 4;  // 2^2, bit 2
+    int const STRESS = 8;  // 2^3, bit 3
+    int const FORCECOEFF = 16;  // 2^4, bit 4
+    int const VOIDRATIO = 32;  // 2^5, bit 5
 
 private:
     
@@ -130,12 +139,12 @@ private:
     int cnstFCells[3];
 
     // Data to be sent/received with CPL-Library
-    arrayDoub sendVelocityBuff;
+    arrayDoub sendBuf;
     arrayDoub recvBuf;
-
 
     // Cell sizes
     double dx, dy, dz;
+
     //Appropriate region, compute and fix    
     class LAMMPS_NS::Region *cfdbcregion, *cplforceregion;
     class LAMMPS_NS::Compute *cfdbccompute;
@@ -149,7 +158,16 @@ private:
 
     // Internal routines
     void getCellTopology();
-    void allocateBuffers();
+    void allocateBuffers(const LAMMPS_NS::LAMMPS *lammps, int sendtype);
+
+    //Size of different possible passing variables
+    int const VELSIZE = 3;  // 3 velocity components
+    int const NBINSIZE = 1;  // 1 Number of molecules per bin
+    int const FORCESIZE = 3;  // 3 Force components
+    int const STRESSSIZE = 9;  // 9 Nine stress components
+    int const FORCECOEFFSIZE = 1;  // 1 Sum of force coefficients
+    int const VOIDRATIOSIZE = 1;  // 1 Void ratio
+
 };
 
 #endif // CPL_SOCKET_H_INCLUDED

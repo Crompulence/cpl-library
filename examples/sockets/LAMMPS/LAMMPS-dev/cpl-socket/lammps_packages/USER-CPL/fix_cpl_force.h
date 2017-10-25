@@ -12,31 +12,26 @@ FixStyle(cpl/force, FixCPLForce)
 #include "fix.h"
 #include "cpl/cpl.h"
 #include "cpl/CPL_ndArray.h"
+#include "cpl/CPL_force.h"
 
 class FixCPLForce : public LAMMPS_NS::Fix {
 
 public:
 
-    FixCPLForce 
-    (
-        class LAMMPS_NS::LAMMPS *lammps,
-        int narg,
-        char **arg
-    );
+    FixCPLForce(class LAMMPS_NS::LAMMPS *lammps, int narg, char **arg);
     int setmask();
     void setup (int vflag); 
     void post_force (int vflag);
     void updateBuf (CPL::ndArray<double>& stress);
     void updateProcPortion (int inputPortion[]);
+    std::shared_ptr<std::string> forcetype;
+    std::unique_ptr<CPLForce> fxyz;
 
 private:
 
 	CPL::ndArray<double>* cfdBuf;
     std::vector<int> procPortion;
-    double flekkoyGWeight (double y, double ymin, double ymax);
 
-    CPL::ndArray<double> gSums; // Sum of Flekkøy g weights
-    CPL::ndArray<double> nSums; // Sum of number of particles
 };
 
 #endif
