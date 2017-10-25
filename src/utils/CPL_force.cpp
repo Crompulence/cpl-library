@@ -391,9 +391,9 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], 
         FSums(i, cell[0], cell[1], cell[2]) += f[i];
     }
 
-    std::cout << "Drag Force "  
-              << r[2] << " " << v[0] << " " << Ui[0] << " "  << v[1] << " " << Ui[1] << " " << v[2] << " " << Ui[2] << " " 
-              << divStress[2] << " " << gradP[2] << " " << f[2] << " "  << std::endl;
+    //std::cout << "Drag Force "  
+    //          << r[2] << " " << v[0] << " " << Ui[0] << " "  << v[1] << " " << Ui[1] << " " << v[2] << " " << Ui[2] << " " 
+    //          << divStress[2] << " " << gradP[2] << " " << f[2] << " "  << std::endl;
 
     return f;
 }
