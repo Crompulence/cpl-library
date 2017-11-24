@@ -37,8 +37,6 @@ Description
 
 int main(int argc, char *argv[])
 {
-
-
     
     #include "setRootCase.H"
     #include "createTime.H"
@@ -56,11 +54,17 @@ int main(int argc, char *argv[])
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+	// Initial communication to initialize domains
+    CPL.pack(U, p, nu, mesh, CPL.STRESS);
+    CPL.send();
+    CPL.recvVelocity();
+    CPL.unpackVelocity(U, mesh);
+
     Info<< "\nStarting time loop\n" << endl;
     while (runTime.loop())
     {
 
-        CPL.pack(U, nu, mesh, CPL.PACKVELONLY);
+        CPL.pack(U, p, nu, mesh, CPL.STRESS);
         CPL.send();
         CPL.recvVelocity();
         CPL.unpackVelocity(U, mesh);

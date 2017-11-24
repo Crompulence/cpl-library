@@ -1,0 +1,1 @@
+EXE = $(FOAM_CPL_SOCKET_BIN)/CPLporousIcoFoam

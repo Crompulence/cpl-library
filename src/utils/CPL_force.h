@@ -217,6 +217,7 @@ public:
     CPL::ndArray<double> nSums;
     CPL::ndArray<double> eSums;
     CPL::ndArray<double> FSums;
+    CPL::ndArray<double> FcoeffSums;
 
 private:
 

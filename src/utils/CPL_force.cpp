@@ -321,16 +321,20 @@ void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
 
     int FsumsShape[4] = {3, arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     FSums.resize(4, FsumsShape); // Sum of force on particles  
+
+    int FcoeffSumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    FcoeffSums.resize(3, FcoeffSumsShape); // Sum of porosity of particles  
+
     resetsums();
 }
 
 void CPLForceDrag::resetsums(){
-    nSums = 0.0; eSums = 0.0; FSums=0.0;
+    nSums = 0.0; eSums = 0.0; FSums=0.0; FcoeffSums=0.0;
 }
 
 //Arbitary constant
 double CPLForceDrag::drag_coefficient() {
-    return 0.00001;
+    return 0.0000001;
 }
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
@@ -348,7 +352,7 @@ void CPLForceDrag::pre_force(double r[], double v[], double a[], double m, doubl
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
 std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], double m, double s, double e){
 
-    std::vector<double> f(3), Ui(3), Ui_v(3);
+    std::vector<double> f(3), Ui(3), Ui_v(3), gradP(3), divStress(4);
     std::vector<int> cell = get_cell(r);
     CPL::ndArray<double> array = fieldptr->get_array();
 
@@ -356,19 +360,40 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], 
     for (int i=0; i<3; i++){
         Ui[i] = array(i, cell[0], cell[1], cell[2]);
         Ui_v[i] = Ui[i]-v[i];
+        gradP[i] = array(i+3, cell[0], cell[1], cell[2]);
+        divStress[i] = array(i+6, cell[0], cell[1], cell[2]);
+
+//        std::cout << "U array "  
+//                  << cell[0] << " " << cell[1] << " " << cell[2] << " " 
+//                  << i << " " << array(i, cell[0], cell[1], cell[2]) << std::endl;
     }
 
     double Cd = drag_coefficient();
+    double cellvolume = fieldptr->dV;
+    double volume = (4./3.)*M_PI*pow(s,3); 
+    double eps = 1.0 - eSums(cell[0], cell[1], cell[2])/cellvolume;
+
+    // Add sum of coefficients of forces 
+    // Needed if you want to split implicit/explicit terms for
+    // improved numerical stability according to 
+    // Xiao H., Sun J. (2011) Algorithms in a Robust Hybrid
+    // CFD-DEM Solver for Particle-Laden Flows, 
+    // Commun. Comput. Phys. 9, 2, 297
+    FcoeffSums (cell[0], cell[1], cell[2]) += Cd;
 
     //Calculate force
     for (int i = 0; i < 3; ++i){
+        //Just drag force here
         f[i] = Cd*Ui_v[i];
+        //Include pressure and stress
+        //f[i] += volume*(divStress[i]-gradP[i]);
+        //Add to sum of forces
         FSums(i, cell[0], cell[1], cell[2]) += f[i];
     }
 
-//    std::cout << "Drag Force "  
-//              << r[2] << " " << v[2] << " "
-//              << f[2] << " " << Ui[2] << std::endl;
+    std::cout << "Drag Force "  
+              << r[2] << " " << v[0] << " " << Ui[0] << " "  << v[1] << " " << Ui[1] << " " << v[2] << " " << Ui[2] << " " 
+              << divStress[2] << " " << gradP[2] << " " << f[2] << " "  << std::endl;
 
     return f;
 }
@@ -379,6 +404,8 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], 
 //                                                               //
 ///////////////////////////////////////////////////////////////////
 
+
+// Add Ergun (1952) and Di Felice (1994) here
 
 
 //Constructor using cells
@@ -448,6 +475,7 @@ std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a
     CPL::ndArray<double> array = fieldptr->get_array();
 
     double radius = s;
+    double d = 2.0*radius;
     double volume = (4./3.)*M_PI*pow(radius,3); 
 
     //Porosity e is cell volume - sum in volume
@@ -455,7 +483,7 @@ std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a
     double eps = 1.0 - eSums(cell[0], cell[1], cell[2])/cellvolume;
     double rho = 1.0; //m/volume;
     double mu = 1.0;
-    double d = 2.0*radius;
+
     //Should use std::vector<double> Ui(3) = field.interpolate(r);
     for (int i=0; i<3; i++){
         Ui[i] = array(i, cell[0], cell[1], cell[2]);

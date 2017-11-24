@@ -363,7 +363,8 @@ module coupler_module
         md_cfd_match_cellsize, &
         testval
     logical,protected :: &
-        staggered_averages(3) = (/.false.,.false.,.false./)
+        staggered_averages(3) = (/.false.,.false.,.false./), &
+        CPL_full_overlap
 
     ! Communications style
     integer, protected :: &
@@ -799,7 +800,7 @@ end subroutine CPL_finalize
 subroutine read_coupler_input()
     implicit none
 
-    integer :: infileid
+    integer :: infileid, readin
     logical :: found
 
     !Check all file ids until an unused one is found
@@ -814,6 +815,63 @@ subroutine read_coupler_input()
     open(infileid,file='cpl/COUPLER.in',status="old",action="read", &
                   form="formatted")
 
+    !Possible to specify full overlap so no need for other details
+    call locate(infileid, 'FULL_OVERLAP', found)
+    if (found) then
+        read(infileid,*, IOSTAT=readin) CPL_full_overlap
+    else
+        CPL_full_overlap = .false.
+
+        call locate(infileid, 'OVERLAP_EXTENTS', found)
+        if (found) then
+            read(infileid,*) icmin_olap
+            read(infileid,*) icmax_olap
+            read(infileid,*) jcmin_olap
+            read(infileid,*) jcmax_olap
+            read(infileid,*) kcmin_olap
+            read(infileid,*) kcmax_olap
+        else
+            call error_abort("Ovelap extents unspecified in coupler input file.")
+        end if
+
+        call locate(infileid, 'CONSTRAINT_INFO', found)
+        if (found) then
+            read(infileid,*) constraint_algo
+            if (constraint_algo .ne. 0) then
+                read(infileid,*) constraint_CVflag
+                read(infileid,*) icmin_cnst
+                read(infileid,*) icmax_cnst
+                read(infileid,*) jcmin_cnst
+                read(infileid,*) jcmax_cnst
+                read(infileid,*) kcmin_cnst
+                read(infileid,*) kcmax_cnst
+            endif
+        else
+            call error_abort("CONSTRAINT_INFO not specified in coupler input file")
+        end if
+
+        call locate(infileid, 'BOUNDARY_EXTENTS', found)
+        if (found) then
+            boundary_algo = 1
+            read(infileid,*) icmin_bnry
+            read(infileid,*) icmax_bnry
+            read(infileid,*) jcmin_bnry
+            read(infileid,*) jcmax_bnry
+            read(infileid,*) kcmin_bnry
+            read(infileid,*) kcmax_bnry
+        else
+            boundary_algo = 0
+            icmin_bnry = VOID
+            icmax_bnry = VOID
+            jcmin_bnry = VOID
+            jcmax_bnry = VOID
+            kcmin_bnry = VOID
+            kcmax_bnry = VOID
+        end if
+
+    endif
+
+
     call locate(infileid, 'DENSITY_CFD', found)
     if (found) then
         read(infileid,*) density_cfd
@@ -821,54 +879,6 @@ subroutine read_coupler_input()
         call error_abort("Density not specified in coupler input file.")
     end if
     
-    call locate(infileid, 'CONSTRAINT_INFO', found)
-    if (found) then
-        read(infileid,*) constraint_algo
-        if (constraint_algo .ne. 0) then
-            read(infileid,*) constraint_CVflag
-            read(infileid,*) icmin_cnst
-            read(infileid,*) icmax_cnst
-            read(infileid,*) jcmin_cnst
-            read(infileid,*) jcmax_cnst
-            read(infileid,*) kcmin_cnst
-            read(infileid,*) kcmax_cnst
-        endif
-    else
-        call error_abort("CONSTRAINT_INFO not specified in coupler input file")
-    end if
-
-    call locate(infileid, 'OVERLAP_EXTENTS', found)
-    if (found) then
-        read(infileid,*) icmin_olap
-        read(infileid,*) icmax_olap
-        read(infileid,*) jcmin_olap
-        read(infileid,*) jcmax_olap
-        read(infileid,*) kcmin_olap
-        read(infileid,*) kcmax_olap
-    else
-        call error_abort("Ovelap extents unspecified in coupler input file.")
-    end if
-
-
-    call locate(infileid, 'BOUNDARY_EXTENTS', found)
-    if (found) then
-        boundary_algo = 1
-        read(infileid,*) icmin_bnry
-        read(infileid,*) icmax_bnry
-        read(infileid,*) jcmin_bnry
-        read(infileid,*) jcmax_bnry
-        read(infileid,*) kcmin_bnry
-        read(infileid,*) kcmax_bnry
-    else
-        boundary_algo = 0
-        icmin_bnry = VOID
-        icmax_bnry = VOID
-        jcmin_bnry = VOID
-        jcmax_bnry = VOID
-        kcmin_bnry = VOID
-        kcmax_bnry = VOID
-    end if
-
     call locate(infileid, 'TIMESTEP_RATIO', found)
     if (found) then
         read(infileid,*) timestep_ratio !TODO name change
@@ -1377,6 +1387,21 @@ subroutine coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, ncxyz
     call MPI_bcast(buf,6,MPI_INTEGER,source,CPL_INTER_COMM,ierr) !Send
     deallocate(buf)
 
+    !Set overlap, constraint and boundary to no. CFD cells if full overlap 
+    if (CPL_full_overlap) then
+        icmin_olap = icmin; icmax_olap = icmax
+        jcmin_olap = jcmin; jcmax_olap = jcmax
+        kcmin_olap = kcmin; kcmax_olap = kcmax
+        
+        icmin_cnst = icmin; icmax_cnst = icmax
+        jcmin_cnst = jcmin; jcmax_cnst = jcmax 
+        kcmin_cnst = kcmin; kcmax_cnst = kcmax
+
+        icmin_bnry = icmin; icmax_bnry = icmax
+        jcmin_bnry = jcmin; jcmax_bnry = jcmax 
+        kcmin_bnry = kcmin; kcmax_bnry = kcmax
+    endif
+
     ! Store & send global number of cells in CFD
     ncx = ncxyz(1); ncy = ncxyz(2); ncz = ncxyz(3)
     call MPI_bcast(ncxyz,3,MPI_INTEGER,source,CPL_INTER_COMM,ierr)              !Send
@@ -1747,6 +1772,21 @@ subroutine coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain, xyz_orig)
     kcmin = buf(5); kcmax = buf(6)
     deallocate(buf)
 
+    !Set overlap, constraint and boundary to no. CFD cells if full overlap 
+    if (CPL_full_overlap) then
+        icmin_olap = icmin; icmax_olap = icmax
+        jcmin_olap = jcmin; jcmax_olap = jcmax
+        kcmin_olap = kcmin; kcmax_olap = kcmax
+        
+        icmin_cnst = icmin; icmax_cnst = icmax
+        jcmin_cnst = jcmin; jcmax_cnst = jcmax 
+        kcmin_cnst = kcmin; kcmax_cnst = kcmax
+
+        icmin_bnry = icmin; icmax_bnry = icmax
+        jcmin_bnry = jcmin; jcmax_bnry = jcmax 
+        kcmin_bnry = kcmin; kcmax_bnry = kcmax
+    endif
+
     ! Receive & Store array of global number of cells in CFD
     allocate(buf(3))
     call MPI_bcast(buf, 3, MPI_INTEGER, 0, CPL_INTER_COMM,ierr) !Receive
@@ -2109,15 +2149,23 @@ subroutine get_md_cell_ranges()
     end do  
 
     ! - - y - -
-    ncy_md   = nint(yL_md/dy)
-    ncy_mdonly = ncy_md - ncy_olap
-    ncyP_md = ncy_md / npy_md
-    olap_jmin_mdproc = npy_md - ceiling(dble(ncy_olap)/dble(ncyP_md)) + 1
-    do n = olap_jmin_mdproc,npy_md
-        jcPmax_md(n) = n * ncyP_md - ncy_mdonly
-        jcPmin_md(n) = jcPmax_md(n) - ncyP_md + 1
-        if (jcPmin_md(n).le.0) jcPmin_md(n) = 1
-    end do  
+    if (CPL_full_overlap) then
+        ncyl = ceiling(dble(ncy)/dble(npy_md))
+        do n=1,npy_md
+            jcPmax_md(n) = n * ncyl
+            jcPmin_md(n) = jcPmax_md(n) - ncyl + 1
+        end do
+    else
+        ncy_md   = nint(yL_md/dy)
+        ncy_mdonly = ncy_md - ncy_olap
+        ncyP_md = ncy_md / npy_md
+        olap_jmin_mdproc = npy_md - ceiling(dble(ncy_olap)/dble(ncyP_md)) + 1
+        do n = olap_jmin_mdproc,npy_md
+            jcPmax_md(n) = n * ncyP_md - ncy_mdonly
+            jcPmin_md(n) = jcPmax_md(n) - ncyP_md + 1
+            if (jcPmin_md(n).le.0) jcPmin_md(n) = 1
+        end do  
+    endif
 
     ! - - z - -
     nczl = ceiling(dble(ncz)/dble(npz_md))
@@ -2226,7 +2274,11 @@ subroutine get_overlap_blocks()
     endif
 
     nolapsx = nint( dble( npx_md ) / dble( npx_cfd ) )
-    nolapsy = ceiling ( yL_olap / yLl_md ) 
+    if (CPL_full_overlap) then
+        nolapsy = nint( dble( npy_md ) / dble( npy_cfd ) )
+    else
+        nolapsy = ceiling ( yL_olap / yLl_md ) 
+    endif
     nolapsz = nint( dble( npz_md ) / dble( npz_cfd ) )
 
     !Get cartesian coordinate of overlapping md cells & cfd cells
@@ -2245,22 +2297,30 @@ subroutine get_overlap_blocks()
     end do
 
     ! - - y - -
-    yLl_cfd = yL_cfd/npy_cfd
-    endproc = ceiling(yL_olap/yLl_cfd)
-    if (endproc .gt. npy_cfd) then
-        print*, "get_overlap_blocks warning - in get_overlap_blocks"
-        print*, "-- top processor in CFD greater than number of processors."
-        print*, "This may be correct if some MD domain exists above CFD."
-        endproc = npy_cfd
-        nolapsy = 1
-        print*, endproc, nolapsy
+    if (CPL_full_overlap) then
+        do n = 1,npy_cfd
+        do i = 1,nolapsy    
+            cfd_jcoord2olap_md_jcoords(n,i) = (n-1)*nolapsy + i
+        end do
+        end do
+    else
+        yLl_cfd = yL_cfd/npy_cfd
+        endproc = ceiling(yL_olap/yLl_cfd)
+        if (endproc .gt. npy_cfd) then
+            print*, "get_overlap_blocks warning - in get_overlap_blocks"
+            print*, "-- top processor in CFD greater than number of processors."
+            print*, "This may be correct if some MD domain exists above CFD."
+            endproc = npy_cfd
+            nolapsy = 1
+            print*, endproc, nolapsy
+        endif
+        do n = 1,endproc
+        do i = 1,nolapsy
+            cfd_jcoord2olap_md_jcoords(n,i) =   (n-1)*nolapsy + i &
+                                              + (npy_md - nolapsy)
+        end do
+        end do
     endif
-    do n = 1,endproc
-    do i = 1,nolapsy
-        cfd_jcoord2olap_md_jcoords(n,i) =   (n-1)*nolapsy + i &
-                                          + (npy_md - nolapsy)
-    end do
-    end do
 
 
     ! - - z - -

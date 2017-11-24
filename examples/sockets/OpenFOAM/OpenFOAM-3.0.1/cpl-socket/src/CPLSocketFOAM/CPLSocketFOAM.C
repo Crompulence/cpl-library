@@ -13,7 +13,7 @@
 
                          C P L  -  L I B R A R Y 
 
-           Copyright (C) 2012-2017 Edward Smith & David Trevelyan
+           Copyright (C) 2012-2017 Edward Smith, Eduardo Ramos-Fernandez  & David Trevelyan
 
 License
 
@@ -41,12 +41,19 @@ Description
 #include "blockMesh.H"
 #include <sstream>
 #include <unistd.h>
-
+#include <bitset>
+#include "interpolation.H"
+#include "PstreamGlobals.H" 
 
 // Initialise CFD realm communicator
 void CPLSocketFOAM::initComms (int& argc, char**& argv) {
 
+    int flag = 0;
+    int ierr = MPI_Initialized(&flag);
+    if (flag)
+		MPI_Init(&argc, &argv);
     CPL::init (CPL::cfd_realm, realmComm);
+	Foam::PstreamGlobals::CPLRealmComm = realmComm;
     MPI_Comm_rank (realmComm, &rankRealm);
 
 }
@@ -95,11 +102,17 @@ void CPLSocketFOAM::initCFD(const Foam::Time &runTime, const Foam::fvMesh &mesh)
 
     MPI_Comm_rank (cartComm, &rankCart);
 
-
     // Prepare inputs for CPL::cfd_init 
     double dt_cfd = runTime.deltaTValue();
-    int nsteps = nint ((runTime.endTime().value() - \
-                        runTime.startTime().value()) / dt_cfd);
+    double st = runTime.startTime().value();
+    double et = runTime.endTime().value();
+    if (((et-st)/dt_cfd)>1e8){
+        FatalErrorIn("CPLSocketFOAM::initCFD()")
+            << " Number of steps " << (et-st)/dt_cfd
+            << " too large for single integer, Aborting." << exit(FatalError);
+    } 
+    int nsteps = nint((et-st)/dt_cfd);
+
     Foam::IOdictionary blockMeshDict(Foam::IOobject("polyMesh/blockMeshDict", 
 									 runTime.time().constant(), runTime,
                         			 IOobject::MUST_READ, 
@@ -128,9 +141,8 @@ void CPLSocketFOAM::initCFD(const Foam::Time &runTime, const Foam::fvMesh &mesh)
     double xyz_orig[3] = {0.0, 0.0, 0.0};
 
     // Initialise CPL library
-	//CPL::set_timing(0, nsteps, dt_cfd);
+	CPL::set_timing(0, nsteps, dt_cfd);
     CPL::setup_cfd (cartComm, xyzL, xyz_orig, ncxyz);
-
     getCellTopology();
 
     // Store some values from CPL that are useful later
@@ -169,64 +181,66 @@ void CPLSocketFOAM::getCellTopology() {
 void CPLSocketFOAM::allocateBuffers(int sendtype) {
 
     //Check what is to be packed and sent
-
-    // 3,9 or 12-component for every local cell
-    int sendShape[4] = {0, cnstFCells[0], cnstFCells[1], cnstFCells[2]};
-
-    if (sendtype == PACKVELONLY)
-    {
-        sendShape[0] = 3;
+    int packsize=0;
+    if ((sendtype & VEL) == VEL){
+        packsize += VELSIZE;
     }
-    else if (sendtype == PACKSTRESSONLY)
-    {
-        sendShape[0] = 9;
+    if ((sendtype & PRESSURE) == PRESSURE){
+        packsize += PRESSURESIZE;
     }
-    else if (sendtype == PACKVELSTRESS)
-    {
-        sendShape[0] = 12;
+    if ((sendtype & GRADPRESSURE) == GRADPRESSURE){
+        packsize += GRADPRESSURESIZE;
     }
-    else if (sendtype == DEBUG)
-        sendShape[0] = 3;
-    else
-    {
-        FatalErrorIn
-        (
-            "CPLSocketFOAM::pack()"
-        )
-            << " sendtype flag not of known type " << sendtype << ". "
-               " Aborting."
-            << exit(FatalError);
+    if ((sendtype & STRESS) == STRESS){
+        packsize += STRESSSIZE;
+    }
+    if ((sendtype & DIVSTRESS) == DIVSTRESS){
+        packsize += DIVSTRESSSIZE;
     }
 
+    // Components for every local cell
+    int sendShape[4] = {packsize, cnstFCells[0], cnstFCells[1], cnstFCells[2]};
     sendBuf.resize(4, sendShape);
 
-    // LAMMPS computed velocity field
-    int recvVelocityShape[4] = {4, velBCCells[0], velBCCells[1], velBCCells[2]};
-    recvVelocityBuff.resize(4, recvVelocityShape);
+    if (sendtype > 16){
+        FatalErrorIn
+        (
+            "CPLSocketFOAM::allocateBuffers()"
+        )
+            << " sendtype bit flag unknown type "
+            << sendtype << " Aborting." << exit(FatalError);
+    }
 
-    // LAMMPS olap size field
-    int recvShape[4] = {4, olapCells[0], olapCells[1], olapCells[2]};
-    recvBuf.resize(4, recvShape);
 }  
     
 // Packs the 9 components of the stress-tensor to 
 // the socket's CPL::ndArray storage.
 void CPLSocketFOAM::pack(volVectorField &U, 
+                         volScalarField &p, 
                          dimensionedScalar &nu, 
                          fvMesh &mesh, 
                          int sendtype)
 {
 
-    // Evaluate the stress tensor sigma at all local cells (forget pressure for
-    // now)
-    Foam::dimensionedScalar mu(CPLDensity*nu);
-	Foam::volSymmTensorField sigma(nu*2*dev(symm(fvc::grad(U))));
+    // Evaluate gradient of pressure
+    //if ((sendtype & GRADPRESSURE) == GRADPRESSURE)
+        Foam::volVectorField gradP(fvc::grad(p));
+
+    // Evaluate the stress tensor sigma at all local cells
+    //if (((sendtype & STRESS) == STRESS) | 
+    //    ((sendtype & DIVSTRESS) == DIVSTRESS)) {
+        Foam::dimensionedScalar mu(CPLDensity*nu);
+	    Foam::volSymmTensorField sigma(nu*2*dev(symm(fvc::grad(U))));
+    //}
+
+    // Evaluate divergence of sigma
+    //if ((sendtype & DIVSTRESS) == DIVSTRESS)
+        Foam::volVectorField divsigma(fvc::div(sigma));
+
+    //Foam::volTensorField Ei = tensor::one;
 
     //Reallocate buffer depending on send type
     allocateBuffers(sendtype);
-
-    //Foam::volTensorField gradU(fvc::grad(U));
-    //Foam::volTensorField sigma(mu*(gradU + gradU.T()));
 
 	if (CPL::is_proc_inside(cnstFPortion.data())) {
 
@@ -252,68 +266,72 @@ void CPLSocketFOAM::pack(volVectorField &U,
 //                            globalPos[0], globalPos[1], globalPos[2]);
 					if (cell != -1) {
 
-				        if (sendtype == PACKVELONLY)
+                        int npack = 0;
+                        if ((sendtype & VEL) == VEL)
 				        {
 				            // Get value of velocity 3D
-				            sendBuf(0,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].x();
-				            sendBuf(1,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].y();
-				            sendBuf(2,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].z();
-
-//		                    printf("vel %d %d %d %4.2f %4.2f %4.2f  \n", loc_cell[0],loc_cell[1],loc_cell[2], 
-//		                                                       sendBuf(0,loc_cell[0],loc_cell[1],loc_cell[2]), 
-//                                                             sendBuf(1,loc_cell[0],loc_cell[1],loc_cell[2]), 
-//                                                             sendBuf(2,loc_cell[0],loc_cell[1],loc_cell[2]));
+				            sendBuf(npack+0,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].x();
+				            sendBuf(npack+1,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].y();
+				            sendBuf(npack+2,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].z();
+                            npack += VELSIZE;
 				        }
-				        else if (sendtype == PACKSTRESSONLY)
+
+                        if ((sendtype & PRESSURE) == PRESSURE)
+				        {
+				            // Store value of gradient pressure
+				            sendBuf(npack+0,loc_cell[0],loc_cell[1],loc_cell[2]) = p[cell];
+                            npack += PRESSURESIZE;
+				        }
+
+                        if ((sendtype & GRADPRESSURE) == GRADPRESSURE)
+				        {
+				            // Store value of gradient pressure
+				            sendBuf(npack+0,loc_cell[0],loc_cell[1],loc_cell[2]) = gradP[cell].x();
+				            sendBuf(npack+1,loc_cell[0],loc_cell[1],loc_cell[2]) = gradP[cell].y();
+				            sendBuf(npack+2,loc_cell[0],loc_cell[1],loc_cell[2]) = gradP[cell].z();
+                            npack += GRADPRESSURESIZE;
+				        }
+
+                        if ((sendtype & STRESS) == STRESS)
 				        {
 				            // Get value of stress 9D by interpolating
-				            sendBuf(0,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xx();
-				            sendBuf(1,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
-				            sendBuf(2,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
-				            sendBuf(3,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
-				            sendBuf(4,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yy();
-				            sendBuf(5,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
-				            sendBuf(6,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
-				            sendBuf(7,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
-				            sendBuf(8,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zz();
-
-		//                    printf("stress %d %d %d %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f \n",  
-        //                            loc_cell[0],loc_cell[1],loc_cell[2], 
-		//                            sendBuf(0,loc_cell[0],loc_cell[1],loc_cell[2]), 
-        //                            sendBuf(1,loc_cell[0],loc_cell[1],loc_cell[2]), 
-        //                            sendBuf(2,loc_cell[0],loc_cell[1],loc_cell[2]), 
-		//                            sendBuf(3,loc_cell[0],loc_cell[1],loc_cell[2]), 
-        //                            sendBuf(4,loc_cell[0],loc_cell[1],loc_cell[2]), 
-        //                            sendBuf(5,loc_cell[0],loc_cell[1],loc_cell[2]), 
-		//                            sendBuf(6,loc_cell[0],loc_cell[1],loc_cell[2]), 
-        //                            sendBuf(7,loc_cell[0],loc_cell[1],loc_cell[2]), 
-        //                            sendBuf(8,loc_cell[0],loc_cell[1],loc_cell[2]));
-
+				            sendBuf(npack+0,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xx();
+				            sendBuf(npack+1,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
+				            sendBuf(npack+2,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
+				            sendBuf(npack+3,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
+				            sendBuf(npack+4,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yy();
+				            sendBuf(npack+5,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
+				            sendBuf(npack+6,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
+				            sendBuf(npack+7,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
+				            sendBuf(npack+8,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zz();
+                            npack += STRESSSIZE;
 				        }
-				        else if (sendtype == PACKVELSTRESS)
+
+                        if ((sendtype & DIVSTRESS) == DIVSTRESS)
 				        {
 				            // Get value of velocity 3D
-				            sendBuf(0,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].x();
-				            sendBuf(1,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].y();
-				            sendBuf(2,loc_cell[0],loc_cell[1],loc_cell[2]) = U[cell].z();
+				            sendBuf(npack+0,loc_cell[0],loc_cell[1],loc_cell[2]) = divsigma[cell].x();
+				            sendBuf(npack+1,loc_cell[0],loc_cell[1],loc_cell[2]) = divsigma[cell].y();
+				            sendBuf(npack+2,loc_cell[0],loc_cell[1],loc_cell[2]) = divsigma[cell].z();
+                            npack += DIVSTRESSSIZE;
 
-				            // Get value of stress 9D by interpolating
-				            sendBuf(3,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xx();
-				            sendBuf(4,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
-				            sendBuf(5,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
-				            sendBuf(6,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xy();
-				            sendBuf(7,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yy();
-				            sendBuf(8,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
-				            sendBuf(9,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].xz();
-				            sendBuf(10,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].yz();
-				            sendBuf(11,loc_cell[0],loc_cell[1],loc_cell[2]) = sigma[cell].zz();
 				        }
-				        else if (sendtype == DEBUG)
+
+				        if (sendtype == DEBUG)
 				        {
 				            sendBuf(0,loc_cell[0],loc_cell[1],loc_cell[2]) = globalPos[0];
 				            sendBuf(1,loc_cell[0],loc_cell[1],loc_cell[2]) = globalPos[1];
 				            sendBuf(2,loc_cell[0],loc_cell[1],loc_cell[2]) = globalPos[2];
+                            npack = 3;
 				        }
+
+                        //Check we have packed array correctly
+                        if (npack != sendBuf.shapeData()[0]){ 
+		                    FatalErrorIn ( "CPLSocketFOAM::pack()")
+		                        << " sendtype mask error " << sendtype << ". "
+		                           " Aborting."
+		                        << exit(FatalError);
+                        }
 
 					}
 					else
@@ -322,9 +340,9 @@ void CPLSocketFOAM::pack(volVectorField &U,
 									") is outside the mesh for whatever reason! - Cell: " << 
 									cell << std::endl;
 
-             }
+                 }
+            }
         }
-    }
 
 	}
 }
@@ -339,6 +357,7 @@ double CPLSocketFOAM::unpackVelocity(volVectorField &U, fvMesh &mesh) {
 
 	if (CPL::is_proc_inside(velBCPortion.data())) { 
 
+		// TODO: Make this a utility general function that can be used on buffers
 		if (CPL::get<int>("cpl_cfd_bc_slice")) {
 
 		    Foam::Info << "CPL_CFD_BC_SLICE is on: averaging CFD recvVelocity "
@@ -396,14 +415,6 @@ double CPLSocketFOAM::unpackVelocity(volVectorField &U, fvMesh &mesh) {
 	        CPL::map_coord2cell(facex, facey, facez, glob_cell);
             glob_cell[1] += 1; // Add one as boundary outside overlap by construction
 	        bool valid_cell = CPL::map_glob2loc_cell(velBCPortion.data(), glob_cell, loc_cell);
-
-//            Foam::Info << " CPLSocketFOAM " << rankRealm << " " << faceI << " " << valid_cell << " " 
-//                     << glob_cell[0] << " " << glob_cell[1] << " " << glob_cell[2] << " "
-//                     << loc_cell[0] << " " << loc_cell[1] << " " << loc_cell[2] << " "
-//                     << facex << " " <<   facey<< " " <<  facez << " " 
-//                     << recvVelocityBuff(0, loc_cell[0], loc_cell[1], loc_cell[2]) << " " << 
-//                        recvVelocityBuff(1, loc_cell[0], loc_cell[1], loc_cell[2]) << " " << 
-//                        recvVelocityBuff(2, loc_cell[0], loc_cell[1], loc_cell[2]) << Foam::endl;
 
             if (valid_cell) {
 
@@ -474,13 +485,23 @@ volVectorField CPLSocketFOAM::divideFieldsVectorbyScalar(volVectorField &F, volS
                 Foam::point closestCellCentre(glob_pos[0]+0.5*dx, glob_pos[1]+0.5*dy, glob_pos[2]+0.5*dz);
                 Foam::label cell = meshSearcher->findNearestCell(closestCellCentre);
 
+//                Foam::Info << "Divide F " << cell << " " << F[cell].x()
+//                           << " " << F[cell].y() << " " << F[cell].z() 
+//                           << " " << eps[cell] << Foam::endl;
+
                 if (eps[cell] > 1e-6) {
                     F[cell].x() = F[cell].x()/eps[cell];
                     F[cell].y() = F[cell].y()/eps[cell];
                     F[cell].z() = F[cell].z()/eps[cell];
                 } else {
+                    //Set force to "infinite" value
+//                    F[cell].x() = 1e5;
+//                    F[cell].y() = 1e5;
+//                    F[cell].z() = 1e5;
+
 		            FatalErrorIn ( "CPLSocketFOAM::divideFieldsVectorbyScalar()")
-		                     << "Porosity is zero "<< cell << " " << eps[cell] 
+		                    << "Porosity is zero "<< cell << " " 
+                            << ix << " " << iy << " " << iz << " " << eps[cell] 
                             << " " << F[cell].x() << " " << F[cell].y() 
                             << " " << F[cell].z() << exit(FatalError);
                 }
@@ -502,6 +523,10 @@ void CPLSocketFOAM::send()
 // Receives buffer from overlapping MD processes.
 void CPLSocketFOAM::recv()
 {
+    // LAMMPS olap size field
+    int recvShape[4] = {4, olapCells[0], olapCells[1], olapCells[2]};
+    recvBuf.resize(4, recvShape);
+
     CPL::recv(recvBuf.data(), recvBuf.shapeData(), olapPortion.data());
 }
 
@@ -515,6 +540,10 @@ void CPLSocketFOAM::sendStress()
 // Receives 3 components of the velocity vector from overlapping MD processes.
 void CPLSocketFOAM::recvVelocity()
 {
+    // LAMMPS computed fields
+    int recvVelocityShape[4] = {4, velBCCells[0], velBCCells[1], velBCCells[2]};
+    recvVelocityBuff.resize(4, recvVelocityShape);
+
     CPL::recv(recvVelocityBuff.data(), recvVelocityBuff.shapeData(), 
               velBCPortion.data());
 }

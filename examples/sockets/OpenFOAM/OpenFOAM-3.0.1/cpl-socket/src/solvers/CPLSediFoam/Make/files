@@ -1,0 +1,3 @@
+lammpsFoam.C
+
+EXE = $(FOAM_CPL_SOCKET_BIN)/lammpsFoam
