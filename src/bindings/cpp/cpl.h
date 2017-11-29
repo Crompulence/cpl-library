@@ -47,10 +47,12 @@ Author(s)
 
 #ifndef CPL_H_INCLUDED
 #define CPL_H_INCLUDED
+#include "CPL_ndArray.h"
 #include <string>
 #include <vector>
 #include "CPLC.h"
 #include <iostream>
+#include "common.h"
 
 // CPL namespace for C++ bindings
 namespace CPL
@@ -59,6 +61,7 @@ namespace CPL
     // Realm identifiers, also found in coupler_module.f90
     static const int cfd_realm = 1;
     static const int md_realm = 2;
+
 
 
 #ifdef JSON_SUPPORT
@@ -75,37 +78,46 @@ namespace CPL
 	void get_file_param(const std::string section, const std::string param_name, std::vector<std::string> &string_param_array);
 #endif 
 
-    void init ( int  calling_realm, int& returned_realm_comm); 
+    void init (int  calling_realm, int& returned_realm_comm); 
     void finalize(); 
 
-    void setup_cfd(int icomm_grid, double xyzL[], double xyz_orig[], int ncxyz[]);
-    void setup_md(int icomm_grid, double xyzL[], double xyz_orig[]);
+    void setup_cfd (int icomm_grid, const DoubVector& xyzL, const DoubVector& xyz_orig, 
+                    const IntVector& ncxyz);
+    void setup_md (int icomm_grid, const CPL::DoubVector& xyzL, 
+                   const CPL::DoubVector& xyz_orig);
+    void set_timing (int initialstep, int nsteps, double dt);
 
-    void set_timing(int initialstep, int nsteps, double dt);
-    bool send(double* asend, int* asend_shape, int* limits);
-    bool recv(double* arecv, int* arecv_shape, int* limits);
+    bool send (const DoubNdArray& asend, const CPL::IntVector& asend_shape, 
+               const CPL::IntVector& limits);
+    bool recv (CPL::DoubNdArray& arecv,	const CPL::IntVector& arecv_shape, 
+               const CPL::IntVector& limits);
 
-    void scatter(double* scatterarray, int* scatter_shape, int* limits, 
-				 double* recvarray, int* recv_shape);
-	void gather(double* gatherarray, int* gather_shape, int* limits,
-			    double* recvarray, int* recv_shape);
+    void scatter (CPL::DoubVector& scatterarray, const CPL::IntVector& scatter_shape, 
+                  const CPL::IntVector& limits, CPL::DoubVector& recvarray,
+                  const CPL::IntVector& recv_shape);
 
-    void proc_extents(int coord[], int realm, int extents[]);
-    void my_proc_extents(int extents[]);
-    void proc_portion(int coord[], int realm, int limits[], int portion[]);
-    void my_proc_portion(int limits[], int portion[]); 
-    void map_cell2coord(int i, int j, int k, double coord_xyz[]);
-    bool map_coord2cell(double x, double y, double z, int cell_ijk[]);
-    void get_no_cells(int limits[], int no_cells[]);
-	bool map_glob2loc_cell(int limits[], int glob_cell[], int loc_cell[]);
-    void get_olap_limits(int limits[]); 
-    void get_cnst_limits(int limits[]);
-    void get_bnry_limits(int limits[]);
-    bool map_cfd2md_coord(double cfd_coord[],double md_coord[]);
-    bool map_md2cfd_coord(double md_coord[], double cfd_coord[]);
-    bool overlap(); 
-	bool is_proc_inside(int region[]);
-    void set_output_mode(int mode);
+    void gather (CPL::DoubVector& gatherarray, const CPL::IntVector& gather_shape,
+                 const CPL::IntVector& limits, CPL::DoubVector& recvarray,
+                 const CPL::IntVector& recv_shape);
+
+    void proc_extents (const CPL::IntVector& coord, int realm, CPL::IntVector& extents);
+    void my_proc_extents (CPL::IntVector& extents);
+    void proc_portion (const CPL::IntVector& coord, int realm,
+                       const CPL::IntVector& limits, CPL::IntVector& portion);
+    void my_proc_portion (const CPL::IntVector& limits, CPL::IntVector& portion);
+    void map_cell2coord (int i, int j, int k, CPL::DoubVector& coord_xyz);
+    bool map_coord2cell (double x, double y, double z, CPL::IntVector& cell_ijk);
+    void get_no_cells (const CPL::IntVector& limits, CPL::IntVector& no_cells);
+    bool map_glob2loc_cell (const CPL::IntVector& limits, const CPL::IntVector& glob_cell,
+                            CPL::IntVector& loc_cell);
+    void get_olap_limits (CPL::IntVector& limits);
+    void get_cnst_limits (CPL::IntVector& limits);
+    void get_bnry_limits (CPL::IntVector& limits);
+    bool map_cfd2md_coord (const CPL::DoubVector& cfd_coord, CPL::DoubVector& md_coord);
+    bool map_md2cfd_coord (const CPL::DoubVector& md_coord, CPL::DoubVector& cfd_coord);
+    bool overlap (); 
+    bool is_proc_inside(const CPL::IntVector& region);
+    void set_output_mode (int mode);
 
     // Getters
     template<class T>

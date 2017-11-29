@@ -22,11 +22,11 @@ public:
 
     //Constructors
     CPLField(int nd, int icell, int jcell, int kcell);
-    CPLField(CPL::ndArray<double> arrayin);
+    CPLField(CPL::DoubNdArray& arrayin);
 
     //Getters and setters
-    void set_array(CPL::ndArray<double> arrayin);
-    void set_minmax(double min_in[], double max_in[]);
+    void set_array(CPL::DoubNdArray& arrayin);
+    void set_minmax(CPL::DoubNdArray min_in, double max_in[]);
     void set_dxyz();
 
     CPL::ndArray<double> get_array();

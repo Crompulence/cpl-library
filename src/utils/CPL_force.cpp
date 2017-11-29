@@ -60,7 +60,7 @@ std::vector<int> CPLForce::get_cell(double r[]){
 
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForce::pre_force(double r[], double v[], double a[], double m, double s, double e) {
+void CPLForce::pre_force(double r[], double v[], const double a[], double m, double s, double e) {
 //    throw std::runtime_error("CPLForce::pre_force is not defined");
 }
 

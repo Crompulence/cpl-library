@@ -56,12 +56,11 @@ template<class T> CPL::ndArray<T>::ndArray()
 // Constructor taking in number of dimensions, shape and optional order
 template<class T> CPL::ndArray<T>::ndArray
 (
-    const int nd,
-    const int shape[],
-    const char ordering//=defaultOrder
+    const CPL::IntVector& shape,
+    char ordering//=defaultOrder
 )
 {
-    this->resize(nd, shape);
+    this->resize(shape);
     order = ordering;
     if (order != 'F' && order != 'C')
     {
@@ -74,11 +73,10 @@ template<class T> CPL::ndArray<T>::ndArray
 template<class T> CPL::ndArray<T>::ndArray
 (
     const T* existingData,
-    const int nd,
-    const int shape[],
-    const char ordering//=defaultOrder
+    const CPL::IntVector& shape,
+    char ordering//=defaultOrder
 )
-    : CPL::ndArray<T>(nd, shape, ordering)
+    : CPL::ndArray<T>(shape, ordering)
 {
     ndArrayData.assign(existingData, existingData + size());
 }
@@ -92,25 +90,30 @@ template<class T> CPL::ndArray<T>::ndArray
 // Deallocate data, resizes to 0
 template<class T> void CPL::ndArray<T>::clear()
 {
-    shapeVector.clear();
+    shapeVector.resize(0);
     ndArrayData.clear();
     nElements = 0;
 }
 
 // Number of elements of the ndArray along the dim axis
-template<class T> int CPL::ndArray<T>::shape (const int dim)
+template<class T> int CPL::ndArray<T>::shape (int dim) const
 {
-    return shapeVector.at(dim);
+    return shapeVector[dim];
 }
 
 // Pointer to the front of the shapeVector array
-template<class T> int* CPL::ndArray<T>::shapeData()
+template<class T> const CPL::IntVector& CPL::ndArray<T>::shape() const
 {
-    return shapeVector.data();
+    return shapeVector;
 }
 
 // Pointer to front of internal array
 template<class T> T* CPL::ndArray<T>::data()
+{
+    return ndArrayData.data();
+}
+
+template<class T> const T* CPL::ndArray<T>::data() const
 {
     return ndArrayData.data();
 }
@@ -146,19 +149,15 @@ template<class T> double CPL::ndArray<T>::max()
 }
 
 // Allocation after empty construction
-template<class T> void CPL::ndArray<T>::resize (const int nd, const int shape[])
+template<class T> void CPL::ndArray<T>::resize (const CPL::IntVector& shape)
 {
-    nDims = nd;
-
     // Resize shapeVector and populate it, store nElements
-    shapeVector.clear();
+    nDims = shape.size();
+    shapeVector = shape;
     nElements = 1;
-    for (int i=0; i<nDims; i++)
-    {
-        shapeVector.push_back(shape[i]);
+    for(std::size_t i= 0; i < shape.size(); ++i) {
         nElements *= shape[i];
     }
-
     // Create empty vector with enough memory for nElements
     ndArrayData.resize(nElements);
 
@@ -167,24 +166,24 @@ template<class T> void CPL::ndArray<T>::resize (const int nd, const int shape[])
 // Element access - support up to 4 (for now) dimensions
 // 1D
     template<class T>
-    T CPL::ndArray<T>::operator () (const int i0) const
+    T CPL::ndArray<T>::operator () (int i0) const
     {
         if (checkDimsEquals(1)) return ndArrayData[flatIndex(i0)];
     }
     template<class T>
-    T& CPL::ndArray<T>::operator () (const int i0)
+    T& CPL::ndArray<T>::operator () (int i0)
     {
         if (checkDimsEquals(1)) return ndArrayData[flatIndex(i0)];
     }
 
 // 2D
     template<class T>
-    T CPL::ndArray<T>::operator () (const int i0, const int i1) const
+    T CPL::ndArray<T>::operator () (int i0, int i1) const
     {
         if (checkDimsEquals(2)) return ndArrayData[flatIndex(i0, i1)];
     }
     template<class T>
-    T& CPL::ndArray<T>::operator () (const int i0, const int i1)
+    T& CPL::ndArray<T>::operator () (int i0, int i1)
     {
         if (checkDimsEquals(2)) return ndArrayData[flatIndex(i0, i1)];
     }
@@ -193,9 +192,9 @@ template<class T> void CPL::ndArray<T>::resize (const int nd, const int shape[])
     template<class T>
     T CPL::ndArray<T>::operator ()
     (
-        const int i0,
-        const int i1,
-        const int i2
+        int i0,
+        int i1,
+        int i2
     ) const
     {
         if (checkDimsEquals(3))
@@ -206,9 +205,9 @@ template<class T> void CPL::ndArray<T>::resize (const int nd, const int shape[])
     template<class T>
     T& CPL::ndArray<T>::operator ()
     (
-        const int i0,
-        const int i1,
-        const int i2
+        int i0,
+        int i1,
+        int i2
     )
     {
         if (checkDimsEquals(3))
@@ -221,10 +220,10 @@ template<class T> void CPL::ndArray<T>::resize (const int nd, const int shape[])
     template<class T>
     T CPL::ndArray<T>::operator ()
     (
-        const int i0,
-        const int i1,
-        const int i2,
-        const int i3
+        int i0,
+        int i1,
+        int i2,
+        int i3
     ) const
     {
         if (checkDimsEquals(4))
@@ -235,10 +234,10 @@ template<class T> void CPL::ndArray<T>::resize (const int nd, const int shape[])
     template<class T>
     T& CPL::ndArray<T>::operator ()
     (
-        const int i0,
-        const int i1,
-        const int i2,
-        const int i3
+        int i0,
+        int i1,
+        int i2,
+        int i3
     )
     {
         if (checkDimsEquals(4))
@@ -290,7 +289,7 @@ template<class T> CPL::ndArray<T> CPL::ndArray<T>::operator* (const T &rhs)
 }
 
 // Check dimensionality is a certain value
-template<class T> bool CPL::ndArray<T>::checkDimsEquals (const int dims) const
+template<class T> bool CPL::ndArray<T>::checkDimsEquals (int dims) const
 {
     if (nDims != dims)
     {
@@ -456,4 +455,3 @@ template class CPL::ndArray<unsigned long long>;
 template class CPL::ndArray<float>;
 template class CPL::ndArray<double>;
 template class CPL::ndArray<long double>;
-

@@ -49,38 +49,38 @@ Author(s)
 
 void CPL::Cart_create
 (
-    const MPI_Comm oldComm, // same as MPI_Cart_create
-    const int ndims,        // same as MPI_Cart_create
-    const int dims[],       // same as MPI_Cart_create
-    const int periods[],    // same as MPI_Cart_create
-    const int coords[],     // desired input coordinates for this process
-    MPI_Comm *newCartComm   // returned MPI Cart comm with desired coords
+
+    const MPI_Comm oldComm,           // same as MPI_Cart_create
+    int ndims,                        // same as MPI_Cart_create
+    const CPL::IntVector& dims,       // same as MPI_Cart_create
+    const CPL::IntVector& periods,    // same as MPI_Cart_create
+    const CPL::IntVector& coords,    // desired input coordinates for this process
+    MPI_Comm* newCartComm             // returned MPI Cart comm with desired coords
 )
 {
 
     MPI_Comm dummyCartComm, tempComm;
     int oldCommRank, desiredRank, newCartCommRank, newCoordsArray[3];
+    CPL::IntVector newCoords(3);
 
     // Save old communicator rank for debugging purposes
     MPI_Comm_rank(oldComm, &oldCommRank);
 
     // New dummy cart comm, save what the rank of desired coords would be
-    MPI_Cart_create(oldComm, ndims, dims, periods, false, &dummyCartComm);
-    MPI_Cart_rank(dummyCartComm, coords, &desiredRank);
+    MPI_Cart_create(oldComm, ndims, &dims[0], &periods[0], false, &dummyCartComm);
+    MPI_Cart_rank(dummyCartComm, &coords[0], &desiredRank);
  
     // Force this rank in new comm with comm_split trick
     MPI_Comm_split(oldComm, 0, desiredRank, &tempComm);
 
     // Create cartesian topology based on desied ranks
-    MPI_Cart_create(tempComm, ndims, dims, periods, false, newCartComm);
+    MPI_Cart_create(tempComm, ndims, &dims[0], &periods[0], false, newCartComm);
 
     // Check coordinates match desired values
     MPI_Comm_rank(*newCartComm, &newCartCommRank);
-    MPI_Cart_coords(*newCartComm, newCartCommRank, 3, newCoordsArray);
-    std::vector<int> inputCoords (coords, coords + ndims);
-    std::vector<int> newCoords ( newCoordsArray, newCoordsArray + ndims);
+    MPI_Cart_coords(*newCartComm, newCartCommRank, 3, &newCoords[0]);
     
-    if (inputCoords != newCoords)
+    if ((coords != newCoords).max())
     {
         std::cerr
             << "New coordinates in cartesian communicator "

@@ -52,18 +52,19 @@ Author(s)
 
 #include<vector>
 #include "mpi.h"
+#include "common.h"
 
 namespace CPL
 {
 
     void Cart_create
     (
-        const MPI_Comm oldComm, // same as MPI_Cart_create
-        const int ndims,        // same as MPI_Cart_create
-        const int dims[],       // same as MPI_Cart_create
-        const int periods[],    // same as MPI_Cart_create
-        const int coords[],     // desired input coordinates for this process
-        MPI_Comm *newCartComm   // returned MPI Cart comm with desired coords
+        const MPI_Comm oldComm,           // same as MPI_Cart_create
+        int ndims,                        // same as MPI_Cart_create
+        const CPL::IntVector& dims,       // same as MPI_Cart_create
+        const CPL::IntVector& periods,    // same as MPI_Cart_create
+        const CPL::IntVector& coords,    // desired input coordinates for this process
+        MPI_Comm* newCartComm             // returned MPI Cart comm with desired coords
     );
 
 }

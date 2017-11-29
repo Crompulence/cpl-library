@@ -2542,6 +2542,7 @@ subroutine CPL_map_cell2coord(i, j, k, coord_xyz)
     coord_xyz(2) = yg(i, j, k) 
     coord_xyz(3) = zg(i, j, k)
 
+
     if (realm .eq. md_realm) then
         aux_ret = CPL_map_cfd2md_coord(coord_xyz, coord_md)
         coord_xyz = coord_md
