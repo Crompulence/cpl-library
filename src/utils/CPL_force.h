@@ -55,25 +55,21 @@ Author(s)
 #include <vector>
 #include <iostream>
 #include <memory>
-
+#include "cpl/cpl.h"
 #include "CPL_ndArray.h"
 #include "CPL_field.h"
 
 //typedef std::unique_ptr<CPL::CPLField> CPLFieldPtr;
 
-class CPLForce{
+class CPLForce {
 
 protected:
-
-    double min[3], max[3], dxyz[3], dA[3], dV;
-    //CPL::ndArray<double> array;
-
-    CPL::CPLField* fieldptr;
-    //std::shared_ptr<CPL::CPLField> fieldptr;
+    CPL::DataField* fieldptr;
 
 public:
 
     //Constructors
+    std::string name;
     CPLForce(int nd, int icell, int jcell, int kcell);
     CPLForce(CPL::ndArray<double> arrayin);
 
@@ -107,58 +103,6 @@ private:
 
 };
 
-class CPLForceTest : public CPLForce {
-
-public:
-
-    //Constructors
-    CPLForceTest(CPL::ndArray<double> field);
-    CPLForceTest(int nd, int icell, int jcell, int kcell);
-
-    //Pre force collection and get force calculation
-    // position, velocity, acceleration, mass, sigma, epsilon
-    void pre_force(double r[], double v[], double a[], 
-                   double m, double s, double e);
-    std::vector<double> get_force(double r[], double v[], double a[], 
-                                  double m, double s, double e);
-
-    void resetsums();
-
-    bool calc_preforce = false;
-
-};
-
-
-class CPLForceVelocity : public CPLForce {
-
-public:
-
-    //Constructors
-    CPLForceVelocity(CPL::ndArray<double> field);
-    CPLForceVelocity(int nd, int icell, int jcell, int kcell);
-
-    //Pre force collection and get force calculation
-    // position, velocity, acceleration, mass, sigma, epsilon
-    void pre_force(double r[], double v[], double a[], 
-                   double m, double s, double e);
-    std::vector<double> get_force(double r[], double v[], double a[], 
-                                  double m, double s, double e);
-
-    void resetsums();
-    bool calc_preforce = true;
-
-private:
-
-    CPL::ndArray<double> vSums;
-    CPL::ndArray<double> nSums;
-
-    friend class CPL_Force_Test_test_velocity_pre_force_Test;
-
-    void initialisesums(CPL::ndArray<double> f);
-
-};
-
-
 class CPLForceFlekkoy : public CPLForce {
 
 public:
@@ -184,80 +128,134 @@ public:
 
 private:
 
-    friend class CPL_Force_Test_test_flekkoy_pre_force_Test;
-    friend class CPL_Force_Test_test_flekkoy_pre_force_varydomain_Test;
-    friend class CPL_Force_Test_test_flekkoy_get_force_Test;
-
+    // friend class CPL_Force_Test_test_flekkoy_pre_force_Test;
+    // friend class CPL_Force_Test_test_flekkoy_pre_force_varydomain_Test;
+    // friend class CPL_Force_Test_test_flekkoy_get_force_Test;
+    //
     void initialisesums(CPL::ndArray<double> f);
     void resetsums();
 
 };
 
-
-class CPLForceDrag : public CPLForce {
-
-public:
-
-    //Constructors
-    CPLForceDrag(CPL::ndArray<double> field);
-    CPLForceDrag(int nd, int icell, int jcell, int kcell);
-
-    //Pre force collection and get force calculation
-    // position, velocity, acceleration, mass, radius, interaction
-    void pre_force(double r[], double v[], double a[], 
-                   double m, double s, double e);
-    std::vector<double> get_force(double r[], double v[], double a[], 
-                                  double m, double s, double e);
-
-    //Force specific things
-    double drag_coefficient();
-
-    bool calc_preforce = true;
-
-    CPL::ndArray<double> nSums;
-    CPL::ndArray<double> eSums;
-    CPL::ndArray<double> FSums;
-    CPL::ndArray<double> FcoeffSums;
-
-private:
-
-    void initialisesums(CPL::ndArray<double> f);
-    void resetsums();
-};
-
-
-class CPLForceGranular : public CPLForceDrag {
-
-public:
-
-    //Constructors
-    CPLForceGranular(CPL::ndArray<double> field);
-    CPLForceGranular(int nd, int icell, int jcell, int kcell);
-
-    //Pre force collection and get force calculation
-    // position, velocity, acceleration, mass, radius, interaction
-    void pre_force(double r[], double v[], double a[], 
-                   double m, double s, double e);
-    std::vector<double> get_force(double r[], double v[], double a[], 
-                                  double m, double s, double e);
-
-    //Force specific things
-    double porousity_exponent(double Re);
-    double drag_coefficient(double Re);
-    double magnitude(std::vector<double> v);
-
-    bool calc_preforce = true;
-
-    CPL::ndArray<double> vSums;
-    CPL::ndArray<double> nSums;
-    CPL::ndArray<double> eSums;
-    CPL::ndArray<double> FSums;
-
-private:
-
-    void initialisesums(CPL::ndArray<double> f);
-    void resetsums();
-
-};
-
+//
+//
+// class CPLForceTest : public CPLForce {
+//
+// public:
+//
+//     //Constructors
+//     CPLForceTest(CPL::ndArray<double> field);
+//     CPLForceTest(int nd, int icell, int jcell, int kcell);
+//
+//     //Pre force collection and get force calculation
+//     // position, velocity, acceleration, mass, sigma, epsilon
+//     void pre_force(double r[], double v[], double a[], 
+//                    double m, double s, double e);
+//     std::vector<double> get_force(double r[], double v[], double a[], 
+//                                   double m, double s, double e);
+//
+//     void resetsums();
+//
+//     bool calc_preforce = false;
+//
+// };
+//
+//
+// class CPLForceVelocity : public CPLForce {
+//
+// public:
+//
+//     //Constructors
+//     CPLForceVelocity(CPL::ndArray<double> field);
+//     CPLForceVelocity(int nd, int icell, int jcell, int kcell);
+//
+//     //Pre force collection and get force calculation
+//     // position, velocity, acceleration, mass, sigma, epsilon
+//     void pre_force(double r[], double v[], double a[], 
+//                    double m, double s, double e);
+//     std::vector<double> get_force(double r[], double v[], double a[], 
+//                                   double m, double s, double e);
+//
+//     void resetsums();
+//     bool calc_preforce = true;
+//
+// private:
+//
+//     CPL::ndArray<double> vSums;
+//     CPL::ndArray<double> nSums;
+//
+//     friend class CPL_Force_Test_test_velocity_pre_force_Test;
+//
+//     void initialisesums(CPL::ndArray<double> f);
+//
+// };
+//
+//
+//
+// class CPLForceDrag : public CPLForce {
+//
+// public:
+//
+//     //Constructors
+//     CPLForceDrag(CPL::ndArray<double> field);
+//     CPLForceDrag(int nd, int icell, int jcell, int kcell);
+//
+//     //Pre force collection and get force calculation
+//     // position, velocity, acceleration, mass, radius, interaction
+//     void pre_force(double r[], double v[], double a[], 
+//                    double m, double s, double e);
+//     std::vector<double> get_force(double r[], double v[], double a[], 
+//                                   double m, double s, double e);
+//
+//     //Force specific things
+//     double drag_coefficient();
+//
+//     bool calc_preforce = true;
+//
+//     CPL::ndArray<double> nSums;
+//     CPL::ndArray<double> eSums;
+//     CPL::ndArray<double> FSums;
+//     CPL::ndArray<double> FcoeffSums;
+//
+// private:
+//
+//     void initialisesums(CPL::ndArray<double> f);
+//     void resetsums();
+// };
+//
+//
+// class CPLForceGranular : public CPLForceDrag {
+//
+// public:
+//
+//     //Constructors
+//     CPLForceGranular(CPL::ndArray<double> field);
+//     CPLForceGranular(int nd, int icell, int jcell, int kcell);
+//
+//     //Pre force collection and get force calculation
+//     // position, velocity, acceleration, mass, radius, interaction
+//     void pre_force(double r[], double v[], double a[], 
+//                    double m, double s, double e);
+//     std::vector<double> get_force(double r[], double v[], double a[], 
+//                                   double m, double s, double e);
+//
+//     //Force specific things
+//     double porousity_exponent(double Re);
+//     double drag_coefficient(double Re);
+//     double magnitude(std::vector<double> v);
+//
+//     bool calc_preforce = true;
+//
+//     CPL::ndArray<double> vSums;
+//     CPL::ndArray<double> nSums;
+//     CPL::ndArray<double> eSums;
+//     CPL::ndArray<double> FSums;
+//
+// private:
+//
+//     void initialisesums(CPL::ndArray<double> f);
+//     void resetsums();
+//
+// };
+//
 #endif  // CPLForce_H_

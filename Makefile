@@ -71,9 +71,9 @@ cppbindsrcfiles = $(addprefix $(cppbinddir)/, $(cppbindsrc))
 cppbindhdrfiles = $(addprefix $(cppbinddir)/, $(cppbindhdr))
 cppbindobjfiles = $(addprefix $(objdir)/, $(cppbindsrc:.cpp=.o))
 
-utilssrc = CPL_ndArray.cpp CPL_cartCreate.cpp CPL_vector3D.cpp CPL_force.cpp CPL_field.cpp \
+utilssrc = CPL_ndArray.cpp CPL_cartCreate.cpp CPL_vector3D.cpp CPL_field.cpp CPLSocket.cpp TransmittingField.cpp #CPL_force.cpp \
 #           CPL_usherBase.cpp
-utilsextrahdr = #CPL_usherExceptions.h
+utilsextrahdr = PoolElement.h#CPL_usherExceptions.h
 utilshdr = $(utilssrc:.cpp=.h) $(utilsextrahdr)
 utilssrcfiles = $(addprefix $(utilsdir)/, $(utilssrc))
 utilshdrfiles = $(addprefix $(utilsdir)/, $(utilshdr))
@@ -153,7 +153,7 @@ endif
 
 # Utils compilation rules
 $(utilsobjfiles): $(objdir)/%.o : $(utilsdir)/%.cpp
-	$(CPP) $(CFLAGS) -I$(utilsdir) -c $< -o $@
+	$(CPP) $(CFLAGS) -I$(utilsdir) -I$(includedir) -c $< -o $@
 
 # Link static lib to dynamic (shared) library
 link: $(objdir) $(libobjfiles) $(utilsobjfiles)
