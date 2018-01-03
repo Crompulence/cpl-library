@@ -16,7 +16,6 @@ MD_EXEC = "python2"
 CFD_FNAME = "cfd_test.py"
 CFD_ARGS = CFD_FNAME
 CFD_EXEC = "python2"
-#TEST_TEMPLATE_DIR = os.path.join(os.environ["CPL_PATH"], "test/templates")
 TEST_TEMPLATE_DIR = os.path.join(get_test_dir(), "templates")
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -46,6 +45,9 @@ def test_mdprocs(prepare_config_fix, mdprocs, err_msg):
                      "cnst_xlo": 1, "cnst_xhi": 1,
                      "cnst_ylo": 1, "cnst_yhi": 1,
                      "cnst_zlo": 1, "cnst_zhi": 1,
+                     "bndry_xlo": 1, "bndry_xhi": 1,
+                     "bndry_ylo": 1, "bndry_yhi": 1,
+                     "bndry_zlo": 1, "bndry_zhi": 1,
                      "tstep_ratio": 50, }
 
     run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
@@ -76,6 +78,9 @@ def test_cfdprocs(prepare_config_fix, cfdprocs, err_msg):
                      "cnst_xlo": 1, "cnst_xhi": 1,
                      "cnst_ylo": 1, "cnst_yhi": 1,
                      "cnst_zlo": 1, "cnst_zhi": 1,
+                     "bndry_xlo": 1, "bndry_xhi": 1,
+                     "bndry_ylo": 1, "bndry_yhi": 1,
+                     "bndry_zlo": 1, "bndry_zhi": 1,
                      "tstep_ratio": 50, }
 
     run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
@@ -108,6 +113,9 @@ def test_olapcells(prepare_config_fix, olapcells, err_msg):
                      "cnst_xlo": 1, "cnst_xhi": 1,
                      "cnst_ylo": 1, "cnst_yhi": 1,
                      "cnst_zlo": 1, "cnst_zhi": 1,
+                     "bndry_xlo": 1, "bndry_xhi": 1,
+                     "bndry_ylo": 1, "bndry_yhi": 1,
+                     "bndry_zlo": 1, "bndry_zhi": 1,
                      "tstep_ratio": 50, }
     CONFIG_PARAMS["olap_xlo"], CONFIG_PARAMS["olap_xhi"] = olapcells[0:2]
     CONFIG_PARAMS["olap_ylo"], CONFIG_PARAMS["olap_yhi"] = olapcells[2:4]
@@ -141,6 +149,9 @@ def test_domaincells(prepare_config_fix, domaincells, err_msg):
                      "cnst_xlo": 1, "cnst_xhi": 1,
                      "cnst_ylo": 1, "cnst_yhi": 1,
                      "cnst_zlo": 1, "cnst_zhi": 1,
+                     "bndry_xlo": 1, "bndry_xhi": 1,
+                     "bndry_ylo": 1, "bndry_yhi": 1,
+                     "bndry_zlo": 1, "bndry_zhi": 1,
                      "tstep_ratio": 50, }
 
     run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,

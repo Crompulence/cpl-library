@@ -65,6 +65,28 @@ $[cnst_ylo]
 $[cnst_yhi]
 $[cnst_zlo]
 $[cnst_zhi]
+
+##############################################################################
+##
+##   Specify boundary information
+##
+##      3. icmin_bndry
+##      4. icmax_bndry
+##      5. jcmin_bndry
+##      6. jcmax_bndry
+##      7. kcmin_bndry
+##      8. kcmax_bndry
+##
+## -----------------------------------------------------------------------------
+
+BOUNDARY_EXTENTS
+$[bndry_xlo]
+$[bndry_xhi]
+$[bndry_ylo]
+$[bndry_yhi]
+$[bndry_zlo]
+$[bndry_zhi]
+
 ###############################################################################
 #
 #   timestep ratio (integer) 

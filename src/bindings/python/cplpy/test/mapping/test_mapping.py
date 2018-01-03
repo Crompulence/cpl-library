@@ -47,6 +47,9 @@ def test_mapcells(prepare_config_fix, cfdprocs, mdprocs, err_msg):
                      "cnst_xlo": 1, "cnst_xhi": 1,
                      "cnst_ylo": 1, "cnst_yhi": 1,
                      "cnst_zlo": 1, "cnst_zhi": 1,
+                     "bndry_xlo": 1, "bndry_xhi": 1,
+                     "bndry_ylo": 1, "bndry_yhi": 1,
+                     "bndry_zlo": 1, "bndry_zhi": 1,
                      "tstep_ratio": 50, }
 
     run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
@@ -77,6 +80,9 @@ def test_mappoint(prepare_config_fix, cfdprocs, mdprocs, err_msg):
                      "cnst_xlo": 1, "cnst_xhi": 1,
                      "cnst_ylo": 1, "cnst_yhi": 1,
                      "cnst_zlo": 1, "cnst_zhi": 1,
+                     "bndry_xlo": 1, "bndry_xhi": 1,
+                     "bndry_ylo": 1, "bndry_yhi": 1,
+                     "bndry_zlo": 1, "bndry_zhi": 1,
                      "tstep_ratio": 50, }
 
     run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
