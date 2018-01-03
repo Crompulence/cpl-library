@@ -676,10 +676,10 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
         if find_executable("mpiexec") is None:
             print("Error: mpiexec not found.")
             sys.exit(1)
-        if find_executable(md_exec)is None:
+        if find_executable(md_exec) is None:
             print("Error: %s not found." % md_exec)
             sys.exit(1)
-        if find_executable(cfd_exec)is None:
+        if find_executable(cfd_exec) is None:
             print("Error: %s not found." % cfd_exec)
             sys.exit(1)
 
