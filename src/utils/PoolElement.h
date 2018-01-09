@@ -14,12 +14,12 @@ public:
     std::string elem_name;
     std::map<std::string, T*>* pool;
 
-    void addToPool(std::map<std::string, T*>& T_pool) {
+    void addToPool(std::map<std::string, T*>* T_pool) {
         //TODO: Use exceptions
-        if(!T_pool.insert(std::pair<std::string, T*>(elem_name, static_cast<T*>(this))).second) {
+        if(!T_pool->insert(std::pair<std::string, T*>(elem_name, static_cast<T*>(this))).second) {
             std::string err_msg = "Dependency already exists.";
         }
-        pool = &T_pool;
+        pool = T_pool;
     }
 };
 }
