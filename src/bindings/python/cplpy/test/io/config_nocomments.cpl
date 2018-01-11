@@ -1,0 +1,38 @@
+{
+"md" : {
+    "string": "John",
+    "int": 30,
+    "int_array": [11, 22, 33],
+    "double": 0.1, 
+    "double_array": [11.0, 22.0, 33.0],
+    "bool_true": true,
+    "bool_false": false,
+    "subsection": {
+        "string": "John",
+        "int": 30,
+        "int_array": [11, 22, 33],
+        "double": 0.1,
+        "double_array": [11.0, 22.0, 33.0],
+        "bool_true": true,
+        "bool_false": false
+    }
+},
+"cfd" : {
+    "string": "John",
+    "int": 30,
+    "int_array": [11, 22, 33],
+    "double": 0.1, 
+    "double_array": [11.0, 22.0, 33.0],
+    "bool_true": true,
+    "bool_false": false,
+    "subsection": {
+        "string": "John",
+        "int": 30,
+        "int_array": [11, 22, 33],
+        "double": 0.1,
+        "double_array": [11.0, 22.0, 33.0],
+        "bool_true": true,
+        "bool_false": false
+    }
+}
+}

@@ -163,8 +163,8 @@ else
 		$(LINK) $(LSHAREDLIB) -o $(lib) $(allobjfiles) $(LFLAGS) 
 endif
 
-linkconda: $(objdir) $(libobjfiles) $(utilsobjfiles)
-		$(LINK) $(LSHAREDLIB) -o $(lib) $(allobjfiles) -Wl, -rpath $(LFLAGS) 
+#linkconda: $(objdir) $(libobjfiles) $(utilsobjfiles)
+#		$(LINK) $(LSHAREDLIB) -o $(lib) $(allobjfiles) -Wl, -rpath $(LFLAGS) 
 
 json-fortran: $(CPL_THIRD_PARTY_LIB) $(CPL_THIRD_PARTY_INC)
 	bash $(MAKEINCPATH)/json-fortran.build
@@ -179,6 +179,9 @@ test-mapping:
 
 test-initialisation:
 	python2 $(testdir)/pytests initialisation
+
+test-io:
+	python2 $(testdir)/pytests io 
 
 test-examples:
 	./examples/sendrecv_globcell/test_all.sh

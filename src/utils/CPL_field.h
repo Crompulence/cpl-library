@@ -71,6 +71,7 @@ class PortionField: public Field {
                      Field(domain, field_cells), cellBounds(cell_bounds){}
         std::vector<int> cellBounds;
         std::vector<int> getLocalCell(std::vector<int>& glob_cell);
+        std::vector<int> getLocalCell(std::vector<int>& glob_cell, bool& valid_cell);
 
 };
 

@@ -58,7 +58,9 @@ public:
     // Construct from no arguments
     CPLSocket(int realm_type) : myProcCoords(3), olapRegion(), bcRegion(),
                   cnstRegion(), bcPortionRegion(), cnstPortionRegion(),
-                  procGrid(3), realmType(realm_type), cfdCells(3) {}
+                  procGrid(3), realmType(realm_type), cfdCells(3),
+                  sendBuffAllocated(false), recvBuffAllocated(false),
+                  sendEnabled(true), recvEnabled(true) {}
     CPLSocket() : CPLSocket(-1) {}
     virtual ~CPLSocket(){}
     // Total number of timesteps and timestep ratio
@@ -128,8 +130,14 @@ public:
     // of boundary conditions and constrains
     virtual void configureBc(int mode) {};
     virtual void configureCnst(int mode) {};
-    void allocateBuffers(const CPL::OutgoingFieldPool& field_list_send, 
-                         const CPL::IncomingFieldPool& field_list_recv);
+
+    bool sendBuffAllocated, recvBuffAllocated;
+    bool sendEnabled, recvEnabled;
+
+    void allocateBuffers(const CPL::OutgoingFieldPool& field_pool_send, 
+                         const CPL::IncomingFieldPool& field_pool_recv);
+    void allocateSendBuffer(const CPL::OutgoingFieldPool& field_pool_send);
+    void allocateRecvBuffer(const CPL::IncomingFieldPool& field_pool_recv);
 
 
 protected:

@@ -66,6 +66,14 @@ std::vector<int> PortionField::getLocalCell(std::vector<int>& glob_cell) {
     
 }
 
+std::vector<int> PortionField::getLocalCell(std::vector<int>& glob_cell, bool& valid_cell) {
+    std::vector<int> loc_cell(3);
+    valid_cell = CPL::map_glob2loc_cell(cellBounds.data(), glob_cell.data(), 
+                                        loc_cell.data());
+    return loc_cell;
+ 
+}
+
 
 std::valarray<double> Field::getCoord(std::vector<int>& cell) {
 }

@@ -57,6 +57,7 @@ void CPLSocket::initComms() {
 void CPLSocket::getPortionField_(std::vector<int>& region_limits, 
                                  CPL::PortionField& field) {
     field.cellBounds = region_limits;
+    // Only processors inside the overlap region get the portion info
 	if (CPL::is_proc_inside(region_limits.data())) {
         std::valarray<double> bot_left(3);
         CPL::map_cell2coord(region_limits[0], region_limits[2], 
@@ -102,26 +103,47 @@ void CPLSocket::getTopology_() {
 
 void CPLSocket::allocateBuffers(const CPL::OutgoingFieldPool& field_pool_send,
                                 const CPL::IncomingFieldPool& field_pool_recv) {
+    allocateSendBuffer(field_pool_send);
+    allocateRecvBuffer(field_pool_recv);
+}
+
+void CPLSocket::allocateSendBuffer(const CPL::OutgoingFieldPool& field_pool_send) {
     field_pool_send.allocateBuffer(sendBuff);
+    sendBuffAllocated = true;
+}
+
+void CPLSocket::allocateRecvBuffer(const CPL::IncomingFieldPool& field_pool_recv) {
     field_pool_recv.allocateBuffer(recvBuff);
+    recvBuffAllocated = true;
 }
 
 void CPLSocket::communicate(CPL::OutgoingFieldPool& field_pool_send,
                             CPL::IncomingFieldPool& field_pool_recv) {
 
-    field_pool_send.updateAll();
-    field_pool_send.packAll();
+    bool send_cond = sendBuffAllocated && sendEnabled;
+    bool recv_cond = recvBuffAllocated && recvEnabled;
+    if (send_cond) {
+        field_pool_send.updateAll();
+        field_pool_send.packAll();
+    }
     if (realmType == CPL::md_realm) {
-        receive(field_pool_recv);
-        send(field_pool_send);
+        if (recv_cond) {
+            receive(field_pool_recv);
+        }
+        if (send_cond) {
+            send(field_pool_send);
+        }
     }
     else {
-        send(field_pool_send);
-        receive(field_pool_recv);
+        if (send_cond)
+            send(field_pool_send);
+        if (recv_cond)
+            receive(field_pool_recv);
     }
-    field_pool_recv.unpackAll();
-    field_pool_recv.updateAll();
-
+    if (recv_cond) {
+        field_pool_recv.unpackAll();
+        field_pool_recv.updateAll();
+    }
 }
 
 

@@ -20,17 +20,16 @@ TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 
 @pytest.fixture()
 def prepare_config_fix(tmpdir):
-    prepare_config(tmpdir, TEST_DIR, [MD_FNAME, CFD_FNAME])
+    prepare_config(tmpdir, TEST_DIR, [MD_FNAME, CFD_FNAME, "config.cpl", "config_nocomments.cpl"])
 
 
 @pytest.mark.parametrize("cfdprocs, mdprocs, err_msg", [
+                         ((1, 1, 1), (1, 1, 1), ""),
                          ((2, 2, 3), (2, 2, 3), ""),
                          ((3, 2, 2), (3, 2, 2), ""),
                          ((2, 3, 2), (2, 3, 2), ""),
-                         ((4, 4, 6), (4, 4, 6), ""),
-                         ((4, 6, 4), (4, 6, 4), ""),
-                         ((6, 4, 4), (6, 4, 4), "")])
-def test_mapcells(prepare_config_fix, cfdprocs, mdprocs, err_msg):
+                         ((4, 4, 6), (4, 4, 6), "")])
+def test_varyprocs(prepare_config_fix, cfdprocs, mdprocs, err_msg):
     MD_PARAMS = {"lx": 24.0, "ly": 24.0, "lz": 24.0,
                  "which_test": "cell_test"}
     MD_PARAMS["npx"], MD_PARAMS["npy"], MD_PARAMS["npz"] = mdprocs
@@ -56,34 +55,4 @@ def test_mapcells(prepare_config_fix, cfdprocs, mdprocs, err_msg):
              CFD_EXEC, CFD_FNAME, CFD_ARGS, MD_PARAMS, CFD_PARAMS, err_msg)
 
 
-@pytest.mark.parametrize("cfdprocs, mdprocs, err_msg", [
-                         ((2, 2, 3), (2, 2, 3), ""),
-                         ((3, 2, 2), (3, 2, 2), ""),
-                         ((2, 3, 2), (2, 3, 2), ""),
-                         ((4, 4, 6), (4, 4, 6), ""),
-                         ((4, 6, 4), (4, 6, 4), ""),
-                         ((6, 4, 4), (6, 4, 4), "")])
-def test_mappoint(prepare_config_fix, cfdprocs, mdprocs, err_msg):
-    MD_PARAMS = {"lx": 24.0, "ly": 24.0, "lz": 24.0,
-                 "which_test": "coord_test"}
-    MD_PARAMS["npx"], MD_PARAMS["npy"], MD_PARAMS["npz"] = mdprocs
-
-    CFD_PARAMS = {"lx": 24.0, "ly": 24.0, "lz": 24.0,
-                  "ncx": 24, "ncy": 24, "ncz": 24,
-                  "which_test": "coord_test"}
-    CFD_PARAMS["npx"], CFD_PARAMS["npy"], CFD_PARAMS["npz"] = cfdprocs
-
-    CONFIG_PARAMS = {"cfd_bcx": 1, "cfd_bcy": 1, "cfd_bcz": 1,
-                     "olap_xlo": 1, "olap_xhi": 24,
-                     "olap_ylo": 1, "olap_yhi": 4,
-                     "olap_zlo": 1, "olap_zhi": 24,
-                     "cnst_xlo": 1, "cnst_xhi": 1,
-                     "cnst_ylo": 1, "cnst_yhi": 1,
-                     "cnst_zlo": 1, "cnst_zhi": 1,
-                     "bndry_xlo": 1, "bndry_xhi": 1,
-                     "bndry_ylo": 1, "bndry_yhi": 1,
-                     "bndry_zlo": 1, "bndry_zhi": 1,
-                     "tstep_ratio": 50, }
-
-    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
-             CFD_EXEC, CFD_FNAME, CFD_ARGS, MD_PARAMS, CFD_PARAMS, err_msg)
+# TODO:ADD tests with errors in the config file

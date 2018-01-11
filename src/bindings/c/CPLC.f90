@@ -146,28 +146,29 @@ contains
         c_string = c_loc(f_string)
     end subroutine f_c_string
 
-    subroutine f_c_string_array(f_string_array, c_string_array)
-        use commondefs, only: CPL_STRING_MAX_LEN
-        implicit none
-
-        type(C_PTR), dimension(:), allocatable, intent(out) :: c_string_array
-        integer :: i, s_len
-        character(len=CPL_STRING_MAX_LEN), dimension(:), target, allocatable,intent(inout):: f_string_array
-
-        print*, "INSIDE0"
-        allocate(c_string_array(size(f_string_array)))
-        print*, "INSIDE1"
-        do i = 1, size(f_string_array)
-            s_len = len_trim(f_string_array(i))
-            print*, "loop:",i
-            f_string_array(i)(s_len+1:s_len+1) = C_NULL_CHAR
-            c_string_array(i) = c_loc(f_string_array(i))
-        end do
-
-        print*, "INSIDE2"
-
-    end subroutine f_c_string_array
-
+    !TODO NOTE: Not used at the moment.
+    ! subroutine f_c_string_array(f_string_array, c_string_array)
+    !     use commondefs, only: CPL_STRING_MAX_LEN
+    !     implicit none
+    !
+    !     type(C_PTR), dimension(:), allocatable, intent(out) :: c_string_array
+    !     integer :: i, s_len
+    !     character(len=CPL_STRING_MAX_LEN), dimension(:), target, allocatable,intent(inout):: f_string_array
+    !
+    !     print*, "INSIDE0"
+    !     allocate(c_string_array(size(f_string_array)))
+    !     print*, "INSIDE1"
+    !     do i = 1, size(f_string_array)
+    !         s_len = len_trim(f_string_array(i))
+    !         print*, "loop:",i
+    !         f_string_array(i)(s_len+1:s_len+1) = C_NULL_CHAR
+    !         c_string_array(i) = c_loc(f_string_array(i))
+    !     end do
+    !
+    !     print*, "INSIDE2"
+    !
+    ! end subroutine f_c_string_array
+    !
 #ifdef JSON_SUPPORT
     subroutine CPLC_load_param_file(fname) &
         bind (C, name="CPLC_load_param_file")
@@ -256,34 +257,36 @@ contains
 
     end subroutine CPLC_get_boolean_param
 
-    subroutine CPLC_get_boolean_array_param(section, param_name, boolean_array_param, array_len) &
-        bind (C, name="CPLC_get_boolean_array_param")
-        use CPL, only: get_boolean_array_param
-        implicit none
-        
-        integer(C_INT), intent(out) :: array_len
-        type(C_PTR), intent(out) :: boolean_array_param
-
-        type(C_PTR), intent(in), value :: param_name
-        type(C_PTR), intent(in), value :: section
-
-        character(:), allocatable :: param_name_f
-        character(:), allocatable :: section_f
-        logical, dimension(:), allocatable :: boolean_array_param_f
-        logical(C_BOOL), dimension(:), allocatable, target, save:: boolean_array_param_c
-        !boolean(kind(0.d0)), dimension(:), pointer :: r_f
-
-        call c_f_string(param_name, param_name_f)
-        call c_f_string(section, section_f)
-
-        call get_boolean_array_param(section_f, param_name_f, boolean_array_param_f)
-        allocate(boolean_array_param_c(size(boolean_array_param_f)))
-        call F_C_BOOL_ARRAY(boolean_array_param_f, boolean_array_param_c)
-
-        boolean_array_param = c_loc(boolean_array_param_c(1))
-        array_len = size(boolean_array_param_c)
-    end subroutine CPLC_get_boolean_array_param
- 
+    !TODO NOTE: This do not work as it needs to be instantiated an array at the binding level.
+    !           Leave it for now.
+    ! subroutine CPLC_get_boolean_array_param(section, param_name, boolean_array_param, array_len) &
+    !     bind (C, name="CPLC_get_boolean_array_param")
+    !     use CPL, only: get_boolean_array_param
+    !     implicit none
+    !     
+    !     integer(C_INT), intent(out) :: array_len
+    !     type(C_PTR), intent(out) :: boolean_array_param
+    !
+    !     type(C_PTR), intent(in), value :: param_name
+    !     type(C_PTR), intent(in), value :: section
+    !
+    !     character(:), allocatable :: param_name_f
+    !     character(:), allocatable :: section_f
+    !     logical, dimension(:), allocatable :: boolean_array_param_f
+    !     logical(C_BOOL), dimension(:), allocatable, target, save:: boolean_array_param_c
+    !     !boolean(kind(0.d0)), dimension(:), pointer :: r_f
+    !
+    !     call c_f_string(param_name, param_name_f)
+    !     call c_f_string(section, section_f)
+    !
+    !     call get_boolean_array_param(section_f, param_name_f, boolean_array_param_f)
+    !     allocate(boolean_array_param_c(size(boolean_array_param_f)))
+    !     call F_C_BOOL_ARRAY(boolean_array_param_f, boolean_array_param_c)
+    !
+    !     boolean_array_param = c_loc(boolean_array_param_c(1))
+    !     array_len = size(boolean_array_param_c)
+    ! end subroutine CPLC_get_boolean_array_param
+    !
     
    subroutine CPLC_get_int_param(section, param_name, int_param) &
         bind (C, name="CPLC_get_int_param")
@@ -348,44 +351,44 @@ contains
 
     end subroutine CPLC_get_string_param
 
-
-    subroutine CPLC_get_string_array_param(section, param_name, string_array_param, array_len) &
-        bind (C, name="CPLC_get_string_array_param")
-        use CPL, only: get_string_array_param, CPL_STRING_MAX_LEN
-        implicit none
-        
-        integer(C_INT), intent(out) :: array_len
-        type(C_PTR), dimension(:), allocatable, intent(out) :: string_array_param
-
-        type(C_PTR), intent(in), value :: param_name
-        type(C_PTR), intent(in), value :: section
-
-        character(:), allocatable :: param_name_f
-        character(:), allocatable :: section_f
-        character(len=CPL_STRING_MAX_LEN), dimension(:), allocatable, save:: string_array_param_f
-        character, dimension(:,:), allocatable, target, save:: f
-
-
-        call c_f_string(param_name, param_name_f)
-        call c_f_string(section, section_f)
-
-        call get_string_array_param(section_f, param_name_f, string_array_param_f)
-        !allocate(f(1, 5))
-        !f(1,1) = 'H'
-        !f(1,2) = 'O'
-        !f(1,3) = 'L'
-        !f(1,4) = 'A'
-        !f(1,5) = C_NULL_CHAR
-
-        print*, "ENTRA"
-
-        call f_c_string_array(string_array_param_f, string_array_param)
-
-        array_len = size(string_array_param_f)
-        print*, "SALE"
-    end subroutine CPLC_get_string_array_param
+!     TODO NOTE: This do not work well with segfaults popping.
+!                Leave it for now
+!     subroutine CPLC_get_string_array_param(section, param_name, string_array_param, array_len) &
+!         bind (C, name="CPLC_get_string_array_param")
+!         use CPL, only: get_string_array_param, CPL_STRING_MAX_LEN
+!         implicit none
+!         
+!         integer(C_INT), intent(out) :: array_len
+!         type(C_PTR), dimension(:), allocatable, intent(out) :: string_array_param
+!
+!         type(C_PTR), intent(in), value :: param_name
+!         type(C_PTR), intent(in), value :: section
+!
+!         character(:), allocatable :: param_name_f
+!         character(:), allocatable :: section_f
+!         character(len=CPL_STRING_MAX_LEN), dimension(:), allocatable, save:: string_array_param_f
+!         character, dimension(:,:), allocatable, target, save:: f
+!
+!
+!         call c_f_string(param_name, param_name_f)
+!         call c_f_string(section, section_f)
+!
+!         call get_string_array_param(section_f, param_name_f, string_array_param_f)
+!         !allocate(f(1, 5))
+!         !f(1,1) = 'H'
+!         !f(1,2) = 'O'
+!         !f(1,3) = 'L'
+!         !f(1,4) = 'A'
+!         !f(1,5) = C_NULL_CHAR
+!
+!         print*, "ENTRA"
+!
+!         call f_c_string_array(string_array_param_f, string_array_param)
+!
+!         array_len = size(string_array_param_f)
+!         print*, "SALE"
+!     end subroutine CPLC_get_string_array_param
 #endif
-
 
     subroutine CPLC_init(calling_realm, returned_realm_comm) &
         bind (C, name="CPLC_init")

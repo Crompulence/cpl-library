@@ -1,4 +1,4 @@
-from cplpy import CPL, cart_create, run_test, prepare_config, parametrize_file
+from cplpy import CPL, cart_create, run_test, prepare_config, parametrize_file, CPL_VAR_TYPES
 
 TESTS_DIR_NAMES = ["initialisation", "mapping"]
 

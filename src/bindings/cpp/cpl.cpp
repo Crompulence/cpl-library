@@ -85,38 +85,39 @@ void CPL::get_file_param(const std::string section, const std::string param_name
 }
 
 void CPL::get_file_param(const std::string section, const std::string param_name,
-						 std::vector<bool> &boolean_param_array){
-	int array_len = 0;
-	bool* boolean_param_array_c;
-	CPLC_get_boolean_array_param(section.c_str(), param_name.c_str(),
-								 &boolean_param_array_c, &array_len);
-	boolean_param_array.assign(boolean_param_array_c,
-							   boolean_param_array_c + array_len);
-}
-
-void CPL::get_file_param(const std::string section, const std::string param_name,
 						 std::string& string_param) {
 	char* sp;
 	CPLC_get_string_param(section.c_str(), param_name.c_str(), &sp);
 	string_param = std::string(sp);
 }
+//TODO NOTE: These are not working for the moment
 
-void CPL::get_file_param(const std::string section, const std::string param_name,
-						 std::vector<std::string> &string_param_array){
-	int array_len = 0;
-	char* string_param_array_c;
-	CPLC_get_string_array_param(section.c_str(), param_name.c_str(),
-								&string_param_array_c, &array_len);
-	string_param_array.resize(array_len);
-	for (int s = 0; s < array_len; s++) {
-		std::stringstream myStreamString;
-		myStreamString << ((char**)string_param_array_c)[s];
-		string_param_array[s] = myStreamString.str();
-	}
-	// Free allocated array inside Fortran bindings. A bit dirty but it does the job.
-	free(string_param_array_c);
+// void CPL::get_file_param(const std::string section, const std::string param_name,
+// 						 std::vector<bool> &boolean_param_array){
+// 	int array_len = 0;
+// 	bool* boolean_param_array_c;
+// 	CPLC_get_boolean_array_param(section.c_str(), param_name.c_str(),
+// 								 &boolean_param_array_c, &array_len);
+// 	boolean_param_array.assign(boolean_param_array_c,
+// 							   boolean_param_array_c + array_len);
+// }
 
-}
+// void CPL::get_file_param(const std::string section, const std::string param_name,
+// 						 std::vector<std::string> &string_param_array){
+// 	int array_len = 0;
+// 	char* string_param_array_c;
+// 	CPLC_get_string_array_param(section.c_str(), param_name.c_str(),
+// 								&string_param_array_c, &array_len);
+// 	string_param_array.resize(array_len);
+// 	for (int s = 0; s < array_len; s++) {
+// 		std::stringstream myStreamString;
+// 		myStreamString << ((char**)string_param_array_c)[s];
+// 		string_param_array[s] = myStreamString.str();
+// 	}
+// 	// Free allocated array inside Fortran bindings. A bit dirty but it does the job.
+// 	free(string_param_array_c);
+//
+// }
 #endif 
 
 void CPL::init(int calling_realm, int& returned_realm_comm) {

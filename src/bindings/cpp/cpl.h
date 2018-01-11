@@ -70,9 +70,10 @@ namespace CPL
 	void get_file_param(const std::string section, const std::string param_name, int& int_param);
 	void get_file_param(const std::string section, const std::string param_name, std::vector<int> &int_param_array);
 	void get_file_param(const std::string section, const std::string param_name, bool& boolean_param);
-	void get_file_param(const std::string section, const std::string param_name, std::vector<bool> &boolean_param_array);
 	void get_file_param(const std::string section, const std::string param_name, std::string& string_param);
-	void get_file_param(const std::string section, const std::string param_name, std::vector<std::string> &string_param_array);
+    // TODO NOTE: These are not working at the moment
+	// void get_file_param(const std::string section, const std::string param_name, std::vector<bool> &boolean_param_array);
+	// void get_file_param(const std::string section, const std::string param_name, std::vector<std::string> &string_param_array);
 #endif 
 
     void init ( int  calling_realm, int& returned_realm_comm); 

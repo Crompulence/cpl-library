@@ -54,9 +54,10 @@ extern "C" void CPLC_get_real_array_param(const char* section, const char* param
 extern "C" void CPLC_get_int_param(const char* section, const char* param_name, int* int_param);
 extern "C" void CPLC_get_int_array_param(const char* section, const char* param_name, int** int_param_array, int* array_len);
 extern "C" void CPLC_get_boolean_param(const char* section, const char* param_name, bool* boolean_param);
-extern "C" void CPLC_get_boolean_array_param(const char* section, const char* param_name, bool** boolean_param_array, int* array_len);
 extern "C" void CPLC_get_string_param(const char* section, const char* param_name, char** string_param);
-extern "C" void CPLC_get_string_array_param(const char* section, const char* param_name, char** string_param_array, int* array_len);
+//TODO NOTE: Not working at the moment 
+//extern "C" void CPLC_get_boolean_array_param(const char* section, const char* param_name, bool** boolean_param_array, int* array_len);
+//extern "C" void CPLC_get_string_array_param(const char* section, const char* param_name, char** string_param_array, int* array_len);
 #endif 
 
 extern "C" void CPLC_init(int  calling_realm, int* returned_realm_comm);

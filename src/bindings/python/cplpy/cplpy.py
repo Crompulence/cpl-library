@@ -13,7 +13,7 @@ import cPickle
 import errno
 
 
-__all__ = ["CPL", "cart_create", "run_test", "prepare_config", "parametrize_file"]
+__all__ = ["CPL", "cart_create", "run_test", "prepare_config", "parametrize_file", "CPL_VAR_TYPES"]
 
 
 class OpenMPI_Not_Supported(Exception):
@@ -48,8 +48,6 @@ _CPL_GET_VARS = {"icmin_olap": c_int, "jcmin_olap": c_int, "kcmin_olap": c_int,
 
 _CPL_SET_VARS = {"output_mode": c_int}
 
-_CPL_FILE_VARS_TYPES = {"CPL_INT", "CPL_DOUBLE", "CPL_INT_ARRAY", "CPL_DOUBLE_ARRAY"}
-
 class CPL_VAR_TYPES():
     INT = 1
     DOUBLE = 2
@@ -57,8 +55,9 @@ class CPL_VAR_TYPES():
     STRING = 4
     INT_ARRAY = 5
     DOUBLE_ARRAY = 6
-    BOOL_ARRAY = 7
-    STRING_ARRAY = 8
+    # NOTE: Note working at the moment
+    # BOOL_ARRAY = 7
+    # STRING_ARRAY = 8
 
 
 _CPL_GET_FILE_VARS = {CPL_VAR_TYPES.DOUBLE: ("get_real_param", c_double), 
@@ -66,9 +65,11 @@ _CPL_GET_FILE_VARS = {CPL_VAR_TYPES.DOUBLE: ("get_real_param", c_double),
                       CPL_VAR_TYPES.INT: ("get_int_param", c_int), 
                       CPL_VAR_TYPES.INT_ARRAY: ("get_int_array_param", POINTER(c_int)),
                       CPL_VAR_TYPES.BOOL: ("get_boolean_param", c_bool), 
-                      CPL_VAR_TYPES.BOOL_ARRAY: ("get_boolean_array_param", POINTER(c_bool)),
-                      CPL_VAR_TYPES.STRING: ("get_string_param", c_char_p), 
-                      CPL_VAR_TYPES.STRING_ARRAY: ("get_string_array_param", POINTER(c_char_p))}
+                      CPL_VAR_TYPES.STRING: ("get_string_param", c_char_p)}
+                      # NOTE: Not working at the moment
+                      # CPL_VAR_TYPES.BOOL_ARRAY: ("get_boolean_array_param", POINTER(c_bool)),
+                      # CPL_VAR_TYPES.STRING_ARRAY: ("get_string_array_param", POINTER(c_char_p))}
+
 # Decorator to abort all processes if an exception is thrown. This
 # avoids getting blocked when the exception do not occurs in every
 # process.
@@ -210,14 +211,9 @@ class CPL:
             self._var = var_ctype()
 
             if ("array" in fun_name):
-                print ("ENTRO")
                 var_len = c_int()
                 fun.argtypes.append(POINTER(c_int))
-                print ("EY")
                 fun(c_char_p(section), c_char_p(var_name), byref(self._var), byref(var_len))
-                print ("len:" , var_len.value)
-                #print (self._var[0])
-                #print (byref(var[0]))
                 a = ([self._var[i] for i in xrange(var_len.value)])
                 return a
             else:
@@ -654,10 +650,10 @@ def parametrize_config(template_dir, params):
     parametrize_file(source, dest, params)
 
 
-def prepare_config(tmpdir, test_dir, md_fname, cfd_fname):
+def prepare_config(tmpdir, test_dir, resources):
     tmpdir.mkdir("cpl")
-    copyanything(test_dir, tmpdir.strpath, md_fname)
-    copyanything(test_dir, tmpdir.strpath, cfd_fname)
+    for r in resources:
+        copyanything(test_dir, tmpdir.strpath, r)
     os.chdir(tmpdir.strpath)
 
 
