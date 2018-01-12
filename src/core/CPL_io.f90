@@ -172,7 +172,10 @@ subroutine bcast_param_file()
     
     if (myrank .eq. 0) then
         call json%print_to_string(json_string)
-        if (json%failed()) stop 1
+        if (json%failed()) then
+            print *, "Stop print_to_string."
+            stop 1
+        endif
         file_size = len(json_string)
     endif
 
@@ -182,13 +185,16 @@ subroutine bcast_param_file()
     endif
 
     call MPI_Bcast(json_string, file_size, MPI_CHAR, 0, MPI_COMM_WORLD, ierr)
-    !print *, json_string
     call json%load_from_string(json_string)
-    if (json%failed()) stop 1
+    if (json%failed()) then
+        print *, "Stop load_from_string."
+        stop 1
+    endif
 
 endsubroutine bcast_param_file
 
 subroutine get_real_param(section, var_name, ret)
+    use coupler_module, only: error_abort
 
     implicit none
 
@@ -196,11 +202,15 @@ subroutine get_real_param(section, var_name, ret)
     real(kind(0.d0)), intent(out) :: ret
 
     call json%get(section//'.'//var_name, ret)
-    if (json%failed()) stop 1
+    if (json%failed()) then
+        print *, "Stop in get_real_param()."
+        stop 1
+    endif
 
 endsubroutine get_real_param
 
 subroutine get_real_array_param(section, var_name, ret)
+    use coupler_module, only: error_abort
 
     implicit none
 
@@ -209,11 +219,15 @@ subroutine get_real_array_param(section, var_name, ret)
 
 
     call json%get(section//'.'//var_name, ret)
-    if (json%failed()) stop 1
+    if (json%failed()) then
+        print *, "Stop in get_real_array()."
+        stop 1
+    endif
 
 endsubroutine get_real_array_param
 
 subroutine get_int_param(section, var_name, ret)
+    use coupler_module, only: error_abort
 
     implicit none
 
@@ -221,11 +235,15 @@ subroutine get_int_param(section, var_name, ret)
     integer, intent(out) :: ret
 
     call json%get(section//'.'//var_name, ret)
-    if (json%failed()) stop 1
+    if (json%failed()) then
+        print *, "Stop in get_int()."
+        stop 1
+    endif
 
 endsubroutine get_int_param
 
 subroutine get_int_array_param(section, var_name, ret)
+    use coupler_module, only: error_abort
 
     use coupler_module, only: error_abort
     implicit none
@@ -244,6 +262,7 @@ endsubroutine get_int_array_param
 
 
 subroutine get_string_param(section, var_name, ret)
+    use coupler_module, only: error_abort
 
     implicit none
 
@@ -251,11 +270,15 @@ subroutine get_string_param(section, var_name, ret)
     character(len=:), allocatable, intent(out) :: ret
 
     call json%get(section//'.'//var_name, ret)
-    if (json%failed()) stop 1
+    if (json%failed())  then
+        call json%print_error_message()
+        call error_abort("CPL_get_string_param - Error getting string param.")
+    endif
 
 endsubroutine get_string_param
 
 subroutine get_boolean_param(section, var_name, ret)
+    use coupler_module, only: error_abort
 
     implicit none
 
@@ -263,7 +286,10 @@ subroutine get_boolean_param(section, var_name, ret)
     logical, intent(out) :: ret
 
     call json%get(section//'.'//var_name, ret)
-    if (json%failed()) stop 1
+    if (json%failed()) then
+        call json%print_error_message()
+        call error_abort("CPL_get_boolean_param - Error getting boolean param.")
+    endif
 
 endsubroutine get_boolean_param
 

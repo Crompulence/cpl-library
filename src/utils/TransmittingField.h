@@ -33,8 +33,10 @@ public:
     TransmittingField() {}
     TransmittingField(std::string field_name, const CPL::PortionField& portion_field, const CPL::PortionField& field) : 
                   PoolElement(field_name), CPL::PortionField(portion_field), region(field) {}
+    TransmittingField(std::string field_name) : PoolElement(field_name) {}
     virtual void setup()=0;
     virtual void update(){}
+    virtual void addToPool(std::map<std::string, TransmittingField*>* pool, bool overwrite=true);
     void setBuffer(const BufferPtr& buff) {buffer = buff;}
     int data_size;
     CPL::PortionField region; 

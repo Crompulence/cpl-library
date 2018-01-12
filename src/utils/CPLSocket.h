@@ -60,7 +60,7 @@ public:
                   cnstRegion(), bcPortionRegion(), cnstPortionRegion(),
                   procGrid(3), realmType(realm_type), cfdCells(3),
                   sendBuffAllocated(false), recvBuffAllocated(false),
-                  sendEnabled(true), recvEnabled(true) {}
+                  sendEnabled(true), recvEnabled(true), paramFileLoaded(false) {}
     CPLSocket() : CPLSocket(-1) {}
     virtual ~CPLSocket(){}
     // Total number of timesteps and timestep ratio
@@ -71,7 +71,7 @@ public:
     int dt;
     
     // Initialisation routines 
-    void initComms ();
+    void initComms (bool load_param_file=false);
     virtual void init ();
 
     // TODO: Change to send/recv with a list of Incomming/Outgoing fields list
@@ -138,6 +138,11 @@ public:
                          const CPL::IncomingFieldPool& field_pool_recv);
     void allocateSendBuffer(const CPL::OutgoingFieldPool& field_pool_send);
     void allocateRecvBuffer(const CPL::IncomingFieldPool& field_pool_recv);
+    
+    bool paramFileLoaded;
+    void loadParamFile(std::string fname="config.cpl");
+
+
 
 
 protected:

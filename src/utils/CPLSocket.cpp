@@ -46,13 +46,20 @@ Author(s)
 #include "cpl.h"
 #include <iostream>
 
-void CPLSocket::initComms() {
+void CPLSocket::initComms(bool load_param_file) {
 
     // Split MPI_COMM_WORLD into realm communicators
     CPL::init(realmType, realmComm);
     MPI_Comm_rank(realmComm, &rankRealm);
 
 };
+
+void CPLSocket::loadParamFile(std::string fname) {
+    if (!paramFileLoaded) {
+        CPL::load_param_file(fname);
+        paramFileLoaded = true;
+    }
+}
 
 void CPLSocket::getPortionField_(std::vector<int>& region_limits, 
                                  CPL::PortionField& field) {

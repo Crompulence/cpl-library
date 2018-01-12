@@ -27,6 +27,19 @@ void CPL::OutgoingFieldPool::packAll() {
 }
 
 
+void CPL::TransmittingField::addToPool(std::map<std::string, TransmittingField*>* 
+                                       pool, bool overwrite) {
+    // Add portion and region information to the transmitting field
+    CPL::PortionField a, b;
+    a =  (static_cast<TransmittingFieldPool*>(pool))->portionField;
+    b = (static_cast<TransmittingFieldPool*>(pool))->field;
+    if (overwrite) {
+        static_cast<PortionField&>(*this) = a;
+        region = b;
+    }
+    CPL::PoolElement<TransmittingField>::addToPool(pool);
+}
+
 
 void CPL::TransmittingFieldPool::allocateBuffer(CPL::ndArray<double>& buffer) const {
     CPL::PortionField send_portion, recv_portion;

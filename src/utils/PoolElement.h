@@ -14,7 +14,7 @@ public:
     std::string elem_name;
     std::map<std::string, T*>* pool;
 
-    void addToPool(std::map<std::string, T*>* T_pool) {
+    virtual void addToPool(std::map<std::string, T*>* T_pool) {
         //TODO: Use exceptions
         if(!T_pool->insert(std::pair<std::string, T*>(elem_name, static_cast<T*>(this))).second) {
             std::string err_msg = "Dependency already exists.";

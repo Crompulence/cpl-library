@@ -125,10 +125,13 @@ else
 	$(CPP) $(CFLAGS) -I$(cbinddir) -c $(cppbindsrcfiles) -o $(cppbindobjfiles)
 endif
 	@cp $(cppbindhdrfiles) $(includedir)
+ifdef json-support
+	@unifdef -x1 -DJSON_SUPPORT -o $(includedir)/cpl.h $(includedir)/cpl.h  
+endif
 
 # Utilities
 utilities: core $(utilsobjfiles) 
-	@cp $(utilshdrfiles) $(includedir)
+	cp $(utilshdrfiles) $(includedir)
 
 # Directory rules 
 $(objdir):
