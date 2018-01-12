@@ -109,7 +109,7 @@ endfunction CPL_is_param_file_loaded
 
 subroutine CPL_load_param_file(fname)
     use mpi
-    use coupler_module, only: error_abort, get_new_fileunit
+    use coupler_module, only: error_abort, get_new_fileunit, CPL_REALM_COMM
 
     implicit none
 
@@ -122,7 +122,7 @@ subroutine CPL_load_param_file(fname)
     param_fname = fname
     call json%initialize()
 
-    call MPI_comm_rank(MPI_COMM_WORLD, myrank, ierr)
+    call MPI_comm_rank(CPL_REALM_COMM, myrank, ierr)
 
     if (myrank .eq. 0) then
         unitno_in = get_new_fileunit() 
@@ -162,13 +162,14 @@ endsubroutine CPL_close_param_file
 
 subroutine bcast_param_file()
     use mpi
+    use coupler_module, only: error_abort, CPL_REALM_COMM
     
     implicit none
 
     character(kind=json_CK,len=:), allocatable :: json_string
     integer :: file_size, ierr, myrank
 
-    call MPI_comm_rank(MPI_COMM_WORLD, myrank, ierr)
+    call MPI_comm_rank(CPL_REALM_COMM, myrank, ierr)
     
     if (myrank .eq. 0) then
         call json%print_to_string(json_string)
@@ -179,12 +180,12 @@ subroutine bcast_param_file()
         file_size = len(json_string)
     endif
 
-    call MPI_Bcast(file_size, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+    call MPI_Bcast(file_size, 1, MPI_INTEGER, 0, CPL_REALM_COMM, ierr)
     if (myrank .ne. 0) then 
         allocate(character(kind=json_CK,len=file_size)::json_string)
     endif
 
-    call MPI_Bcast(json_string, file_size, MPI_CHAR, 0, MPI_COMM_WORLD, ierr)
+    call MPI_Bcast(json_string, file_size, MPI_CHAR, 0, CPL_REALM_COMM, ierr)
     call json%load_from_string(json_string)
     if (json%failed()) then
         print *, "Stop load_from_string."
