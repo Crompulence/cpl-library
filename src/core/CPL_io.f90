@@ -109,13 +109,15 @@ endfunction CPL_is_param_file_loaded
 
 subroutine CPL_load_param_file(fname)
     use mpi
-    use coupler_module, only: error_abort, get_new_fileunit, CPL_REALM_COMM
+    use coupler_module, only: error_abort, get_new_fileunit,&
+                              CPL_REALM_COMM, md_realm, realm
 
     implicit none
 
     integer :: myrank, ierr
     integer :: unitno_in, unitno_out
     character(kind=json_CK, len=*), intent(in) :: fname
+    character(len=255) :: fname_tmp
     character(LEN=:), allocatable :: InLine
 
     fd_counter = fd_counter + 1
@@ -128,8 +130,13 @@ subroutine CPL_load_param_file(fname)
         unitno_in = get_new_fileunit() 
         open (unitno_in, file=fname, action="read")
         ! FILTER COMMENTS --> Generated 'config.tmp' comment-free
+        if (realm .eq. md_realm) then
+            fname_tmp = "config_md.tmp"
+        else
+            fname_tmp = "config_cfd.tmp"
+        endif
         unitno_out = get_new_fileunit() 
-        open (unitno_out, file='config.tmp', action="write")
+        open (unitno_out, file=fname_tmp, action="write")
         do while(read_line(unitno_in, InLine))
             InLine = ADJUSTL(InLine)
             if (.not. InLine(1:1) .eq. '#') then
@@ -139,9 +146,9 @@ subroutine CPL_load_param_file(fname)
         close(unitno_in)
         close(unitno_out)
         ! FILTER COMMENTS END
-        call json%load_file(filename = 'config.tmp')
+        call json%load_file(filename = fname_tmp)
         ! Delete 'config.tmp'
-        open (unitno_out, file='config.tmp', status='old')
+        open (unitno_out, file=fname_tmp, status='old')
         close(unitno_out, status='delete')
         if (json%failed()) then
             call json%print_error_message()
