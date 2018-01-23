@@ -68,7 +68,7 @@ public:
     int nSteps;
     int timestepRatio;
     int initialStep;
-    int dt;
+    double dt;
     
     // Initialisation routines 
     void initComms (bool load_param_file=false);
