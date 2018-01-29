@@ -63,7 +63,6 @@ void CPL::TransmittingField::iteratePortion_() {
 	if (CPL::is_proc_inside(portion.data())) {
         // Pack/unpack custom called here
         iterateFuncCustom_();
-        std::valarray<double> bot_left(3);
         std::vector<int> glob_cell(3), loc_cell(3);
         std::valarray<double> cell_coord(3);
 		for (int i = portion[0]; i <= portion[1]; i++)
