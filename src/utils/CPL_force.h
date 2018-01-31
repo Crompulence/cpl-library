@@ -69,7 +69,7 @@ protected:
     //CPL::ndArray<double> array;
 
     CPL::CPLField* fieldptr;
-    //std::shared_ptr<CPL::CPLField> fieldptr;
+    //std::unique_ptr<CPL::CPLField> fieldptr;
 
 public:
 
@@ -201,6 +201,7 @@ public:
     //Constructors
     CPLForceDrag(CPL::ndArray<double> field);
     CPLForceDrag(int nd, int icell, int jcell, int kcell);
+    CPLForceDrag(int nd, int icell, int jcell, int kcell, bool overlap);
 
     //Pre force collection and get force calculation
     // position, velocity, acceleration, mass, radius, interaction
@@ -208,11 +209,14 @@ public:
                    double m, double s, double e);
     std::vector<double> get_force(double r[], double v[], double a[], 
                                   double m, double s, double e);
+    std::vector<double> get_force_unopt(double r[], double v[], double a[], 
+                                  double m, double s, double e);
 
     //Force specific things
     double drag_coefficient();
 
     bool calc_preforce = true;
+    bool use_overlap = false;
 
     CPL::ndArray<double> nSums;
     CPL::ndArray<double> eSums;
