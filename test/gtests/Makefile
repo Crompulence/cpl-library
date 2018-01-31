@@ -47,6 +47,9 @@ GMOCK_HEADERS = $(GMOCK_DIR)/gmock/*.h $(GTEST_HEADERS)
 # House-keeping build targets.
 all : $(TESTS)
 
+test: 
+	valgrind ./CPL_force_unittest
+
 clean :
 	rm -f $(TESTS) gtest.a gtest_main.a gmock.a gmock_main.a *.o
 
