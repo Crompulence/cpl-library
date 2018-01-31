@@ -12,6 +12,9 @@
 
 #include <vector>
 #include <iostream>
+#include <utility>
+#include <memory>
+
 #include "CPL_ndArray.h"
 
 namespace CPL{
@@ -30,11 +33,18 @@ public:
     void set_dxyz();
 
     CPL::ndArray<double> get_array();
+    //std::unique_ptr<CPL::ndArray <double>> get_array_pointer();
+    CPL::ndArray<double>& get_array_pointer();
 
     //Get cell values
     std::vector<int> get_cell(double r[]);
     std::vector<double> get_dA();    
     std::vector<double> interpolate(double r[]);    
+
+    //Function to get sphere cube overlaps
+    double sphere_cube_overlap(double, double, double, double,
+                               double, double, double, 
+                               double, double, double);
 
     //Destructor
     virtual ~CPLField() {}

@@ -4,6 +4,7 @@
 
 #include "CPL_ndArray.h"
 #include "CPL_field.h"
+#include "overlap/overlap.hpp"
 
 //#include "interpolate/lagrange_interp_nd.hpp"
 int lagrange_interp_nd_size ( int, int* );
@@ -92,9 +93,20 @@ void CPLField::set_array(CPL::ndArray<double> arrayin){
     set_dxyz();
 }
 
+//This is terrible for efficiency, it creates a copy of the array!
 CPL::ndArray<double> CPLField::get_array(){
     return array;
 }
+
+CPL::ndArray<double>& CPLField::get_array_pointer(){
+    return array;
+}
+
+
+//std::unique_ptr<CPL::ndArray<double>> CPLField::get_array_pointer(){
+//    return std::unique_ptr<CPL::ndArray<double>> array;
+//}
+
 
 //Get interpolate of field
 //std::vector<double> CPLField::interpolate(double r[]){
@@ -236,6 +248,32 @@ std::vector<double> CPLField::interpolate(double r[], CPL::ndArray<double> cell_
     std::vector<double> vec = {0., 0., 0.};
     return vec;
 
+}
+
+
+double CPLField::sphere_cube_overlap(double scx, double scy, double scz, double sr,
+                                     double xb, double yb, double zb, 
+                                     double xt, double yt, double zt)
+{
+    vector_t v0{xb, yb, zb};
+    vector_t v1{xt, yb, zb};
+    vector_t v2{xt, yt, zb};
+    vector_t v3{xb, yt, zb};
+    vector_t v4{xb, yb, zt};
+    vector_t v5{xt, yb, zt};
+    vector_t v6{xt, yt, zt};
+    vector_t v7{xb, yt, zt};
+
+    Hexahedron cube{v0, v1, v2, v3, v4, v5, v6, v7};
+
+    vector_t c{scx, scy, scz};
+    Sphere s{c, sr};
+
+    scalar_t result = overlap(s, cube);
+
+	//std::cout << "result:    " << result << std::endl;
+
+    return result;
 }
 
 
