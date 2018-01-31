@@ -931,11 +931,6 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     integer,dimension(:,:),allocatable :: status
     real(kind(0.d0)),dimension(:), allocatable ::  vbuf
 
-    !Check setup is complete
-    if (CPL_setup_complete .ne. 1) then
-        call error_abort("Error CPL_recv called before CPL_setup_"//REALM_NAME(realm))
-    endif
- 
     ! This local CFD domain is outside MD overlap zone 
     if (olap_mask(rank_world).eqv. .false.) return
 
@@ -1004,7 +999,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 
             ! Receive section of data
             itag = 0
-            call MPI_irecv(vbuf(start_address), ndata, MPI_DOUBLE_PRECISION, sourceid, itag,&
+            call MPI_irecv(vbuf(start_address), ndata, MPI_DOUBLE_PRECISION, sourceid, itag, &
                                     CPL_GRAPH_COMM, req(nbr), ierr)
 
         endif
