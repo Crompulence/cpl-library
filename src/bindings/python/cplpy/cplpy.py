@@ -526,6 +526,9 @@ class CPL:
         except KeyError:
             print ("CPL-ERROR: CPL Library function '" +
                    str(var_name) + "' not found!")
+            print ("Available options include: ")
+            for var in _CPL_GET_VARS:
+                print(var)
             raise KeyError
         else:
             fun.restype = var_type
