@@ -1972,10 +1972,12 @@ subroutine check_config_feasibility()
     ival = nint( dble(ncy) / dble(npy_cfd) )
     if (ncy_olap .gt. ival) then
 
-        string = "CPL_create_map error - This coupler will not work if there is more than one "// &
-                 "CFD processor (y-coordinate) in the overlapping region. "       // &
-                 "Aborting simulation."
-        call error_abort(string)
+        if (CPL_full_overlap .eqv. .false.) then
+            string = "CPL_create_map error - This coupler will not work if there is more than one "// &
+                     "CFD processor (y-coordinate) in the overlapping region. "       // &
+                     "Aborting simulation."
+            call error_abort(string)
+        endif
 
     end if
 
