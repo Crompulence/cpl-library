@@ -79,7 +79,7 @@ module coupler
            CPL_map_glob2loc_cell, CPL_get_olap_limits, CPL_get_cnst_limits, &
            CPL_get_bnry_limits, CPL_map_cfd2md_coord, CPL_map_md2cfd_coord, & 
            CPL_overlap, CPL_realm, CPL_cart_coords, CPL_cfd_dt, CPL_md2cfd, &
-           CPL_cfd2md, CPL_is_proc_inside
+           CPL_cfd2md, CPL_is_proc_inside, CPL_swaphalos
 
 contains
 
@@ -1012,7 +1012,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 
     !free all requests
 !    do nbr = 1, nneighbors
-!	print*, req(nbr)
+!    print*, req(nbr)
 !        if (req(nbr) .ne. MPI_REQUEST_NULL) then
 !            call MPI_Request_free(req(nbr), ierr)
 !        endif
@@ -1105,137 +1105,224 @@ end subroutine CPL_recv
 
 
 
-!======================================================================
-!			Bin averaged handling subroutines        	              =
-!======================================================================
 ! Contains routines:
-! swaphalos				--   TOP LEVEL Swap halos with adjacent processors
-!							 calls updatefaces
-! updatefaces			 --  Facilitate the MPI based exchange of data
+! swaphalos                --   TOP LEVEL 
+!                             calls updatefaces
+! 
 
-!Update face halo cells by passing to neighbours (real(kind(0.d0)) version)
-subroutine CPL_swaphalos(A,n1,n2,n3,nresults,icomm_grid)
-	implicit none
+! ----------------------------------------------------------------------------
+subroutine CPL_swaphalos(A)
+! ----------------------------------------------------------------------------
+!
+! Swap halos with adjacent processors on current realm cart comm
+!
+!**Remarks**
+!
+! Assumes the coupler has been initialised with `CPL_init <#f/_/cpl_init>`_ and 
+! topological mapping has been setup using either `CPL_setup_md <#f/_/cpl_setup_md>`_ 
+! or `CPL_setup_cfd <#f/_/cpl_setup_cfd>`_ as appropriate.
+! 
+!
+!**Synopsis**
+!
+!.. code-block:: c
+!
+!  CPL_swaphalos(
+!           A, 
+!           )    
+!
+!**Inputs**
+!
+! - *A*
+!
+!   - Array of data to swaphalo. Should be a four dimensional array allocated using the number of cells including one halos on the current processor. Size should be be obtained from `CPL_my_proc_portion(limits, portion) <#f/_/cpl_my_proc_portion>`_ with an extra halo on each side. This halo should have been used to collect overflow on current processor.
+! 
+!
+!**Outputs**
+!
+! - A
+!
+!   - Array of data with outer halo obtained from adjacent processes.
+!
+!**Example**
+!
+!.. code-block:: guess
+!
+!  call CPL_get(icmax_olap=icmax_olap)
+!  call CPL_get_olap_limits(limits)
+!  call CPL_my_proc_portion(limits, portion)
+!  call CPL_get_no_cells(portion, Ncells)
+!
+!  Setup an increasing number in each cell in 2D
+!  allocate(A(1, Ncells(1)+2, Ncells(2)+2, Ncells(3)+2))
+!  A = 0.0d0
+!  do i=2,Ncells(1)+1
+!  do j=2,Ncells(2)+1
+!  do k=2,Ncells(3)+1
+!      ii = i + portion(1)
+!      jj = j + portion(3)
+!      A(1,i,j,k) = ii + jj*icmax_olap
+!  enddo
+!  enddo
+!  enddo
+!  call CPL_swaphalo(A)
+!
+! .. sectionauthor::Edward Smith
 
-	integer,intent(in)								:: n1,n2,n3,nresults,icomm_grid
-	real(kind(0.d0)),intent(inout)					:: A(:,:,:,:)
+    use coupler_module, only : CPL_CART_COMM
+    implicit none
 
-	integer											:: ixyz,n,i,j,k,ic,jc,kc,nresultscell
-	real(kind(0.d0)),dimension(:,:,:,:),allocatable	:: buf
+    real(kind=kind(0.d0)), intent(inout)                    :: A(:,:,:,:)
 
-	integer											:: nhalo,na(3),nxyz(3),nhb(3)
-	integer,dimension(:,:),allocatable	      		:: halo
+    integer                                                 :: n1,n2,n3,nresults
+    integer                                                 :: ixyz,n,i,j,k,ic,jc,kc,nresultscell
+    real(kind=kind(0.d0)),dimension(:,:,:,:),allocatable    :: buf
 
+    integer                                                 :: nhalo,na(3),nxyz(3),nhb(3)
+    integer,dimension(:,:),allocatable                      :: halo
+
+    nresults = size(A,1)
+    na = (/ size(A,2), size(A,3), size(A,4) /)
     nhb = (/1,1,1/)
-	na = (/ n1, n2, n3 /)
-    nxyz = na+2*nhb
-	nhalo =	2*( na(1)   * na(2) &
-			+  (na(3)-2)* na(2) &
-			+  (na(3)-2)*(na(1)-2))
-    call establish_surface_cells(na, nhb, halo)
+    nxyz = na - 2*nhb
 
-	!Pack bins into array of cells
-	nresultscell = nresults * nhb(1) * nhb(2) * nhb(3)
-	allocate(buf(nxyz(1),nxyz(2),nxyz(3),nresultscell)); buf = A
+    !Get halo cells, input is cell limits minus halo
+    call establish_halo_cells(nxyz, halo)
+    nhalo = size(halo,1)
 
-	!Exchange faces with adjacent processors
-	call updatefaces(buf,nxyz(1),nxyz(2),nxyz(3),nresultscell,1,icomm_grid)
-	call updatefaces(buf,nxyz(1),nxyz(2),nxyz(3),nresultscell,2,icomm_grid)
-	call updatefaces(buf,nxyz(1),nxyz(2),nxyz(3),nresultscell,3,icomm_grid)
+    !Pack bins into array of cells
+    allocate(buf(na(1),na(2),na(3),nresults))
+    buf = 0.d0
+    do i=1,size(A,2)
+    do j=1,size(A,3)
+    do k=1,size(A,4)
+        do n=1,nresults
+            buf(i, j, k, n) = A(n, i, j, k)
+        enddo
+    enddo
+    enddo
+    enddo
 
-	!halo values to correct cells in array
-	do n = 1, nhalo
-		i = halo(n,1); j = halo(n,2); k = halo(n,3)
+    !Copy halo values to adjacent cells in array ready to send
+    do n = 1, nhalo
+        i = halo(n,1); j = halo(n,2); k = halo(n,3)
 
-		!Change in number of Molecules in halo cells
-		ic = i + heaviside(nxyz(1)-1-i)-heaviside(i-2)
-		jc = j + heaviside(nxyz(2)-1-j)-heaviside(j-2)
-		kc = k + heaviside(nxyz(3)-1-k)-heaviside(k-2)
+        !Change in number of Molecules in halo cells
+        ic = i + int(heaviside(na(1)-1-i)-heaviside(i-2))
+        jc = j + int(heaviside(na(2)-1-j)-heaviside(j-2))
+        kc = k + int(heaviside(na(3)-1-k)-heaviside(k-2))
 
-		buf(ic,jc,kc,:) = buf(ic,jc,kc,:) + buf(i,j,k,:)
+        buf(i,j,k,:) = buf(i,j,k,:) + buf(ic,jc,kc,:)
 
-	enddo
+    enddo
 
-	!Unpack array of cells into bins
-	A = buf
-	deallocate(buf)
+    !Exchange faces with adjacent processors
+    call updatefaces(buf,na(1),na(2),na(3),nresults,1,CPL_CART_COMM)
+    call updatefaces(buf,na(1),na(2),na(3),nresults,2,CPL_CART_COMM)
+    call updatefaces(buf,na(1),na(2),na(3),nresults,3,CPL_CART_COMM)
+
+    !halo values to correct cells in array
+!    do n = 1, nhalo
+!        i = halo(n,1); j = halo(n,2); k = halo(n,3)
+
+!        !Change in number of Molecules in halo cells
+!        ic = i + int(heaviside(na(1)-1-i)-heaviside(i-2))
+!        jc = j + int(heaviside(na(2)-1-j)-heaviside(j-2))
+!        kc = k + int(heaviside(na(3)-1-k)-heaviside(k-2))
+
+!        buf(ic,jc,kc,:) = buf(ic,jc,kc,:) + buf(i,j,k,:)
+
+!    enddo
+
+    !Unpack array of cells
+    do i=1,size(A,2)
+    do j=1,size(A,3)
+    do k=1,size(A,4)
+        do n=1,nresults
+            A(n, i, j, k) = buf(i, j, k, n)
+        enddo
+    enddo
+    enddo
+    enddo
+    deallocate(buf)
 
 end subroutine CPL_swaphalos
 
+! updatefaces             --  Facilitate the MPI based exchange of data
 !Update face halo cells by passing to neighbours
-subroutine updatefaces(A,n1,n2,n3,nresults,ixyz,icomm_grid)
+subroutine updatefaces(A, n1, n2, n3, nresults, ixyz, icomm_grid)
     use mpi
-	implicit none
+    implicit none
 
-	integer,intent(in)								:: n1,n2,n3,nresults,icomm_grid
-	real(kind(0.d0)),intent(inout)					:: A(:,:,:,:)
+    integer,intent(in)                                :: n1,n2,n3,nresults,icomm_grid
+    real(kind(0.d0)),intent(inout)                    :: A(:,:,:,:)
 
-	integer 										:: ixyz, sendrecv_tag, ierr
-	integer 										:: icount,isource,idest
-	real(kind(0.d0)),dimension(:,:,:,:),allocatable	:: buf1, buf2
+    integer                                         :: ixyz, sendrecv_tag, ierr
+    integer                                         :: icount,isource,idest
+    real(kind(0.d0)),dimension(:,:,:,:),allocatable    :: buf1, buf2
 
-	!Choose a unique sendrecv_tag for this operation
-	sendrecv_tag = 1002
+    !Choose a unique sendrecv_tag for this operation
+    sendrecv_tag = 1002
 
-	!Determine size of send buffer and copy to buffer data to pass to lower neighbour
-	select case (ixyz)
-	case (1)
-		allocate(buf1(1,n2,n3,nresults), buf2(1,n2,n3,nresults))
-		icount = 1*n2*n3*nresults
-		buf2 = 0.d0
-		buf1(1,:,:,:) = A(1,:,:,:)
-	case (2)
-		allocate(buf1(n1,1,n3,nresults), buf2(n1,1,n3,nresults))
-		icount = n1*1*n3*nresults
-		buf2 = 0.d0
-		buf1(:,1,:,:) = A(:,1,:,:)
-	case (3)
-		allocate(buf1(n1,n2,1,nresults), buf2(n1,n2,1,nresults))
-		icount = n1*n2*1*nresults
-		buf2 = 0.d0
-		buf1(:,:,1,:) = A(:,:,1,:)
-	case default
-		stop "updateBorder: invalid value for ixyz"
-	end select
+    !Determine size of send buffer and copy to buffer data to pass to lower neighbour
+    select case (ixyz)
+    case (1)
+        allocate(buf1(1,n2,n3,nresults), buf2(1,n2,n3,nresults))
+        icount = 1*n2*n3*nresults
+        buf2 = 0.d0
+        buf1(1,:,:,:) = A(1,:,:,:)
+    case (2)
+        allocate(buf1(n1,1,n3,nresults), buf2(n1,1,n3,nresults))
+        icount = n1*1*n3*nresults
+        buf2 = 0.d0
+        buf1(:,1,:,:) = A(:,1,:,:)
+    case (3)
+        allocate(buf1(n1,n2,1,nresults), buf2(n1,n2,1,nresults))
+        icount = n1*n2*1*nresults
+        buf2 = 0.d0
+        buf1(:,:,1,:) = A(:,:,1,:)
+    case default
+        stop "updateBorder: invalid value for ixyz"
+    end select
 
-	! Send to lower neighbor
-	call MPI_Cart_shift(icomm_grid, ixyz-1, -1, isource, idest, ierr)
-	call MPI_sendrecv(buf1, icount, MPI_double_precision, idest,   sendrecv_tag, &
-	                  buf2, icount, MPI_double_precision, isource, sendrecv_tag, &
-	                  icomm_grid, MPI_STATUS_IGNORE, ierr)
+    ! Send to lower neighbor
+    call MPI_Cart_shift(icomm_grid, ixyz-1, -1, isource, idest, ierr)
+    call MPI_sendrecv(buf1, icount, MPI_double_precision, idest,   sendrecv_tag, &
+                      buf2, icount, MPI_double_precision, isource, sendrecv_tag, &
+                      icomm_grid, MPI_STATUS_IGNORE, ierr)
 
-	!Save recieved data from upper neighbour and copy to buffer data to pass to upper neighbour
-	select case (ixyz)
-	case (1)
-		buf1(1,:,:,:)= A(n1,:,:,:)
-		A(n1,:,:,:)  = buf2(1,:,:,:)
-	case (2)
-		buf1(:,1,:,:)= A(:,n2,:,:)
-		A(:,n2,:,:)  = buf2(:,1,:,:)
+    !Save recieved data from upper neighbour and copy to buffer data to pass to upper neighbour
+    select case (ixyz)
+    case (1)
+        buf1(1,:,:,:)= A(n1,:,:,:)
+        A(n1,:,:,:)  = buf2(1,:,:,:)
+    case (2)
+        buf1(:,1,:,:)= A(:,n2,:,:)
+        A(:,n2,:,:)  = buf2(:,1,:,:)
 
-	case (3)
-		buf1(:,:,1,:)= A(:,:,n3,:)
-		A(:,:,n3,:)  = buf2(:,:,1,:)
-	end select
+    case (3)
+        buf1(:,:,1,:)= A(:,:,n3,:)
+        A(:,:,n3,:)  = buf2(:,:,1,:)
+    end select
 
-	! Send to upper neighbor
-	call MPI_Cart_shift(icomm_grid, ixyz-1, +1, isource, idest, ierr)
-	call MPI_sendrecv(buf1, icount, MPI_double_precision, idest,   sendrecv_tag, &
-	                  buf2, icount, MPI_double_precision, isource, sendrecv_tag, &
-	                  icomm_grid, MPI_STATUS_IGNORE, ierr)
+    ! Send to upper neighbor
+    call MPI_Cart_shift(icomm_grid, ixyz-1, +1, isource, idest, ierr)
+    call MPI_sendrecv(buf1, icount, MPI_double_precision, idest,   sendrecv_tag, &
+                      buf2, icount, MPI_double_precision, isource, sendrecv_tag, &
+                      icomm_grid, MPI_STATUS_IGNORE, ierr)
 
 
-	!Save recieved data from lower neighbour
-	select case (ixyz)
-	case (1)
-		A(1,:,:,:) = buf2(1,:,:,:)
-	case (2)
-		A(:,1,:,:) = buf2(:,1,:,:) 
-	case (3)
-		A(:,:,1,:) = buf2(:,:,1,:)
-	end select
+    !Save recieved data from lower neighbour
+    select case (ixyz)
+    case (1)
+        A(1,:,:,:) = buf2(1,:,:,:)
+    case (2)
+        A(:,1,:,:) = buf2(:,1,:,:) 
+    case (3)
+        A(:,:,1,:) = buf2(:,:,1,:)
+    end select
 
-	deallocate(buf1, buf2)
+    deallocate(buf1, buf2)
 
 end subroutine updatefaces
 
@@ -1243,52 +1330,93 @@ end subroutine updatefaces
 !Establish and store indices of cells which are on the outer domain
 
 subroutine establish_surface_cells(ncells, nhb, surfacecells)
-	implicit none
+    implicit none
 
-	integer, dimension(3), intent(in) :: nhb, ncells
-	integer, dimension(:,:), allocatable, intent(out) :: surfacecells
+    integer, dimension(3), intent(in) :: nhb, ncells
+    integer, dimension(:,:), allocatable, intent(out) :: surfacecells
 
-	integer		:: n, nsurfacecells
-	integer		:: icell, jcell, kcell
+    integer        :: n, nsurfacecells
+    integer        :: icell, jcell, kcell
 
-	nsurfacecells=	2*( ncells(1)   * ncells(2) &
-					+  (ncells(3)-2)* ncells(2) &
-					+  (ncells(3)-2)*(ncells(1)-2))
+    nsurfacecells=    2*( ncells(1)   * ncells(2) &
+                    +  (ncells(3)-2)* ncells(2) &
+                    +  (ncells(3)-2)*(ncells(1)-2))
 
-	allocate(surfacecells(nsurfacecells,3))
+    allocate(surfacecells(nsurfacecells,3))
 
-	n = 1
-	do kcell=1, ncells(3)+2
-	do jcell=1, ncells(2)+2
-	do icell=1, ncells(1)+2
+    n = 1
+    do kcell=1, ncells(3)+2
+    do jcell=1, ncells(2)+2
+    do icell=1, ncells(1)+2
 
-		!Remove inner part of domain
-		if((icell .gt. 1+nhb(1) .and. icell .lt. ncells(1)+nhb(1)) .and. &
-		   (jcell .gt. 1+nhb(2) .and. jcell .lt. ncells(2)+nhb(2)) .and. &
-		   (kcell .gt. 1+nhb(3) .and. kcell .lt. ncells(3)+nhb(2))) cycle
-		!Remove outer cells leaving only 1 layer of surface cells
-		if((icell .lt. 1+nhb(1) .or. icell .gt. ncells(1)+nhb(1)) .or. &
-		   (jcell .lt. 1+nhb(2) .or. jcell .gt. ncells(2)+nhb(2)) .or. &
-		   (kcell .lt. 1+nhb(3) .or. kcell .gt. ncells(3)+nhb(3))) cycle
+        !Remove inner part of domain
+        if((icell .gt. 1+nhb(1) .and. icell .lt. ncells(1)+nhb(1)) .and. &
+           (jcell .gt. 1+nhb(2) .and. jcell .lt. ncells(2)+nhb(2)) .and. &
+           (kcell .gt. 1+nhb(3) .and. kcell .lt. ncells(3)+nhb(2))) cycle
+        !Remove outer cells leaving only 1 layer of surface cells
+        if((icell .lt. 1+nhb(1) .or. icell .gt. ncells(1)+nhb(1)) .or. &
+           (jcell .lt. 1+nhb(2) .or. jcell .gt. ncells(2)+nhb(2)) .or. &
+           (kcell .lt. 1+nhb(3) .or. kcell .gt. ncells(3)+nhb(3))) cycle
 
-		surfacecells(n,1)=icell
-		surfacecells(n,2)=jcell
-		surfacecells(n,3)=kcell
-		n = n + 1
+        surfacecells(n,1)=icell
+        surfacecells(n,2)=jcell
+        surfacecells(n,3)=kcell
+        n = n + 1
 
-	enddo
-	enddo
-	enddo
+    enddo
+    enddo
+    enddo
 
 end subroutine establish_surface_cells
 
+
+!-------------------------------------------------------------------
+!Establish and store indices of cells which are in the halo
+
+subroutine establish_halo_cells(ncells, halocells)
+    implicit none
+
+    integer, dimension(3), intent(in) :: ncells
+    integer, dimension(:,:), allocatable, intent(out) :: halocells
+
+    integer        :: n, nhalocells
+    integer        :: icell, jcell, kcell
+
+    nhalocells  =    2*((ncells(1)+2)*(ncells(2)+2) &
+                    +  (ncells(3)  )*(ncells(2)+2) &
+                    +  (ncells(3)  )*(ncells(1)  ))
+
+    allocate(halocells(nhalocells,3))
+
+    n = 1
+    do kcell=1, ncells(3)+2
+    do jcell=1, ncells(2)+2
+    do icell=1, ncells(1)+2
+
+        !Remove inner part of domain
+        if((icell .gt. (1) .and. icell .lt. (ncells(1)+2)) .and. &
+           (jcell .gt. (1) .and. jcell .lt. (ncells(2)+2)) .and. &
+           (kcell .gt. (1) .and. kcell .lt. (ncells(3)+2))) cycle
+
+        halocells(n,1)=icell
+        halocells(n,2)=jcell
+        halocells(n,3)=kcell
+        n = n + 1
+
+    enddo
+    enddo
+    enddo
+
+end subroutine establish_halo_cells
+
+
 function heaviside(x)
-	implicit none
+    implicit none
 
-	real(kind(0.d0))				:: heaviside
-	integer	,intent(in)				:: x
+    real(kind(0.d0))                :: heaviside
+    integer    ,intent(in)                :: x
 
-	heaviside = nint(0.5*sign(1,x)+1)
+    heaviside = nint(0.5*sign(1,x)+1)
 
 end function
 
@@ -1512,7 +1640,7 @@ subroutine CPL_proc_extents(coord, realm, extents, ncells)
 
     !Check setup is complete
     !if (CPL_setup_complete .ne. 1) then
-    !	call error_abort("Error CPL_extents/portion called before CPL_setup_"//REALM_NAME(realm))
+    !    call error_abort("Error CPL_extents/portion called before CPL_setup_"//REALM_NAME(realm))
     !endif
 
     select case(realm)

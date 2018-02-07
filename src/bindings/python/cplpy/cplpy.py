@@ -151,6 +151,8 @@ class CPL:
         raise OpenMPI_Not_Supported(excptstr)
         _py_init.argtypes = [c_int, POINTER(c_void_p)]
 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
     @abortMPI
     def init(self, calling_realm):
 
@@ -229,6 +231,8 @@ class CPL:
     def finalize(self):
         self._py_finalize()
 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
     py_setup_cfd = _cpl_lib.CPLC_setup_cfd
 
     py_setup_cfd.argtypes = \
@@ -249,6 +253,8 @@ class CPL:
         self.py_setup_cfd(MPI._handleof(icomm_grid), xyzL,
                           xyz_orig, ncxyz)
 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 
     py_setup_md = _cpl_lib.CPLC_setup_md
 
@@ -267,8 +273,234 @@ class CPL:
         """
         self.py_setup_md(MPI._handleof(icomm_grid), xyzL, xyz_orig)
 
-    py_gather = _cpl_lib.CPLC_gather
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+    py_proc_extents = _cpl_lib.CPLC_proc_extents
+    py_proc_extents.argtypes = \
+        [ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),
+         c_int,
+         ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def proc_extents(self, coord, realm):
+        coord = self._type_check(coord)
+        extents = np.zeros(6, order='F', dtype=np.int32)
+        self.py_proc_extents(coord, realm, extents)
+        return extents
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    py_my_proc_extents = _cpl_lib.CPLC_my_proc_extents
+    py_my_proc_extents.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def my_proc_extents(self):
+        extents = np.zeros(6, order='F', dtype=np.int32)
+        self.py_my_proc_extents(extents)
+        return extents
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    py_proc_portion = _cpl_lib.CPLC_proc_portion
+    py_proc_portion.argtypes = \
+        [ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),
+         c_int,
+         ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
+         ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def proc_portion(self, coord, realm, limits):
+        coord = self._type_check(coord)
+        limits = self._type_check(limits)
+        portion = np.zeros(6, order='F', dtype=np.int32)
+        self.py_proc_portion(coord, realm, limits, portion)
+        return portion
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    py_my_proc_portion = _cpl_lib.CPLC_my_proc_portion
+    py_my_proc_portion.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
+         ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def my_proc_portion(self, limits):
+        limits = self._type_check(limits)
+        portion = np.zeros(6, order='F', dtype=np.int32)
+        self.py_my_proc_portion(limits, portion)
+        return portion
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    py_map_cfd2md_coord = _cpl_lib.CPLC_map_cfd2md_coord
+    py_map_cfd2md_coord.argtypes = \
+        [ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
+         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def map_cfd2md_coord(self, coord_cfd):
+        coord_cfd = self._type_check(coord_cfd)
+        coord_md = np.zeros(3, order='F', dtype=np.float64)
+        self.py_map_cfd2md_coord(coord_cfd, coord_md)
+        return coord_md
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    py_map_md2cfd_coord = _cpl_lib.CPLC_map_md2cfd_coord
+    py_map_md2cfd_coord.argtypes = \
+        [ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
+         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def map_md2cfd_coord(self, coord_md):
+        coord_md = self._type_check(coord_md)
+        coord_cfd = np.zeros(3, order='F', dtype=np.float64)
+        self.py_map_md2cfd_coord(coord_md, coord_cfd)
+        return coord_cfd
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    py_map_glob2loc_cell = _cpl_lib.CPLC_map_glob2loc_cell
+    py_map_glob2loc_cell.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
+         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),
+         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def map_glob2loc_cell(self, limits, glob_cell):
+        limits = self._type_check(limits)
+        glob_cell = self._type_check(glob_cell)
+        loc_cell = np.zeros(3, order='F', dtype=np.int32)
+        self.py_map_glob2loc_cell(limits, glob_cell, loc_cell)
+        return loc_cell
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    py_map_cell2coord = _cpl_lib.CPLC_map_cell2coord
+    py_map_cell2coord.argtypes = \
+        [c_int, c_int, c_int,
+         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def map_cell2coord(self, i, j, k):
+        coord = np.zeros(3, order='F', dtype=np.float64)
+        self.py_map_cell2coord(i, j, k, coord)
+        return coord
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    py_map_coord2cell = _cpl_lib.CPLC_map_coord2cell
+    py_map_coord2cell.argtypes = \
+        [c_double, c_double, c_double,
+         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def map_coord2cell(self, x, y, z):
+        cell = np.zeros(3, order='F', dtype=np.int32)
+        self.py_map_coord2cell(x, y, z, cell)
+        return cell
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    py_get_no_cells = _cpl_lib.CPLC_get_no_cells
+    py_get_no_cells.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
+         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def get_no_cells(self, limits):
+        limits = self._type_check(limits)
+        no_cells = np.zeros(3, order='F', dtype=np.int32)
+        self.py_get_no_cells(limits, no_cells)
+        return no_cells
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    #Limits of overlap region
+    py_get_olap_limits = _cpl_lib.CPLC_get_olap_limits
+    py_get_olap_limits.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def get_olap_limits(self):
+        limits = np.zeros(6, order='F', dtype=np.int32)
+        self.py_get_olap_limits(limits)
+        return limits
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    #Limits of contraint region
+    py_get_cnst_limits = _cpl_lib.CPLC_get_cnst_limits
+    py_get_cnst_limits.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def get_cnst_limits(self):
+        limits = np.zeros(6, order='F', dtype=np.int32)
+        self.py_get_cnst_limits(limits)
+        return limits
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    #Limits of boundary region
+    py_get_bnry_limits = _cpl_lib.CPLC_get_bnry_limits
+    py_get_bnry_limits.argtypes = \
+        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+
+    @abortMPI
+    def get_bnry_limits(self):
+        limits = np.zeros(6, order='F', dtype=np.int32)
+        self.py_get_bnry_limits(limits)
+        return limits
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    py_set_timing = _cpl_lib.CPLC_set_timing
+    py_set_timing.argtypes = \
+        [c_int, c_int, c_double]
+
+    @abortMPI
+    def set_timing(self, initialstep, nsteps, dt):
+        self.py_set_timing(initialstep, nsteps, dt)
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    py_send = _cpl_lib.CPLC_send
+    py_send.argtypes = \
+        [ndpointer(np.float64, flags='aligned, f_contiguous'),
+         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
+         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'), 
+         POINTER(c_bool)]
+
+    @abortMPI
+    def send(self, asend, limits):
+        asend = self._type_check(asend)
+        asend_shape = np.array(asend.shape, order='F', dtype=np.int32)
+        send_flag = c_bool()
+        self.py_send(asend, asend_shape, limits, byref(send_flag))
+        return send_flag.value
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    py_recv = _cpl_lib.CPLC_recv
+    py_recv.argtypes = \
+        [ndpointer(np.float64, flags='aligned, f_contiguous'),
+         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
+         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'), 
+         POINTER(c_bool)]
+
+    @abortMPI
+    def recv(self, arecv, limits):
+        arecv = self._type_check(arecv)
+        arecv_shape = np.array(arecv.shape, order='F', dtype=np.int32)
+        recv_flag = c_bool()
+        self.py_recv(arecv, arecv_shape, limits, byref(recv_flag))
+        return arecv, recv_flag.value
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    py_gather = _cpl_lib.CPLC_gather
     py_gather.argtypes = \
         [ndpointer(np.float64, flags='aligned, f_contiguous'),
          ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
@@ -287,8 +519,9 @@ class CPL:
 
         return recv_array
 
-    py_scatter = _cpl_lib.CPLC_scatter
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+    py_scatter = _cpl_lib.CPLC_scatter
     py_scatter.argtypes = \
         [ndpointer(np.float64, flags='aligned, f_contiguous'),
          ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
@@ -307,199 +540,21 @@ class CPL:
                         recv_array, recv_shape)
         return recv_array
 
-    py_proc_extents = _cpl_lib.CPLC_proc_extents
-    py_proc_extents.argtypes = \
-        [ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),
-         c_int,
-         ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-    @abortMPI
-    def proc_extents(self, coord, realm):
-        coord = self._type_check(coord)
-        extents = np.zeros(6, order='F', dtype=np.int32)
-        self.py_proc_extents(coord, realm, extents)
-        return extents
-
-    py_my_proc_extents = _cpl_lib.CPLC_my_proc_extents
-    py_my_proc_extents.argtypes = \
-        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
-
-    @abortMPI
-    def my_proc_extents(self):
-        extents = np.zeros(6, order='F', dtype=np.int32)
-        self.py_my_proc_extents(extents)
-        return extents
-
-    py_proc_portion = _cpl_lib.CPLC_proc_portion
-    py_proc_portion.argtypes = \
-        [ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),
-         c_int,
-         ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
-         ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
-
-    @abortMPI
-    def proc_portion(self, coord, realm, limits):
-        coord = self._type_check(coord)
-        limits = self._type_check(limits)
-        portion = np.zeros(6, order='F', dtype=np.int32)
-        self.py_proc_portion(coord, realm, limits, portion)
-        return portion
-
-    py_my_proc_portion = _cpl_lib.CPLC_my_proc_portion
-    py_my_proc_portion.argtypes = \
-        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
-         ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
-
-    @abortMPI
-    def my_proc_portion(self, limits):
-        limits = self._type_check(limits)
-        portion = np.zeros(6, order='F', dtype=np.int32)
-        self.py_my_proc_portion(limits, portion)
-        return portion
-
-    py_map_cfd2md_coord = _cpl_lib.CPLC_map_cfd2md_coord
-    py_map_cfd2md_coord.argtypes = \
-        [ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
-         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous')]
-
-    @abortMPI
-    def map_cfd2md_coord(self, coord_cfd):
-        coord_cfd = self._type_check(coord_cfd)
-        coord_md = np.zeros(3, order='F', dtype=np.float64)
-        self.py_map_cfd2md_coord(coord_cfd, coord_md)
-        return coord_md
-
-    py_map_md2cfd_coord = _cpl_lib.CPLC_map_md2cfd_coord
-    py_map_md2cfd_coord.argtypes = \
-        [ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous'),
-         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous')]
-
-    @abortMPI
-    def map_md2cfd_coord(self, coord_md):
-        coord_md = self._type_check(coord_md)
-        coord_cfd = np.zeros(3, order='F', dtype=np.float64)
-        self.py_map_md2cfd_coord(coord_md, coord_cfd)
-        return coord_cfd
-
-    py_map_glob2loc_cell = _cpl_lib.CPLC_map_glob2loc_cell
-    py_map_glob2loc_cell.argtypes = \
-        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
-         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous'),
-         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous')]
-
-    @abortMPI
-    def map_glob2loc_cell(self, limits, glob_cell):
-        limits = self._type_check(limits)
-        glob_cell = self._type_check(glob_cell)
-        loc_cell = np.zeros(3, order='F', dtype=np.int32)
-        self.py_map_glob2loc_cell(limits, glob_cell, loc_cell)
-        return loc_cell
-
-    py_map_cell2coord = _cpl_lib.CPLC_map_cell2coord
-    py_map_cell2coord.argtypes = \
-        [c_int, c_int, c_int,
-         ndpointer(np.float64, shape=(3,), flags='aligned, f_contiguous')]
-
-    @abortMPI
-    def map_cell2coord(self, i, j, k):
-        coord = np.zeros(3, order='F', dtype=np.float64)
-        self.py_map_cell2coord(i, j, k, coord)
-        return coord
-
-    py_map_coord2cell = _cpl_lib.CPLC_map_coord2cell
-    py_map_coord2cell.argtypes = \
-        [c_double, c_double, c_double,
-         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous')]
-
-    @abortMPI
-    def map_coord2cell(self, x, y, z):
-        cell = np.zeros(3, order='F', dtype=np.int32)
-        self.py_map_coord2cell(x, y, z, cell)
-        return cell
-
-    py_get_no_cells = _cpl_lib.CPLC_get_no_cells
-    py_get_no_cells.argtypes = \
-        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous'),
-         ndpointer(np.int32, shape=(3,), flags='aligned, f_contiguous')]
-
-    @abortMPI
-    def get_no_cells(self, limits):
-        limits = self._type_check(limits)
-        no_cells = np.zeros(3, order='F', dtype=np.int32)
-        self.py_get_no_cells(limits, no_cells)
-        return no_cells
-
-    #Limits of overlap region
-    py_get_olap_limits = _cpl_lib.CPLC_get_olap_limits
-    py_get_olap_limits.argtypes = \
-        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
-
-    @abortMPI
-    def get_olap_limits(self):
-        limits = np.zeros(6, order='F', dtype=np.int32)
-        self.py_get_olap_limits(limits)
-        return limits
-
-    #Limits of contraint region
-    py_get_cnst_limits = _cpl_lib.CPLC_get_cnst_limits
-    py_get_cnst_limits.argtypes = \
-        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
-
-    @abortMPI
-    def get_cnst_limits(self):
-        limits = np.zeros(6, order='F', dtype=np.int32)
-        self.py_get_cnst_limits(limits)
-        return limits
-
-    #Limits of boundary region
-    py_get_bnry_limits = _cpl_lib.CPLC_get_bnry_limits
-    py_get_bnry_limits.argtypes = \
-        [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
-
-    @abortMPI
-    def get_bnry_limits(self):
-        limits = np.zeros(6, order='F', dtype=np.int32)
-        self.py_get_bnry_limits(limits)
-        return limits
-
-
-    py_set_timing = _cpl_lib.CPLC_set_timing
-    py_set_timing.argtypes = \
-        [c_int, c_int, c_double]
-
-    @abortMPI
-    def set_timing(self, initialstep, nsteps, dt):
-        self.py_set_timing(initialstep, nsteps, dt)
-
-    py_send = _cpl_lib.CPLC_send
-    py_send.argtypes = \
+    py_swaphalos = _cpl_lib.CPLC_swaphalos
+    py_swaphalos.argtypes = \
         [ndpointer(np.float64, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'), 
-         POINTER(c_bool)]
+         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous')]
 
     @abortMPI
-    def send(self, asend, limits):
-        asend = self._type_check(asend)
-        asend_shape = np.array(asend.shape, order='F', dtype=np.int32)
-        send_flag = c_bool()
-        self.py_send(asend, asend_shape, limits, byref(send_flag))
-        return send_flag.value
+    def swaphalos(self, A):
+        A = self._type_check(A)
+        A_shape = np.array(A.shape, order='F', dtype=np.int32)
+        self.py_swaphalos(A, A_shape)
+        return A
 
-    py_recv = _cpl_lib.CPLC_recv
-    py_recv.argtypes = \
-        [ndpointer(np.float64, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
-         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'), 
-         POINTER(c_bool)]
-
-    @abortMPI
-    def recv(self, arecv, limits):
-        arecv = self._type_check(arecv)
-        arecv_shape = np.array(arecv.shape, order='F', dtype=np.int32)
-        recv_flag = c_bool()
-        self.py_recv(arecv, arecv_shape, limits, byref(recv_flag))
-        return arecv, recv_flag.value
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
     py_overlap = _cpl_lib.CPLC_overlap
     py_overlap.argtypes = []
@@ -508,6 +563,9 @@ class CPL:
     def overlap(self):
         self.py_overlap.restype = c_bool
         return self.py_overlap()
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
     py_is_proc_inside = _cpl_lib.CPLC_is_proc_inside
     py_is_proc_inside.argtypes = \
         [ndpointer(np.int32, shape=(6,), flags='aligned, f_contiguous')]
@@ -517,6 +575,8 @@ class CPL:
         self.py_is_proc_inside.restype = c_bool
         region = self._type_check(region)
         return self.py_is_proc_inside(region)
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
     @abortMPI
     def get(self, var_name):
@@ -534,6 +594,8 @@ class CPL:
             fun.restype = var_type
             return fun()
 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
     @abortMPI
     def set(self, var_name, value):
         try:
@@ -546,6 +608,8 @@ class CPL:
         else:
             fun.argtypes = [var_type]
             return fun(var_type(value))
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
     @abortMPI
     def _type_check(self, A):
@@ -561,6 +625,8 @@ class CPL:
         if not A.flags["ALIGNED"]:
             A = np.require(A, requirements=['A'])
         return A
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
     @abortMPI
     def dump_region(self, region, array, fname, comm, components={}, coords="mine"):
@@ -613,6 +679,8 @@ class CPL:
             if myrank == 0:
                 with open(fname, "w") as file_out:
                     file_out.writelines(lines)
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def cart_create(old_comm, dims, periods, coords):
     dummy_cart_comm = old_comm.Create_cart(dims, periods)

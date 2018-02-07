@@ -90,6 +90,8 @@ namespace CPL
 	void gather(double* gatherarray, int* gather_shape, int* limits,
 			    double* recvarray, int* recv_shape);
 
+    void swaphalos(double* A, int* A_shape);
+
     void proc_extents(int coord[], int realm, int extents[]);
     void my_proc_extents(int extents[]);
     void proc_portion(int coord[], int realm, int limits[], int portion[]);
