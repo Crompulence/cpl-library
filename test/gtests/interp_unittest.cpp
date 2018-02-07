@@ -117,8 +117,6 @@ TEST_F(CPL_interp_Test, test_interpolate) {
 
     //Test define
     int n = 0;
-    CPL::CPLField field(buf);
-
     //Slabs in x
     for (int j = 0; j < jcell; j++ ){
     for (int k = 0; k < kcell; k++ ){
@@ -127,13 +125,31 @@ TEST_F(CPL_interp_Test, test_interpolate) {
         buf(n,2,j,k) = 1.5;
     }}
 
+    CPL::CPLField field(buf);
+
     //Hardwire some values
     xi = new double[3];
-    xi[0] = 0.8; xi[1] = 0.2; xi[2] = 0.1;
-
     int order = 2;
-    std::vector<double> zi = field.interpolate(xi, buf, n, order);
+    double rand;
+    std::vector<double> zi;
+    for (int j = 0; j < 1000; j++ ) {
 
+        for (int ixyz=0; ixyz < 3; ixyz++ ){
+            rand = std::rand()/float(RAND_MAX);
+            //std::cout << "rand = " << rand << "\n";
+            xi[ixyz] = rand*field.dxyz[ixyz];
+        }
+
+        zi = field.interpolate(xi, buf, n, order);
+//        std::cout << "pos = " << xi[0] << " "  << xi[1]  << 
+//                         " "  << xi[2] << " "  << zi[0] << "\n"; 
+
+        ASSERT_DOUBLE_EQ(zi[0]/3., xi[0]);
+
+
+    }
+
+    delete xi;
 
 
 }

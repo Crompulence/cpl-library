@@ -5,9 +5,7 @@
 #include "CPL_ndArray.h"
 #include "CPL_field.h"
 #include "overlap/overlap.hpp"
-
-//#include "interpolate/lagrange_interp_nd.hpp"
-int lagrange_interp_nd_size ( int, int* );
+#include "interpolate/interp_ho.h"
 
 using namespace CPL;
 
@@ -176,13 +174,15 @@ CPL::ndArray<double>& CPLField::get_array_pointer(){
 //}
 
 
-// Use the block of 26 cells around a specified cell by "ic, jc, kc" into the nodes on that cell
+// Use the block of 26 cells around a cell specified by "ic, jc, kc" to get the nodes of that cell
 CPL::ndArray<double> CPLField::celltonode(CPL::ndArray<double> cell, int n, int ic, int jc, int kc)
 {
 
     CPL::ndArray<double> node;
     int arrayShape[4] = {1, 2, 2, 2};
     node.resize(4, arrayShape);
+
+//        std::cout << "cell " <<  ic << " " << jc << " " << kc << " " << cell(n, ic  , jc  , kc  ) << "\n";
 
     for (int i = 0; i < 2; i++ ){
     for (int j = 0; j < 2; j++ ){
@@ -196,7 +196,7 @@ CPL::ndArray<double> CPLField::celltonode(CPL::ndArray<double> cell, int n, int 
                                 + cell(n, ic+i+1, jc+j+1, kc+k  )
                                 + cell(n, ic+i+1, jc+j+1, kc+k+1));
 
-        //cout << "NODES " <<  i << " " << j << " " << k << " " << node(0,i,j,k) << "\n";
+//        std::cout << "NODES " <<  i << " " << j << " " << k << " " << cell(n, ic+i  , jc+j  , kc+k  ) << " " << node(0,i,j,k) << "\n";
     }}}
 
     return node;
@@ -204,25 +204,67 @@ CPL::ndArray<double> CPLField::celltonode(CPL::ndArray<double> cell, int n, int 
 }
 
 
+//inline int CPLField::index(int i, int j, int k, int * dims)
+//{
+//    return i*dims[1]*dims[2] + j*dims[2] + k;
+//}
+
+//double CPLField::simple_interpolate(double *f, double x, double y, double z, int *dims)
+//{
+//    int i = floor(x);
+//    int j = floor(y);
+//    int k = floor(z);
+
+//    double dx = x - i;
+//    double dy = y - j;
+//    double dz = z - k;
+
+//    double f0 = f[index(  i,  j,  k,dims)];
+//    double f1 = f[index(1+i,  j,  k,dims)];
+//    double f2 = f[index(  i,1+j,  k,dims)];
+//    double f3 = f[index(  i,  j,1+k,dims)];
+//    double f4 = f[index(1+i,1+j,  k,dims)];
+//    double f5 = f[index(1+i,  j,1+k,dims)];
+//    double f6 = f[index(  i,1+j,1+k,dims)];
+//    double f7 = f[index(1+i,1+j,1+k,dims)];
+
+//    double a0 =  f0;
+//    double a1 = -f0 + f1;
+//    double a2 = -f0 + f2;
+//    double a3 = -f0 + f3;
+//    double a4 =  f0 - f1 - f2 + f4;
+//    double a5 =  f0 - f1 - f3 + f5;
+//    double a6 =  f0 - f2 - f3 + f6;
+//    double a7 = -f0 + f1 + f2 + f3 - f4 - f5 - f6 + f7;
+
+//    return a0 + a1*dx + a2*dy + a3*dz + a4*dx*dy + a5*dx*dz + a6*dy*dz + a7*dx*dy*dz;
+//}
+
+
 
 //Assume 3D
 std::vector<double> CPLField::interpolate(double r[], CPL::ndArray<double> cell_array, int n, int order)
 {
+    int i, m, nd;
+    int *n_1d;
     double *a;
     double *b;
-    int i;
-    int j;
-    int m;
-    int *n_1d;
-    int nd;
-    int ni;
-    int seed;
-    double *xd;
-    double *xi;
+    //double *xd;
     double *zd;
-    double *ze;
     double *zi;
 
+    auto cell = get_cell(r);
+    int ic = cell[0];
+    int jc = cell[1];
+    int kc = cell[2];
+
+    assert(cell_array.shape(0) > ic+2);
+    assert(cell_array.shape(1) > jc+2);
+    assert(cell_array.shape(2) > kc+2);
+    CPL::ndArray<double> node = celltonode(cell_array, n, ic, jc, kc);
+    zd = node.data();
+
+    //Setup grid and size
     //Assume 3D and set order to input
     m = 3;
     n_1d = new int[m];
@@ -231,22 +273,38 @@ std::vector<double> CPLField::interpolate(double r[], CPL::ndArray<double> cell_
         n_1d[i] = order;
     }
 
-    auto cell = get_cell(r);
-    int ic = cell[0];
-    int jc = cell[1];
-    int kc = cell[2];
+    //If we always set to 0 and 1 then no scaling applied
+    a = new double[m];
+    b = new double[m];
+    a[0] = (ic  )*dxyz[0];
+    a[1] = (jc  )*dxyz[1];
+    a[2] = (kc  )*dxyz[2];
+    b[0] = (ic+1)*dxyz[0];
+    b[1] = (jc+1)*dxyz[1];
+    b[2] = (kc+1)*dxyz[2];
+//    for ( i = 0; i < m; i++ )
+//    {
+//        a[i] = 0.0;
+//        b[i] = 1.0;
+//    }
 
-    CPL::ndArray<double> node = celltonode(cell_array, n, ic, jc, kc);
-    zd = node.data();
+//    std::cout << "minmax = " << a[0] << " "   << a[1]  << " "  << a[2] <<  
+//                         " "  << b[0] << " "   << b[1]  << " "  << b[2] << "\n"; 
 
-    //Setup grid and size
-    //nd = lagrange_interp_nd_size(m, n_1d);
-    //xd = lagrange_interp_nd_grid(m, n_1d, a, b, nd);
-    //zi = lagrange_interp_nd_value(m, n_1d, a, b, nd, zd, 1, r);
+    //We should loop over many n here and return interp for all elements 
+    nd = lagrange_interp_nd_size(m, n_1d);
+    zi = lagrange_interp_nd_value(m, n_1d, a, b, nd, zd, 1, r);
+    double r_interp = zi[0];
+    std::vector<double> vec = {r_interp, 0., 0.};
 
-    //std::vector<double> vec = {zi[0], zi[1], zi[2]};
-    std::vector<double> vec = {0., 0., 0.};
+    delete a;
+    delete b;
+    delete n_1d;
+    delete zi;
+
+    // Vector of all solutions
     return vec;
+
 
 }
 

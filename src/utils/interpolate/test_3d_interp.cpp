@@ -8,7 +8,7 @@
 
 using namespace std;
 
-# include "lagrange_interp_nd.hpp"
+# include "interp_ho.h"
 
 CPL::ndArray<double> celltonode(CPL::ndArray<double> cell, int n, int ic, int jc, int kc)
 {
@@ -20,6 +20,14 @@ CPL::ndArray<double> celltonode(CPL::ndArray<double> cell, int n, int ic, int jc
     for (int i = 0; i < 2; i++ ){
     for (int j = 0; j < 2; j++ ){
     for (int k = 0; k < 2; k++ ){
+//            ip = i+ic; jp = j+jc; kp = k+kc;
+//            if (ip < 0) ip = 0;
+//            if (jp < 0) jp = 0;
+//            if (kp < 0) kp = 0;
+//            if (ip >= cell.shape(0)-1) ip = cell.shape(0)-1;
+//            if (jp >= cell.shape(1)-1) jp = cell.shape(1)-1;
+//            if (kp >= cell.shape(2)-1) kp = cell.shape(2)-1;
+
         node(0,i,j,k) = 0.125*(   cell(n, ic+i  , jc+j  , kc+k  )
                                 + cell(n, ic+i+1, jc+j  , kc+k  )
                                 + cell(n, ic+i  , jc+j+1, kc+k  )

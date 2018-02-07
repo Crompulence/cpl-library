@@ -39,7 +39,10 @@ public:
     //Get cell values
     std::vector<int> get_cell(double r[]);
     std::vector<double> get_dA();    
-    std::vector<double> interpolate(double r[]);    
+    std::vector<double> interpolate(double r[]);
+
+    //inline int index(int i, int j, int k, int * dims);
+    //double simple_interpolate(double *f, double x, double y, double z, int *dims);
 
     //Function to get sphere cube overlaps
     double sphere_cube_overlap(double, double, double, double,

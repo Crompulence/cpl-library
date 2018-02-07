@@ -246,9 +246,44 @@ public:
                                   double m, double s, double e);
 
     //Force specific things
+    double Reynolds_number(double D, double U, double rho, double mu, double eps);
     double porousity_exponent(double Re);
     double drag_coefficient(double Re);
     double magnitude(std::vector<double> v);
+
+    bool calc_preforce = true;
+
+    CPL::ndArray<double> vSums;
+    CPL::ndArray<double> nSums;
+    CPL::ndArray<double> eSums;
+    CPL::ndArray<double> FSums;
+
+private:
+
+    void initialisesums(CPL::ndArray<double> f);
+    void resetsums();
+
+};
+
+class CPLForceBVK : public CPLForceGranular {
+
+public:
+
+    //Constructors
+    CPLForceBVK(CPL::ndArray<double> field);
+    CPLForceBVK(int nd, int icell, int jcell, int kcell);
+
+    //Pre force collection and get force calculation
+    // position, velocity, acceleration, mass, radius, interaction
+    void pre_force(double r[], double v[], double a[], 
+                   double m, double s, double e);
+    std::vector<double> get_force(double r[], double v[], double a[], 
+                                  double m, double s, double e);
+
+    //Force specific things
+    double Reynolds_number(double D, double U, double rho, double mu, double eps);
+    double Stokes(double D, double U, double mu);
+    double CPLForceBVK_expression(double eps, double D, double U, double rho, double mu);
 
     bool calc_preforce = true;
 

@@ -512,7 +512,17 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], 
 //                    CPLForceGranular                           //
 //                                                               //
 ///////////////////////////////////////////////////////////////////
+// General Class to use for Ergun (1952), Di Felice (1994) and BVK.
 
+/////////////////////////////////////////////////////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
 
 //Constructor using cells
 CPLForceGranular::CPLForceGranular(int nd, int icells, int jcells, int kcells) : CPLForceDrag(nd, icells, jcells, kcells){
@@ -542,6 +552,13 @@ void CPLForceGranular::initialisesums(CPL::ndArray<double> arrayin){
 
 void CPLForceGranular::resetsums(){
     nSums = 0.0; eSums = 0.0; vSums = 0.0; FSums=0.0;
+}
+
+// Reynolds Number
+// It is unclear here if Reynolds No. should be based
+// on the mean cell velocity or particle velocity (or mean/relative from both)
+double CPLForceGranular::Reynolds_number(double D, double U, double rho, double mu, double eps) {
+    return rho * D * eps * U / mu;
 }
 
 // See Equation 12 in K. D. Kafui et al. / Chemical Engineering Science 57 (2002) 2395–2410
@@ -578,7 +595,7 @@ std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a
 
     std::vector<double> f(3), Ui(3), Ui_v(3);
     std::vector<int> cell = get_cell(r);
-    CPL::ndArray<double> array = fieldptr->get_array();
+    CPL::ndArray<double>& array = fieldptr->get_array_pointer();
 
     double radius = s;
     double d = 2.0*radius;
@@ -598,9 +615,11 @@ std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a
 
     //It is unclear here if Reynolds No. should be based
     //on the mean cell velocity or particle velocity
-    double Re = rho * d * eps * magnitude(Ui_v) / mu;
+    //double Re = rho * d * eps * magnitude(Ui_v) / mu;
+    double Re = Reynolds_number(d, magnitude(Ui_v), rho, mu, eps);
     double Cd = drag_coefficient(Re);
     double xi = porousity_exponent(Re);
+
     //Calculate force
     if (eps < 1e-5) {
         std::cout << "Warning: 0 particles in cell (" 
@@ -618,104 +637,106 @@ std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a
     }
 }
 
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-////Constructor using cells
-//CPLForceErgun::CPLForceErgun(int nd, int icells, int jcells, int kcells) : CPLForceGranular(nd, icells, jcells, kcells){
-//    initialisesums(fieldptr->get_array());
-//}
+///////////////////////////////////////////////////////////////////
+//                          BVK                                  //
+///////////////////////////////////////////////////////////////////
 
-////Constructor of datatype
-//CPLForceErgun::CPLForceErgun(CPL::ndArray<double> arrayin) : CPLForceGranular(arrayin){
-//    initialisesums(arrayin);
-//}
+//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
 
-//void CPLForceErgun::initialisesums(CPL::ndArray<double> arrayin){    
+//Return Stokes force
+double CPLForceBVK::Stokes(double D, double U, double mu) {
+    return 9.42477796076938 * mu * D * U;
+}
 
-//    int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
-//    nSums.resize(3, nsumsShape); // Sum of number of particles
+// Reynolds Number
+// It is unclear here if Reynolds No. should be based
+// on the mean cell velocity or particle velocity (or mean/relative from both)
+double CPLForceBVK::Reynolds_number(double D, double U, double rho, double mu, double eps) {
+    return rho * D * eps * U / mu;
+}
 
-//    int esumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
-//    eSums.resize(3, esumsShape); // Sum of porosity of particles  
-
-//    int FsumsShape[4] = {3, arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
-//    FSums.resize(4, FsumsShape); // Sum of force on particles  
-
-//    int vsumsShape[4] = {arrayin.shape(0), arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
-//    vSums.resize(4, vsumsShape); // Sum of velocity
-//    resetsums();
-//}
-
-//void CPLForceErgun::resetsums(){
-//    nSums = 0.0; eSums = 0.0; vSums = 0.0; FSums=0.0;
-//}
-
-////Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-//void CPLForceErgun::pre_force(double r[], double v[], double a[], double m, double s, double e) {
-
-//    // Find in which cell number (local to processor) is the particle
-//    // and sum all the velocities for each cell.
-//    std::vector<int> cell = get_cell(r);
-
-//    // Should use field.add_volume(r, radius);
-//    double radius = s;
-//    double volume = (4./3.)*M_PI*pow(radius,3);
-//    nSums(cell[0], cell[1], cell[2]) += 1.; 
-//    eSums(cell[0], cell[1], cell[2]) += volume; 
-//}
+//Calculate BVK drag force per particle
+double CPLForceBVK::CPLForceBVK_expression(double eps, double D, double U, double rho, double mu) {
+    double phi = 1 - eps;
+    double Re = Reynolds_number(D, U, rho, mu, eps);
+    double BVK = 10.0*phi/pow(eps,2)
+          + pow(eps,2)*(1.0+1.5*pow(phi,0.5)) 
+          + (0.413*Re/(24*pow(eps,2))) 
+          * (((1./eps) + 3 * phi * eps + 8.4 * pow(Re,-0.343)) 
+             /(1 + pow(10,(3*phi)) * pow(Re,-0.5) *(1+4*phi)));
+    return Stokes(D, U, mu) * BVK;
+}
 
 
-////Get force using sums collected in pre force
-//std::vector<double> CPLForceErgun::get_force(double r[], double v[], double a[], double m, double s, double e) {
+//Get force using sums collected in pre force
+std::vector<double> CPLForceBVK::get_force(double r[], double v[], double a[], double m, double s, double e) {
 
-//    std::vector<double> f(3), Ui(3), Ui_v(3);
-//    std::vector<int> cell = get_cell(r);
-//    CPL::ndArray<double> array = fieldptr->get_array();
+    std::vector<double> f(3), Ui(3), Ui_v(3);
+    std::vector<int> cell = get_cell(r);
+    CPL::ndArray<double>& array = fieldptr->get_array_pointer();
 
-//    double radius = s;
-//    double d = 2.0*radius;
-//    double volume = (4./3.)*M_PI*pow(radius,3); 
+    double radius = s;
+    double d = 2.0*radius;
+    double volume = (4./3.)*M_PI*pow(radius,3); 
 
-//    //Porosity e is cell volume - sum in volume
-//    double cellvolume = fieldptr->dV;
-//    double eps = 1.0 - eSums(cell[0], cell[1], cell[2])/cellvolume;
-//    double rho = 1.0; //m/volume;
-//    double mu = 1.0;
+    //Porosity e is cell volume - sum in volume
+    double cellvolume = fieldptr->dV;
+    double eps = 1.0 - eSums(cell[0], cell[1], cell[2])/cellvolume;
+    double rho = 1.0; //m/volume;
+    double mu = 1.0;
 
-//    //Should use std::vector<double> Ui(3) = field.interpolate(r);
-//    for (int i=0; i<3; i++){
-//        Ui[i] = array(i, cell[0], cell[1], cell[2]);
-//        Ui_v[i] = Ui[i]-v[i];
-//    }
+    //Should use std::vector<double> Ui(3) = field.interpolate(r);
+    for (int i=0; i<3; i++){
+        Ui[i] = array(i, cell[0], cell[1], cell[2]);
+        Ui_v[i] = Ui[i]-v[i];
+    }
+    double Re = Reynolds_number(d, magnitude(Ui_v), rho, mu, eps);
 
-//    //It is unclear here if Reynolds No. should be based
-//    //on the mean cell velocity or particle velocity
-//    double Re = rho * d * eps * magnitude(Ui_v) / mu;
-//    double Cd = drag_coefficient(Re);
-//    double xi = porousity_exponent(Re);
-//    //Calculate force
-//    if (eps < 1e-5) {
-//        std::cout << "Warning: 0 particles in cell (" 
-//                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
-//                  << std::endl;
-//        f[0]=0.0; f[1]=0.0; f[2]=0.0;
-//        return f;
-//    } else {
-//        double A = 0.125*Cd*rho*M_PI*pow(d,2)*pow(eps,2)*magnitude(Ui_v)*pow(eps,xi-1.0);
-//        for (int i = 0; i < 3; ++i){
-//            f[i] = A*(Ui[i]-v[i]);
-//            FSums(i, cell[0], cell[1], cell[2]) += f[i];
-//        }
-//        return f;
-//    }
-//}
+    //Calculate force
+    if (eps < 1e-5) {
+        std::cout << "Warning: 0 particles in cell (" 
+                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
+                  << std::endl;
+        f[0]=0.0; f[1]=0.0; f[2]=0.0;
+        return f;
+    } else {
+        double A = CPLForceBVK_expression(eps, d, magnitude(Ui_v), rho, mu);
+        for (int i = 0; i < 3; ++i){
+            f[i] = A*(Ui[i]-v[i]);
+            FSums(i, cell[0], cell[1], cell[2]) += f[i];
+        }
+        return f;
+    }
+}
 
-
-
-// Add Ergun (1952), Di Felice (1994) and BVK  here.
-
-
-
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 //Example print statement useful to copy in...
@@ -724,105 +745,3 @@ std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a
 //                << min[1] << " " <<  max[1] << " " << r[1]<< std::endl;
 
 
-/*
-
-//=====================================================
-//The post force fix in LAMMPS would then become
-//=====================================================
-
-void FixCPLForce::post_force (int vflag) {
-
-    double **x = atom->x;
-    double **f = atom->f;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    double dx = CPL::get<double> ("dx");     
-    double dy = CPL::get<double> ("dy");     
-    double dz = CPL::get<double> ("dz");     
-    double dA = dx*dz;
-    double dV = dx*dy*dz;
-    
-    char* groupstr = "cplforcegroup";
-    char* regionstr = "cplforceregion";
-
-    int cplforcegroup = group->find (groupstr);
-    int groupbit = group->bitmask[cplforcegroup];
-
-    int rid = domain->find_region (regionstr);
-    auto cplforceregion = domain->regions[rid];
-
-    //Constructor here for forces based on input
-    if ("FORCE_TYPE" == "Flekkoy"){
-        fxyz = CPLForceFlekkoy->initialise(field)
-    } else ("FORCE_TYPE" == "Nieetal"){
-        fxyz = CPLNieetal->initialise(field)
-    }
-
-    // First loop to sum up all quantities and prepare to apply force
-    for (int i = 0; i < nlocal; ++i)
-    {
-        if (mask[i] & groupbit)
-        {
-            // Find in which cell number (local to processor) is the particle
-            // and sum all the Flekkøy weights for each cell.
-            int glob_cell[3];
-            CPL::map_coord2cell(x[i][0], x[i][1], x[i][2], glob_cell);
-
-            int loc_cell[3];
-            bool validCell = CPL::map_glob2loc_cell(procPortion.data(), glob_cell, loc_cell);
-
-            //if (validCell)
-            //std::cout << "local: " << icell << " " << jcell << " " << kcell << " global: " << glob_cell[0] << " " << glob_cell[1] << " " << glob_cell[2] \
-            //<< "portion:" << procPortion[0] << " "<< procPortion[1] << " "<< procPortion[2] << " "<< procPortion[3] << " "<< procPortion[4] << " "<< procPortion[5] << " " << std::endl;
-
-            if (! validCell) {
-               // std::cout << "Warning: an atom in the constrained region is within an invalid cell. \n"
-               //           << "This should never happen and it is likely a BUG. Report." << std::endl;
-                continue;
-            }
-
-            int icell = loc_cell[0];
-            int jcell = loc_cell[1];
-            int kcell = loc_cell[2];
-
-            //This is call to set pre-force 
-            fxyz->pre_force(icell, jcell, kcell)
-
-        }
-    }
-
-
-    // Calculate force and apply
-    for (int i = 0; i < nlocal; ++i)
-    {
-        if (mask[i] & groupbit)
-        {
-            int glob_cell[3];
-            CPL::map_coord2cell(x[i][0], x[i][1], x[i][2], glob_cell);
-
-            int loc_cell[3];
-            bool validCell = CPL::map_glob2loc_cell(procPortion.data(), glob_cell, loc_cell);
-
-
-            if (! validCell) {
-//                std::cout << "Warning: an atom in the constrained region is within an invalid cell. \n"
- //                         << "This should never happen and it is likely a BUG. Report." << std::endl;
-                continue;
-            }
-
-            int icell = loc_cell[0];
-            int jcell = loc_cell[1];
-            int kcell = loc_cell[2];
-
-            // Get forces
-            [fx, fy, fz] = fxyz->get_force(i, icell, jcell, kcell, field)
-
-            f[i][0] += fx;
-            f[i][1] += fy;
-            f[i][2] += fz;
-
-        }
-    }
-}
-*/
