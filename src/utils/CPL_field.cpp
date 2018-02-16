@@ -68,12 +68,17 @@ std::vector<double> CPLField::get_dA(){
 
 
 //Get cell from min/max and dx
-std::vector<int> CPLField::get_cell(double r[]){
+std::vector<int> CPLField::get_cell(const double r[]){
     std::vector<int> cell(3);
     for (int i = 0; i < 3; ++i){
         cell[i] = floor((r[i]-min[i])/dxyz[i]);
         //Check cell is within the domain
         if (cell[i] > floor((max[i]-min[i])/dxyz[i]))
+//            std::cout << "cells " << floor((max[i]-min[i])/dxyz[i]) << " "
+//                      << cell[0] << " " << cell[1] << " " << cell[2] << " " 
+//                      << min[0] << " " << min[1] << " " << min[2] << " " 
+//                      << max[0] << " " << max[1] << " " << max[2] << " " 
+//                      << dxyz[0] << " " << dxyz[1] << " " << dxyz[2] << std::endl;
             cell[i] = floor((max[i]-min[i])/dxyz[i]);
             //throw std::domain_error("get_cell Error: Input above domain");
 
@@ -100,78 +105,129 @@ CPL::ndArray<double>& CPLField::get_array_pointer(){
     return array;
 }
 
-
-//std::unique_ptr<CPL::ndArray<double>> CPLField::get_array_pointer(){
-//    return std::unique_ptr<CPL::ndArray<double>> array;
-//}
-
-
-//Get interpolate of field
-//std::vector<double> CPLField::interpolate(double r[]){
-
-//    int interp[3];
+//void CPLField::add_to_array(const double r[], const double value[]){
 //    std::vector<int> cell = get_cell(r);
-//    std::vector<double> val(array.shape(0));
-//    std::vector<double> rc(3);
-//    double f,g,h;
-
-
-//    //Check if at edge of domain and use one sided if needed
-//    for (int n = 0; n < 3; n++){
-//        if (cell[n]+1>array.shape(n)){
-//            interp[n] = -1;
-//        } else if (cell[0]-1<0){  
-//            interp[n] = 1;
-//        } else {
-//            interp[n] = 0;
-//        }
-//        // Get position relative to cell minimum
-//        rc[n] = r[n] - cell[n]*dxyz[n];
-//    }
-
-//    //Interpolate based on both adjacent cells
-//    for (int n = 0; n<array.shape(0); n++){
-//        if (interp[0] == 0){
-//            f =  (   array(n, cell[0]+1,cell[1],  cell[2]  )
-//                  -2*array(n, cell[0],  cell[1],  cell[2]  )  
-//                   + array(n, cell[0]-1,cell[1],  cell[2]  ))/2.*dxyz[0];
-//        } else if (interp[0] == 1){
-//            f =  (   array(n, cell[0]+1,cell[1],  cell[2]  )
-//                    -array(n, cell[0],  cell[1],  cell[2]  ))/dxyz[0];
-//        } else if (interp[0] == -1){
-//            f =  (   array(n, cell[0],  cell[1],  cell[2]  )
-//                    -array(n, cell[0]-1,cell[1],  cell[2]  ))/dxyz[0];
-//        }
-
-//        if (interp[1] == 0){
-//            g =  (   array(n, cell[0],  cell[1]+1,cell[2]  )
-//                  -2*array(n, cell[0],  cell[1],  cell[2]  )  
-//                   + array(n, cell[0],  cell[1]-1,cell[2]  ))/2.*dxyz[1];
-//        } else if (interp[1] == 1){
-//            g =  (   array(n, cell[0],  cell[1]+1,cell[2]  )
-//                  -  array(n, cell[0],  cell[1],  cell[2]  ))/dxyz[1];
-//        } else if (interp[1] == -1){
-//            g =  (   array(n, cell[0],  cell[1]  ,cell[2]  )
-//                   - array(n, cell[0],  cell[1]-1,cell[2]  ))/dxyz[1];
-//        }
-
-//        if (interp[2] == 0){
-//            h =  (   array(n, cell[0],  cell[1],  cell[2]+1)
-//                  -2*array(n, cell[0],  cell[1],  cell[2]  ) 
-//                   + array(n, cell[0],  cell[1],  cell[2]-1))/2.*dxyz[2];
-//        } else if (interp[2] == 1){
-//            h =  (   array(n, cell[0],  cell[1],  cell[2]+1)
-//                   - array(n, cell[0],  cell[1],  cell[2]  ))/dxyz[2];
-//        } else if (interp[2] == -1){
-//            h =  (   array(n, cell[0],  cell[1],  cell[2]  )
-//                  -2*array(n, cell[0],  cell[1],  cell[2]-1))/dxyz[2];
-//        }
-
-//        val[n] = f*rc[0] + g*rc[1] + h*rc[2];
-//    }
-
-//    return val;
+//    for (int i=0; i < array.shape(0); i++)
+//        array(i, cell[0], cell[1], cell[2]) += value[i];
 //}
+
+
+//void CPLField::add_to_array(const double r[], const double value[]){
+//    if (! use_overlap) {
+//        add_to_array_no_olap(r, value);
+//    } else {
+//        add_to_array_olap(r, value);
+//    }
+//}
+
+// A function which uses particle position to determine
+// which cell it is in and adds the appropriate value
+// to that cell, e.g. 1 for Nsums, velocity for vsum, etc
+
+//Add value to a particular cell
+void CPLField::add_to_array(int n, int i, int j, int k, double value){
+    array(n, i, j, k) += value;
+}
+
+//Just add to cell based on where centre of particle falls
+void CPLField::add_to_array(const double r[], const double value[]){
+    std::vector<int> cell = get_cell(r);
+    for (int n=0; n < array.shape(0); n++)
+        add_to_array(n, cell[0], cell[1], cell[2], value[n]);
+}
+
+// If the radius of the particle is included, add a fraction
+//Add fraction of value to cell based on fraction of sphere inside
+void CPLField::add_to_array(const double r[], double s, const double value[]){
+
+    int ip, jp, kp;
+    double radius = s;
+    double volume = (4./3.)*M_PI*pow(radius,3); 
+    std::vector<int> cell = get_cell(r);
+    double box[6];
+
+    //Get fraction of sphere in a volume
+    double dx = dxyz[0];
+    double dy = dxyz[1];
+    double dz = dxyz[2];
+    int nxps = ceil(radius/dx);
+    int nyps = ceil(radius/dy);
+    int nzps = ceil(radius/dz);
+    int i = cell[0]; int j = cell[1]; int k = cell[2];
+
+//        std::cout << "overlap calc "  
+//                  << dx << " " << dy << " " << dz << " " 
+//                  << nxps << " " << nyps << " " << nzps << std::endl;
+
+    for (int ic=-nxps; ic<nxps+1; ic++) {
+    for (int jc=-nyps; jc<nyps+1; jc++) {
+    for (int kc=-nzps; kc<nzps+1; kc++) {
+        ip = i+ic; jp = j+jc; kp = k+kc;
+        box[0] = (ip  )*dx;
+        box[1] = (jp  )*dy;
+        box[2] = (kp  )*dz;
+        box[3] = (ip+1)*dx;
+        box[4] = (jp+1)*dy;
+        box[5] = (kp+1)*dz;
+
+        //Input sphere centre, radius and 6 corners of cell
+        double Vsphereinbox = sphere_cube_overlap(r[0], r[1], r[2], radius, 
+                                                  box[0], box[1], box[2], 
+                                                  box[3], box[4], box[5]);
+
+        // Here there should be extra halo padding in esums to the 
+        // size of Nxps/Nyps/Nzps which store fractions which would
+        // need to be sent to adjacent processes. This would then
+        // happend using the CPL_swaphalo method after pre_force has
+        // been called for every particle on every process. However, 
+        // this is complex so instead we simply dump overlap at the
+        // edge of the current process. This error should be small
+        // provided radius is not much greater than cell size (which
+        // we ensure by making big rigid spheres from lots of small particles).
+        if (ip < 0) ip = 0;
+        if (jp < 0) jp = 0;
+        if (kp < 0) kp = 0;
+        if (ip >= array.shape(0)-1) ip = array.shape(0)-1;
+        if (jp >= array.shape(1)-1) jp = array.shape(1)-1;
+        if (kp >= array.shape(2)-1) kp = array.shape(2)-1;
+
+        double frac = Vsphereinbox/volume;
+        for (int n=0; i < array.shape(0); n++)
+            array(n, ip, jp, kp) += frac*value[n]; 
+
+//            if (Vsphereinbox > 1e-12) {
+//                std::cout << "overlap cells "  
+//                      << i << " " << j << " " << k << " " 
+//                      << ip << " " << jp << " " << kp << " "
+//                      << i+ic << " " << j+jc << " " << k+kc << " "
+//                      << r[0] << " " << r[1] << " " << r[2] << " "
+//                      << box[0] << " " << box[1] << " " << box[2] << " " 
+//                      << box[3] << " " << box[4] << " " << box[5] <<  " "
+//                      << Vsphereinbox << std::endl;
+//            }
+
+    }}}
+}
+
+// A function which gets value n in cell i,j,k
+double CPLField::get_array_value(int n, int i, int j, int k){
+    return array(n, i, j, k);
+}
+
+// A function which gets value using position of molecule, no interpolation
+double CPLField::get_array_value(int n, const double r[]){
+    std::vector<int> cell = get_cell(r);
+    return get_array_value(n, cell[0], cell[1], cell[2]);
+}
+
+
+// A function which gets interpolated value in array cell using position of molecule
+double CPLField::get_array_value_interp(int n, const double r[]){
+    int order = 2;
+    auto out = interpolate(r, array, n, order);
+    return out[0];
+}
+
 
 
 // Use the block of 26 cells around a cell specified by "ic, jc, kc" to get the nodes of that cell
@@ -204,98 +260,62 @@ CPL::ndArray<double> CPLField::celltonode(CPL::ndArray<double> cell, int n, int 
 }
 
 
-//inline int CPLField::index(int i, int j, int k, int * dims)
-//{
-//    return i*dims[1]*dims[2] + j*dims[2] + k;
-//}
-
-//double CPLField::simple_interpolate(double *f, double x, double y, double z, int *dims)
-//{
-//    int i = floor(x);
-//    int j = floor(y);
-//    int k = floor(z);
-
-//    double dx = x - i;
-//    double dy = y - j;
-//    double dz = z - k;
-
-//    double f0 = f[index(  i,  j,  k,dims)];
-//    double f1 = f[index(1+i,  j,  k,dims)];
-//    double f2 = f[index(  i,1+j,  k,dims)];
-//    double f3 = f[index(  i,  j,1+k,dims)];
-//    double f4 = f[index(1+i,1+j,  k,dims)];
-//    double f5 = f[index(1+i,  j,1+k,dims)];
-//    double f6 = f[index(  i,1+j,1+k,dims)];
-//    double f7 = f[index(1+i,1+j,1+k,dims)];
-
-//    double a0 =  f0;
-//    double a1 = -f0 + f1;
-//    double a2 = -f0 + f2;
-//    double a3 = -f0 + f3;
-//    double a4 =  f0 - f1 - f2 + f4;
-//    double a5 =  f0 - f1 - f3 + f5;
-//    double a6 =  f0 - f2 - f3 + f6;
-//    double a7 = -f0 + f1 + f2 + f3 - f4 - f5 - f6 + f7;
-
-//    return a0 + a1*dx + a2*dy + a3*dz + a4*dx*dy + a5*dx*dz + a6*dy*dz + a7*dx*dy*dz;
-//}
-
-
-
 //Assume 3D
-std::vector<double> CPLField::interpolate(double r[], CPL::ndArray<double> cell_array, int n, int order)
+std::vector<double> CPLField::interpolate(const double r[], 
+                                          CPL::ndArray<double> cell_array, 
+                                          int n, int order)
 {
     int i, m, nd;
     int *n_1d;
     double *a;
     double *b;
-    //double *xd;
     double *zd;
     double *zi;
 
+    //Setup cell based on particle
     auto cell = get_cell(r);
     int ic = cell[0];
     int jc = cell[1];
     int kc = cell[2];
 
-    assert(cell_array.shape(0) > ic+2);
-    assert(cell_array.shape(1) > jc+2);
-    assert(cell_array.shape(2) > kc+2);
-    CPL::ndArray<double> node = celltonode(cell_array, n, ic, jc, kc);
-    zd = node.data();
-
-    //Setup grid and size
-    //Assume 3D and set order to input
+    //Assume 3D and set order in each direction
     m = 3;
     n_1d = new int[m];
     for ( i = 0; i < m; i++ )
-    {
         n_1d[i] = order;
-    }
 
     //If we always set to 0 and 1 then no scaling applied
     a = new double[m];
     b = new double[m];
+//    for ( i = 0; i < m; i++ )
+//    {
+//        a[i] = 0.0;
+//        b[i] = 1.0;
+//    }
     a[0] = (ic  )*dxyz[0];
     a[1] = (jc  )*dxyz[1];
     a[2] = (kc  )*dxyz[2];
     b[0] = (ic+1)*dxyz[0];
     b[1] = (jc+1)*dxyz[1];
     b[2] = (kc+1)*dxyz[2];
-//    for ( i = 0; i < m; i++ )
-//    {
-//        a[i] = 0.0;
-//        b[i] = 1.0;
-//    }
+
+    //Setup grid and get nodes
+    assert(cell_array.shape(1) > ic+2);
+    assert(cell_array.shape(2) > jc+2);
+    assert(cell_array.shape(3) > kc+2);
+
+    //We should loop over many n here and return interp for all elements 
+    CPL::ndArray<double> node = celltonode(cell_array, n, ic, jc, kc);
+    zd = node.data();
 
 //    std::cout << "minmax = " << a[0] << " "   << a[1]  << " "  << a[2] <<  
 //                         " "  << b[0] << " "   << b[1]  << " "  << b[2] << "\n"; 
 
-    //We should loop over many n here and return interp for all elements 
     nd = lagrange_interp_nd_size(m, n_1d);
-    zi = lagrange_interp_nd_value(m, n_1d, a, b, nd, zd, 1, r);
+    double rcopy[3] = {r[0], r[1], r[2]};
+    zi = lagrange_interp_nd_value(m, n_1d, a, b, nd, zd, 1, rcopy);
     double r_interp = zi[0];
-    std::vector<double> vec = {r_interp, 0., 0.};
+    std::vector<double> vec = {r_interp};  //Push each new element of vec
 
     delete a;
     delete b;

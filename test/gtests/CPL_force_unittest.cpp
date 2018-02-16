@@ -2,10 +2,18 @@
 #include "gmock/gmock.h"
 #include <vector>
 
+#include <memory>
+
 #include "cpl.h"
 #include "CPL_field.h"
 #include "CPL_force.h"
 #include "CPL_ndArray.h"
+
+// The major difference between a thing that might go wrong and a 
+// thing that cannot possibly go wrong is that when a thing that 
+// cannot possibly go wrong goes wrong it usually turns out to be
+// impossible to get at and repair.
+//                                                  Douglas Adams
 
 // The fixture for testing class Foo.
 class CPL_Force_Test : public ::testing::Test {
@@ -36,6 +44,8 @@ class CPL_Force_Test : public ::testing::Test {
 
   // Objects declared here can be used by all tests in the test case for Foo.
 };
+
+#define threeD for (int ixyz = 0; ixyz<3; ++ixyz) \
 
 #define trplefor_rng(si,sj,sk,Ni,Nj,Nz) for (int i = si; i<Ni; ++i){ \
                                         for (int j = sj; j<Nj; ++j){ \
@@ -142,9 +152,9 @@ TEST_F(CPL_Force_Test, test_CPL_field) {
     ASSERT_EQ(buf.shape(2), jcell);
     ASSERT_EQ(buf.shape(3), kcell);
 
-
     //Test pointer version of code
     CPL::ndArray<double>& buf_ptr = field.get_array_pointer();
+    //std::unique_ptr<CPL::ndArray <double>> buf_ptr = field.get_array_pointer();
 
     ASSERT_EQ(buf_ptr.size(), nd*icell*jcell*kcell);
     ASSERT_EQ(buf_ptr.shape(0), nd);
@@ -169,9 +179,133 @@ TEST_F(CPL_Force_Test, test_CPL_field) {
         ASSERT_NE(buf(0, i, j, k), array(0, i, j, k));
     } } } 
 
-
-
 };
+
+
+//Test for CPL::ndArray - setup and array size 
+TEST_F(CPL_Force_Test, test_CPL_field_setters) {
+
+    //Create a field class
+    int nd = 3; int icell = 10; int jcell = 10; int kcell = 10;
+    CPL::CPLField field(nd, icell, jcell, kcell);
+
+    //Get the pointer to the array
+    CPL::ndArray<double>& buf_ptr = field.get_array_pointer();
+
+    //Check example of setting 
+    double r[3] = {0.75, 0.25, 0.35};
+    double value[3] = {1.0, 0.5, 0.25};
+    field.add_to_array(r, value);
+    CPL::ndArray<double> buf = field.get_array();
+
+    ASSERT_DOUBLE_EQ(buf(0, 7, 2, 3), value[0]);
+    ASSERT_DOUBLE_EQ(buf(1, 7, 2, 3), value[1]);
+    ASSERT_DOUBLE_EQ(buf(2, 7, 2, 3), value[2]);
+
+    ASSERT_DOUBLE_EQ(buf_ptr(0, 7, 2, 3), value[0]);
+    ASSERT_DOUBLE_EQ(buf_ptr(1, 7, 2, 3), value[1]);
+    ASSERT_DOUBLE_EQ(buf_ptr(2, 7, 2, 3), value[2]);
+
+    //Add another set of values
+    field.add_to_array(r, value);
+
+    //Check array which we got hasn't changed
+    ASSERT_DOUBLE_EQ(buf(0, 7, 2, 3), value[0]);
+    ASSERT_DOUBLE_EQ(buf(1, 7, 2, 3), value[1]);
+    ASSERT_DOUBLE_EQ(buf(2, 7, 2, 3), value[2]);
+
+    //But the pointer will have
+    ASSERT_DOUBLE_EQ(buf_ptr(0, 7, 2, 3), 2.*value[0]);
+    ASSERT_DOUBLE_EQ(buf_ptr(1, 7, 2, 3), 2.*value[1]);
+    ASSERT_DOUBLE_EQ(buf_ptr(2, 7, 2, 3), 2.*value[2]);
+
+    // Get array again and check (this is all fairly excessive
+    // testing but good to be sure memory works as expected)
+    buf = field.get_array();
+    ASSERT_DOUBLE_EQ(buf(0, 7, 2, 3), 2.*value[0]);
+    ASSERT_DOUBLE_EQ(buf(1, 7, 2, 3), 2.*value[1]);
+    ASSERT_DOUBLE_EQ(buf(2, 7, 2, 3), 2.*value[2]);
+
+}
+
+
+
+//Test for CPL::ndArray - setup and array size 
+TEST_F(CPL_Force_Test, test_CPL_field_setters_olap) {
+
+    //Create a field class
+    int nd = 3; int icell = 10; int jcell = 10; int kcell = 10;
+    CPL::ndArray<double> buf;
+    int shape[4] = {nd, icell, jcell, kcell};
+    buf.resize (4, shape);
+
+    //Test define
+    int n = 0;
+    //Slabs in x
+    for (int j = 0; j < jcell; j++ ){
+    for (int k = 0; k < kcell; k++ ){
+        buf(n,0,j,k) = -0.5;
+        buf(n,1,j,k) = 0.5;
+        buf(n,2,j,k) = 1.5;
+    }}
+    CPL::CPLField field(buf);
+
+    //Hardwire some values
+    double xi[3] = {0.75,0.25,0.35};
+    double rand;
+    for (int j = 0; j < 1000; j++ ) {
+
+        for (int ixyz=0; ixyz < 3; ixyz++ ){
+            rand = std::rand()/float(RAND_MAX);
+            xi[ixyz] = rand*field.dxyz[ixyz];
+        }
+
+        //Get directly from array function
+        ASSERT_DOUBLE_EQ(field.get_array_value_interp(0, xi)*field.dxyz[0], xi[0]);
+
+    }
+
+}
+
+
+//Test for CPL::ndArray - setup and array size 
+TEST_F(CPL_Force_Test, test_CPL_field_getters) {
+
+    //Create a field class
+    int nd = 3; int icell = 10; int jcell = 10; int kcell = 10;
+    CPL::CPLField field(nd, icell, jcell, kcell);
+
+    //Check example of setting 
+    double r[3] = {0.75, 0.25, 0.35};
+    double value[3] = {1.0, 0.5, 0.25};
+    field.add_to_array(r, value);
+
+    //Get cell and value from that cell
+    std::vector<int> cell = field.get_cell(r);
+    ASSERT_DOUBLE_EQ(field.get_array_value(0, cell[0], cell[1], cell[2]),
+                     value[0]);
+    ASSERT_DOUBLE_EQ(field.get_array_value(1, cell[0], cell[1], cell[2]),
+                     value[1]);
+    ASSERT_DOUBLE_EQ(field.get_array_value(2, cell[0], cell[1], cell[2]),
+                     value[2]);
+
+    //Get value directly
+    ASSERT_DOUBLE_EQ(field.get_array_value(0, r), value[0]);
+    ASSERT_DOUBLE_EQ(field.get_array_value(1, r), value[1]);
+    ASSERT_DOUBLE_EQ(field.get_array_value(2, r), value[2]);
+
+    //Get interpolated value
+    CPL::CPLField newfield(nd, icell, jcell, kcell);
+    trplefor(icell,jcell,kcell){
+        newfield.add_to_array(0, i, j, k, value[0]);
+        newfield.add_to_array(1, i, j, k, value[1]);
+        newfield.add_to_array(2, i, j, k, value[2]);
+    } } }
+    ASSERT_DOUBLE_EQ(newfield.get_array_value_interp(0, r), value[0]);
+    ASSERT_DOUBLE_EQ(newfield.get_array_value_interp(1, r), value[1]);
+    ASSERT_DOUBLE_EQ(newfield.get_array_value_interp(2, r), value[2]);
+}
+
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
@@ -850,6 +984,7 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_overlap) {
     scx = 1.0; scy = 1.0; scz = 1.0;
     result = field.sphere_cube_overlap(scx, scy, scz, sr, xb, yb, zb, xt, yt, zt);
     ASSERT_NEAR(result, 0.125*Vs, 1e-14);
+
 };
 
 
@@ -941,9 +1076,99 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_overlap_field) {
 //                    << " " << f.eSums(i, j, k)/Vc << std::endl;
 //    } } }
 
-
 }
 
+
+
+
+//Test for CPLForceDrag - check sum of esum and Fsum arrays
+TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_overlap_field) {
+
+    int nd = 9; int icell = 3; int jcell = 3; int kcell = 3;
+
+    //Call constructor using cell numbers
+    CPLForceDrag c(nd, icell, jcell, kcell, true);
+
+    //Setup one particle per cell
+    double v[3] = {0.0, 0.0, 0.0};
+    double a[3] = {0.0, 0.0, 0.0};
+    double radius = 0.5;
+    double min[3] = {0.0, 0.0, 0.0};
+    double max[3] = {3.0, 3.0, 3.0};
+    c.set_minmax(min, max);
+    double Vs = (4./3.)*M_PI*pow(radius,3);
+    double m=1.; double s=radius; double e=1.;
+
+    //Particle at centre of grid cell 2
+    double r[3] = {1.5, 1.5, 1.5};
+    c.pre_force(r, v, a, m, s, e);
+    ASSERT_NEAR(c.eSums(1,1,1), Vs, 1e-13);
+
+    //Particle at face of grid cell 2 and 3 in x
+    c.eSums(1,1,1) = 0.0;
+    r[0] = 2.0;
+    c.pre_force(r, v, a, m, s, e);
+    ASSERT_NEAR(c.eSums(1,1,1), 0.5*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,1,1), 0.5*Vs, 1e-13);
+
+    //Particle at edge of grid cell 2 and 3 in x,y
+    c.eSums(1,1,1) = 0.0; c.eSums(2,1,1) = 0.0;
+    r[0] = 2.0;  r[1] = 2.0;
+    c.pre_force(r, v, a, m, s, e);
+    ASSERT_NEAR(c.eSums(1,1,1), 0.25*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,1,1), 0.25*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(1,2,1), 0.25*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,2,1), 0.25*Vs, 1e-13);
+
+    //Particle at corner of grid cell 2 and 3 in x,y,z
+    c.eSums(1,1,1) = 0.0; c.eSums(2,1,1) = 0.0;
+    c.eSums(1,2,1) = 0.0; c.eSums(2,2,1) = 0.0;
+    r[0] = 2.0;  r[1] = 2.0;  r[2] = 2.0;
+    c.pre_force(r, v, a, m, s, e);
+    ASSERT_NEAR(c.eSums(1,1,1), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,1,1), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(1,2,1), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,2,1), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(1,1,2), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,1,2), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(1,2,2), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,2,2), 0.125*Vs, 1e-13);
+
+    //Particle bigger than cell so fills whole cell
+    s = 1.0;
+    r[0] =1.5;  r[1] = 1.5;  r[2] = 1.5;
+    c.eSums(1,1,1) = 0.0;
+    c.pre_force(r, v, a, m, s, e);
+    double Vc = 1.0*1.0*1.0;
+    ASSERT_NEAR(c.eSums(1,1,1), 1.0, 1e-13);
+
+    //Domain is from 0 to 1 so cell size is 0.1
+    icell = 10; jcell = 10; kcell = 10;
+    CPLForceDrag d(nd, icell, jcell, kcell, true);
+
+    //Particle bigger than lots of cell so fills many cell
+    s = 0.35;
+    r[0] =0.5;  r[1] = 0.5;  r[2] = 0.5;
+    d.pre_force(r, v, a, m, s, e);
+    Vc = 0.1*0.1*0.1;
+
+    trplefor_rng(3,3,3,7,7,7){
+        ASSERT_NEAR(d.eSums(i,j,k), Vc, 1e-13);
+    } } }
+
+    CPLForceDrag f(nd, icell, jcell, kcell);
+    f.use_overlap = true;
+
+    s = 0.35;
+    r[0] =0.9;  r[1] = 0.5;  r[2] = 0.5;
+    f.pre_force(r, v, a, m, s, e);
+
+//    trplefor_rng(0,5,0,icell, 6, kcell){
+//        std::cout << i << " " << j << " " << k
+//                    << " " << f.eSums(i, j, k)/Vc << std::endl;
+//    } } }
+
+}
 
 
 ///////////////////////////////////////////////////////////////////

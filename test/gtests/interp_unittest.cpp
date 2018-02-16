@@ -125,6 +125,8 @@ TEST_F(CPL_interp_Test, test_interpolate) {
         buf(n,2,j,k) = 1.5;
     }}
 
+    //Instantiate fields
+    CPL::CPLField f(buf);
     CPL::CPLField field(buf);
 
     //Hardwire some values
@@ -137,15 +139,18 @@ TEST_F(CPL_interp_Test, test_interpolate) {
         for (int ixyz=0; ixyz < 3; ixyz++ ){
             rand = std::rand()/float(RAND_MAX);
             //std::cout << "rand = " << rand << "\n";
-            xi[ixyz] = rand*field.dxyz[ixyz];
+            xi[ixyz] = rand*f.dxyz[ixyz];
         }
 
-        zi = field.interpolate(xi, buf, n, order);
+        zi = f.interpolate(xi, buf, n, order);
 //        std::cout << "pos = " << xi[0] << " "  << xi[1]  << 
 //                         " "  << xi[2] << " "  << zi[0] << "\n"; 
 
-        ASSERT_DOUBLE_EQ(zi[0]/3., xi[0]);
+        //Get from interpolate function
+        ASSERT_DOUBLE_EQ(zi[0]*f.dxyz[0], xi[0]);
 
+        //Get directly from array function
+        ASSERT_DOUBLE_EQ(field.get_array_value_interp(0, xi)*field.dxyz[0], xi[0]);
 
     }
 
