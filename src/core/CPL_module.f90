@@ -274,8 +274,8 @@ module coupler_module
         cpl_cfd_bc_y, &
         cpl_cfd_bc_z
 
-	!Flag to check if setup has completed successfully
-	integer :: CPL_setup_complete = 0
+    !Flag to check if setup has completed successfully
+    integer :: CPL_setup_complete = 0
  
     
     ! Coupling constrained regions, average MD quantities 
@@ -540,7 +540,7 @@ subroutine test_realms(MPMD_mode)
         allocate(realm_list(0))
     endif
     call MPI_gather(callingrealm, 1, MPI_INTEGER, realm_list, &
-					1, MPI_INTEGER, root, MPI_COMM_WORLD, ierr)
+                    1, MPI_INTEGER, root, MPI_COMM_WORLD, ierr)
 
     !Check through array of processors on both realms
     !and return error if wrong values.
@@ -575,7 +575,7 @@ subroutine test_realms(MPMD_mode)
 
     endif
 
-	call MPI_BCAST(MPMD_mode, 1, MPI_INTEGER, root, MPI_COMM_WORLD, ierr)
+    call MPI_BCAST(MPMD_mode, 1, MPI_INTEGER, root, MPI_COMM_WORLD, ierr)
 
 end subroutine test_realms
 
@@ -771,22 +771,22 @@ end subroutine CPL_init
 
 
 subroutine CPL_finalize(ierr)
-	use mpi, only : MPI_COMM_NULL, MPI_Barrier, MPI_COMM_WORLD
+    use mpi, only : MPI_COMM_NULL, MPI_Barrier, MPI_COMM_WORLD
     implicit none
 
-	integer, intent(out) :: ierr
+    integer, intent(out) :: ierr
 
-	!Comminicators setup by CPL_init()
-	if (CPL_INTER_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_INTER_COMM, ierr)
-	if (CPL_REALM_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_REALM_COMM, ierr)
-	if (CPL_WORLD_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_WORLD_COMM, ierr)
+    !Comminicators setup by CPL_init()
+    if (CPL_INTER_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_INTER_COMM, ierr)
+    if (CPL_REALM_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_REALM_COMM, ierr)
+    if (CPL_WORLD_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_WORLD_COMM, ierr)
 
-	!Free communicators setup by CPL_setup
-	if (CPL_setup_complete .eq. 1) then
+    !Free communicators setup by CPL_setup
+    if (CPL_setup_complete .eq. 1) then
         if (CPL_OLAP_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_OLAP_COMM, ierr)
-		if (CPL_CART_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_CART_COMM, ierr)
-    	if (CPL_GRAPH_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_GRAPH_COMM, ierr)
-	endif
+        if (CPL_CART_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_CART_COMM, ierr)
+        if (CPL_GRAPH_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_GRAPH_COMM, ierr)
+    endif
 
     !Barrier over both CFD and MD realms
     call MPI_Barrier(MPI_COMM_WORLD, ierr)
@@ -1153,8 +1153,8 @@ subroutine CPL_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
     deallocate(ygrid)
     deallocate(zgrid)
 
-	!Set flag to register setup is complete correctly
-	CPL_setup_complete = 1
+    !Set flag to register setup is complete correctly
+    CPL_setup_complete = 1
     call MPI_Barrier(MPI_COMM_WORLD, ierr)
  
 end subroutine CPL_setup_cfd
@@ -1455,9 +1455,7 @@ contains
 
     subroutine check_mesh
         implicit none
-
-        integer :: i,j
-   
+  
         ! Check grids are the right size 
         if (size(xg,1) .ne. (ncx + 1) .or. & 
             size(xg,2) .ne. (ncy + 1) .or. &
@@ -1562,7 +1560,7 @@ subroutine CPL_setup_md(icomm_grid, xyzL, xyz_orig)
     integer, dimension(3)                           :: npxyz_md, cart_coords
     logical, dimension(3)                           :: cart_periods
     integer, dimension(:,:), allocatable            :: icoord
-    integer                                         :: cart_nprocs, rank, i, j
+    integer                                         :: cart_nprocs, rank
 
     ! Get number of processors in each direction (periods and coords are not needed)
     call MPI_Cart_get(icomm_grid, 3, npxyz_md, cart_periods, cart_coords, ierr)
@@ -1846,6 +1844,8 @@ subroutine CPL_set_timing(initialstep, nsteps, dt)
 
     integer :: Nsteps_MDperCFD, source
     real(kind=kind(0.d0)) :: elapsedtime
+
+    call error_abort("CPL_set_timing is depricated and should not be called")
 
     if ( myid_realm .eq. rootid_realm ) then
         source=MPI_ROOT
@@ -2953,17 +2953,17 @@ end subroutine
 !--------------------------------------------------------------------------------------
 ! Return unused fileunit by checking all exisiting
 function get_new_fileunit() result (f)
-	implicit none
+    implicit none
 
-	logical	:: op
-	integer	:: f
+    logical    :: op
+    integer    :: f
 
-	f = 1
-	do 
-		inquire(f,opened=op)
-		if (op .eqv. .false.) exit
-		f = f + 1
-	enddo
+    f = 1
+    do 
+        inquire(f,opened=op)
+        if (op .eqv. .false.) exit
+        f = f + 1
+    enddo
 
 end function
 

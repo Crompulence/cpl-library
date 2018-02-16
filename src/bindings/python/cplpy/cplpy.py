@@ -460,8 +460,12 @@ class CPL:
     py_set_timing.argtypes = \
         [c_int, c_int, c_double]
 
-    @abortMPI
+    #Don't call abortMPI so it can be handled nicely in Python.
+    #@abortMPI
     def set_timing(self, initialstep, nsteps, dt):
+        class DepricatedException(Exception):
+            """Raise Error as function should not be used"""
+        raise DepricatedException("CPL set_timing is depricated and should not be used")
         self.py_set_timing(initialstep, nsteps, dt)
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
