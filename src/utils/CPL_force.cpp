@@ -19,7 +19,7 @@
 // -> In the interest of dependency injection, I made a field 
 //    class with dxyz, min, max, interpolation and get cell. 
 //    Built with CPL_ndArray as dependency and can be used as input 
-//    to constructor of CPLForce here. SEE CPL_field.cpp
+//    to constructor of CPLForce. SEE CPL_field.cpp
 // 
 
 
@@ -487,21 +487,22 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], 
     // Xiao H., Sun J. (2011) Algorithms in a Robust Hybrid
     // CFD-DEM Solver for Particle-Laden Flows, 
     // Commun. Comput. Phys. 9, 2, 297
-    FcoeffSums (cell[0], cell[1], cell[2]) += Cd;
+    FcoeffSums(cell[0], cell[1], cell[2]) += Cd;
 
     //Calculate force
     for (int i = 0; i < 3; ++i){
         //Just drag force here
         f[i] = Cd*Ui_v[i];
         //Include pressure and stress
-        //f[i] += volume*(divStress[i]-gradP[i]);
+        f[i] += volume*(divStress[i]-gradP[i]);
         //Add to sum of forces
+        //std::cout << "cell "  <<  cell[0] << " " << cell[1] << " " << cell[2] << std::endl;
         FSums(i, cell[0], cell[1], cell[2]) += f[i];
     }
 
-    //std::cout << "Drag Force "  
-    //          << r[2] << " " << v[0] << " " << Ui[0] << " "  << v[1] << " " << Ui[1] << " " << v[2] << " " << Ui[2] << " " 
-    //          << divStress[2] << " " << gradP[2] << " " << f[2] << " "  << std::endl;
+//    std::cout << "Drag Force "  
+//              << r[2] << " " << v[0] << " " << Ui[0] << " "  << v[1] << " " << Ui[1] << " " << v[2] << " " << Ui[2] << " " 
+//              << divStress[2] << " " << gradP[2] << " " << f[2] << " "  << std::endl;
 
     return f;
 }
