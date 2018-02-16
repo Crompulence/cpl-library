@@ -474,10 +474,18 @@ class CPL:
          POINTER(c_bool)]
 
     @abortMPI
-    def send(self, asend, limits):
+    def send(self, asend, limits=None):
+        #Attempt to guess required size
+        if limits is None:
+            if self.realm is self.CFD_REALM:
+                limits = self.my_proc_portion(self.get_cnst_limits())
+            elif self.realm is self.MD_REALM:
+                limits = self.my_proc_portion(self.get_bnry_limits())
+
         asend = self._type_check(asend)
         asend_shape = np.array(asend.shape, order='F', dtype=np.int32)
         send_flag = c_bool()
+
         self.py_send(asend, asend_shape, limits, byref(send_flag))
         return send_flag.value
 
@@ -491,7 +499,14 @@ class CPL:
          POINTER(c_bool)]
 
     @abortMPI
-    def recv(self, arecv, limits):
+    def recv(self, arecv, limits=None):
+        #Attempt to guess required size
+        if limits is None:
+            if self.realm is self.CFD_REALM:
+                limits = self.my_proc_portion(self.get_bnry_limits())
+            elif self.realm is self.MD_REALM:
+                limits = self.my_proc_portion(self.get_cnst_limits())
+
         arecv = self._type_check(arecv)
         arecv_shape = np.array(arecv.shape, order='F', dtype=np.int32)
         recv_flag = c_bool()
@@ -625,6 +640,31 @@ class CPL:
         if not A.flags["ALIGNED"]:
             A = np.require(A, requirements=['A'])
         return A
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    @abortMPI
+    def get_arrays(self, recv_size, send_size):
+
+        """
+          Return recv array and send array based
+          on constraint/boundary sizes
+        """
+        #Get constraint region
+        cnst_limits = self.get_cnst_limits();
+        cnst_portion = self.my_proc_portion(cnst_limits)
+        cnst_ncxl, cnst_ncyl, cnst_nczl = self.get_no_cells(cnst_portion)
+
+        #Get overlap region
+        BC_limits = self.get_bnry_limits()
+        BC_portion = self.my_proc_portion(BC_limits)
+        BC_ncxl, BC_ncyl, BC_nczl = self.get_no_cells(BC_portion)
+
+        #Allocate send and recv arrays
+        recv_array = np.zeros((recv_size, BC_ncxl, BC_ncyl, BC_nczl), order='F', dtype=np.float64)
+        send_array = np.zeros((send_size, cnst_ncxl, cnst_ncyl, cnst_nczl), order='F', dtype=np.float64)
+
+        return recv_array, send_array
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
