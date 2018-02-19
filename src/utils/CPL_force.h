@@ -223,7 +223,12 @@ public:
     CPL::ndArray<double> FSums;
     CPL::ndArray<double> FcoeffSums;
 
-private:
+//    CPL::CPLField nSums;
+//    CPL::CPLField eSums;
+//    CPL::CPLField FSums;
+//    CPL::CPLField FcoeffSums;
+
+protected:
 
     void initialisesums(CPL::ndArray<double> f);
     void resetsums();
@@ -257,6 +262,7 @@ public:
     CPL::ndArray<double> nSums;
     CPL::ndArray<double> eSums;
     CPL::ndArray<double> FSums;
+    CPL::ndArray<double> FcoeffSums;
 
 private:
 
@@ -291,6 +297,7 @@ public:
     CPL::ndArray<double> nSums;
     CPL::ndArray<double> eSums;
     CPL::ndArray<double> FSums;
+    CPL::ndArray<double> FcoeffSums;
 
 private:
 

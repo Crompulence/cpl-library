@@ -142,7 +142,8 @@ TEST_F(CPL_interp_Test, test_interpolate) {
             xi[ixyz] = rand*f.dxyz[ixyz];
         }
 
-        zi = f.interpolate(xi, buf, n, order);
+        std::vector<int> indices = {n};
+        zi = f.interpolate(xi, buf, indices, order);
 //        std::cout << "pos = " << xi[0] << " "  << xi[1]  << 
 //                         " "  << xi[2] << " "  << zi[0] << "\n"; 
 
@@ -150,7 +151,7 @@ TEST_F(CPL_interp_Test, test_interpolate) {
         ASSERT_DOUBLE_EQ(zi[0]*f.dxyz[0], xi[0]);
 
         //Get directly from array function
-        ASSERT_DOUBLE_EQ(field.get_array_value_interp(0, xi)*field.dxyz[0], xi[0]);
+        ASSERT_DOUBLE_EQ(field.get_array_value_interp(indices, xi)[0]*field.dxyz[0], xi[0]);
 
     }
 
