@@ -172,13 +172,13 @@ json-fortran: $(CPL_THIRD_PARTY_LIB) $(CPL_THIRD_PARTY_INC)
 3rd-party: json-fortran
 	
 test-all:
-	python $(testdir)/pytests all
+	python2 $(testdir)/pytests all
 	
 test-mapping:
-	python $(testdir)/pytests mapping
+	python2 $(testdir)/pytests mapping
 
 test-initialisation:
-	python $(testdir)/pytests initialisation
+	python2 $(testdir)/pytests initialisation
 
 test-examples:
 	./examples/sendrecv_globcell/test_all.sh

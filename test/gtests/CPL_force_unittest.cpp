@@ -1,11 +1,19 @@
-#include "CPL_force.h"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include <vector>
+
+#include <memory>
+
 #include "cpl.h"
 #include "CPL_field.h"
 #include "CPL_force.h"
 #include "CPL_ndArray.h"
+
+// The major difference between a thing that might go wrong and a 
+// thing that cannot possibly go wrong is that when a thing that 
+// cannot possibly go wrong goes wrong it usually turns out to be
+// impossible to get at and repair.
+//                                                  Douglas Adams
 
 // The fixture for testing class Foo.
 class CPL_Force_Test : public ::testing::Test {
@@ -37,10 +45,13 @@ class CPL_Force_Test : public ::testing::Test {
   // Objects declared here can be used by all tests in the test case for Foo.
 };
 
-#define trplefor(Ni,Nj,Nz) for (int i = 0; i<Ni; ++i){ \
-                           for (int j = 0; j<Nj; ++j){ \
-                           for (int k = 0; k<Nz; ++k)
+#define threeD for (int ixyz = 0; ixyz<3; ++ixyz) \
 
+#define trplefor_rng(si,sj,sk,Ni,Nj,Nz) for (int i = si; i<Ni; ++i){ \
+                                        for (int j = sj; j<Nj; ++j){ \
+                                        for (int k = sk; k<Nz; ++k)
+
+#define trplefor(Ni,Nj,Nz) trplefor_rng(0,0,0,Ni,Nj,Nz)
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
@@ -87,6 +98,38 @@ TEST_F(CPL_Force_Test, test_CPL_define) {
 
 
 
+//Test for CPL::ndArray for parallel processors
+// From within testing, we cannot vary MPI topologies
+// as would need to be run using (mpiexec -n X)
+// it's tricky to test this, The idea of this
+// class is it is entirly local to a process and
+// so all numbering (and min/max) are processor local
+// As a result, parallel testing is not meaningful...
+
+//TEST_F(CPL_Force_Test, test_CPL_define_parallel) {
+
+//    int rankRealm = 0;
+//    int nd = 3;
+//    int icell = 32;
+//    int jcell = 32;
+//    int kcell = 32;
+//    CPL::ndArray<double> buf;
+//    int shape[4] = {nd, icell, jcell, kcell};
+//    buf.resize (4, shape);
+
+//    //Test define
+//    buf(1,1,1,1) = 5.0;
+//    ASSERT_DOUBLE_EQ(buf(1,1,1,1), 5.0);
+
+//    //Test redefine
+//    buf(1,1,1,1) = 6.0;
+//    ASSERT_NE(buf(1,1,1,1), 5.0);
+//};
+
+
+
+
+
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
@@ -109,7 +152,159 @@ TEST_F(CPL_Force_Test, test_CPL_field) {
     ASSERT_EQ(buf.shape(2), jcell);
     ASSERT_EQ(buf.shape(3), kcell);
 
+    //Test pointer version of code
+    CPL::ndArray<double>& buf_ptr = field.get_array_pointer();
+    //std::unique_ptr<CPL::ndArray <double>> buf_ptr = field.get_array_pointer();
+
+    ASSERT_EQ(buf_ptr.size(), nd*icell*jcell*kcell);
+    ASSERT_EQ(buf_ptr.shape(0), nd);
+    ASSERT_EQ(buf_ptr.shape(1), icell);
+    ASSERT_EQ(buf_ptr.shape(2), jcell);
+    ASSERT_EQ(buf_ptr.shape(3), kcell);
+
+    //Check set_array and getting values using pointer
+    CPL::ndArray<double> array;
+    int shape[4] = {nd, icell, jcell, kcell};
+    array.resize (4, shape);
+    array = 0;
+    trplefor(icell,jcell,kcell){
+        array(0, i, j, k) = 1.0;
+    } } }
+    field.set_array(array);
+
+    //The copy of the array from get_array has not changed but
+    //the pointer to the value in the field object has.
+    trplefor(icell,jcell,kcell){
+        ASSERT_EQ(buf_ptr(0, i, j, k), array(0, i, j, k));
+        ASSERT_NE(buf(0, i, j, k), array(0, i, j, k));
+    } } } 
+
 };
+
+
+//Test for CPL::ndArray - setup and array size 
+TEST_F(CPL_Force_Test, test_CPL_field_setters) {
+
+    //Create a field class
+    int nd = 3; int icell = 10; int jcell = 10; int kcell = 10;
+    CPL::CPLField field(nd, icell, jcell, kcell);
+
+    //Get the pointer to the array
+    CPL::ndArray<double>& buf_ptr = field.get_array_pointer();
+
+    //Check example of setting 
+    double r[3] = {0.75, 0.25, 0.35};
+    double value[3] = {1.0, 0.5, 0.25};
+    field.add_to_array(r, value);
+    CPL::ndArray<double> buf = field.get_array();
+
+    ASSERT_DOUBLE_EQ(buf(0, 7, 2, 3), value[0]);
+    ASSERT_DOUBLE_EQ(buf(1, 7, 2, 3), value[1]);
+    ASSERT_DOUBLE_EQ(buf(2, 7, 2, 3), value[2]);
+
+    ASSERT_DOUBLE_EQ(buf_ptr(0, 7, 2, 3), value[0]);
+    ASSERT_DOUBLE_EQ(buf_ptr(1, 7, 2, 3), value[1]);
+    ASSERT_DOUBLE_EQ(buf_ptr(2, 7, 2, 3), value[2]);
+
+    //Add another set of values
+    field.add_to_array(r, value);
+
+    //Check array which we got hasn't changed
+    ASSERT_DOUBLE_EQ(buf(0, 7, 2, 3), value[0]);
+    ASSERT_DOUBLE_EQ(buf(1, 7, 2, 3), value[1]);
+    ASSERT_DOUBLE_EQ(buf(2, 7, 2, 3), value[2]);
+
+    //But the pointer will have
+    ASSERT_DOUBLE_EQ(buf_ptr(0, 7, 2, 3), 2.*value[0]);
+    ASSERT_DOUBLE_EQ(buf_ptr(1, 7, 2, 3), 2.*value[1]);
+    ASSERT_DOUBLE_EQ(buf_ptr(2, 7, 2, 3), 2.*value[2]);
+
+    // Get array again and check (this is all fairly excessive
+    // testing but good to be sure memory works as expected)
+    buf = field.get_array();
+    ASSERT_DOUBLE_EQ(buf(0, 7, 2, 3), 2.*value[0]);
+    ASSERT_DOUBLE_EQ(buf(1, 7, 2, 3), 2.*value[1]);
+    ASSERT_DOUBLE_EQ(buf(2, 7, 2, 3), 2.*value[2]);
+
+}
+
+
+
+//Test for CPL::ndArray - setup and array size 
+TEST_F(CPL_Force_Test, test_CPL_field_setters_olap) {
+
+    //Create a field class
+    int nd = 3; int icell = 10; int jcell = 10; int kcell = 10;
+    CPL::ndArray<double> buf;
+    int shape[4] = {nd, icell, jcell, kcell};
+    buf.resize (4, shape);
+
+    //Test define
+    int n = 0;
+    //Slabs in x
+    for (int j = 0; j < jcell; j++ ){
+    for (int k = 0; k < kcell; k++ ){
+        buf(n,0,j,k) = -0.5;
+        buf(n,1,j,k) = 0.5;
+        buf(n,2,j,k) = 1.5;
+    }}
+    CPL::CPLField field(buf);
+
+    //Hardwire some values
+    double xi[3] = {0.75,0.25,0.35};
+    double rand;
+    for (int j = 0; j < 1000; j++ ) {
+
+        for (int ixyz=0; ixyz < 3; ixyz++ ){
+            rand = std::rand()/float(RAND_MAX);
+            xi[ixyz] = rand*field.dxyz[ixyz];
+        }
+
+        //Get directly from array function
+        ASSERT_DOUBLE_EQ(field.get_array_value_interp(0, xi)*field.dxyz[0], xi[0]);
+
+    }
+
+}
+
+
+//Test for CPL::ndArray - setup and array size 
+TEST_F(CPL_Force_Test, test_CPL_field_getters) {
+
+    //Create a field class
+    int nd = 3; int icell = 10; int jcell = 10; int kcell = 10;
+    CPL::CPLField field(nd, icell, jcell, kcell);
+
+    //Check example of setting 
+    double r[3] = {0.75, 0.25, 0.35};
+    double value[3] = {1.0, 0.5, 0.25};
+    field.add_to_array(r, value);
+
+    //Get cell and value from that cell
+    std::vector<int> cell = field.get_cell(r);
+    ASSERT_DOUBLE_EQ(field.get_array_value(0, cell[0], cell[1], cell[2]),
+                     value[0]);
+    ASSERT_DOUBLE_EQ(field.get_array_value(1, cell[0], cell[1], cell[2]),
+                     value[1]);
+    ASSERT_DOUBLE_EQ(field.get_array_value(2, cell[0], cell[1], cell[2]),
+                     value[2]);
+
+    //Get value directly
+    ASSERT_DOUBLE_EQ(field.get_array_value(0, r), value[0]);
+    ASSERT_DOUBLE_EQ(field.get_array_value(1, r), value[1]);
+    ASSERT_DOUBLE_EQ(field.get_array_value(2, r), value[2]);
+
+    //Get interpolated value
+    CPL::CPLField newfield(nd, icell, jcell, kcell);
+    trplefor(icell,jcell,kcell){
+        newfield.add_to_array(0, i, j, k, value[0]);
+        newfield.add_to_array(1, i, j, k, value[1]);
+        newfield.add_to_array(2, i, j, k, value[2]);
+    } } }
+    ASSERT_DOUBLE_EQ(newfield.get_array_value_interp(0, r), value[0]);
+    ASSERT_DOUBLE_EQ(newfield.get_array_value_interp(1, r), value[1]);
+    ASSERT_DOUBLE_EQ(newfield.get_array_value_interp(2, r), value[2]);
+}
 
 
 ///////////////////////////////////////////////////////////////////
@@ -184,6 +379,15 @@ TEST_F(CPL_Force_Test, test_CPL_get_cell) {
     EXPECT_EQ(cell[1], 2);
     EXPECT_EQ(cell[2], 5);
 
+    //Check near edge of domain
+    r[0] = 0.9;
+    r[1] = 0.5;
+    r[2] = 0.5;
+    cell = c.get_cell(r);
+    ASSERT_EQ(cell[0], 9);
+    ASSERT_EQ(cell[1], 5);
+    ASSERT_EQ(cell[2], 5);
+
     //Check out of domain values handled correctly
 //    r[0]=-1.; r[1]=0.36; r[2]=0.67;
 //    ASSERT_THROW(c.get_cell(r), std::domain_error);
@@ -222,13 +426,14 @@ TEST_F(CPL_Force_Test, test_CPL_ForceTest_constructor) {
     double r[3];
     double v[3] = {0.5, 0.5, 0.5};
     double a[3] = {0.5, 0.5, 0.5};
+    double m=1.; double s=1.; double e=1.;
 
     //Check field is uniform
     trplefor(icell,jcell,kcell){
         r[0] = i/float(icell);
         r[1] = j/float(jcell);
         r[2] = k/float(kcell);
-        f = fxyz.get_force(r, v, a);
+        f = fxyz.get_force(r, v, a, m, s, e);
         ASSERT_DOUBLE_EQ(f[0], 1.0);
         ASSERT_DOUBLE_EQ(f[1], 0.0);
         ASSERT_DOUBLE_EQ(f[2], 0.0);
@@ -249,7 +454,7 @@ TEST_F(CPL_Force_Test, test_CPL_ForceTest_constructor) {
         r[0] = i/float(icell);
         r[1] = j/float(jcell);
         r[2] = k/float(kcell);
-        f = fxyz.get_force(r, v, a);
+        f = fxyz.get_force(r, v, a, m, s, e);
         ASSERT_DOUBLE_EQ(f[0], 0.0);
         ASSERT_DOUBLE_EQ(f[1], 6.0);
         ASSERT_DOUBLE_EQ(f[2], 2.0);
@@ -276,13 +481,16 @@ TEST_F(CPL_Force_Test, test_velocity_pre_force) {
     double r[3] = {0.5, 0.5, 0.5};
     double v[3] = {0.1, 0.2, 0.3};
     double a[3] = {0.0, 0.0, 0.0};
+    double m=1.;
+    double s=1.;
+    double e=1.;
 
     //Check division to correct locations and binning
     trplefor(icell,jcell,kcell){
         r[0] = i/float(icell);
         r[1] = j/float(jcell);
         r[2] = k/float(kcell);
-        c.pre_force(r, v, a);
+        c.pre_force(r, v, a, m, s, e);
     } } }
 
     int sum = 0; double vsum[3] = {0.0,0.0,0.0};
@@ -352,11 +560,13 @@ TEST_F(CPL_Force_Test, test_velocity_get_force) {
     double r[3] = {0.0, 0.0, 0.0};
     double v[3] = {0.0, 0.0, 0.0};
     double a[3] = {0.0, 0.0, 0.0};
+    double m=1.; double s=1.; double e=1.;
+
     trplefor(icell,jcell,kcell){
         r[0] = i/float(icell);
         r[1] = j/float(jcell);
         r[2] = k/float(kcell);
-        fxyz.pre_force(r, v, a);
+        fxyz.pre_force(r, v, a, m, s, e);
     } } }
 
     std::vector<double> f(3);
@@ -365,7 +575,7 @@ TEST_F(CPL_Force_Test, test_velocity_get_force) {
         r[0] = i/float(icell);
         r[1] = j/float(jcell);
         r[2] = k/float(kcell);
-        f = fxyz.get_force(r, v, a);
+        f = fxyz.get_force(r, v, a, m, s, e);
         ASSERT_DOUBLE_EQ(f[0], 1.0);
         ASSERT_DOUBLE_EQ(f[1], 2.0);
         ASSERT_DOUBLE_EQ(f[2], 3.0);
@@ -379,14 +589,14 @@ TEST_F(CPL_Force_Test, test_velocity_get_force) {
         r[1] = j/float(jcell);
         r[2] = k/float(kcell);
         v[0] = 1.0; v[1] = 2.0; v[2] = 3.0;
-        fxyz.pre_force(r, v, a);
+        fxyz.pre_force(r, v, a, m, s, e);
     } } }
 
     trplefor(icell,jcell,kcell){
         r[0] = i/float(icell);
         r[1] = j/float(jcell);
         r[2] = k/float(kcell);
-        f = fxyz.get_force(r, v, a);
+        f = fxyz.get_force(r, v, a, m, s, e);
         ASSERT_DOUBLE_EQ(f[0], 0.0);
         ASSERT_DOUBLE_EQ(f[1], 0.0);
         ASSERT_DOUBLE_EQ(f[2], 0.0);
@@ -450,19 +660,21 @@ TEST_F(CPL_Force_Test, test_flekkoy_pre_force) {
 
     //Call constructor using cell numbers
     int nd = 1; int icell = 8; int jcell = 8; int kcell = 8;
+
     CPLForceFlekkoy c(nd, icell, jcell, kcell);
 
     //Default is domain between 0.0 and 1.0
     double r[3] = {0.5, 0.5, 0.5};
     double v[3] = {0.0, 0.0, 0.0};
     double a[3] = {0.0, 0.0, 0.0};
+    double m=1.; double s=1.; double e=1.;
 
     //Check division to correct locations and binning
     trplefor(icell,jcell,kcell){
         r[0] = i/float(icell);
         r[1] = j/float(jcell);
         r[2] = k/float(kcell);
-        c.pre_force(r, v, a);
+        c.pre_force(r, v, a, m, s, e);
     } } }
 
     int sum = 0;
@@ -501,6 +713,7 @@ TEST_F(CPL_Force_Test, test_flekkoy_pre_force_varydomain) {
     double r[3] = {0.0, 0.0, 0.0};
     double v[3] = {0.0, 0.0, 0.0};
     double a[3] = {0.0, 0.0, 0.0};
+    double m=1.; double s=1.; double e=1.;
 
     //Adjust limits and check
     double min[3] = {-3.0, -2.0, -5.0};
@@ -516,7 +729,7 @@ TEST_F(CPL_Force_Test, test_flekkoy_pre_force_varydomain) {
         r[0] = (i*range[0])/float(icell) + min[0];
         r[1] = (j*range[1])/float(jcell) + min[1];
         r[2] = (k*range[2])/float(kcell) + min[2];
-        c.pre_force(r, v, a);
+        c.pre_force(r, v, a, m, s, e);
     } } }
     trplefor(icell,jcell,kcell){
         ASSERT_EQ(c.nSums(i,j,k), 1);
@@ -529,6 +742,7 @@ TEST_F(CPL_Force_Test, test_flekkoy_get_force) {
 
     //Call constructor using cell numbers
     int nd = 9; int icell = 8; int jcell = 8; int kcell = 8;
+    double m=1.; double s=1.; double e=1.;
 
     //Setup a field which is 1 everywhere
     CPL::ndArray<double> field;
@@ -549,7 +763,7 @@ TEST_F(CPL_Force_Test, test_flekkoy_get_force) {
         r[0] = i/float(icell);
         r[1] = j/float(jcell);
         r[2] = k/float(kcell);
-        fxyz.pre_force(r, v, a);
+        fxyz.pre_force(r, v, a, m, s, e);
     } } }
 
     std::vector<double> f(3);
@@ -558,7 +772,7 @@ TEST_F(CPL_Force_Test, test_flekkoy_get_force) {
         r[0] = i/float(icell);
         r[1] = j/float(jcell);
         r[2] = k/float(kcell);
-        f = fxyz.get_force(r, v, a);
+        f = fxyz.get_force(r, v, a, m, s, e);
         if (fxyz.gSums(i,j,k) != 0.){
             ASSERT_DOUBLE_EQ(f[0], dA[1]);
         } else {
@@ -590,7 +804,7 @@ TEST_F(CPL_Force_Test, test_flekkoy_get_force) {
         double y = std::rand()/float(RAND_MAX);
         double z = std::rand()/float(RAND_MAX);
         r[0] = x; r[1] = y; r[2] = z;
-        f = fxyz.get_force(r, v, a);
+        f = fxyz.get_force(r, v, a, m, s, e);
         g = fxyz.flekkoyGWeight(r[1], 0.0, 1.0);
         cell = fxyz.get_cell(r);
         ASSERT_DOUBLE_EQ(f[0], g*float(cell[0])*dA[1]);
@@ -601,13 +815,276 @@ TEST_F(CPL_Force_Test, test_flekkoy_get_force) {
 
 
 
+
+///////////////////////////////////////////////////////////////////
+//                                                               //
+//                    CPLForceDrag                               //
+//                                                               //
+///////////////////////////////////////////////////////////////////
+
+//Test for CPLForceDrag - constructor and fields
+TEST_F(CPL_Force_Test, test_CPLForce_Drag) {
+
+    int nd = 3; int icell = 3; int jcell = 3; int kcell = 3;
+
+    //Call constructor using cell numbers
+    CPLForceDrag c(nd, icell, jcell, kcell);
+    CPL::ndArray<double> buf1 = c.get_field();
+    CPLForceDrag d(buf1);
+
+    buf1(2,0,2,1) = 5.;
+    c.set_field(buf1);
+    d.set_field(buf1);
+    CPL::ndArray<double> buf2 = c.get_field();
+    ASSERT_DOUBLE_EQ(buf2(2,0,2,1), 5.0);
+    buf2 = d.get_field();
+    ASSERT_DOUBLE_EQ(buf2(2,0,2,1), 5.0);
+
+}
+
+
+//Test for CPLForceDrag - check initial esum and Fsum arrays
+TEST_F(CPL_Force_Test, test_CPLForce_Drag_initial_eSumsFsum) {
+
+    int nd = 3; int icell = 3; int jcell = 3; int kcell = 3;
+
+    //Call constructor using cell numbers
+    CPLForceDrag c(nd, icell, jcell, kcell);
+
+    //Try to get porosity from force type
+    trplefor(icell,jcell,kcell){
+        ASSERT_DOUBLE_EQ(c.eSums(i,j,k), 0.0);
+        ASSERT_DOUBLE_EQ(c.FSums(0,i,j,k), 0.0);
+        ASSERT_DOUBLE_EQ(c.FSums(1,i,j,k), 0.0);
+        ASSERT_DOUBLE_EQ(c.FSums(2,i,j,k), 0.0);
+    } } }
+
+}
+
+
+
+//Test for CPLForceDrag - check sum of esum and Fsum arrays
+TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_eSumsFsum) {
+
+    int nd = 9; int icell = 3; int jcell = 3; int kcell = 3;
+
+    //Call constructor using cell numbers
+    CPLForceDrag c(nd, icell, jcell, kcell);
+
+    //Setup one particle per cell
+    double r[3] = {0.0, 0.0, 0.0};
+    double v[3] = {0.0, 0.0, 0.0};
+    double a[3] = {0.0, 0.0, 0.0};
+    std::vector<double> F;
+    double radius = 0.001;
+    double volume = (4./3.)*M_PI*pow(radius,3);
+    double m=1.; double s=radius; double e=1.;
+
+    //Test with PCM (volume assigned to cell based on centre)
+    c.use_overlap = false;
+
+    //Setup esum
+    trplefor(icell,jcell,kcell){
+        r[0] = i/double(icell);
+        r[1] = j/double(jcell);
+        r[2] = k/double(kcell);
+        c.pre_force(r, v, a, m, s, e);
+    } } }
+
+    //Setup Fsum for u=0
+    trplefor(icell,jcell,kcell){
+        r[0] = i/double(icell);
+        r[1] = j/double(jcell);
+        r[2] = k/double(kcell);
+        v[0] = i/double(icell);
+        v[1] = j/double(jcell);
+        v[2] = k/double(kcell);
+        F = c.get_force(r, v, a, m, s, e);
+    } } }
+
+    //Check values of esum & Fsum
+    trplefor(icell,jcell,kcell){
+        //Since introducing overlap mode, need assert near
+        //ASSERT_NEAR(c.eSums(i,j,k), volume, 1e-14);
+        ASSERT_DOUBLE_EQ(c.eSums(i,j,k), volume);
+        ASSERT_DOUBLE_EQ(c.FSums(0,i,j,k), -c.drag_coefficient()*i/double(icell));
+        ASSERT_DOUBLE_EQ(c.FSums(1,i,j,k), -c.drag_coefficient()*j/double(jcell));
+        ASSERT_DOUBLE_EQ(c.FSums(2,i,j,k), -c.drag_coefficient()*k/double(kcell));
+    } } }
+
+
+    //Setup Fsum for u=0, v=1 and w=0
+    CPL::ndArray<double> field;
+    int shape[4] = {nd, icell, jcell, kcell};
+    field.resize (4, shape);
+    trplefor(icell,jcell,kcell){
+        field(1, i, j, k) = 1.0;
+    } } }
+
+    CPLForceDrag d(field);
+    trplefor(icell,jcell,kcell){
+        r[0] = i/double(icell);
+        r[1] = j/double(jcell);
+        r[2] = k/double(kcell);
+        v[0] = i/double(icell);
+        v[1] = j/double(jcell);
+        v[2] = k/double(kcell);
+        F = d.get_force(r, v, a, m, s, e);
+    } } }
+
+
+    //Check values of esum & Fsum
+    trplefor(icell,jcell,kcell){
+        ASSERT_DOUBLE_EQ(d.eSums(i,j,k), 0.);
+        ASSERT_DOUBLE_EQ(d.FSums(0,i,j,k), c.drag_coefficient()*(0.-i/double(icell)));
+        ASSERT_DOUBLE_EQ(d.FSums(1,i,j,k), c.drag_coefficient()*(1.-j/double(jcell)));
+        ASSERT_DOUBLE_EQ(d.FSums(2,i,j,k), c.drag_coefficient()*(0.-k/double(kcell)));
+//        std::cout << i << " " << j << " " << k
+//                    << " " << c.eSums(i, j, k)
+//                    << " " << c.FSums(0, i, j, k)
+//                    << " " << c.FSums(1, i, j, k)
+//                    << " " << c.FSums(2, i, j, k) << std::endl;
+    } } }
+
+
+}
+
+
+//Test for CPL::field - overlap fraction of particle
+TEST_F(CPL_Force_Test, test_CPLForce_Drag_overlap) {
+    int nd = 9;
+    int icell = 3;
+    int jcell = 3;
+    int kcell = 3;
+    CPL::CPLField field(nd, icell, jcell, kcell);
+    CPL::ndArray<double> buf = field.get_array();
+
+    //Particle in centre of cell
+    double scx = 0.0;double scy=0.0; double scz=0.0; double sr = 1;
+    double xb = -1.0; double yb=-1.0; double zb=-1.0;
+    double xt =  1.0; double yt= 1.0; double zt= 1.0;
+    double Vs = (4./3.)*M_PI*pow(sr,3);
+    double Vc = (xt-xb)*(yt-yb)*(zt-zb);
+
+    //Particle at centre of clel
+    double result = field.sphere_cube_overlap(scx, scy, scz, sr, xb, yb, zb, xt, yt, zt);
+    ASSERT_NEAR(result, Vs, 1e-14);
+
+    //Particle at face of cell
+    scx = 1.0;
+    result = field.sphere_cube_overlap(scx, scy, scz, sr, xb, yb, zb, xt, yt, zt);
+    ASSERT_NEAR(result, 0.5*Vs, 1e-14);
+
+    //Particle at top edge of cell
+    scx = 1.0; scy = 1.0;
+    result = field.sphere_cube_overlap(scx, scy, scz, sr, xb, yb, zb, xt, yt, zt);
+    ASSERT_NEAR(result, 0.25*Vs, 1e-14);
+
+    //Particle at corner of cell
+    scx = 1.0; scy = 1.0; scz = 1.0;
+    result = field.sphere_cube_overlap(scx, scy, scz, sr, xb, yb, zb, xt, yt, zt);
+    ASSERT_NEAR(result, 0.125*Vs, 1e-14);
+
+};
+
+
+
+//Test for CPLForceDrag - check sum of esum and Fsum arrays
+TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_overlap_field) {
+
+    int nd = 9; int icell = 3; int jcell = 3; int kcell = 3;
+
+    //Call constructor using cell numbers
+    CPLForceDrag c(nd, icell, jcell, kcell, true);
+
+    //Setup one particle per cell
+    double v[3] = {0.0, 0.0, 0.0};
+    double a[3] = {0.0, 0.0, 0.0};
+    double radius = 0.5;
+    double min[3] = {0.0, 0.0, 0.0};
+    double max[3] = {3.0, 3.0, 3.0};
+    c.set_minmax(min, max);
+    double Vs = (4./3.)*M_PI*pow(radius,3);
+    double m=1.; double s=radius; double e=1.;
+
+    //Particle at centre of grid cell 2
+    double r[3] = {1.5, 1.5, 1.5};
+    c.pre_force(r, v, a, m, s, e);
+    ASSERT_NEAR(c.eSums(1,1,1), Vs, 1e-13);
+
+    //Particle at face of grid cell 2 and 3 in x
+    c.eSums(1,1,1) = 0.0;
+    r[0] = 2.0;
+    c.pre_force(r, v, a, m, s, e);
+    ASSERT_NEAR(c.eSums(1,1,1), 0.5*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,1,1), 0.5*Vs, 1e-13);
+
+    //Particle at edge of grid cell 2 and 3 in x,y
+    c.eSums(1,1,1) = 0.0; c.eSums(2,1,1) = 0.0;
+    r[0] = 2.0;  r[1] = 2.0;
+    c.pre_force(r, v, a, m, s, e);
+    ASSERT_NEAR(c.eSums(1,1,1), 0.25*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,1,1), 0.25*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(1,2,1), 0.25*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,2,1), 0.25*Vs, 1e-13);
+
+    //Particle at corner of grid cell 2 and 3 in x,y,z
+    c.eSums(1,1,1) = 0.0; c.eSums(2,1,1) = 0.0;
+    c.eSums(1,2,1) = 0.0; c.eSums(2,2,1) = 0.0;
+    r[0] = 2.0;  r[1] = 2.0;  r[2] = 2.0;
+    c.pre_force(r, v, a, m, s, e);
+    ASSERT_NEAR(c.eSums(1,1,1), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,1,1), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(1,2,1), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,2,1), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(1,1,2), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,1,2), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(1,2,2), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(c.eSums(2,2,2), 0.125*Vs, 1e-13);
+
+    //Particle bigger than cell so fills whole cell
+    s = 1.0;
+    r[0] =1.5;  r[1] = 1.5;  r[2] = 1.5;
+    c.eSums(1,1,1) = 0.0;
+    c.pre_force(r, v, a, m, s, e);
+    double Vc = 1.0*1.0*1.0;
+    ASSERT_NEAR(c.eSums(1,1,1), 1.0, 1e-13);
+
+    //Domain is from 0 to 1 so cell size is 0.1
+    icell = 10; jcell = 10; kcell = 10;
+    CPLForceDrag d(nd, icell, jcell, kcell, true);
+
+    //Particle bigger than lots of cell so fills many cell
+    s = 0.35;
+    r[0] =0.5;  r[1] = 0.5;  r[2] = 0.5;
+    d.pre_force(r, v, a, m, s, e);
+    Vc = 0.1*0.1*0.1;
+
+    trplefor_rng(3,3,3,7,7,7){
+        ASSERT_NEAR(d.eSums(i,j,k), Vc, 1e-13);
+    } } }
+
+    CPLForceDrag f(nd, icell, jcell, kcell);
+    f.use_overlap = true;
+
+    s = 0.35;
+    r[0] =0.9;  r[1] = 0.5;  r[2] = 0.5;
+    f.pre_force(r, v, a, m, s, e);
+
+//    trplefor_rng(0,5,0,icell, 6, kcell){
+//        std::cout << i << " " << j << " " << k
+//                    << " " << f.eSums(i, j, k)/Vc << std::endl;
+//    } } }
+
+}
+
 ///////////////////////////////////////////////////////////////////
 //                                                               //
 //                    CPLForceGranular                            //
 //                                                               //
 ///////////////////////////////////////////////////////////////////
 
-//Test for CPLForceFlekkoy - constructor and fields
+//Test for CPLForceGranular - constructor and fields
 TEST_F(CPL_Force_Test, test_Granular_CPL_inhereted) {
 
     int nd = 9; int icell = 3; int jcell = 3; int kcell = 3;
@@ -617,13 +1094,73 @@ TEST_F(CPL_Force_Test, test_Granular_CPL_inhereted) {
     CPL::ndArray<double> buf1 = c.get_field();
     CPLForceGranular d(buf1);
 
-    buf1(4,0,2,1) = 5.;
+    buf1(2,0,2,1) = 5.;
     c.set_field(buf1);
     d.set_field(buf1);
     CPL::ndArray<double> buf2 = c.get_field();
-    ASSERT_DOUBLE_EQ(buf2(4,0,2,1), 5.0);
+    ASSERT_DOUBLE_EQ(buf2(2,0,2,1), 5.0);
     buf2 = d.get_field();
-    ASSERT_DOUBLE_EQ(buf2(4,0,2,1), 5.0);
+    ASSERT_DOUBLE_EQ(buf2(2,0,2,1), 5.0);
+
+}
+
+
+//Test for CPLForceGranular - test forces
+TEST_F(CPL_Force_Test, test_Granular_CPL_forces) {
+
+    int nd = 9; int icell = 9; int jcell = 9; int kcell = 9;
+
+    //Setup Fsum for u=1, v=0 and w=0
+    CPL::ndArray<double> field;
+    int shape[4] = {nd, icell, jcell, kcell};
+    field.resize (4, shape);
+    trplefor(icell,jcell,kcell){
+        field(0, i, j, k) = 1.0;
+    } } }
+
+    //Call constructor using cell numbers
+    CPLForceGranular c(field);
+
+    //Setup one particle per cell
+    double r[3] = {0.0, 0.0, 0.0};
+    double v[3] = {0.0, 0.0, 0.0};
+    double a[3] = {0.0, 0.0, 0.0};
+    std::vector<double> F;
+    double radius = 0.01;
+    double volume = (4./3.)*M_PI*pow(radius,3);
+    double m=1.;
+    double s=radius;
+    double e=1.;
+
+    //Setup esum
+    trplefor(icell,jcell,kcell){
+        r[0] = i/double(icell);
+        r[1] = j/double(jcell);
+        r[2] = k/double(kcell);
+        c.pre_force(r, v, a, m, s, e);
+    } } }
+
+    trplefor(icell,jcell,kcell){
+        r[0] = i/double(icell);
+        r[1] = j/double(jcell);
+        r[2] = k/double(kcell);
+        v[0] = i/double(icell);
+        v[1] = j/double(jcell);
+        v[2] = k/double(kcell);
+        F = c.get_force(r, v, a, m, s, e);
+    } } }
+
+    //Check values of esum & Fsum
+    trplefor(icell,jcell,kcell){
+
+        ASSERT_DOUBLE_EQ(c.eSums(i,j,k), volume);
+//        std::cout << i << " " << j << " " << k
+//                    << " " << c.eSums(i, j, k)
+//                    << " " << c.FSums(0, i, j, k)
+//                    << " " << c.FSums(1, i, j, k)
+//                    << " " << c.FSums(2, i, j, k) << std::endl;
+    } } }
+
 
 }
 

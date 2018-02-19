@@ -75,6 +75,20 @@
         mesh
     );
 
+//    Info<< "Setup identity matix\n" << endl;
+//    volVectorField Ei
+//    (
+//        IOobject
+//        (
+//            "Ei",
+//            runTime.timeName(),
+//            mesh,
+//            IOobject::NO_READ,
+//            IOobject::AUTO_WRITE
+//        ),
+//        mesh
+//    );
+//    Ei = tensor::one;
 
 #   include "createPhi.H"
 

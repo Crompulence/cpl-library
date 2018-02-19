@@ -81,6 +81,8 @@ extern "C" void CPLC_scatter(double* scatterarray, int* scatter_shape, int* limi
 extern "C" void CPLC_gather(double* gatherarray, int* gather_shape, int* limits, 
                             double* recvarray, int* recv_shape);
 
+extern "C" void CPLC_swaphalos(double* A, int* A_shape);
+
 extern "C" void CPLC_proc_extents(int coord[], int realm, int extents[]);
 extern "C" void CPLC_my_proc_extents(int extents[]);
 extern "C" void CPLC_proc_portion(int coord[], int realm, int limits[], int portion[]);

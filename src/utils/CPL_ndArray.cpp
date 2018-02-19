@@ -169,24 +169,47 @@ template<class T> void CPL::ndArray<T>::resize (const int nd, const int shape[])
     template<class T>
     T CPL::ndArray<T>::operator () (const int i0) const
     {
-        if (checkDimsEquals(1)) return ndArrayData[flatIndex(i0)];
+        if (checkDimsEquals(1)) 
+        {
+            return ndArrayData[flatIndex(i0)];
+        } else {
+            throw shapeEx;
+            return ndArrayData[flatIndex(i0)];
+        }
     }
     template<class T>
     T& CPL::ndArray<T>::operator () (const int i0)
     {
-        if (checkDimsEquals(1)) return ndArrayData[flatIndex(i0)];
+        if (checkDimsEquals(1)) {
+            return ndArrayData[flatIndex(i0)];
+        } else {
+            throw shapeEx;
+            return ndArrayData[flatIndex(i0)];
+        }
     }
 
 // 2D
     template<class T>
     T CPL::ndArray<T>::operator () (const int i0, const int i1) const
     {
-        if (checkDimsEquals(2)) return ndArrayData[flatIndex(i0, i1)];
+        if (checkDimsEquals(2)) 
+        {
+            return ndArrayData[flatIndex(i0, i1)];
+        } else {
+            throw shapeEx;
+            return ndArrayData[flatIndex(i0, i1)];
+        }
     }
     template<class T>
     T& CPL::ndArray<T>::operator () (const int i0, const int i1)
     {
-        if (checkDimsEquals(2)) return ndArrayData[flatIndex(i0, i1)];
+        if (checkDimsEquals(2)) 
+        {
+            return ndArrayData[flatIndex(i0, i1)];
+        } else {
+            throw shapeEx;
+            return ndArrayData[flatIndex(i0, i1)];
+        }
     }
 
 // 3D
@@ -201,6 +224,9 @@ template<class T> void CPL::ndArray<T>::resize (const int nd, const int shape[])
         if (checkDimsEquals(3))
         {
             return ndArrayData[flatIndex(i0, i1, i2)];
+        } else {
+            throw shapeEx;
+            return ndArrayData[flatIndex(i0, i1, i2)];
         }
     }
     template<class T>
@@ -213,6 +239,9 @@ template<class T> void CPL::ndArray<T>::resize (const int nd, const int shape[])
     {
         if (checkDimsEquals(3))
         {
+            return ndArrayData[flatIndex(i0, i1, i2)];
+        } else {
+            throw shapeEx;
             return ndArrayData[flatIndex(i0, i1, i2)];
         }
     }
@@ -230,6 +259,9 @@ template<class T> void CPL::ndArray<T>::resize (const int nd, const int shape[])
         if (checkDimsEquals(4))
         {
             return ndArrayData[flatIndex(i0, i1, i2, i3)];
+        } else {
+            throw shapeEx;
+            return ndArrayData[flatIndex(i0, i1, i2, i3)];
         }
     }
     template<class T>
@@ -243,6 +275,9 @@ template<class T> void CPL::ndArray<T>::resize (const int nd, const int shape[])
     {
         if (checkDimsEquals(4))
         {
+            return ndArrayData[flatIndex(i0, i1, i2, i3)];
+        } else {
+            throw shapeEx;
             return ndArrayData[flatIndex(i0, i1, i2, i3)];
         }
     }
@@ -294,7 +329,7 @@ template<class T> bool CPL::ndArray<T>::checkDimsEquals (const int dims) const
 {
     if (nDims != dims)
     {
-        throw shapeEx;
+        //throw shapeEx;
         return false;
     }
     return true;

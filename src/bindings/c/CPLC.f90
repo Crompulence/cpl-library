@@ -662,7 +662,7 @@ contains
 
         call CPL_set_timing(initialstep, Nsteps, dt)
 
-    endsubroutine CPLC_set_timing
+    end subroutine CPLC_set_timing
 
 
     subroutine CPLC_send(asend, asend_shape, limits, send_flag) &
@@ -863,6 +863,33 @@ contains
 
 
     end subroutine CPLC_gather
+
+
+    subroutine CPLC_swaphalos(A, A_shape) &
+        bind(C, name="CPLC_swaphalos")
+        use CPL, only: CPL_swaphalos
+        implicit none
+
+        ! Inputs
+        type(C_PTR), value :: A
+        type(C_PTR), value :: A_shape
+
+        ! Fortran equivalent array pointers
+        real(kind(0.d0)), dimension(:,:,:,:), pointer :: A_f
+        integer, dimension(:), pointer :: A_shape_f
+
+        ! Other useful variables internal to this subroutine
+        integer :: s1, s2, s3, s4
+
+        call C_F_POINTER(A_shape, A_shape_f, [4])
+        s1 = A_shape_f(1) 
+        s2 = A_shape_f(2) 
+        s3 = A_shape_f(3) 
+        s4 = A_shape_f(4)
+        call C_F_POINTER(A, A_f, [s1, s2, s3, s4])
+        call CPL_swaphalos(A_f)  
+
+    end subroutine CPLC_swaphalos
 
 
     subroutine CPLC_proc_extents(coord, realm, extents) &

@@ -12,6 +12,9 @@
 
 #include <vector>
 #include <iostream>
+#include <utility>
+#include <memory>
+
 #include "CPL_ndArray.h"
 
 namespace CPL{
@@ -30,14 +33,28 @@ public:
     void set_dxyz();
 
     CPL::ndArray<double> get_array();
+    //std::unique_ptr<CPL::ndArray <double>> get_array_pointer();
+    CPL::ndArray<double>& get_array_pointer();
 
     //Get cell values
-    std::vector<int> get_cell(double r[]);
+    std::vector<int> get_cell(const double r[]);
     std::vector<double> get_dA();    
-    std::vector<double> interpolate(double r[]);    
+    std::vector<double> interpolate(double r[]);
 
-    //Destructor
-    virtual ~CPLField() {}
+    //Function to get sphere cube overlaps
+    double sphere_cube_overlap(double, double, double, double,
+                               double, double, double, 
+                               double, double, double);
+
+    // functions to add values to array
+    void add_to_array(int n, int i, int j, int k, double value);
+    void add_to_array(const double r[], const double value[]);
+    void add_to_array(const double r[], double s, const double value[]);
+
+    // functions to get value from cell i,j,k
+    double get_array_value(int n, int i, int j, int k);
+    double get_array_value(int n, const double r[]);
+    double get_array_value_interp(int n, const double r[]);
 
     //Variables
     CPL::ndArray<double> array;
@@ -47,7 +64,12 @@ public:
 //private:
 
     CPL::ndArray<double> celltonode(CPL::ndArray<double> cell, int n, int ic, int jc, int kc);
-    std::vector<double> interpolate(double r[], CPL::ndArray<double> cell_array, int n, int order);
+    std::vector<double> interpolate(const double r[], CPL::ndArray<double> cell_array, int n, int order);
+
+    //Destructor
+    virtual ~CPLField() {
+ //       array.clear();
+    }
 };
 
 }

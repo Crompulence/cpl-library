@@ -29,6 +29,25 @@ MD_EXEC = "./lmp_cpl"
 CFD_EXEC = "./CFD_single_ball.py"
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 
+
+@pytest.fixture(scope="module")
+def clean_dir():
+
+    print("Cleaning directory")
+    #Try to setup code
+    with cd(TEST_DIR):
+        try:
+            clean = sp.check_output("rm -f " + "./thermo_output* " 
+                                             + "./log.lammps* " 
+                                             + "./debug.vels" 
+                                             + " " + MD_EXEC, shell=True)
+        except sp.CalledProcessError as e:
+            if e.output.startswith('error: {'):
+                get_subprocess_error(e.output)
+            raise
+
+    return clean
+
 @pytest.fixture(scope="module")
 def build_case():
 
@@ -53,8 +72,6 @@ def run_case():
 
     with cd(TEST_DIR):
         try:
-            clean = sp.check_output("rm -f ./thermo_output* ./log.lammps* ./debug.vels", 
-                                    shell=True)
             run = sp.check_output(cmd, shell=True)
         except sp.CalledProcessError as e:
             if e.output.startswith('error: {'):
@@ -66,8 +83,13 @@ def run_case():
 
 @pytest.fixture(scope="module")
 def build_run():
-    build = build_case()
-    run = run_case()
+    try:
+        clean = clean_dir()
+        build = build_case()
+    except sp.CalledProcessError:
+        print("Build Failed")
+    else:
+        run = run_case()
 
 def test_gravity(build_run):
 

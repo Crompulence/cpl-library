@@ -53,32 +53,35 @@ int main(int argc, char *argv[])
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     //dimensionedScalar rho("rho",  dimensionSet(1, -3, 0, 0, 0, 0, 0), 1.0);
-    scalar rho=1.0;
+    scalar rho=1000.0; //Water density
 
     Info<< "\nStarting time loop\n" << endl;
     while (runTime.loop())
     {
 
-        CPL.pack(U, nu, mesh, CPL.PACKVELONLY);
+        //Pack data to send
+        CPL.pack(U, p, nu, mesh, CPL.VEL);
         CPL.send();
 
+        //Recieve data from particle code
         CPL.recv();
         CPL.unpackPorousForce(F, eps, mesh);
 
 
-        //Info<< "Time = " << CPLSocketFOAM::rankrealm << runTime.timeName() << nl << endl;
+        //Info<< "Time = " << runTime.timeName() << nl << endl;
 
         #include "CourantNo.H"
 
-        // Momentum predictor
-        //volVectorField epsU("epsU", eps*U);
+        // Get momentum divided by eps
+        F = CPL.divideFieldsVectorbyScalar(F, eps, mesh);
 
+        //Main part of the NS equation with no pressure solve
         fvVectorMatrix UEqn
         (
             fvm::ddt(U)
           + fvm::div(phi, U)
           - fvm::laplacian(nu, U)
-          - F/(rho)
+          - F/rho               //Explciti Force
         );
 
         F.correctBoundaryConditions();
@@ -99,7 +102,7 @@ int main(int argc, char *argv[])
             (
                 "phiHbyA",
                 (fvc::interpolate(HbyA) & mesh.Sf())
-              + fvc::interpolate(rAU)*fvc::ddtCorr(U, phi)
+               + fvc::interpolate(rAU)*fvc::ddtCorr(U, phi)
             );
 
             adjustPhi(phiHbyA, U, p);

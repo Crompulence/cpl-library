@@ -3,7 +3,6 @@
 #include<fstream>
 #include <cmath>
 
-#include "fix_cpl_force.h"
 #include "atom.h"
 #include "universe.h"
 #include "error.h"
@@ -11,18 +10,19 @@
 #include "domain.h"
 #include "region.h"
 
-#include "cpl/CPL_ndArray.h"
-#include "cpl/CPL_force.h"
+#include "fix_cpl_force.h"
 
-FixCPLForce::FixCPLForce
-(
-    LAMMPS_NS::LAMMPS *lammps,
-    int narg,
-    char **arg
-)
+#include "cpl/CPL_ndArray.h"
+
+FixCPLForce::FixCPLForce(LAMMPS_NS::LAMMPS *lammps, int narg, char **arg)
     : Fix (lammps, narg, arg)
 {
    //nevery = 50;//cplsocket.timestep_ratio;
+    for (int iarg=0; iarg<narg; iarg+=1){
+        std::string arguments(arg[iarg]);
+        if (arguments == "forcetype")
+            forcetype = std::make_shared<std::string>(arg[iarg+1]);
+    }
 }
 
 //NOTE: It is called from fixCPLInit initial_integrate() now.
@@ -32,7 +32,6 @@ int FixCPLForce::setmask() {
   return mask;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 void FixCPLForce::setup(int vflag)
@@ -40,13 +39,16 @@ void FixCPLForce::setup(int vflag)
     post_force(vflag);
 }
 
-
+//NOTE -- Not actually called post force, for some reason
+// this no longer works reliabley in LAMMPS, instead call
+// explicitly in CPLInit!
 void FixCPLForce::post_force(int vflag) {
 
     double **x = atom->x;
     double **v = atom->v;
     double **f = atom->f;
     double *rmass = atom->rmass;
+    double *radius = atom->radius;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
@@ -67,8 +69,8 @@ void FixCPLForce::post_force(int vflag) {
 
     // Preliminary summation, only 1 value per cell so can slice
     // away cfdBuf->shape(0)
-    std::string fxyzType("Drag");
-    std::unique_ptr<CPLForce> fxyz(nullptr);
+    std::string fxyzType(*forcetype);
+    // std::unique_ptr<CPLForce>  fxyz(nullptr); //Moved to header
     if (fxyzType.compare("Flekkoy") == 0) {
         fxyz.reset(new CPLForceFlekkoy(9, cfdBuf->shape(1), 
                                           cfdBuf->shape(2), 
@@ -85,18 +87,28 @@ void FixCPLForce::post_force(int vflag) {
         fxyz.reset(new CPLForceDrag(3, cfdBuf->shape(1), 
                                        cfdBuf->shape(2), 
                                        cfdBuf->shape(3))); 
+        fxyz->calc_preforce = true;
 
-    } else if (fxyzType.compare("Granular") == 0) {
+//    } else if (fxyzType.compare("Ergun") == 0) {
+//        fxyz.reset(new CPLForceGranular(3, cfdBuf->shape(1), 
+//                                           cfdBuf->shape(2), 
+//                                           cfdBuf->shape(3))); 
+    } else if (fxyzType.compare("Di_Felice") == 0) {
         fxyz.reset(new CPLForceGranular(3, cfdBuf->shape(1), 
                                            cfdBuf->shape(2), 
                                            cfdBuf->shape(3))); 
+//    } else if (fxyzType.compare("Tang_et_al") == 0) {
+//        fxyz.reset(new CPLForceGranular(3, cfdBuf->shape(1), 
+//                                           cfdBuf->shape(2), 
+//                                           cfdBuf->shape(3))); 
+
     } else {
         std::string cmd("CPLForce type ");
         cmd += fxyzType + " not defined";
         throw std::runtime_error(cmd);
     }
 
-    //std::cout << "CPL Force type  " << fxyzType << std::endl;
+    //std::cout << "CPL Force type  " << fxyzType << fxyz->calc_preforce << std::endl;
 
 
     //Set CPLForce min/max to local processor limits using values from CPL library 
@@ -114,30 +126,33 @@ void FixCPLForce::post_force(int vflag) {
 	max[2] += dz;
     fxyz->set_minmax(min, max);
 
-
     double fx=0., fy=0., fz=0.;
-    double mi, xi[3], vi[3], ai[3];
+    double mi, radi, pot, xi[3], vi[3], ai[3];
+    pot = 1.0; //Interaction Potential should be set here
     std::vector<int> cell;
-    std::vector<double> fi(3);
+    std::vector<double> fi(3);  
+    //Should we reset sums here?
+    fxyz->resetsums();
     if (fxyz->calc_preforce) {
-		for (int i = 0; i < nlocal; ++i)
-		{
-		    if (mask[i] & groupbit)
-		    {
+        for (int i = 0; i < nlocal; ++i)
+        {
+            if (mask[i] & groupbit)
+            {
 
-		        //Get local molecule data
-		        mi = rmass[i];
-		        for (int n=0; n<3; n++){
-		            xi[n]=x[i][n]; 
-		            vi[n]=v[i][n]; 
-		            ai[n]=f[i][n];
-		        }
+                //Get local molecule data
+                mi = rmass[i];
+                radi = radius[i];
+                for (int n=0; n<3; n++){
+                    xi[n]=x[i][n]; 
+                    vi[n]=v[i][n]; 
+                    ai[n]=f[i][n];
+                }
 
                 // Sum all the weights for each cell.
-                fxyz->pre_force(xi, vi, ai);
+                fxyz->pre_force(xi, vi, ai, mi, radi, pot);
 
             }
-		        }
+        }
 
     }
 
@@ -150,31 +165,30 @@ void FixCPLForce::post_force(int vflag) {
 
             //Get local molecule data
             mi = rmass[i];
+            radi = radius[i];
             for (int n=0; n<3; n++){
                 xi[n]=x[i][n]; 
                 vi[n]=v[i][n]; 
                 ai[n]=f[i][n];
             }
 
-
             //Get force from object
             fxyz->set_field(*cfdBuf);
-            fi = fxyz->get_force(xi, vi, ai);
+            fi = fxyz->get_force(xi, vi, ai, mi, radi, pot);
 
             //Apply force
             f[i][0] += fi[0];
             f[i][1] += fi[1];
             f[i][2] += fi[2];
 
-//            std::cout.precision(17);
-//            std::cout << "Force " << i << " " << xi[2] <<  " " << vi[2] << " " << ai[2] << " " <<
-//                          mi << " " << fi[0] << " " << fi[1] << " " << fi[2] << " "
-//                          << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
+            std::cout.precision(17);
+            std::cout << "Force " << i << " " << xi[2] <<  " " << vi[2] << " " << ai[2] << " " <<
+                          mi << " " << fi[0] << " " << fi[1] << " " << fi[2] << " "  
+                          << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
 
         }
     }
 }
-
 
 void FixCPLForce::updateBuf (CPL::ndArray<double>& Buf) {
     cfdBuf = &Buf;
@@ -187,3 +201,4 @@ void FixCPLForce::updateProcPortion (int inputPortion[]) {
         procPortion[i] = inputPortion[i];
     }
 }
+

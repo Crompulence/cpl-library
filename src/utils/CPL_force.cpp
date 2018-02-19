@@ -1,10 +1,12 @@
 #include <vector>
 #include <math.h> 
 #include <stdexcept>
+#include <assert.h>
 
 #include "CPL_ndArray.h"
 #include "CPL_force.h"
 #include "CPL_field.h"
+#include "overlap/sphere_cube.hpp"
 
 
 ///////////////////////////////////////////////////////////////////
@@ -17,21 +19,34 @@
 // -> In the interest of dependency injection, I made a field 
 //    class with dxyz, min, max, interpolation and get cell. 
 //    Built with CPL_ndArray as dependency and can be used as input 
-//    to constructor of CPLForce here. SEE CPL_field.cpp
+//    to constructor of CPLForce. SEE CPL_field.cpp
 // 
 
 
 //Constructors
-CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){
+//CPLForce::CPLForce(int nd, int icells, int jcells, int kcells) : 
+//    std::unique_ptr<CPL::CPLField> fieldptr(new CPL::CPLField(nd, icells, jcells, kcells))
+//{ 
+//}
+
+//CPLForce::CPLForce(CPL::ndArray<double> arrayin) : 
+//    std::unique_ptr<CPL::CPLField> fieldptr(new CPL::CPLField(arrayin))
+//{
+//}
+
+
+//Constructors
+CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){ 
     //fieldptr = std::make_shared<CPL::CPLField>(nd, icells, jcells, kcells);
     fieldptr = new CPL::CPLField(nd, icells, jcells, kcells);
+}
 
-};
 
-CPLForce::CPLForce(CPL::ndArray<double> arrayin){
+
+CPLForce::CPLForce(CPL::ndArray<double> arrayin) {
     //fieldptr = std::make_shared<CPL::CPLField>(arrayin);
     fieldptr = new CPL::CPLField(arrayin);
-};
+}
 
 
 //Set minimum and maximum values of field application
@@ -60,13 +75,13 @@ std::vector<int> CPLForce::get_cell(double r[]){
 
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForce::pre_force(double r[], double v[], double a[]) {
+void CPLForce::pre_force(double r[], double v[], double a[], double m, double s, double e) {
 //    throw std::runtime_error("CPLForce::pre_force is not defined");
 }
 
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForce::get_force(double r[], double v[], double a[]){
+std::vector<double> CPLForce::get_force(double r[], double v[], double a[], double m, double s, double e){
 //    throw std::runtime_error("CPLForce::get_force is not defined");
 }
 
@@ -93,14 +108,18 @@ CPLForceTest::CPLForceTest(int nd, int icells, int jcells, int kcells) : CPLForc
 CPLForceTest::CPLForceTest(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
 }
 
+
+void CPLForceTest::resetsums(){
+}
+
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceTest::pre_force(double r[], double v[], double a[]){
+void CPLForceTest::pre_force(double r[], double v[], double a[], double m, double s, double e){
 //    throw std::runtime_error("CPLForceTest::pre_force is not defined");
 }
 
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[]){
+std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[], double m, double s, double e){
 
     std::vector<double> f(3); 
     std::vector<int> cell = get_cell(r);
@@ -146,7 +165,7 @@ void CPLForceVelocity::resetsums(){
 }
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceVelocity::pre_force(double r[], double v[], double a[]) {
+void CPLForceVelocity::pre_force(double r[], double v[], double a[], double m, double s, double e) {
 
     // Find in which cell number (local to processor) is the particle
     // and sum all the velocities for each cell.
@@ -160,7 +179,7 @@ void CPLForceVelocity::pre_force(double r[], double v[], double a[]) {
 
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a[]){
+std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a[], double m, double s, double e){
 
     std::vector<double> f(3); 
     std::vector<int> cell = get_cell(r);
@@ -216,7 +235,7 @@ void CPLForceFlekkoy::resetsums(){
 double CPLForceFlekkoy::flekkoyGWeight(double y, double ymin, double ymax) {
 
     if (y > ymax) {
-		std::cout << "y: " << y << " ymax: " << ymax << std::endl;
+		//std::cout << "y: " << y << " ymax: " << ymax << std::endl;
         throw std::domain_error("flekkoyGWeight Error: Position argument y greater than ymin");
 	}
 
@@ -240,7 +259,7 @@ double CPLForceFlekkoy::flekkoyGWeight(double y, double ymin, double ymax) {
 }
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceFlekkoy::pre_force(double r[], double v[], double a[]) {
+void CPLForceFlekkoy::pre_force(double r[], double v[], double a[], double m, double s, double e) {
 
     // Find in which cell number (local to processor) is the particle
     // and sum all the Flekkøy weights for each cell.
@@ -253,7 +272,7 @@ void CPLForceFlekkoy::pre_force(double r[], double v[], double a[]) {
 }
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[]){
+std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[], double m, double s, double e){
 
     std::vector<double> dA = fieldptr->get_dA(); 
     std::vector<double> f(3); 
@@ -298,79 +317,249 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
 
 //Constructor using cells
 CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
+    initialisesums(fieldptr->get_array());
 }
 
 //Constructor of datatype
 CPLForceDrag::CPLForceDrag(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
+    initialisesums(arrayin);
+}
+
+//Constructor with optional argument overlap
+CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells, bool overlap) : CPLForceDrag(nd, icells, jcells, kcells){
+    use_overlap = overlap;
+    initialisesums(fieldptr->get_array());
+}
+
+
+void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
+
+    int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    nSums.resize(3, nsumsShape); // Sum of number of particles
+
+    int esumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    eSums.resize(3, esumsShape); // Sum of porosity of particles  
+    //use_overlap = true;
+
+    int FsumsShape[4] = {3, arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    FSums.resize(4, FsumsShape); // Sum of force on particles  
+
+    int FcoeffSumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    FcoeffSums.resize(3, FcoeffSumsShape); // Sum of porosity of particles  
+
+    resetsums();
+}
+
+void CPLForceDrag::resetsums(){
+    nSums = 0.0; eSums = 0.0; FSums=0.0; FcoeffSums=0.0;
 }
 
 //Arbitary constant
 double CPLForceDrag::drag_coefficient() {
-    return 0.0001;
+    return 0.0000001;
 }
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceDrag::pre_force(double r[], double v[], double a[]) {
+//void CPLForceDrag::pre_force(double r[], double v[], double a[], double m, double s, double e) {
 
-    //Nothing to do here
+//    // Should use field.add_volume(r, radius);
+//    double radius = s;
+//    double volume = (4./3.)*M_PI*pow(radius,3); 
+//    std::vector<int> cell = get_cell(r);
+//    nSums(cell[0], cell[1], cell[2]) += 1; 
+
+
+//}
+
+
+//Pre force collection of sums including overlap code to assign volumes
+void CPLForceDrag::pre_force(double r[], double v[], double a[], double m, double s, double e) {
+
+    int ip, jp, kp;
+    double radius = s;
+    double volume = (4./3.)*M_PI*pow(radius,3); 
+    std::vector<int> cell = get_cell(r);
+    double box[6];
+    nSums(cell[0], cell[1], cell[2]) += 1;
+
+    if (! use_overlap)
+    {
+        eSums(cell[0], cell[1], cell[2]) += volume; 
+    } else {
+        //Get fraction of sphere in a volume
+        double dx = fieldptr->dxyz[0];
+        double dy = fieldptr->dxyz[1];
+        double dz = fieldptr->dxyz[2];
+        int nxps = ceil(radius/dx);
+        int nyps = ceil(radius/dy);
+        int nzps = ceil(radius/dz);
+        int i = cell[0]; int j = cell[1]; int k = cell[2];
+
+//        std::cout << "overlap calc "  
+//                  << dx << " " << dy << " " << dz << " " 
+//                  << nxps << " " << nyps << " " << nzps << std::endl;
+
+        for (int ic=-nxps; ic<nxps+1; ic++) {
+        for (int jc=-nyps; jc<nyps+1; jc++) {
+        for (int kc=-nzps; kc<nzps+1; kc++) {
+            ip = i+ic; jp = j+jc; kp = k+kc;
+            box[0] = (ip  )*dx;
+            box[1] = (jp  )*dy;
+            box[2] = (kp  )*dz;
+            box[3] = (ip+1)*dx;
+            box[4] = (jp+1)*dy;
+            box[5] = (kp+1)*dz;
+
+            //Input sphere centre, radius and 6 corners of cell
+            double Vsphereinbox = fieldptr->sphere_cube_overlap(r[0], r[1], r[2], radius, 
+                                                                box[0], box[1], box[2], 
+                                                                box[3], box[4], box[5]);
+
+            // Here there should be extra halo padding in esums to the 
+            // size of Nxps/Nyps/Nzps which store fractions which would
+            // need to be sent to adjacent processes. This would then
+            // happend using the CPL_swaphalo method after pre_force has
+            // been called for every particle on every process. However, 
+            // this is complex so instead we simply dump overlap at the
+            // edge of the current process. This error should be small
+            // provided radius is not much greater than cell size (which
+            // we ensure by making big rigid spheres from lots of small particles).
+            if (ip < 0) ip = 0;
+            if (jp < 0) jp = 0;
+            if (kp < 0) kp = 0;
+            if (ip >= eSums.shape(0)-1) ip = eSums.shape(0)-1;
+            if (jp >= eSums.shape(1)-1) jp = eSums.shape(1)-1;
+            if (kp >= eSums.shape(2)-1) kp = eSums.shape(2)-1;
+
+            eSums(ip, jp, kp) += Vsphereinbox; 
+
+//            if (Vsphereinbox > 1e-12) {
+//                std::cout << "overlap cells "  
+//                      << i << " " << j << " " << k << " " 
+//                      << ip << " " << jp << " " << kp << " "
+//                      << i+ic << " " << j+jc << " " << k+kc << " "
+//                      << r[0] << " " << r[1] << " " << r[2] << " "
+//                      << box[0] << " " << box[1] << " " << box[2] << " " 
+//                      << box[3] << " " << box[4] << " " << box[5] <<  " "
+//                      << Vsphereinbox << std::endl;
+//            }
+
+        }}}
+    }
+
+
+    //std::cout << "pre_force "  << use_overlap << " " << eSums(cell[0], cell[1], cell[2]) << std::endl;
 }
 
-//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[]){
 
-    std::vector<double> f(3), Ui(3), Ui_v(3);
+//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
+std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], double m, double s, double e){
+
+    std::vector<double> f(3), Ui(3), Ui_v(3), gradP(3), divStress(4);
     std::vector<int> cell = get_cell(r);
-    CPL::ndArray<double> array = fieldptr->get_array();
+    //CPL::ndArray<double> array = fieldptr->get_array();
+    // This is much faster, array cannot exist beyond get_force scope 
+    // and fieldptr won't be deleted so no need for smart pointer?
+    CPL::ndArray<double>& array = fieldptr->get_array_pointer();
+
+    assert(array.shape(0) == 9);
 
     //Should use std::vector<double> Ui(3) = field.interpolate(r);
     for (int i=0; i<3; i++){
         Ui[i] = array(i, cell[0], cell[1], cell[2]);
         Ui_v[i] = Ui[i]-v[i];
+        gradP[i] = array(i+3, cell[0], cell[1], cell[2]);
+        divStress[i] = array(i+6, cell[0], cell[1], cell[2]);
+
+//        std::cout << "U array "  
+//                  << cell[0] << " " << cell[1] << " " << cell[2] << " " 
+//                  << i << " " << array(i, cell[0], cell[1], cell[2]) << std::endl;
     }
 
     double Cd = drag_coefficient();
+    double cellvolume = fieldptr->dV;
+    double volume = (4./3.)*M_PI*pow(s,3); 
+    double eps = 1.0 - eSums(cell[0], cell[1], cell[2])/cellvolume;
+
+    // Add sum of coefficients of forces 
+    // Needed if you want to split implicit/explicit terms for
+    // improved numerical stability according to 
+    // Xiao H., Sun J. (2011) Algorithms in a Robust Hybrid
+    // CFD-DEM Solver for Particle-Laden Flows, 
+    // Commun. Comput. Phys. 9, 2, 297
+    FcoeffSums(cell[0], cell[1], cell[2]) += Cd;
 
     //Calculate force
     for (int i = 0; i < 3; ++i){
-            f[i] = Cd*Ui_v[i];
-//            std::cout << "Drag Force " << i << " " 
-//                      << r[i] << " " << v[i] << " "
-//                      << f[i] << " " << Ui[i] << " " 
-//                      << v[i] << " " << std::endl;
-
+        //Just drag force here
+        f[i] = Cd*Ui_v[i];
+        //Include pressure and stress
+        f[i] += volume*(divStress[i]-gradP[i]);
+        //Add to sum of forces
+        //std::cout << "cell "  <<  cell[0] << " " << cell[1] << " " << cell[2] << std::endl;
+        FSums(i, cell[0], cell[1], cell[2]) += f[i];
     }
+
+//    std::cout << "Drag Force "  
+//              << r[2] << " " << v[0] << " " << Ui[0] << " "  << v[1] << " " << Ui[1] << " " << v[2] << " " << Ui[2] << " " 
+//              << divStress[2] << " " << gradP[2] << " " << f[2] << " "  << std::endl;
+
     return f;
 }
+
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
 //                    CPLForceGranular                           //
 //                                                               //
 ///////////////////////////////////////////////////////////////////
+// General Class to use for Ergun (1952), Di Felice (1994) and BVK.
 
-
+/////////////////////////////////////////////////////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
 
 //Constructor using cells
-CPLForceGranular::CPLForceGranular(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
+CPLForceGranular::CPLForceGranular(int nd, int icells, int jcells, int kcells) : CPLForceDrag(nd, icells, jcells, kcells){
     initialisesums(fieldptr->get_array());
 }
 
 //Constructor of datatype
-CPLForceGranular::CPLForceGranular(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
+CPLForceGranular::CPLForceGranular(CPL::ndArray<double> arrayin) : CPLForceDrag(arrayin){
     initialisesums(arrayin);
 }
 
-void CPLForceGranular::initialisesums(CPL::ndArray<double> arrayin){
+void CPLForceGranular::initialisesums(CPL::ndArray<double> arrayin){    
+
+    int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    nSums.resize(3, nsumsShape); // Sum of number of particles
+
+    int esumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    eSums.resize(3, esumsShape); // Sum of porosity of particles  
+
+    int FsumsShape[4] = {3, arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+    FSums.resize(4, FsumsShape); // Sum of force on particles  
 
     int vsumsShape[4] = {arrayin.shape(0), arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     vSums.resize(4, vsumsShape); // Sum of velocity
-    int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
-    nSums.resize(3, nsumsShape); // Sum of porousity of particles  
     resetsums();
 }
 
 void CPLForceGranular::resetsums(){
-    nSums = 0.0;  vSums = 0.0; 
+    nSums = 0.0; eSums = 0.0; vSums = 0.0; FSums=0.0;
+}
+
+// Reynolds Number
+// It is unclear here if Reynolds No. should be based
+// on the mean cell velocity or particle velocity (or mean/relative from both)
+double CPLForceGranular::Reynolds_number(double D, double U, double rho, double mu, double eps) {
+    return rho * D * eps * U / mu;
 }
 
 // See Equation 12 in K. D. Kafui et al. / Chemical Engineering Science 57 (2002) 2395–2410
@@ -388,34 +577,37 @@ double CPLForceGranular::magnitude(std::vector<double> v){
 } 
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceGranular::pre_force(double r[], double v[], double a[]) {
-
-    //radius = &args
+void CPLForceGranular::pre_force(double r[], double v[], double a[], double m, double s, double e) {
 
     // Find in which cell number (local to processor) is the particle
     // and sum all the velocities for each cell.
     std::vector<int> cell = get_cell(r);
 
     // Should use field.add_volume(r, radius);
-    double radius = 0.01;
-    double volume = (4./3.)*M_PI*pow(radius,3); 
-    nSums(cell[0], cell[1], cell[2]) += volume; 
+    double radius = s;
+    double volume = (4./3.)*M_PI*pow(radius,3);
+    nSums(cell[0], cell[1], cell[2]) += 1.; 
+    eSums(cell[0], cell[1], cell[2]) += volume; 
 }
 
 
-//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a[]){
+//Get force using sums collected in pre force
+std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a[], double m, double s, double e) {
 
     std::vector<double> f(3), Ui(3), Ui_v(3);
     std::vector<int> cell = get_cell(r);
-    CPL::ndArray<double> array = fieldptr->get_array();
+    CPL::ndArray<double>& array = fieldptr->get_array_pointer();
+
+    double radius = s;
+    double d = 2.0*radius;
+    double volume = (4./3.)*M_PI*pow(radius,3); 
 
     //Porosity e is cell volume - sum in volume
     double cellvolume = fieldptr->dV;
-    double e = (1.0 - nSums(cell[0], cell[1], cell[2]))/cellvolume;
-    double rho = 1.0;
+    double eps = 1.0 - eSums(cell[0], cell[1], cell[2])/cellvolume;
+    double rho = 1.0; //m/volume;
     double mu = 1.0;
-    double d = 1.0;
+
     //Should use std::vector<double> Ui(3) = field.interpolate(r);
     for (int i=0; i<3; i++){
         Ui[i] = array(i, cell[0], cell[1], cell[2]);
@@ -424,37 +616,128 @@ std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a
 
     //It is unclear here if Reynolds No. should be based
     //on the mean cell velocity or particle velocity
-    double Re = rho * d * e * magnitude(Ui_v) / mu;
+    //double Re = rho * d * eps * magnitude(Ui_v) / mu;
+    double Re = Reynolds_number(d, magnitude(Ui_v), rho, mu, eps);
     double Cd = drag_coefficient(Re);
     double xi = porousity_exponent(Re);
+
     //Calculate force
-    if (e < 1e-5) {
+    if (eps < 1e-5) {
         std::cout << "Warning: 0 particles in cell (" 
                   << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
                   << std::endl;
         f[0]=0.0; f[1]=0.0; f[2]=0.0;
         return f;
     } else {
-        double A = 0.125*Cd*rho*M_PI*pow(d,2)*pow(e,2)*magnitude(Ui_v)*pow(e,xi-1.0);
+        double A = 0.125*Cd*rho*M_PI*pow(d,2)*pow(eps,2)*magnitude(Ui_v)*pow(eps,xi-1.0);
         for (int i = 0; i < 3; ++i){
             f[i] = A*(Ui[i]-v[i]);
+            FSums(i, cell[0], cell[1], cell[2]) += f[i];
         }
         return f;
     }
 }
 
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
+///////////////////////////////////////////////////////////////////
+//                          BVK                                  //
+///////////////////////////////////////////////////////////////////
+
+//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+
+//Return Stokes force
+double CPLForceBVK::Stokes(double D, double U, double mu) {
+    return 9.42477796076938 * mu * D * U;
+}
+
+// Reynolds Number
+// It is unclear here if Reynolds No. should be based
+// on the mean cell velocity or particle velocity (or mean/relative from both)
+double CPLForceBVK::Reynolds_number(double D, double U, double rho, double mu, double eps) {
+    return rho * D * eps * U / mu;
+}
+
+//Calculate BVK drag force per particle
+double CPLForceBVK::CPLForceBVK_expression(double eps, double D, double U, double rho, double mu) {
+    double phi = 1 - eps;
+    double Re = Reynolds_number(D, U, rho, mu, eps);
+    double BVK = 10.0*phi/pow(eps,2)
+          + pow(eps,2)*(1.0+1.5*pow(phi,0.5)) 
+          + (0.413*Re/(24*pow(eps,2))) 
+          * (((1./eps) + 3 * phi * eps + 8.4 * pow(Re,-0.343)) 
+             /(1 + pow(10,(3*phi)) * pow(Re,-0.5) *(1+4*phi)));
+    return Stokes(D, U, mu) * BVK;
+}
 
 
+//Get force using sums collected in pre force
+std::vector<double> CPLForceBVK::get_force(double r[], double v[], double a[], double m, double s, double e) {
 
+    std::vector<double> f(3), Ui(3), Ui_v(3);
+    std::vector<int> cell = get_cell(r);
+    CPL::ndArray<double>& array = fieldptr->get_array_pointer();
 
+    double radius = s;
+    double d = 2.0*radius;
+    double volume = (4./3.)*M_PI*pow(radius,3); 
 
+    //Porosity e is cell volume - sum in volume
+    double cellvolume = fieldptr->dV;
+    double eps = 1.0 - eSums(cell[0], cell[1], cell[2])/cellvolume;
+    double rho = 1.0; //m/volume;
+    double mu = 1.0;
 
+    //Should use std::vector<double> Ui(3) = field.interpolate(r);
+    for (int i=0; i<3; i++){
+        Ui[i] = array(i, cell[0], cell[1], cell[2]);
+        Ui_v[i] = Ui[i]-v[i];
+    }
+    double Re = Reynolds_number(d, magnitude(Ui_v), rho, mu, eps);
 
+    //Calculate force
+    if (eps < 1e-5) {
+        std::cout << "Warning: 0 particles in cell (" 
+                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
+                  << std::endl;
+        f[0]=0.0; f[1]=0.0; f[2]=0.0;
+        return f;
+    } else {
+        double A = CPLForceBVK_expression(eps, d, magnitude(Ui_v), rho, mu);
+        for (int i = 0; i < 3; ++i){
+            f[i] = A*(Ui[i]-v[i]);
+            FSums(i, cell[0], cell[1], cell[2]) += f[i];
+        }
+        return f;
+    }
+}
 
-
-
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 //Example print statement useful to copy in...
@@ -463,114 +746,3 @@ std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a
 //                << min[1] << " " <<  max[1] << " " << r[1]<< std::endl;
 
 
-
-
-
-
-
-
-
-
-
-/*
-
-//=====================================================
-//The post force fix in LAMMPS would then become
-//=====================================================
-
-void FixCPLForce::post_force (int vflag) {
-
-    double **x = atom->x;
-    double **f = atom->f;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    double dx = CPL::get<double> ("dx");     
-    double dy = CPL::get<double> ("dy");     
-    double dz = CPL::get<double> ("dz");     
-    double dA = dx*dz;
-    double dV = dx*dy*dz;
-    
-    char* groupstr = "cplforcegroup";
-    char* regionstr = "cplforceregion";
-
-    int cplforcegroup = group->find (groupstr);
-    int groupbit = group->bitmask[cplforcegroup];
-
-    int rid = domain->find_region (regionstr);
-    auto cplforceregion = domain->regions[rid];
-
-    //Constructor here for forces based on input
-    if ("FORCE_TYPE" == "Flekkoy"){
-        fxyz = CPLForceFlekkoy->initialise(field)
-    } else ("FORCE_TYPE" == "Nieetal"){
-        fxyz = CPLNieetal->initialise(field)
-    }
-
-    // First loop to sum up all quantities and prepare to apply force
-    for (int i = 0; i < nlocal; ++i)
-    {
-        if (mask[i] & groupbit)
-        {
-            // Find in which cell number (local to processor) is the particle
-            // and sum all the Flekkøy weights for each cell.
-            int glob_cell[3];
-            CPL::map_coord2cell(x[i][0], x[i][1], x[i][2], glob_cell);
-
-            int loc_cell[3];
-            bool validCell = CPL::map_glob2loc_cell(procPortion.data(), glob_cell, loc_cell);
-
-            //if (validCell)
-            //std::cout << "local: " << icell << " " << jcell << " " << kcell << " global: " << glob_cell[0] << " " << glob_cell[1] << " " << glob_cell[2] \
-            //<< "portion:" << procPortion[0] << " "<< procPortion[1] << " "<< procPortion[2] << " "<< procPortion[3] << " "<< procPortion[4] << " "<< procPortion[5] << " " << std::endl;
-
-            if (! validCell) {
-               // std::cout << "Warning: an atom in the constrained region is within an invalid cell. \n"
-               //           << "This should never happen and it is likely a BUG. Report." << std::endl;
-                continue;
-            }
-
-            int icell = loc_cell[0];
-            int jcell = loc_cell[1];
-            int kcell = loc_cell[2];
-
-            //This is call to set pre-force 
-            fxyz->pre_force(icell, jcell, kcell)
-
-        }
-    }
-
-
-    // Calculate force and apply
-    for (int i = 0; i < nlocal; ++i)
-    {
-        if (mask[i] & groupbit)
-        {
-            int glob_cell[3];
-            CPL::map_coord2cell(x[i][0], x[i][1], x[i][2], glob_cell);
-
-            int loc_cell[3];
-            bool validCell = CPL::map_glob2loc_cell(procPortion.data(), glob_cell, loc_cell);
-
-
-            if (! validCell) {
-//                std::cout << "Warning: an atom in the constrained region is within an invalid cell. \n"
- //                         << "This should never happen and it is likely a BUG. Report." << std::endl;
-                continue;
-            }
-
-            int icell = loc_cell[0];
-            int jcell = loc_cell[1];
-            int kcell = loc_cell[2];
-
-            // Get forces
-            [fx, fy, fz] = fxyz->get_force(i, icell, jcell, kcell, field)
-
-            f[i][0] += fx;
-            f[i][1] += fy;
-            f[i][2] += fz;
-
-        }
-    }
-}
-*/

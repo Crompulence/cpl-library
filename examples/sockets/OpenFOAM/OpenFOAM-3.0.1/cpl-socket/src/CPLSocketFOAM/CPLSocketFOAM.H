@@ -77,19 +77,29 @@ public:
     // Pack and unpack data into CPL-Library formats
     void packStress(volVectorField &U, dimensionedScalar &nu, fvMesh &mesh);
     double unpackVelocity(volVectorField &U, fvMesh &mesh);
-    void pack(volVectorField &U, dimensionedScalar &nu, fvMesh &mesh, int);
+    void pack(volVectorField &U, volScalarField &p, dimensionedScalar &nu, fvMesh &mesh, int);
     double unpackPorousForce(volVectorField &F, volScalarField &eps, fvMesh &mesh);
-
+    volVectorField divideFieldsVectorbyScalar(volVectorField &F, volScalarField &eps, fvMesh &mesh);
+                         
     // Send and receive the data with CPL-Library
     void sendStress();
     void recvVelocity();
     void send();
     void recv();
 
-    int const DEBUG = -1;
-    int const PACKVELONLY = 0;
-    int const PACKSTRESSONLY = 1;
-    int const PACKVELSTRESS = 2;
+    //Bitwise mask coefficients
+    int const VEL = 1; // 2^0, bit 0
+    int const PRESSURE = 2;  // 2^1, bit 1
+    int const GRADPRESSURE = 4;  // 2^2, bit 2
+    int const STRESS = 8;  // 2^3, bit 3
+    int const DIVSTRESS = 16;  // 2^4, bit 4
+
+
+    int const DEBUG = 0;
+//    int const PACKVELONLY = 0;
+//    int const PACKSTRESSONLY = 1;
+//    int const PACKVELGRADPRESSURE = 2;
+//    int const PACKVELSTRESS = 3;
 
 	~CPLSocketFOAM() {
 		delete meshSearcher;
@@ -142,6 +152,9 @@ private:
     std::vector<int> velBCPortion;
     std::vector<int> cnstFPortion;
     
+    // Coordinates of the local processor
+    std::vector<int> myCoords;
+
     // Number of cells in the portion in a region
     int olapCells[3];
     int velBCCells[3];
@@ -149,6 +162,13 @@ private:
 
 	//meshSearch local search for points in a mesh
 	Foam::meshSearch* meshSearcher;
+
+    //Size of different possible passing variables
+    int const VELSIZE = 3;  // 3 velocity components
+    int const PRESSURESIZE = 1;  // 1 pressure
+    int const GRADPRESSURESIZE = 3;  // 3 grad(P)
+    int const STRESSSIZE = 9;  // 9 stress
+    int const DIVSTRESSSIZE = 3;  // 3 div(stress)
 
 };
 

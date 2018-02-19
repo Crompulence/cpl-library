@@ -164,6 +164,11 @@ void CPL::gather (double* gatherarray, int* gather_shape, int* limits,
     CPLC_gather (gatherarray, gather_shape, limits, recvarray, recv_shape);
 }
 
+void CPL::swaphalos(double* A,	int* A_shape) {
+    CPLC_swaphalos (A, A_shape);
+}
+
+
 void CPL::proc_extents (int coord[], int realm, int extents[]) {
    CPLC_proc_extents (coord, realm, extents);
 }
