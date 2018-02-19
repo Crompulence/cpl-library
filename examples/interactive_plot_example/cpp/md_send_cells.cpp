@@ -5,6 +5,8 @@
 
 #define pi 3.14159265359
 
+#include "CPL_ndArray.h"
+
 using namespace std;
 
 int main() {

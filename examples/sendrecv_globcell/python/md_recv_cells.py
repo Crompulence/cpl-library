@@ -17,6 +17,7 @@ def read_input(filename):
     return dic
 
 comm = MPI.COMM_WORLD
+comm.Barrier()
 CPL = CPL()
 
 # Parameters of the cpu topology (cartesian grid)
