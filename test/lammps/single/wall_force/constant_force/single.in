@@ -28,7 +28,7 @@ fix		    1 all nve/sphere
 variable	g equal 9.81 # Add gravity
 #fix 		2 all gravity $g vector 0 0 -1
 # Add wall position and contact parameters
-fix 		3 all wall/gran 2.9e4 0.2 0.25 zplane 0.000000 1.0
+fix 		3 all wall/gran shm/history 2.9e4 0.2 0.25 zplane 0.000000 1.0
 
 variable 	step equal step
 variable	xz equal z[1]
