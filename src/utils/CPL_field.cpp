@@ -130,6 +130,7 @@ void CPLField::add_to_array(int n, int i, int j, int k, double value){
 }
 
 //Just add to cell based on where centre of particle falls
+//assuming that array of values is the same size as array
 void CPLField::add_to_array(const double r[], const double value[]){
     std::vector<int> cell = get_cell(r);
     for (int n=0; n < array.shape(0); n++)
@@ -210,60 +211,36 @@ void CPLField::add_to_array(const double r[], double s, const double value[]){
 }
 
 // A function which gets value n in cell i,j,k
-double CPLField::get_array_value(int n, int i, int j, int k){
-    return array(n, i, j, k);
+std::vector<double> CPLField::get_array_value(const std::vector<int> indices, int i, int j, int k){
+    std::vector<double> v;
+    for ( auto &n : indices ) { 
+        v.push_back(array(n, i, j, k));
+    }
+    return v;
 }
 
 // A function which gets value using position of molecule, no interpolation
-double CPLField::get_array_value(int n, const double r[]){
+std::vector<double> CPLField::get_array_value(const std::vector<int> indices, const double r[]){
     std::vector<int> cell = get_cell(r);
-    return get_array_value(n, cell[0], cell[1], cell[2]);
+    std::vector<double> v;
+    for ( auto &n : indices ) { 
+        v.push_back(array(n, cell[0], cell[1], cell[2]));
+    }
+    return v;
 }
 
 
 // A function which gets interpolated value in array cell using position of molecule
-double CPLField::get_array_value_interp(int n, const double r[]){
+std::vector<double> CPLField::get_array_value_interp(const std::vector<int> indices, const double r[]){
     int order = 2;
-    auto out = interpolate(r, array, n, order);
-    return out[0];
+    std::vector<double> out = interpolate(r, array, indices, order);
+    return out;
 }
-
-
-
-// Use the block of 26 cells around a cell specified by "ic, jc, kc" to get the nodes of that cell
-CPL::ndArray<double> CPLField::celltonode(CPL::ndArray<double> cell, int n, int ic, int jc, int kc)
-{
-
-    CPL::ndArray<double> node;
-    int arrayShape[4] = {1, 2, 2, 2};
-    node.resize(4, arrayShape);
-
-//        std::cout << "cell " <<  ic << " " << jc << " " << kc << " " << cell(n, ic  , jc  , kc  ) << "\n";
-
-    for (int i = 0; i < 2; i++ ){
-    for (int j = 0; j < 2; j++ ){
-    for (int k = 0; k < 2; k++ ){
-        node(0,i,j,k) = 0.125*(   cell(n, ic+i  , jc+j  , kc+k  )
-                                + cell(n, ic+i+1, jc+j  , kc+k  )
-                                + cell(n, ic+i  , jc+j+1, kc+k  )
-                                + cell(n, ic+i  , jc+j  , kc+k+1)
-                                + cell(n ,ic+i  , jc+j+1, kc+k+1)
-                                + cell(n, ic+i+1, jc+j  , kc+k+1)
-                                + cell(n, ic+i+1, jc+j+1, kc+k  )
-                                + cell(n, ic+i+1, jc+j+1, kc+k+1));
-
-//        std::cout << "NODES " <<  i << " " << j << " " << k << " " << cell(n, ic+i  , jc+j  , kc+k  ) << " " << node(0,i,j,k) << "\n";
-    }}}
-
-    return node;
-
-}
-
 
 //Assume 3D
 std::vector<double> CPLField::interpolate(const double r[], 
                                           CPL::ndArray<double> cell_array, 
-                                          int n, int order)
+                                          const std::vector<int> indices, int order)
 {
     int i, m, nd;
     int *n_1d;
@@ -304,18 +281,20 @@ std::vector<double> CPLField::interpolate(const double r[],
     assert(cell_array.shape(2) > jc+2);
     assert(cell_array.shape(3) > kc+2);
 
-    //We should loop over many n here and return interp for all elements 
-    CPL::ndArray<double> node = celltonode(cell_array, n, ic, jc, kc);
-    zd = node.data();
+    std::vector<double> v;
+    for ( auto &n : indices ) {
+        //We should loop over many n here and return interp for all elements 
+        CPL::ndArray<double> node = celltonode(cell_array, n, ic, jc, kc);
+        zd = node.data();
 
-//    std::cout << "minmax = " << a[0] << " "   << a[1]  << " "  << a[2] <<  
-//                         " "  << b[0] << " "   << b[1]  << " "  << b[2] << "\n"; 
-
-    nd = lagrange_interp_nd_size(m, n_1d);
-    double rcopy[3] = {r[0], r[1], r[2]};
-    zi = lagrange_interp_nd_value(m, n_1d, a, b, nd, zd, 1, rcopy);
-    double r_interp = zi[0];
-    std::vector<double> vec = {r_interp};  //Push each new element of vec
+        double rcopy[3] = {r[0], r[1], r[2]};
+        nd = lagrange_interp_nd_size(m, n_1d);
+        zi = lagrange_interp_nd_value(m, n_1d, a, b, nd, zd, 1, rcopy);
+//        std::cout << "minmax = " << zi[0] << " " << a[0] << " "   << a[1]  << " "  << a[2] <<  
+//                         " "  << b[0] << " "   << b[1]  << " "  << b[2] <<  
+//                         " "  << r[0] << " "   << r[1]  << " "  << r[2] << "\n"; 
+        v.push_back(zi[0]);  //Push each new element of vec
+    }
 
     delete a;
     delete b;
@@ -323,10 +302,42 @@ std::vector<double> CPLField::interpolate(const double r[],
     delete zi;
 
     // Vector of all solutions
-    return vec;
+    return v;
 
 
 }
+
+
+// Use the block of 26 cells around a cell specified by "ic, jc, kc" to get the nodes of that cell
+CPL::ndArray<double> CPLField::celltonode(CPL::ndArray<double> cell, int n, int ic, int jc, int kc)
+{
+
+    CPL::ndArray<double> node;
+    int arrayShape[4] = {1, 2, 2, 2};
+    node.resize(4, arrayShape);
+
+//        std::cout << "cell " <<  ic << " " << jc << " " << kc << " " << cell(n, ic  , jc  , kc  ) << "\n";
+
+    for (int i = 0; i < 2; i++ ){
+    for (int j = 0; j < 2; j++ ){
+    for (int k = 0; k < 2; k++ ){
+        node(0,i,j,k) = 0.125*(   cell(n, ic+i  , jc+j  , kc+k  )
+                                + cell(n, ic+i+1, jc+j  , kc+k  )
+                                + cell(n, ic+i  , jc+j+1, kc+k  )
+                                + cell(n, ic+i  , jc+j  , kc+k+1)
+                                + cell(n ,ic+i  , jc+j+1, kc+k+1)
+                                + cell(n, ic+i+1, jc+j  , kc+k+1)
+                                + cell(n, ic+i+1, jc+j+1, kc+k  )
+                                + cell(n, ic+i+1, jc+j+1, kc+k+1));
+
+//        std::cout << "NODES " <<  i << " " << j << " " << k << " " << cell(n, ic+i  , jc+j  , kc+k  ) << " " << node(0,i,j,k) << "\n";
+    }}}
+
+    return node;
+
+}
+
+
 
 
 double CPLField::sphere_cube_overlap(double scx, double scy, double scz, double sr,

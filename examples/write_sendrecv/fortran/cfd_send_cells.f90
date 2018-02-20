@@ -2,7 +2,7 @@ program cfd_cpl_example
     use cpl, only : CPL_init, CPL_setup_cfd, & 
                     CPL_get_olap_limits, CPL_my_proc_portion, &
                     CPL_get_no_cells, CPL_send, CPL_recv, &
-					CPL_finalize
+					CPL_finalize, CPL_write_arrays
     use mpi
     implicit none
 
@@ -69,6 +69,17 @@ program cfd_cpl_example
     enddo
     enddo
 
+    !Delete file
+    if (rank .eq. 1) then
+	    open(2,file='./CPL_pre_send.0000000',status='replace')
+        close(2)
+    endif
+
+    !Write before sending
+    call CPL_write_arrays(send_array, 3, "CPL_pre_send", 1, CFD_COMM, limits)
+    call MPI_barrier(CFD_COMM, ierr)
+
+    !Then send
     call CPL_send(send_array, limits, send_flag)
 
     !Block before checking if successful

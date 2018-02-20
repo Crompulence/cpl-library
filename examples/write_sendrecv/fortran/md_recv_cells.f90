@@ -14,7 +14,7 @@ program md_cpl_example
     integer, dimension(3) :: npxyz, Ncells
     integer, dimension(6) :: portion, limits
     double precision, dimension(3)  :: xyzL, xyz_orig
-    double precision, dimension(:), allocatable  :: read_array
+    double precision, dimension(:), allocatable  :: read_array, sent_array
     double precision, dimension(:,:,:,:), allocatable  :: recv_array, send_array, test_array
 
     !Initialise MPI
@@ -26,7 +26,7 @@ program md_cpl_example
     ! Parameters of the cpu topology (cartesian grid)
     xyzL = (/10.d0, 10.d0, 10.d0/)
     xyz_orig = (/0.d0, 0.d0, 0.d0/)
-    npxyz = (/ 4, 2, 2/)
+    npxyz = (/ 2, 2, 2/)
 
     ! Create communicators and check that number of processors is consistent
     call MPI_Comm_size(MD_COMM, nprocs_realm, ierr) 
@@ -97,51 +97,37 @@ program md_cpl_example
     endif
     call MPI_Barrier(MPI_COMM_WORLD, ierr)
 
-
-!    Ncells(1)=2
-!    Ncells(2)=2
-!    Ncells(3)=2
-!    allocate(test_array(1, Ncells(1), Ncells(2), Ncells(3)))
-!    test_array(1,1,1,1) = 1.d0
-!    test_array(1,2,1,1) = 2.d0
-!    test_array(1,1,2,1) = 3.d0
-!    test_array(1,1,1,2) = 4.d0
-!    call CPL_write_arrays(test_array, 1, "test_out", 1, MD_COMM, (/1,2,1,2,1,2 /))
-!    !Read data to test
-!    if (rank .eq. 1) then
-!        test_array = 0.d0
-!	    open(2,file="./test_out.0000000", form='unformatted', access='stream',position='rewind')
-!        read(2) test_array
-!        close(2)    
-!        do i = 1, Ncells(1)
-!        do j = 1, Ncells(2)
-!        do k = 1, Ncells(3)
-!            print*, "ERROR -- ", n, " test_array: ", test_array(1,i,j,k)
-!        enddo
-!        enddo
-!        enddo
-!        deallocate(test_array)
-!    endif
-
     !Delete file
     if (rank .eq. 1) then
-	    open(2,file='./CPL_out.0000000',status='replace')
+	    open(2,file='./CPL_post_recv.0000000',status='replace')
         close(2)
     endif
 
     !Write data here
-    call MPI_Barrier(MPI_COMM_WORLD, ierr)
-    call CPL_write_arrays(recv_array, 3, "CPL_out", 1, MD_COMM, limits)
-    call MPI_Barrier(MPI_COMM_WORLD, ierr)
+    call CPL_write_arrays(recv_array, 3, "CPL_post_recv", 1, MD_COMM, limits)
+    call MPI_barrier(MD_COMM, ierr)
 
     !Read data to test
     if (rank .eq. 1) then
         call CPL_get_no_cells(limits, Ncells)
         allocate(read_array(3*Ncells(1)*Ncells(2)*Ncells(3)))
         read_array = 0.d0
-	    open(2,file="./CPL_out.0000000", form='unformatted', access='stream',position='rewind')
+	    open(2,file="./CPL_post_recv.0000000", form='unformatted', access='stream',position='rewind')
         read(2) read_array
         close(2)
+
+        !Check array against one that was sent
+        allocate(sent_array(3*Ncells(1)*Ncells(2)*Ncells(3)))
+        sent_array = 0.d0
+	    open(2,file="./CPL_pre_send.0000000", form='unformatted', access='stream',position='rewind')
+        read(2) sent_array
+        close(2)
+        do i =1, size(sent_array)
+            if (abs(sent_array(i)-read_array(i)) .gt. 1e-8) then
+                print'(a,3i4,i8,a,3f10.5)', "i ", i,j,k,n, "Error -- read_array: ", read_array(i), sent_array(i)
+            endif
+
+        enddo
 
         ! Check that every processor inside the overlap region receives the cell correctly
         ! number.
@@ -163,6 +149,7 @@ program md_cpl_example
             if (abs(test_array(i,j,k,3)-(k-1)) .gt. 1e-8) then
                 print'(a,3i4,i8,a,3f10.5)', "i,j,k,n ", i,j,k,n, "Error -- test_array: ", test_array(k,j,i,:)
             endif
+
         enddo
         enddo
         enddo

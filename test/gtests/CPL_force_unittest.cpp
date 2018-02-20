@@ -230,42 +230,51 @@ TEST_F(CPL_Force_Test, test_CPL_field_setters) {
 
 
 
-//Test for CPL::ndArray - setup and array size 
-TEST_F(CPL_Force_Test, test_CPL_field_setters_olap) {
+////Test for CPL::ndArray - setup and array size 
+//TEST_F(CPL_Force_Test, test_CPL_field_setters_olap) {
 
-    //Create a field class
-    int nd = 3; int icell = 10; int jcell = 10; int kcell = 10;
-    CPL::ndArray<double> buf;
-    int shape[4] = {nd, icell, jcell, kcell};
-    buf.resize (4, shape);
+//    //Create a field class
+//    int nd = 3; int icell = 10; int jcell = 10; int kcell = 10;
+//    CPL::ndArray<double> buf;
+//    int shape[4] = {nd, icell, jcell, kcell};
+//    buf.resize (4, shape);
 
-    //Test define
-    int n = 0;
-    //Slabs in x
-    for (int j = 0; j < jcell; j++ ){
-    for (int k = 0; k < kcell; k++ ){
-        buf(n,0,j,k) = -0.5;
-        buf(n,1,j,k) = 0.5;
-        buf(n,2,j,k) = 1.5;
-    }}
-    CPL::CPLField field(buf);
+//    //Test define
+//    int n = 0;
+//    //Slabs in x
+//    for (int j = 0; j < jcell; j++ ){
+//    for (int k = 0; k < kcell; k++ ){
+//        buf(n,0,j,k) = -0.5;
+//        buf(n,1,j,k) = 0.5;
+//        buf(n,2,j,k) = 1.5;
+//    }}
+//    CPL::CPLField field(buf);
 
-    //Hardwire some values
-    double xi[3] = {0.75,0.25,0.35};
-    double rand;
-    for (int j = 0; j < 1000; j++ ) {
+//    //Hardwire some values
+//    double xi[3] = {0.75,0.25,0.35};
+//    std::vector<int> indices = {0};
+//    std::vector<double> v;
 
-        for (int ixyz=0; ixyz < 3; ixyz++ ){
-            rand = std::rand()/float(RAND_MAX);
-            xi[ixyz] = rand*field.dxyz[ixyz];
-        }
+//    //Get directly from array function
+//    v = field.get_array_value(indices, xi);
+//    ASSERT_DOUBLE_EQ(v[0]*field.dxyz[0], xi[0]);
 
-        //Get directly from array function
-        ASSERT_DOUBLE_EQ(field.get_array_value_interp(0, xi)*field.dxyz[0], xi[0]);
+//    //Random values
+//    double rand;
+//    for (int j = 0; j < 1000; j++ ) {
 
-    }
+//        for (int ixyz=0; ixyz < 3; ixyz++ ){
+//            rand = std::rand()/float(RAND_MAX);
+//            xi[ixyz] = rand*field.dxyz[ixyz];
+//        }
 
-}
+//        //Get directly from array function
+//        v = field.get_array_value(indices, xi);
+//        ASSERT_DOUBLE_EQ(v[0]*field.dxyz[0], xi[0]);
+
+//    }
+
+//}
 
 
 //Test for CPL::ndArray - setup and array size 
@@ -275,24 +284,28 @@ TEST_F(CPL_Force_Test, test_CPL_field_getters) {
     int nd = 3; int icell = 10; int jcell = 10; int kcell = 10;
     CPL::CPLField field(nd, icell, jcell, kcell);
 
-    //Check example of setting 
+    //Check example of setting
     double r[3] = {0.75, 0.25, 0.35};
     double value[3] = {1.0, 0.5, 0.25};
     field.add_to_array(r, value);
 
-    //Get cell and value from that cell
+    //Check first with elements of indices vector
     std::vector<int> cell = field.get_cell(r);
-    ASSERT_DOUBLE_EQ(field.get_array_value(0, cell[0], cell[1], cell[2]),
-                     value[0]);
-    ASSERT_DOUBLE_EQ(field.get_array_value(1, cell[0], cell[1], cell[2]),
-                     value[1]);
-    ASSERT_DOUBLE_EQ(field.get_array_value(2, cell[0], cell[1], cell[2]),
-                     value[2]);
+    for (int i=0; i<3; i++){
+        std::vector<int> indices = {i};
+        //Get cell and value from that cell
+        ASSERT_DOUBLE_EQ(field.get_array_value(indices, cell[0], cell[1], cell[2])[0],
+                       value[i]);
+        //Get value directly
+        ASSERT_DOUBLE_EQ(field.get_array_value(indices, r)[0], value[i]);
+    }
 
-    //Get value directly
-    ASSERT_DOUBLE_EQ(field.get_array_value(0, r), value[0]);
-    ASSERT_DOUBLE_EQ(field.get_array_value(1, r), value[1]);
-    ASSERT_DOUBLE_EQ(field.get_array_value(2, r), value[2]);
+    //Then pass in whole vector
+    std::vector<int> indices = {0, 1, 2};
+    auto v = field.get_array_value(indices, cell[0], cell[1], cell[2]);
+    for (int i=0; i<3; i++){
+        ASSERT_DOUBLE_EQ(v[i], value[i]);
+    }
 
     //Get interpolated value
     CPL::CPLField newfield(nd, icell, jcell, kcell);
@@ -301,9 +314,10 @@ TEST_F(CPL_Force_Test, test_CPL_field_getters) {
         newfield.add_to_array(1, i, j, k, value[1]);
         newfield.add_to_array(2, i, j, k, value[2]);
     } } }
-    ASSERT_DOUBLE_EQ(newfield.get_array_value_interp(0, r), value[0]);
-    ASSERT_DOUBLE_EQ(newfield.get_array_value_interp(1, r), value[1]);
-    ASSERT_DOUBLE_EQ(newfield.get_array_value_interp(2, r), value[2]);
+    auto v2 = newfield.get_array_value(indices, cell[0], cell[1], cell[2]);
+    for (int i=0; i<3; i++){
+        ASSERT_DOUBLE_EQ(v2[i], value[i]);
+    }
 }
 
 
@@ -406,8 +420,8 @@ TEST_F(CPL_Force_Test, test_CPL_get_cell) {
 //    }
 }
 
-//Test for CPLForce base class - constructor 
-TEST_F(CPL_Force_Test, test_CPL_ForceTest_constructor) {
+//Test for CPLForce base class - get force 
+TEST_F(CPL_Force_Test, test_CPL_Force_get_force) {
 
     //Setup a field which is 1 everywhere
     int nd = 3; int icell = 3; int jcell = 3; int kcell = 3;
@@ -461,7 +475,7 @@ TEST_F(CPL_Force_Test, test_CPL_ForceTest_constructor) {
     } } }
 
 
-};
+}
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //

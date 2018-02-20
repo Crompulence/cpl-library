@@ -121,16 +121,10 @@ void CPLForceTest::pre_force(double r[], double v[], double a[], double m, doubl
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
 std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[], double m, double s, double e){
 
-    std::vector<double> f(3); 
-    std::vector<int> cell = get_cell(r);
-    CPL::ndArray<double> array = fieldptr->get_array();
-    f[0] = array(0, cell[0], cell[1], cell[2]);
-    f[1] = array(1, cell[0], cell[1], cell[2]);
-    f[2] = array(2, cell[0], cell[1], cell[2]);
+    std::vector<int> indices = {0,1,2};
+    std::vector<double> f = fieldptr->get_array_value(indices, r);
 
-//    std::cout << "CPLForceTest " <<  
-//              cell[0] << " " << cell[1] << " " <<  cell[2] << " " 
-//              << f[0] << " " << f[1] << " " << f[2] << std::endl;
+//    std::cout << "CPLForceTest " << f[0] << " " << f[1] << " " << f[2] << std::endl;
 
     return f;
 }
@@ -333,6 +327,11 @@ CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells, bool over
 
 
 void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
+    
+//    nSums = CPLField(arrayin);
+//    eSums = CPLField(arrayin);
+//    FSums = CPLField(arrayin);
+//    FcoeffSums = CPLField(arrayin);
 
     int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     nSums.resize(3, nsumsShape); // Sum of number of particles
@@ -535,6 +534,7 @@ CPLForceGranular::CPLForceGranular(CPL::ndArray<double> arrayin) : CPLForceDrag(
     initialisesums(arrayin);
 }
 
+//Inherited version from CPLForceDrag is fine
 void CPLForceGranular::initialisesums(CPL::ndArray<double> arrayin){    
 
     int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
@@ -546,13 +546,17 @@ void CPLForceGranular::initialisesums(CPL::ndArray<double> arrayin){
     int FsumsShape[4] = {3, arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     FSums.resize(4, FsumsShape); // Sum of force on particles  
 
+    //CPLForceDrag::initialisesums(arrayin);
+
     int vsumsShape[4] = {arrayin.shape(0), arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     vSums.resize(4, vsumsShape); // Sum of velocity
     resetsums();
 }
 
 void CPLForceGranular::resetsums(){
-    nSums = 0.0; eSums = 0.0; vSums = 0.0; FSums=0.0;
+
+    CPLForceDrag::resetsums();
+    vSums = 0.0;
 }
 
 // Reynolds Number
