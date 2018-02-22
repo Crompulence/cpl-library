@@ -865,12 +865,15 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_initial_eSumsFsum) {
     //Call constructor using cell numbers
     CPLForceDrag c(nd, icell, jcell, kcell);
 
+    CPL::ndArray<double> ebuf = c.eSums->get_array();
+    CPL::ndArray<double> Fbuf = c.FSums->get_array();
+
     //Try to get porosity from force type
     trplefor(icell,jcell,kcell){
-        ASSERT_DOUBLE_EQ(c.eSums(i,j,k), 0.0);
-        ASSERT_DOUBLE_EQ(c.FSums(0,i,j,k), 0.0);
-        ASSERT_DOUBLE_EQ(c.FSums(1,i,j,k), 0.0);
-        ASSERT_DOUBLE_EQ(c.FSums(2,i,j,k), 0.0);
+        ASSERT_DOUBLE_EQ(ebuf(0,i,j,k), 0.0);
+        ASSERT_DOUBLE_EQ(Fbuf(0,i,j,k), 0.0);
+        ASSERT_DOUBLE_EQ(Fbuf(1,i,j,k), 0.0);
+        ASSERT_DOUBLE_EQ(Fbuf(2,i,j,k), 0.0);
     } } }
 
 }
@@ -917,13 +920,15 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_eSumsFsum) {
     } } }
 
     //Check values of esum & Fsum
+    CPL::ndArray<double> ebuf = c.eSums->get_array();
+    CPL::ndArray<double> Fbuf = c.FSums->get_array();
     trplefor(icell,jcell,kcell){
         //Since introducing overlap mode, need assert near
         //ASSERT_NEAR(c.eSums(i,j,k), volume, 1e-14);
-        ASSERT_DOUBLE_EQ(c.eSums(i,j,k), volume);
-        ASSERT_DOUBLE_EQ(c.FSums(0,i,j,k), -c.drag_coefficient()*i/double(icell));
-        ASSERT_DOUBLE_EQ(c.FSums(1,i,j,k), -c.drag_coefficient()*j/double(jcell));
-        ASSERT_DOUBLE_EQ(c.FSums(2,i,j,k), -c.drag_coefficient()*k/double(kcell));
+        ASSERT_DOUBLE_EQ(ebuf(0,i,j,k), volume);
+        ASSERT_DOUBLE_EQ(Fbuf(0,i,j,k), -c.drag_coefficient()*i/double(icell));
+        ASSERT_DOUBLE_EQ(Fbuf(1,i,j,k), -c.drag_coefficient()*j/double(jcell));
+        ASSERT_DOUBLE_EQ(Fbuf(2,i,j,k), -c.drag_coefficient()*k/double(kcell));
     } } }
 
 
@@ -935,6 +940,7 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_eSumsFsum) {
         field(1, i, j, k) = 1.0;
     } } }
 
+    //Force here should then be based on velocity of U=1.0
     CPLForceDrag d(field);
     trplefor(icell,jcell,kcell){
         r[0] = i/double(icell);
@@ -948,16 +954,14 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_eSumsFsum) {
 
 
     //Check values of esum & Fsum
+    ebuf = d.eSums->get_array();
+    Fbuf = d.FSums->get_array();
     trplefor(icell,jcell,kcell){
-        ASSERT_DOUBLE_EQ(d.eSums(i,j,k), 0.);
-        ASSERT_DOUBLE_EQ(d.FSums(0,i,j,k), c.drag_coefficient()*(0.-i/double(icell)));
-        ASSERT_DOUBLE_EQ(d.FSums(1,i,j,k), c.drag_coefficient()*(1.-j/double(jcell)));
-        ASSERT_DOUBLE_EQ(d.FSums(2,i,j,k), c.drag_coefficient()*(0.-k/double(kcell)));
-//        std::cout << i << " " << j << " " << k
-//                    << " " << c.eSums(i, j, k)
-//                    << " " << c.FSums(0, i, j, k)
-//                    << " " << c.FSums(1, i, j, k)
-//                    << " " << c.FSums(2, i, j, k) << std::endl;
+        ASSERT_DOUBLE_EQ(ebuf(0,i,j,k), 0.);
+        ASSERT_DOUBLE_EQ(Fbuf(0,i,j,k), c.drag_coefficient()*(0.-i/double(icell)));
+        ASSERT_DOUBLE_EQ(Fbuf(1,i,j,k), c.drag_coefficient()*(1.-j/double(jcell)));
+        ASSERT_DOUBLE_EQ(Fbuf(2,i,j,k), c.drag_coefficient()*(0.-k/double(kcell)));
+
     } } }
 
 
@@ -978,7 +982,7 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_overlap) {
     double xb = -1.0; double yb=-1.0; double zb=-1.0;
     double xt =  1.0; double yt= 1.0; double zt= 1.0;
     double Vs = (4./3.)*M_PI*pow(sr,3);
-    double Vc = (xt-xb)*(yt-yb)*(zt-zb);
+    //double Vc = (xt-xb)*(yt-yb)*(zt-zb);
 
     //Particle at centre of clel
     double result = field.sphere_cube_overlap(scx, scy, scz, sr, xb, yb, zb, xt, yt, zt);
@@ -1008,87 +1012,89 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_overlap_field) {
 
     int nd = 9; int icell = 3; int jcell = 3; int kcell = 3;
 
-    //Call constructor using cell numbers
-    CPLForceDrag c(nd, icell, jcell, kcell, true);
-
     //Setup one particle per cell
     double v[3] = {0.0, 0.0, 0.0};
     double a[3] = {0.0, 0.0, 0.0};
     double radius = 0.5;
     double min[3] = {0.0, 0.0, 0.0};
     double max[3] = {3.0, 3.0, 3.0};
-    c.set_minmax(min, max);
+
     double Vs = (4./3.)*M_PI*pow(radius,3);
     double m=1.; double s=radius; double e=1.;
+
+    //Call constructor using cell numbers
+    CPLForceDrag c(nd, icell, jcell, kcell, true);
+    c.set_minmax(min, max);
+
+    //Get array pointers
+    CPL::ndArray<double>& ebuf = c.eSums->get_array_pointer();
 
     //Particle at centre of grid cell 2
     double r[3] = {1.5, 1.5, 1.5};
     c.pre_force(r, v, a, m, s, e);
-    ASSERT_NEAR(c.eSums(1,1,1), Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,1,1,1), Vs, 1e-13);
 
     //Particle at face of grid cell 2 and 3 in x
-    c.eSums(1,1,1) = 0.0;
+    ebuf(0,1,1,1) = 0.0;
     r[0] = 2.0;
     c.pre_force(r, v, a, m, s, e);
-    ASSERT_NEAR(c.eSums(1,1,1), 0.5*Vs, 1e-13);
-    ASSERT_NEAR(c.eSums(2,1,1), 0.5*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,1,1,1), 0.5*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,2,1,1), 0.5*Vs, 1e-13);
 
     //Particle at edge of grid cell 2 and 3 in x,y
-    c.eSums(1,1,1) = 0.0; c.eSums(2,1,1) = 0.0;
+    ebuf(0,1,1,1) = 0.0; ebuf(0,2,1,1) = 0.0;
     r[0] = 2.0;  r[1] = 2.0;
     c.pre_force(r, v, a, m, s, e);
-    ASSERT_NEAR(c.eSums(1,1,1), 0.25*Vs, 1e-13);
-    ASSERT_NEAR(c.eSums(2,1,1), 0.25*Vs, 1e-13);
-    ASSERT_NEAR(c.eSums(1,2,1), 0.25*Vs, 1e-13);
-    ASSERT_NEAR(c.eSums(2,2,1), 0.25*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,1,1,1), 0.25*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,2,1,1), 0.25*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,1,2,1), 0.25*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,2,2,1), 0.25*Vs, 1e-13);
 
     //Particle at corner of grid cell 2 and 3 in x,y,z
-    c.eSums(1,1,1) = 0.0; c.eSums(2,1,1) = 0.0;
-    c.eSums(1,2,1) = 0.0; c.eSums(2,2,1) = 0.0;
+    ebuf(0,1,1,1) = 0.0; ebuf(0,2,1,1) = 0.0;
+    ebuf(0,1,2,1) = 0.0; ebuf(0,2,2,1) = 0.0;
     r[0] = 2.0;  r[1] = 2.0;  r[2] = 2.0;
     c.pre_force(r, v, a, m, s, e);
-    ASSERT_NEAR(c.eSums(1,1,1), 0.125*Vs, 1e-13);
-    ASSERT_NEAR(c.eSums(2,1,1), 0.125*Vs, 1e-13);
-    ASSERT_NEAR(c.eSums(1,2,1), 0.125*Vs, 1e-13);
-    ASSERT_NEAR(c.eSums(2,2,1), 0.125*Vs, 1e-13);
-    ASSERT_NEAR(c.eSums(1,1,2), 0.125*Vs, 1e-13);
-    ASSERT_NEAR(c.eSums(2,1,2), 0.125*Vs, 1e-13);
-    ASSERT_NEAR(c.eSums(1,2,2), 0.125*Vs, 1e-13);
-    ASSERT_NEAR(c.eSums(2,2,2), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,1,1,1), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,2,1,1), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,1,2,1), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,2,2,1), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,1,1,2), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,2,1,2), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,1,2,2), 0.125*Vs, 1e-13);
+    ASSERT_NEAR(ebuf(0,2,2,2), 0.125*Vs, 1e-13);
 
     //Particle bigger than cell so fills whole cell
     s = 1.0;
     r[0] =1.5;  r[1] = 1.5;  r[2] = 1.5;
-    c.eSums(1,1,1) = 0.0;
+    ebuf(0,1,1,1) = 0.0;
     c.pre_force(r, v, a, m, s, e);
-    double Vc = 1.0*1.0*1.0;
-    ASSERT_NEAR(c.eSums(1,1,1), 1.0, 1e-13);
+    ASSERT_NEAR(ebuf(0,1,1,1), 1.0, 1e-13);
 
     //Domain is from 0 to 1 so cell size is 0.1
     icell = 10; jcell = 10; kcell = 10;
     CPLForceDrag d(nd, icell, jcell, kcell, true);
+    CPL::ndArray<double>& dbuf = d.eSums->get_array_pointer();
 
     //Particle bigger than lots of cell so fills many cell
     s = 0.35;
     r[0] =0.5;  r[1] = 0.5;  r[2] = 0.5;
     d.pre_force(r, v, a, m, s, e);
-    Vc = 0.1*0.1*0.1;
+    double Vc = 0.1*0.1*0.1;
 
     trplefor_rng(3,3,3,7,7,7){
-        ASSERT_NEAR(d.eSums(i,j,k), Vc, 1e-13);
+        ASSERT_NEAR(dbuf(0,i,j,k), Vc, 1e-13);
     } } }
 
-    CPLForceDrag f(nd, icell, jcell, kcell);
-    f.use_overlap = true;
+//    CPLForceDrag f(nd, icell, jcell, kcell, true);
 
-    s = 0.35;
-    r[0] =0.9;  r[1] = 0.5;  r[2] = 0.5;
-    f.pre_force(r, v, a, m, s, e);
+//    s = 0.1;
+//    r[0] =0.5;  r[1] = 0.5;  r[2] = 0.5;
+//    f.pre_force(r, v, a, m, s, e);
 
-//    trplefor_rng(0,5,0,icell, 6, kcell){
-//        std::cout << i << " " << j << " " << k
-//                    << " " << f.eSums(i, j, k)/Vc << std::endl;
-//    } } }
+//    for (int i=0; i<10; i++){
+//        
+//    }
 
 }
 

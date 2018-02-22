@@ -321,7 +321,7 @@ contains
 
         integer :: pos, ixyz, icell, jcell, kcell
         integer :: i,j,k
-        integer :: coord(3),portion(6),mdextents(6)
+        integer :: coord(3),portion(6)
 
         ! Get MD processor extents and cells portion of send region
         call CPL_Cart_coords(CPL_CART_COMM,rank_cart,realm,3,coord,ierr) 
@@ -721,11 +721,10 @@ subroutine CPL_send(asend, limits, send_flag)
 ! .. sectionauthor::Edward Smith
 ! ----------------------------------------------------------------------------
     use mpi
-    use coupler_module, only : md_realm,cfd_realm, & 
-                               error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
-                               rank_world, realm, rank_realm,rank_olap, & 
-                               iblock_realm,jblock_realm,kblock_realm,ierr, VOID, &
-                               CPL_setup_complete, REALM_NAME, realm
+    use coupler_module, only : md_realm, cfd_realm, error_abort, & 
+                               CPL_GRAPH_COMM, myid_graph,olap_mask, &
+                               rank_world, realm, ierr, VOID, &
+                               CPL_setup_complete, REALM_NAME
     implicit none
 
     
@@ -745,7 +744,7 @@ subroutine CPL_send(asend, limits, send_flag)
     ! auxiliaries 
     integer                             :: nbr, ndata, itag, destid, Ncells
     integer,dimension(3)                :: pcoords, Ncell
-    integer,dimension(6)                :: portion, myportion, portion_CFD
+    integer,dimension(6)                :: portion, myportion
     real(kind=kind(0.d0)), allocatable  :: vbuf(:)
 
     !Check setup is complete
@@ -903,12 +902,11 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 ! .. sectionauthor::Edward Smith
 ! ----------------------------------------------------------------------------
     use mpi
-    use coupler_module, only : md_realm,cfd_realm, & 
-                               rank_graph, &
+    use coupler_module, only : md_realm, cfd_realm, rank_graph, &
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
-                               rank_world, realm, rank_realm, rank_olap, & 
+                               rank_world, realm, & 
                                iblock_realm,jblock_realm,kblock_realm,VOID,ierr, &
-                               CPL_setup_complete, REALM_NAME, realm
+                               REALM_NAME, realm
     implicit none
 
     logical, intent(out), optional  :: recv_flag  !Flag set if processor has received data
@@ -923,7 +921,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     integer :: n,nbr,icell,jcell,kcell
     integer :: pos,iclmin,iclmax,jclmin,jclmax,kclmin,kclmax
     integer :: pcoords(3),npercell,ndata,ncells
-    integer,dimension(6) :: portion, myportion, portion_CFD
+    integer,dimension(6) :: portion, myportion
 
     ! auxiliaries 
     integer :: itag, sourceid,start_address
@@ -1174,8 +1172,8 @@ subroutine CPL_swaphalos(A)
 
     real(kind=kind(0.d0)), intent(inout)                    :: A(:,:,:,:)
 
-    integer                                                 :: n1,n2,n3,nresults
-    integer                                                 :: ixyz,n,i,j,k,ic,jc,kc,nresultscell
+    integer                                                 :: nresults
+    integer                                                 :: n,i,j,k,ic,jc,kc
     real(kind=kind(0.d0)),dimension(:,:,:,:),allocatable    :: buf
 
     integer                                                 :: nhalo,na(3),nxyz(3),nhb(3)
@@ -2715,9 +2713,7 @@ function CPL_map_coord2cell(x, y, z, cell_ijk) result(ret)
 
     real(kind(0.d0)), intent(in)  :: x, y, z
     integer, intent(out)         :: cell_ijk(3)
-    integer :: cell_ijk_dummy(3)
 
-    integer          :: ixyz
     real(kind(0.d0)) :: olap_lo(3), olap_hi(3)
     integer          :: olap_limits(6)
     logical          :: ret
@@ -2867,9 +2863,7 @@ function CPL_is_proc_inside(region) result(res)
 end function CPL_is_proc_inside
 
 function is_cell_inside(cell, limits) result(res)
-    use coupler_module, only :  icmin_olap, icmax_olap, & 
-                                jcmin_olap, jcmax_olap, & 
-                                kcmin_olap, kcmax_olap, VOID
+    use coupler_module, only :  VOID
 
     integer, intent(in) :: cell(3)
     integer, intent(in) :: limits(6)
@@ -2894,10 +2888,6 @@ end function is_cell_inside
 !PRIVATE FUNCTION
 
 function is_coord_inside(coord, coord_limits) result(res)
-    use coupler_module, only :  icmin_olap, icmax_olap, & 
-                                jcmin_olap, jcmax_olap, & 
-                                kcmin_olap, kcmax_olap, &
-                                dx, dy, dz
 
     real(kind(0.d0)), intent(in)   :: coord(3)
     real(kind(0.d0)), intent(in)   :: coord_limits(6)
@@ -2974,6 +2964,9 @@ subroutine test_python (integer_p, double_p, bool_p, integer_pptr, double_pptr)
 
   print *, 'Integer: ', integer_p
   print *, 'Double: ', double_p
+  print *, 'bool: ', bool_p
+  print *, 'integer_pptr: ', integer_pptr
+  print *, 'double_pptr: ', double_pptr
  end subroutine
 
 !------------------------------------------------------------------------------

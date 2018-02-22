@@ -133,7 +133,7 @@ template<class T> double CPL::ndArray<T>::min()
     return min;
 }
 
-// Minimum value
+// Maximum value
 template<class T> double CPL::ndArray<T>::max()
 {
     double max = ndArrayData[0];

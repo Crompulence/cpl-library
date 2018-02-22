@@ -41,7 +41,7 @@ Description
 
 Author(s)
 
-    David Trevelyan
+    David Trevelyan, Edward Smith
 
 */
 

@@ -66,10 +66,10 @@ class CPLForce{
 protected:
 
     double min[3], max[3], dxyz[3], dA[3], dV;
-    //CPL::ndArray<double> array;
 
-    CPL::CPLField* fieldptr;
-    //std::unique_ptr<CPL::CPLField> fieldptr;
+    //CPL::CPLField* fieldptr;
+    std::shared_ptr<CPL::CPLField> fieldptr;
+    std::vector<std::shared_ptr<CPL::CPLField>> fields;
 
 public:
 
@@ -98,7 +98,7 @@ public:
 
     //Destructor
     virtual ~CPLForce() {
-        delete fieldptr;
+    //    delete fieldptr;
     }
 
 private:
@@ -218,15 +218,19 @@ public:
     bool calc_preforce = true;
     bool use_overlap = false;
 
-    CPL::ndArray<double> nSums;
-    CPL::ndArray<double> eSums;
-    CPL::ndArray<double> FSums;
-    CPL::ndArray<double> FcoeffSums;
+//    CPL::ndArray<double> nSums;
+//    CPL::ndArray<double> eSums;
+//    CPL::ndArray<double> FSums;
+//    CPL::ndArray<double> FcoeffSums;
 
-//    CPL::CPLField nSums;
-//    CPL::CPLField eSums;
-//    CPL::CPLField FSums;
-//    CPL::CPLField FcoeffSums;
+    //Vector of fields
+    void build_fields_list();
+
+    //Shared instead of unique as we also keep in fields list
+    std::shared_ptr<CPL::CPLField> nSums;
+    std::shared_ptr<CPL::CPLField> eSums;
+    std::shared_ptr<CPL::CPLField> FSums;
+    std::shared_ptr<CPL::CPLField> FcoeffSums;
 
 protected:
 

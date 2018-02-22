@@ -184,7 +184,7 @@ subroutine rwrite_arrays(some_array, nresults, outfile, outstep, icomm_grid, lim
 
     integer, intent(in), dimension(3), optional     :: nhb_
 
-    integer                             :: n, fh, ixyz
+    integer                             :: n, fh
     integer                             :: MEM_FLAG = 0
     integer                             :: FILE_FLAG = 0
     integer                             :: datatype
@@ -380,37 +380,37 @@ subroutine get_Timestep_FileName(timestep,basename,filename)
 end subroutine get_Timestep_FileName
 
 subroutine globalGather(A, B, na, in_comm)
-	implicit none
+    implicit none
 
-	integer, intent(in) :: na, in_comm
+    integer, intent(in) :: na, in_comm
 
-	integer, intent(in) :: A(na)
-	integer, intent(out), dimension(:,:), allocatable :: B
+    integer, intent(in) :: A(na)
+    integer, intent(out), dimension(:,:), allocatable :: B
 
     integer :: nproc
 
     call MPI_comm_size(in_comm, nproc, ierr)
     allocate(B(na, nproc))
-	call MPI_Allgather (A, na, MPI_INTEGER, B, na, &
-			            MPI_INTEGER,in_comm, ierr)
+    call MPI_Allgather (A, na, MPI_INTEGER, B, na, &
+                        MPI_INTEGER,in_comm, ierr)
 
 end subroutine globalGather
 
 subroutine globalMinVect(A, na, in_comm)
-	implicit none
+    implicit none
 
-	integer, intent(in) :: na, in_comm
+    integer, intent(in) :: na, in_comm
 
-	integer, intent(inout) :: A(na)
-	integer, allocatable :: buf(:)
+    integer, intent(inout) :: A(na)
+    integer, allocatable :: buf(:)
 
     allocate(buf(na))
-	call MPI_AllReduce (A, buf, na, MPI_INTEGER, &
-	                    MPI_MIN, in_comm, ierr)
-	A = buf
+    call MPI_AllReduce (A, buf, na, MPI_INTEGER, &
+                        MPI_MIN, in_comm, ierr)
+    A = buf
     deallocate(buf)
 
-	return
+    return
 end subroutine globalMinVect
 
 end module coupler_write

@@ -63,6 +63,15 @@ Author(s)
 #include<string>
 #include<sstream>
 #include<vector>
+#include<iostream>
+#include <memory>
+
+//Make unique function as we are using c++ 11
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args)
+{
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
 
 namespace CPL
 {
