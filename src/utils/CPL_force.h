@@ -81,6 +81,7 @@ public:
     void set_field(CPL::ndArray<double> arrayin);
     void set_minmax(double min_in[], double max_in[]);
     CPL::ndArray<double> get_field();
+    std::shared_ptr<CPL::CPLField> get_internal_fields(const std::string& name);
 
     //Get cell values
     std::vector<int> get_cell(double r[]);    
@@ -122,7 +123,11 @@ public:
     std::vector<double> get_force(double r[], double v[], double a[], 
                                   double m, double s, double e);
 
+    void initialisesums(CPL::ndArray<double>);
+    void build_fields_list();
     void resetsums();
+
+
 
     bool calc_preforce = false;
 

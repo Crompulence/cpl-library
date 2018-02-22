@@ -11,40 +11,99 @@ using namespace CPL;
 
 
 //Constructor based on specified size
-CPLField::CPLField(int nd, int icells, int jcells, int kcells){
+CPLField::CPLField(int nd_, int icell_, 
+                   int jcell_, int kcell_, 
+                   const std::string& name_)
+        : nd(nd_), icell(icell_), jcell(jcell_), kcell(kcell_), name(name_)
+{
     // Fields
-    int arrayShape[4] = {nd, icells, jcells, kcells};
+    int arrayShape[4] = {nd_, icell_, jcell_, kcell_};
     array.resize(4, arrayShape);
-    for (int i = 0; i < 3; ++i){
-        min[i] = 0.0;
-        max[i] = 1.0;
-    }
+    default_minmax();
     set_dxyz();
+
+//    std::cout << "CPLField name: " << name << std::endl;
+
+}
+
+
+//Constructor based on specified size
+//CPLField::CPLField(int nd_, int icell_, 
+//                   int jcell_, int kcell_, 
+//                   const std::string& name_)
+//        : nd(nd_), icell(icell_), jcell(jcell_), kcell(kcell_), name(name_)
+//{
+//    int arrayShape[4] = {nd, icell, jcell, kcell};
+//    array.resize(4, arrayShape);
+//    default_minmax();
+//    set_dxyz();
+
+//    std::cout << "CPLField name: " << name << std::endl;
+//}
+
+//Constructor which uses arrayin and sets size and initial value to this
+CPLField::CPLField(CPL::ndArray<double> arrayin, 
+                   const std::string& name_)
+        : array(arrayin), name(name_)
+{
+//    array = arrayin;
+    nd = arrayin.shape(0);
+    icell = arrayin.shape(1);
+    jcell = arrayin.shape(2);
+    kcell = arrayin.shape(3);
+    default_minmax();
+    set_dxyz();
+
 }
 
 //Constructor which uses arrayin and sets size and initial value to this
-CPLField::CPLField(CPL::ndArray<double> arrayin){
-    array = arrayin;
-    for (int i = 0; i < 3; ++i){
-        min[i] = 0.0;
-        max[i] = 1.0;
-    }
-    set_dxyz();
-}
+//CPLField::CPLField(CPL::ndArray<double> arrayin, 
+//                   const std::string& name_)
+//        : array(arrayin), name(name_)
+//{
+//    nd = arrayin.shape(0);
+//    icell = arrayin.shape(1);
+//    jcell = arrayin.shape(2);
+//    kcell = arrayin.shape(3);
+//    default_minmax();
+//    set_dxyz();
 
+//    std::cout << "CPLField name: " << name << std::endl;
+//}
 
 //Constructor which uses size of array in x, y and z
-CPLField::CPLField(int nd, CPL::ndArray<double> arrayin){
-
+CPLField::CPLField(int nd_, CPL::ndArray<double> arrayin, 
+                   const std::string& name_)
+        : nd(nd_), array(arrayin), name(name_)
+{
+//    array = arrayin;
+    icell = array.shape(1);
+    jcell = array.shape(2);
+    kcell = array.shape(3);
     int arrayShape[4] = {nd, arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     array.resize(4, arrayShape);
 
-    for (int i = 0; i < 3; ++i){
-        min[i] = 0.0;
-        max[i] = 1.0;
-    }
+    default_minmax();
     set_dxyz();
+
 }
+
+//Constructor which uses size of array in x, y and z
+//CPLField::CPLField(int nd_, CPL::ndArray<double> arrayin, 
+//                   const std::string& name_)
+//        : nd(nd_), array(arrayin), name(name_)
+//{
+//    icell = array.shape(1);
+//    jcell = array.shape(2);
+//    kcell = array.shape(3);
+//    int arrayShape[4] = {nd, arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+//    array.resize(4, arrayShape);
+
+//    default_minmax();
+//    set_dxyz();
+
+//    std::cout << "CPLField name: " << name << std::endl;
+//}
 
 
 ///////////////////////////////////////////////////
@@ -56,6 +115,13 @@ CPLField::CPLField(int nd, CPL::ndArray<double> arrayin){
 /                                                 /
 *//////////////////////////////////////////////////
 
+void CPLField::default_minmax(){
+    for (int i = 0; i < 3; ++i){
+        min[i] = 0.0;
+        max[i] = 1.0;
+    } 
+    set_minmax(min, max);
+}
 
 //Set minimum and maximum values of field application
 void CPLField::set_minmax(double min_in[], double max_in[]){
@@ -261,6 +327,10 @@ double CPLField::sphere_cube_overlap(double scx, double scy, double scz, double 
 /  `---' `----' `-'    `-'  `----'`-' `-'`----'   /
 /                                                 /
 *//////////////////////////////////////////////////
+
+std::string CPLField::field_name() {
+    return name;
+}
 
 //Get dA
 std::vector<double> CPLField::get_dA(){

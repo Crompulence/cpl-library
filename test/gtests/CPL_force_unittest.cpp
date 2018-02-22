@@ -177,7 +177,49 @@ TEST_F(CPL_Force_Test, test_CPL_field) {
     trplefor(icell,jcell,kcell){
         ASSERT_EQ(buf_ptr(0, i, j, k), array(0, i, j, k));
         ASSERT_NE(buf(0, i, j, k), array(0, i, j, k));
-    } } } 
+    } } }
+
+};
+
+
+TEST_F(CPL_Force_Test, test_CPL_field_name) {
+    int nd = 9;
+    int icell = 3;
+    int jcell = 3;
+    int kcell = 3;
+
+    std::string fieldstr("field");
+    std::string somestrng("string");
+    auto somestrng_ptr = std::make_shared<std::string>("string_ptr");
+
+    CPL::ndArray<double> buf;
+    int shape[4] = {nd, icell, jcell, kcell};
+    buf.resize (4, shape);
+
+    //Check default name is okay
+    std::string defaultstr("default");
+    CPL::CPLField fieldA(nd, icell, jcell, kcell);
+    ASSERT_EQ(defaultstr, fieldA.name);
+    auto name = fieldA.field_name();
+    ASSERT_EQ(defaultstr, name);
+
+    //Check name is set correctly
+    CPL::CPLField fieldB(nd, icell, jcell, kcell, "field");
+    ASSERT_EQ(fieldstr, fieldB.name);
+    CPL::CPLField fieldC(nd, icell, jcell, kcell, fieldstr);
+    ASSERT_EQ(fieldstr, fieldC.name);
+    CPL::CPLField fieldD(nd, icell, jcell, kcell, *somestrng_ptr);
+    ASSERT_EQ(*somestrng_ptr, fieldD.name);
+
+    //Check other constructors
+    CPL::CPLField fieldE(buf, somestrng);
+    ASSERT_EQ(somestrng, fieldE.name);
+    CPL::CPLField fieldF(nd, buf, somestrng);
+    ASSERT_EQ(somestrng, fieldF.name);
+    ASSERT_EQ(somestrng, fieldF.field_name());
+
+    CPL::CPLField fieldG(nd, buf, fieldstr);
+    ASSERT_NE(somestrng, fieldG.name);
 
 };
 
@@ -348,7 +390,7 @@ TEST_F(CPL_Force_Test, test_CPL_force_constructor) {
     ASSERT_EQ(buf1.shape(2), buf2.shape(2));
     ASSERT_EQ(buf1.shape(3), buf2.shape(3));
 
-};
+}
 
 //Test for CPLForce base class - set field method
 TEST_F(CPL_Force_Test, test_CPL_force_get_set_field) {
@@ -423,18 +465,18 @@ TEST_F(CPL_Force_Test, test_CPL_get_cell) {
 //Test for CPLForce base class - get force 
 TEST_F(CPL_Force_Test, test_CPL_Force_get_force) {
 
-    //Setup a field which is 1 everywhere
+    //Setup a array which is 1 everywhere
     int nd = 3; int icell = 3; int jcell = 3; int kcell = 3;
-    CPL::ndArray<double> field;
+    CPL::ndArray<double> array;
     int shape[4] = {nd, icell, jcell, kcell};
-    field.resize (4, shape);
-    field = 0;
+    array.resize (4, shape);
+    array = 0;
     trplefor(icell,jcell,kcell){
-        field(0, i, j, k) = 1.0;
+        array(0, i, j, k) = 1.0;
     } } }
 
-    //Create force field object
-    CPLForceTest fxyz(field);
+    //Create force array object
+    CPLForceTest fxyz(array);
 
     std::vector<double> f(3);
     double r[3];
@@ -442,7 +484,7 @@ TEST_F(CPL_Force_Test, test_CPL_Force_get_force) {
     double a[3] = {0.5, 0.5, 0.5};
     double m=1.; double s=1.; double e=1.;
 
-    //Check field is uniform
+    //Check array is uniform
     trplefor(icell,jcell,kcell){
         r[0] = i/float(icell);
         r[1] = j/float(jcell);
@@ -453,17 +495,17 @@ TEST_F(CPL_Force_Test, test_CPL_Force_get_force) {
         ASSERT_DOUBLE_EQ(f[2], 0.0);
     } } }
 
-    //Set field to new value
+    //Set array to new value
     trplefor(icell,jcell,kcell){
-        field(0, i, j, k) = 0.0;
-        field(1, i, j, k) = 6.0;
-        field(2, i, j, k) = 2.0;
+        array(0, i, j, k) = 0.0;
+        array(1, i, j, k) = 6.0;
+        array(2, i, j, k) = 2.0;
     } } }
 
-    //Update force field object
-    fxyz.set_field(field);
+    //Update force array object
+    fxyz.set_field(array);
 
-    //Check field is uniform
+    //Check array is uniform
     trplefor(icell,jcell,kcell){
         r[0] = i/float(icell);
         r[1] = j/float(jcell);
@@ -476,6 +518,45 @@ TEST_F(CPL_Force_Test, test_CPL_Force_get_force) {
 
 
 }
+
+//Test for CPLForce base class - constructor 
+TEST_F(CPL_Force_Test, test_CPL_force_internalfields) {
+
+    int nd = 9; int icell = 3; int jcell = 3; int kcell = 3;
+    CPLForceTest c(nd, icell, jcell, kcell);
+
+    //Get nullptr for field which doesn't exist
+    std::string test("not there!");
+    auto field = c.get_internal_fields(test);
+    EXPECT_TRUE(field == nullptr);
+
+    //Get otherfield internal to CPLForceTest
+    std::string name("otherfield");
+    auto fieldb = c.get_internal_fields(name);
+    EXPECT_TRUE(fieldb != nullptr);
+    ASSERT_EQ(name, fieldb->field_name());
+
+    //Check array is same size as array pointer 
+    CPL::ndArray<double>& buf_ptr = fieldb->get_array_pointer();
+    ASSERT_EQ(buf_ptr.shape(1), icell);
+    ASSERT_EQ(buf_ptr.shape(2), jcell);
+    ASSERT_EQ(buf_ptr.shape(3), kcell);
+    ASSERT_NE(buf_ptr.shape(0), nd);
+
+
+
+    //Check array is same size as array pointer 
+    CPL::ndArray<double> buf = c.get_field();
+    CPLForceTest d(buf);
+    //CPLForceTest d(nd, buf);
+    auto fieldc = d.get_internal_fields(name);
+    CPL::ndArray<double>& buf_ptrc = fieldc->get_array_pointer();
+    ASSERT_EQ(buf_ptrc.shape(1), icell);
+    ASSERT_EQ(buf_ptrc.shape(2), jcell);
+    ASSERT_EQ(buf_ptrc.shape(3), kcell);
+    ASSERT_NE(buf_ptrc.shape(0), nd);
+
+};
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
@@ -556,18 +637,18 @@ TEST_F(CPL_Force_Test, test_velocity_get_force) {
     //Call constructor using cell numbers
     int nd = 3; int icell = 8; int jcell = 8; int kcell = 8;
 
-    //Setup a field which is 1 everywhere
-    CPL::ndArray<double> field;
+    //Setup a array which is 1 everywhere
+    CPL::ndArray<double> array;
     int shape[4] = {nd, icell, jcell, kcell};
-    field.resize (4, shape);
+    array.resize (4, shape);
     trplefor(icell,jcell,kcell){
-        field(0, i, j, k) = 1.0;
-        field(1, i, j, k) = 2.0;
-        field(2, i, j, k) = 3.0;
+        array(0, i, j, k) = 1.0;
+        array(1, i, j, k) = 2.0;
+        array(2, i, j, k) = 3.0;
     } } }
 
-    //Create force field object
-    CPLForceVelocity fxyz(field);
+    //Create force array object
+    CPLForceVelocity fxyz(array);
 
     //Setup one particle per cell
     //and as zero no change

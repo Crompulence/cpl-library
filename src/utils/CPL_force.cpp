@@ -18,17 +18,13 @@
 
 //Constructors
 CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){ 
-    //fieldptr.reset(new CPL::CPLField(nd, icells, jcells, kcells));
     //Shared as we keep reference in fields list
     fieldptr = std::make_shared<CPL::CPLField>(nd, icells, jcells, kcells);
-    //fields.push_back(fieldptr);
 }
 
 CPLForce::CPLForce(CPL::ndArray<double> arrayin) {
-    //fieldptr.reset(new CPL::CPLField(arrayin));
     //Shared as we keep reference in fields list
     fieldptr = std::make_shared<CPL::CPLField>(arrayin);
-    //fields.push_back(fieldptr);
 }
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
@@ -44,7 +40,12 @@ std::vector<double> CPLForce::get_force(double r[], double v[], double a[], doub
     return f;
 }
 
-
+void CPLForce::resetsums(){
+    //General function which loops over all field classes and resets
+    for ( auto &f : fields ) { 
+        f->zero_array(); 
+    }
+}
 
 //Set minimum and maximum values of field application
 void CPLForce::set_minmax(double min_in[], double max_in[]){
@@ -81,9 +82,22 @@ void CPLForce::set_field(CPL::ndArray<double> arrayin){
     fieldptr->set_array(arrayin);   
 };
 
+//Get main CFD field
 CPL::ndArray<double> CPLForce::get_field(){
     return fieldptr->get_array();
 };
+
+std::shared_ptr<CPL::CPLField> CPLForce::get_internal_fields(const std::string& name){
+    //std::cout << "Looking for internal_fields: " << name << " in list of size " << fields.size() << std::endl;
+    for ( auto &f : fields ) {
+        //std::cout << "getting_internal_fields " << name << " " << f->field_name() << std::endl;
+        if (f->field_name() == name){
+            return f;
+        }
+    }
+    //std::shared_ptr<CPL::CPLField> nullpointer();
+    return nullptr;
+}
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
@@ -93,15 +107,32 @@ CPL::ndArray<double> CPLForce::get_field(){
 
 //Constructor using cells
 CPLForceTest::CPLForceTest(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
+    initialisesums(fieldptr->get_array());
 }
 
 //Constructor of datatype
 CPLForceTest::CPLForceTest(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
+    initialisesums(arrayin);
 }
 
+//Examples of initialise sums with another internal field
+void CPLForceTest::initialisesums(CPL::ndArray<double> arrayin){
+    
+    auto otherfield = std::make_shared<CPL::CPLField>(1, arrayin.shape(1), 
+                                                         arrayin.shape(2), 
+                                                         arrayin.shape(3), 
+                                                         "otherfield");
+    fields.push_back(otherfield);
+    resetsums();
+}
 
 void CPLForceTest::resetsums(){
+    //General function which loops over all field classes and resets
+    for ( auto &f : fields ) { 
+        f->zero_array(); 
+    }
 }
+
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
 void CPLForceTest::pre_force(double r[], double v[], double a[], double m, double s, double e){
@@ -320,10 +351,10 @@ void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
     int i = arrayin.shape(1);
     int j = arrayin.shape(2);
     int k = arrayin.shape(3);
-    nSums = std::make_shared<CPL::CPLField>(1, i, j, k);
-    eSums = std::make_shared<CPL::CPLField>(1, i, j, k);
-    FSums = std::make_shared<CPL::CPLField>(3, i, j, k);
-    FcoeffSums = std::make_shared<CPL::CPLField>(1, i, j, k);
+    nSums = std::make_shared<CPL::CPLField>(1, i, j, k, "nSums");
+    eSums = std::make_shared<CPL::CPLField>(1, i, j, k, "eSums");
+    FSums = std::make_shared<CPL::CPLField>(3, i, j, k, "FSums");
+    FcoeffSums = std::make_shared<CPL::CPLField>(1, i, j, k, "FcoeffSums");
 
     build_fields_list();
     resetsums();

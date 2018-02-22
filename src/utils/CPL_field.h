@@ -19,20 +19,28 @@
 
 namespace CPL{
 
+const std::string noname = std::string("noname");
+
 class CPLField{
 
 public:
 
     //Constructors
-    CPLField(int nd, int icell, int jcell, int kcell);
-    CPLField(CPL::ndArray<double> arrayin);
-    CPLField(int nd, CPL::ndArray<double> arrayin);
+    CPLField(int, int, int, int, const std::string& name_="default");
+    CPLField(CPL::ndArray<double>, const std::string& name_="default");
+    CPLField(int, CPL::ndArray<double>, const std::string& name_="default");
+
+//    CPLField(int, int, int, int, const std::string&);
+//    CPLField(CPL::ndArray<double> arrayin, const std::string&);
+//    CPLField(int, CPL::ndArray<double>, const std::string&);
 
     //Getters and setters
     void set_array(CPL::ndArray<double> arrayin);
     void set_minmax(double min_in[], double max_in[]);
+    void default_minmax();
     void set_dxyz();
     void zero_array();
+    std::string field_name();
 
     CPL::ndArray<double> get_array();
     //std::unique_ptr<CPL::ndArray <double>> get_array_pointer();
@@ -62,7 +70,10 @@ public:
     std::vector<double> get_array_value_interp(const std::vector<int> indices, const double r[]);
 
     //Variables
+    int nd;
     CPL::ndArray<double> array;
+    int icell, jcell, kcell;
+    std::string name;
 
     double min[3], max[3], dxyz[3], dA[3], dV;
 
