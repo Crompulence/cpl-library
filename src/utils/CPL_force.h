@@ -74,18 +74,19 @@ protected:
 public:
 
     //Constructors
-    CPLForce(int nd, int icell, int jcell, int kcell);
-    CPLForce(CPL::ndArray<double> arrayin);
+    CPLForce(int, int, int, int);
+    CPLForce(CPL::ndArray<double>);
 
     //Getters and setters
-    void set_field(CPL::ndArray<double> arrayin);
+    void set_field(CPL::ndArray<double>);
     void set_minmax(double min_in[], double max_in[]);
     CPL::ndArray<double> get_field();
-    std::shared_ptr<CPL::CPLField> get_internal_fields(const std::string& name);
+    std::shared_ptr<CPL::CPLField> get_internal_fields(const std::string&);
 
     //Get cell values
     std::vector<int> get_cell(double r[]);    
     std::vector<double> get_dA();
+    double get_dV();
 
     //Pre force collection and get force calculation
     // position, velocity, acceleration, mass, sigma, epsilon
@@ -126,8 +127,6 @@ public:
     void initialisesums(CPL::ndArray<double>);
     void build_fields_list();
     void resetsums();
-
-
 
     bool calc_preforce = false;
 
@@ -204,9 +203,10 @@ class CPLForceDrag : public CPLForce {
 public:
 
     //Constructors
-    CPLForceDrag(CPL::ndArray<double> field);
-    CPLForceDrag(int nd, int icell, int jcell, int kcell);
-    CPLForceDrag(int nd, int icell, int jcell, int kcell, bool overlap);
+    CPLForceDrag(CPL::ndArray<double>);
+    CPLForceDrag(int, int, int, int);
+    CPLForceDrag(int, int, int, int, bool, bool, double);
+    CPLForceDrag(int, int, int, int, std::map <std::string, std::string> );
 
     //Pre force collection and get force calculation
     // position, velocity, acceleration, mass, radius, interaction
@@ -214,24 +214,23 @@ public:
                    double m, double s, double e);
     std::vector<double> get_force(double r[], double v[], double a[], 
                                   double m, double s, double e);
-    std::vector<double> get_force_unopt(double r[], double v[], double a[], 
-                                  double m, double s, double e);
 
     //Force specific things
-    double drag_coefficient();
-
     bool calc_preforce = true;
     bool use_overlap = false;
+    bool use_interpolate = false;
 
-//    CPL::ndArray<double> nSums;
-//    CPL::ndArray<double> eSums;
-//    CPL::ndArray<double> FSums;
-//    CPL::ndArray<double> FcoeffSums;
+    bool use_drag = true;
+    double drag_coefficient();
+    double Cd;
+
+    bool use_gradP = true;
+    bool use_divStress = false;
 
     //Vector of fields
     void build_fields_list();
 
-    //Shared instead of unique as we also keep in fields list
+    //Shared pointer instead of unique as we also keep in fields list
     std::shared_ptr<CPL::CPLField> nSums;
     std::shared_ptr<CPL::CPLField> eSums;
     std::shared_ptr<CPL::CPLField> FSums;

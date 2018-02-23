@@ -161,3 +161,35 @@ TEST_F(CPL_interp_Test, test_interpolate) {
 }
 
 
+//Test for CPL::interpolate 
+TEST_F(CPL_interp_Test, test_force) {
+
+    int nd = 3;
+    int icell = 10; int jcell = 10; int kcell = 10;
+
+    //Call constructor using cell numbers
+    CPLForceDrag c(nd, icell, jcell, kcell);
+
+    //Setup one particle per cell
+    double r[3] = {0.0, 0.0, 0.0};
+    double v[3] = {0.0, 0.0, 0.0};
+    double a[3] = {0.0, 0.0, 0.0};
+    std::vector<double> F;
+    double radius = 0.001;
+    double volume = (4./3.)*M_PI*pow(radius,3);
+    double m=1.; double s=radius; double e=1.;
+
+    //Setup Fsum for u=0
+    trplefor(icell,jcell,kcell){
+        r[0] = i/double(icell);
+        r[1] = j/double(jcell);
+        r[2] = k/double(kcell);
+        v[0] = i/double(icell);
+        v[1] = j/double(jcell);
+        v[2] = k/double(kcell);
+        F = c.get_force(r, v, a, m, s, e);
+    } } }
+
+}
+
+

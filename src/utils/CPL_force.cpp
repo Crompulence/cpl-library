@@ -2,6 +2,7 @@
 #include <math.h> 
 #include <stdexcept>
 #include <assert.h>
+#include <map>
 
 #include "CPL_ndArray.h"
 #include "CPL_force.h"
@@ -69,6 +70,11 @@ std::vector<double> CPLForce::get_dA(){
     return fieldptr->get_dA();
 }
 
+//Get dV
+double CPLForce::get_dV(){
+    return fieldptr->get_dV();
+}
+
 
 //Get cell from min/max and dx
 std::vector<int> CPLForce::get_cell(double r[]){
@@ -106,7 +112,8 @@ std::shared_ptr<CPL::CPLField> CPLForce::get_internal_fields(const std::string& 
 ///////////////////////////////////////////////////////////////////
 
 //Constructor using cells
-CPLForceTest::CPLForceTest(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
+CPLForceTest::CPLForceTest(int nd, int icells, int jcells, int kcells)
+     : CPLForce(nd, icells, jcells, kcells){
     initialisesums(fieldptr->get_array());
 }
 
@@ -135,13 +142,15 @@ void CPLForceTest::resetsums(){
 
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceTest::pre_force(double r[], double v[], double a[], double m, double s, double e){
+void CPLForceTest::pre_force(double r[], double v[], double a[], 
+                             double m, double s, double e){
 //    throw std::runtime_error("CPLForceTest::pre_force is not defined");
 }
 
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[], double m, double s, double e){
+std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[], 
+                                            double m, double s, double e){
 
     std::vector<int> indices = {0,1,2};
     std::vector<double> f = fieldptr->get_array_value(indices, r);
@@ -181,7 +190,8 @@ void CPLForceVelocity::resetsums(){
 }
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceVelocity::pre_force(double r[], double v[], double a[], double m, double s, double e) {
+void CPLForceVelocity::pre_force(double r[], double v[], double a[], 
+                                 double m, double s, double e) {
 
     // Find in which cell number (local to processor) is the particle
     // and sum all the velocities for each cell.
@@ -195,7 +205,8 @@ void CPLForceVelocity::pre_force(double r[], double v[], double a[], double m, d
 
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a[], double m, double s, double e){
+std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a[], 
+                                                double m, double s, double e){
 
     std::vector<double> f(3); 
     std::vector<int> cell = get_cell(r);
@@ -226,7 +237,8 @@ std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a
 //The Flekkoy constraint IS A type of CPL force
 
 //Constructor using cells
-CPLForceFlekkoy::CPLForceFlekkoy(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
+CPLForceFlekkoy::CPLForceFlekkoy(int nd, int icells, int jcells, int kcells) 
+    : CPLForce(nd, icells, jcells, kcells){
     initialisesums(fieldptr->get_array());
 }
 
@@ -330,18 +342,51 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
 
 
 //Constructor using cells
-CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
+CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells) 
+    : CPLForce(nd, icells, jcells, kcells){
     initialisesums(fieldptr->get_array());
 }
 
 //Constructor of datatype
-CPLForceDrag::CPLForceDrag(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
+CPLForceDrag::CPLForceDrag(CPL::ndArray<double> arrayin) 
+    : CPLForce(arrayin){
     initialisesums(arrayin);
 }
 
-//Constructor with optional argument overlap
-CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells, bool overlap) : CPLForceDrag(nd, icells, jcells, kcells){
+//Constructor with optional argument overlap, interpolate and drag_coeff
+CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells, 
+                           bool overlap , bool interpolate, double Cd_)
+    : CPLForce(nd, icells, jcells, kcells)
+{
+
     use_overlap = overlap;
+    use_interpolate = interpolate;
+    Cd = Cd_;
+    initialisesums(fieldptr->get_array());
+}
+
+//Constructor with optional argument overlap, interpolate and drag_coeff
+CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells, 
+                           std::map <std::string, std::string> arg_map)
+//                           double Cd_=0.00001, bool overlap=false)
+//                           , bool interpolate=false, 
+//                           bool drag_on=true, bool gradP_on=true, 
+//                           bool divStress_on=false) 
+    : CPLForce(nd, icells, jcells, kcells)
+{
+
+    // Iterate over the map and print out all key/value pairs.
+    for (const auto& arg : arg_map)
+    {
+        std::cout << "key: " << arg.first;
+        std::cout << "value: " << arg.second << '\n';
+    }
+//    use_overlap = overlap;
+//    use_interpolate = interpolate;
+//    Cd = Cd_;
+//    bool calc_drag = drag_on;
+//    bool use_gradP = gradP_on;
+//    bool use_divStress = divStress_on;
     initialisesums(fieldptr->get_array());
 }
 
@@ -377,11 +422,12 @@ void CPLForceDrag::resetsums(){
 
 //Arbitary constant
 double CPLForceDrag::drag_coefficient() {
-    return 0.0000001;
+    return Cd;
 }
 
 //Pre force collection of sums including overlap code to assign volumes
-void CPLForceDrag::pre_force(double r[], double v[], double a[], double m, double s, double e) {
+void CPLForceDrag::pre_force(double r[], double v[], double a[], 
+                             double m, double s, double e) {
 
     double volume = (4./3.)*M_PI*pow(s,3); 
     nSums->add_to_array(r, 1.0);
@@ -396,7 +442,8 @@ void CPLForceDrag::pre_force(double r[], double v[], double a[], double m, doubl
 
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], double m, double s, double e){
+std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], 
+                                            double m,   double s,   double e){
 
     std::vector<double> f(3), Ui(3), Ui_v(3), gradP(3), divStress(4);
 
@@ -404,13 +451,28 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], 
     CPL::ndArray<double>& array = fieldptr->get_array_pointer();
     assert(array.shape(0) == 9);
 
-    //Get all elements
-    std::vector<int> indices = {0,1,2};
-    Ui = fieldptr->get_array_value(indices, r);
-    for ( int &n : indices ) n += 3;
-    gradP = fieldptr->get_array_value(indices, r);
-    for ( int &n : indices ) n += 3;
-    divStress = fieldptr->get_array_value(indices, r);
+    //Could we use a Function pointer to appropriate get_array_value
+    //std::vector<double> (CPLField::*get_array)(const std::vector<int>, const double*);
+
+
+    //Get all elements of recieved field
+    if (! use_interpolate){
+        //Based on cell
+        std::vector<int> indices = {0,1,2}; 
+        Ui = fieldptr->get_array_value(indices, r);
+        for (int &n : indices) n += 3; 
+        gradP = fieldptr->get_array_value(indices, r);
+        for (int &n : indices) n += 3; 
+        divStress = fieldptr->get_array_value(indices, r);
+    } else {
+        //Or interpolate to position in space
+        std::vector<int> indices = {0,1,2}; 
+        Ui = fieldptr->get_array_value_interp(indices, r);
+        for (int &n : indices) n += 3; 
+        gradP = fieldptr->get_array_value_interp(indices, r);
+        for (int &n : indices) n += 3; 
+        divStress = fieldptr->get_array_value_interp(indices, r);
+    }
 
     //Get uCFD - uDEM
     for (int i=0; i<3; i++){
@@ -424,9 +486,14 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], 
     double volume = (4./3.)*M_PI*pow(s,3); 
     for (int i = 0; i < 3; ++i){
         //Just drag force here
-        f[i] = Cd*Ui_v[i];
-        //Include pressure and stress
-        f[i] += volume*(divStress[i]-gradP[i]);
+        if (use_drag)
+            f[i] = Cd*Ui_v[i];
+        //Include pressure
+        if (use_gradP)
+            f[i] += -volume*gradP[i];
+        // and stress
+        if (use_divStress)
+            f[i] += volume*divStress[i];
         //std::cout << "cell "  <<  cell[0] << " " << cell[1] << " " << cell[2] << std::endl;
     }
 
@@ -465,7 +532,8 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], 
 //VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
 
 //Constructor using cells
-CPLForceGranular::CPLForceGranular(int nd, int icells, int jcells, int kcells) : CPLForceDrag(nd, icells, jcells, kcells){
+CPLForceGranular::CPLForceGranular(int nd, int icells, int jcells, int kcells) 
+    : CPLForceDrag(nd, icells, jcells, kcells){
     initialisesums(fieldptr->get_array());
 }
 

@@ -344,6 +344,12 @@ std::vector<double> CPLField::get_dA(){
     return retrnd_dA;
 }
 
+//Get dV
+double CPLField::get_dV(){
+
+    return dV;
+}
+
 
 //Get cell from min/max and dx
 std::vector<int> CPLField::get_cell(const double r[]){

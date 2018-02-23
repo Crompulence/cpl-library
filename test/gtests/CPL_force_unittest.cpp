@@ -1014,11 +1014,12 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_eSumsFsum) {
 
 
     //Setup Fsum for u=0, v=1 and w=0
-    CPL::ndArray<double> field;
+    double VCFD = 1.0;
     int shape[4] = {nd, icell, jcell, kcell};
+    CPL::ndArray<double> field;
     field.resize (4, shape);
     trplefor(icell,jcell,kcell){
-        field(1, i, j, k) = 1.0;
+        field(1, i, j, k) = VCFD;
     } } }
 
     //Force here should then be based on velocity of U=1.0
@@ -1039,9 +1040,35 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_eSumsFsum) {
     Fbuf = d.FSums->get_array();
     trplefor(icell,jcell,kcell){
         ASSERT_DOUBLE_EQ(ebuf(0,i,j,k), 0.);
-        ASSERT_DOUBLE_EQ(Fbuf(0,i,j,k), c.drag_coefficient()*(0.-i/double(icell)));
-        ASSERT_DOUBLE_EQ(Fbuf(1,i,j,k), c.drag_coefficient()*(1.-j/double(jcell)));
-        ASSERT_DOUBLE_EQ(Fbuf(2,i,j,k), c.drag_coefficient()*(0.-k/double(kcell)));
+        ASSERT_NEAR(Fbuf(0,i,j,k), c.drag_coefficient()*(0.-i/double(icell)),1e-13);
+        ASSERT_NEAR(Fbuf(1,i,j,k), c.drag_coefficient()*(VCFD-j/double(jcell)),1e-13);
+        ASSERT_NEAR(Fbuf(2,i,j,k), c.drag_coefficient()*(0.-k/double(kcell)),1e-13);
+    } } }
+
+    //Check force based on pressure gradient
+    //Setup field with dPdz = 1.0
+    double dPdz = 1.0;
+    CPL::ndArray<double> newfield;
+    newfield.resize (4, shape);
+    trplefor(icell,jcell,kcell){
+        newfield(5, i, j, k) = dPdz;
+    } } }
+
+    CPLForceDrag f(newfield);
+    trplefor(icell,jcell,kcell){
+        r[0] = i/double(icell);
+        r[1] = j/double(jcell);
+        r[2] = k/double(kcell);
+        v[0] = 0.0; v[1] = 0.0; v[2] = 0.0;
+        F = f.get_force(r, v, a, m, s, e);
+    } } }
+
+    //Check values of esum & Fsum
+    Fbuf = f.FSums->get_array();
+    trplefor(icell,jcell,kcell){
+        ASSERT_DOUBLE_EQ(Fbuf(0,i,j,k), 0.0);
+        ASSERT_DOUBLE_EQ(Fbuf(1,i,j,k), 0.0);
+        ASSERT_DOUBLE_EQ(Fbuf(2,i,j,k), -volume*dPdz);
 
     } } }
 
@@ -1104,7 +1131,7 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_overlap_field) {
     double m=1.; double s=radius; double e=1.;
 
     //Call constructor using cell numbers
-    CPLForceDrag c(nd, icell, jcell, kcell, true);
+    CPLForceDrag c(nd, icell, jcell, kcell, true, false, 0.0001);
     c.set_minmax(min, max);
 
     //Get array pointers
@@ -1154,7 +1181,7 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_overlap_field) {
 
     //Domain is from 0 to 1 so cell size is 0.1
     icell = 10; jcell = 10; kcell = 10;
-    CPLForceDrag d(nd, icell, jcell, kcell, true);
+    CPLForceDrag d(nd, icell, jcell, kcell, true, false, 0.00001);
     CPL::ndArray<double>& dbuf = d.eSums->get_array_pointer();
 
     //Particle bigger than lots of cell so fills many cell

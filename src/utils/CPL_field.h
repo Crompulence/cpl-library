@@ -48,8 +48,8 @@ public:
 
     //Get cell values
     std::vector<int> get_cell(const double r[]);
-    std::vector<double> get_dA();    
-    std::vector<double> interpolate(double r[]);
+    std::vector<double> get_dA();
+    double get_dV();
 
     //Function to get sphere cube overlaps
     double sphere_cube_overlap(double, double, double, double,
@@ -64,6 +64,7 @@ public:
     void add_to_array(const double r[], double s, const double value);
 
     // functions to get value from cell i,j,k
+    std::vector<double> interpolate(double r[]);
     double get_array_value(const int index, int i, int j, int k);
     std::vector<double> get_array_value(const std::vector<int> indices, int i, int j, int k);
     std::vector<double> get_array_value(const std::vector<int> indices, const double r[]);
