@@ -220,9 +220,8 @@ public:
     bool use_overlap = false;
     bool use_interpolate = false;
 
-    bool use_drag = true;
     double drag_coefficient();
-    double Cd;
+    double Cd = 0.0000001;
 
     bool use_gradP = true;
     bool use_divStress = false;

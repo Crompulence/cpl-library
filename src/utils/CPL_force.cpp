@@ -3,10 +3,12 @@
 #include <stdexcept>
 #include <assert.h>
 #include <map>
+#include <string> 
 
 #include "CPL_ndArray.h"
 #include "CPL_force.h"
 #include "CPL_field.h"
+#include "CPL_misclib.h"
 #include "overlap/sphere_cube.hpp"
 
 
@@ -375,18 +377,47 @@ CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells,
     : CPLForce(nd, icells, jcells, kcells)
 {
 
+
+    std::cout << "BEFORE "
+                << "use_overlap " << use_overlap << " " 
+                << "use_interpolate " << use_interpolate << " " 
+                << "Cd " << Cd << " " 
+                << "use_gradP " << use_gradP << " " 
+                << "use_divStress " << use_divStress << std::endl;
+
     // Iterate over the map and print out all key/value pairs.
     for (const auto& arg : arg_map)
     {
         std::cout << "key: " << arg.first;
-        std::cout << "value: " << arg.second << '\n';
+        std::cout << " value: " << arg.second
+                  << " checktrue: " << checktrue(arg.second)
+                  << " string contains: " << string_contains(arg.first, "Cd") << '\n';
+
+        if (string_contains(arg.first, "overlap") != -1) {
+            use_overlap = checktrue(arg.second);
+        } else if (string_contains(arg.first, "interpolate") != -1) {
+            use_interpolate = checktrue(arg.second);
+        } else if (string_contains(arg.first, "Cd")  != -1) {
+            Cd = std::stod(arg.second);
+        } else if (string_contains(arg.first, "gradP")  != -1) {
+            use_gradP = checktrue(arg.second);
+        } else if (string_contains(arg.first, "divStress")  != -1) {
+            use_divStress = checktrue(arg.second);
+        } else {
+            std::cout << "key: " << arg.first << 
+            " for forcetype not recognised " << '\n';
+            throw std::runtime_error("CPLForceDrag input not recognised");
+        }
+
     }
-//    use_overlap = overlap;
-//    use_interpolate = interpolate;
-//    Cd = Cd_;
-//    bool calc_drag = drag_on;
-//    bool use_gradP = gradP_on;
-//    bool use_divStress = divStress_on;
+
+    std::cout << "AFTER " 
+                << "use_overlap " << use_overlap << " " 
+                << "use_interpolate " << use_interpolate << " " 
+                << "Cd " << Cd << " " 
+                << "use_gradP " << use_gradP << " " 
+                << "use_divStress " << use_divStress << std::endl;
+
     initialisesums(fieldptr->get_array());
 }
 
@@ -486,8 +517,7 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     double volume = (4./3.)*M_PI*pow(s,3); 
     for (int i = 0; i < 3; ++i){
         //Just drag force here
-        if (use_drag)
-            f[i] = Cd*Ui_v[i];
+        f[i] = Cd*Ui_v[i];
         //Include pressure
         if (use_gradP)
             f[i] += -volume*gradP[i];
