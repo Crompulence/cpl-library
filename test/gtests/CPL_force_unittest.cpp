@@ -1007,9 +1007,9 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_eSumsFsum) {
         //Since introducing overlap mode, need assert near
         //ASSERT_NEAR(c.eSums(i,j,k), volume, 1e-14);
         ASSERT_DOUBLE_EQ(ebuf(0,i,j,k), volume);
-        ASSERT_DOUBLE_EQ(Fbuf(0,i,j,k), -c.drag_coefficient()*i/double(icell));
-        ASSERT_DOUBLE_EQ(Fbuf(1,i,j,k), -c.drag_coefficient()*j/double(jcell));
-        ASSERT_DOUBLE_EQ(Fbuf(2,i,j,k), -c.drag_coefficient()*k/double(kcell));
+        ASSERT_DOUBLE_EQ(Fbuf(0,i,j,k), -c.drag_coefficient(r, ebuf(0,i,j,k))*i/double(icell));
+        ASSERT_DOUBLE_EQ(Fbuf(1,i,j,k), -c.drag_coefficient(r, ebuf(0,i,j,k))*j/double(jcell));
+        ASSERT_DOUBLE_EQ(Fbuf(2,i,j,k), -c.drag_coefficient(r, ebuf(0,i,j,k))*k/double(kcell));
     } } }
 
 
@@ -1040,9 +1040,9 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_eSumsFsum) {
     Fbuf = d.FSums->get_array();
     trplefor(icell,jcell,kcell){
         ASSERT_DOUBLE_EQ(ebuf(0,i,j,k), 0.);
-        ASSERT_NEAR(Fbuf(0,i,j,k), c.drag_coefficient()*(0.-i/double(icell)),1e-13);
-        ASSERT_NEAR(Fbuf(1,i,j,k), c.drag_coefficient()*(VCFD-j/double(jcell)),1e-13);
-        ASSERT_NEAR(Fbuf(2,i,j,k), c.drag_coefficient()*(0.-k/double(kcell)),1e-13);
+        ASSERT_NEAR(Fbuf(0,i,j,k), c.drag_coefficient(r, ebuf(0,i,j,k))*(0.-i/double(icell)),1e-13);
+        ASSERT_NEAR(Fbuf(1,i,j,k), c.drag_coefficient(r, ebuf(0,i,j,k))*(VCFD-j/double(jcell)),1e-13);
+        ASSERT_NEAR(Fbuf(2,i,j,k), c.drag_coefficient(r, ebuf(0,i,j,k))*(0.-k/double(kcell)),1e-13);
     } } }
 
     //Check force based on pressure gradient
@@ -1131,7 +1131,14 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_overlap_field) {
     double m=1.; double s=radius; double e=1.;
 
     //Call constructor using cell numbers
-    CPLForceDrag c(nd, icell, jcell, kcell, true, false, 0.0001);
+    std::map <std::string, std::string> args_map
+    {
+        { "use_overlap", "1" },
+        { "use_interpolate", "0" },
+        { "Cd", "0.0001" }
+    };
+
+    CPLForceDrag c(nd, icell, jcell, kcell, args_map);
     c.set_minmax(min, max);
 
     //Get array pointers
@@ -1181,7 +1188,13 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_overlap_field) {
 
     //Domain is from 0 to 1 so cell size is 0.1
     icell = 10; jcell = 10; kcell = 10;
-    CPLForceDrag d(nd, icell, jcell, kcell, true, false, 0.00001);
+    std::map <std::string, std::string> args_map_
+    {
+        { "use_overlap", "1" },
+        { "use_interpolate", "0" },
+        { "Cd", "0.00001" }
+    };
+    CPLForceDrag d(nd, icell, jcell, kcell, args_map_);
     CPL::ndArray<double>& dbuf = d.eSums->get_array_pointer();
 
     //Particle bigger than lots of cell so fills many cell

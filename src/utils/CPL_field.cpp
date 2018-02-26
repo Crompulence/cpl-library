@@ -22,31 +22,15 @@ CPLField::CPLField(int nd_, int icell_,
     default_minmax();
     set_dxyz();
 
-//    std::cout << "CPLField name: " << name << std::endl;
-
 }
 
-
-//Constructor based on specified size
-//CPLField::CPLField(int nd_, int icell_, 
-//                   int jcell_, int kcell_, 
-//                   const std::string& name_)
-//        : nd(nd_), icell(icell_), jcell(jcell_), kcell(kcell_), name(name_)
-//{
-//    int arrayShape[4] = {nd, icell, jcell, kcell};
-//    array.resize(4, arrayShape);
-//    default_minmax();
-//    set_dxyz();
-
-//    std::cout << "CPLField name: " << name << std::endl;
-//}
 
 //Constructor which uses arrayin and sets size and initial value to this
 CPLField::CPLField(CPL::ndArray<double> arrayin, 
                    const std::string& name_)
         : array(arrayin), name(name_)
 {
-//    array = arrayin;
+//    array = arrayin; //Moved to initialzer list
     nd = arrayin.shape(0);
     icell = arrayin.shape(1);
     jcell = arrayin.shape(2);
@@ -56,27 +40,12 @@ CPLField::CPLField(CPL::ndArray<double> arrayin,
 
 }
 
-//Constructor which uses arrayin and sets size and initial value to this
-//CPLField::CPLField(CPL::ndArray<double> arrayin, 
-//                   const std::string& name_)
-//        : array(arrayin), name(name_)
-//{
-//    nd = arrayin.shape(0);
-//    icell = arrayin.shape(1);
-//    jcell = arrayin.shape(2);
-//    kcell = arrayin.shape(3);
-//    default_minmax();
-//    set_dxyz();
-
-//    std::cout << "CPLField name: " << name << std::endl;
-//}
-
 //Constructor which uses size of array in x, y and z
 CPLField::CPLField(int nd_, CPL::ndArray<double> arrayin, 
                    const std::string& name_)
         : nd(nd_), array(arrayin), name(name_)
 {
-//    array = arrayin;
+//    array = arrayin; //Moved to initialzer list
     icell = array.shape(1);
     jcell = array.shape(2);
     kcell = array.shape(3);
@@ -87,23 +56,6 @@ CPLField::CPLField(int nd_, CPL::ndArray<double> arrayin,
     set_dxyz();
 
 }
-
-//Constructor which uses size of array in x, y and z
-//CPLField::CPLField(int nd_, CPL::ndArray<double> arrayin, 
-//                   const std::string& name_)
-//        : nd(nd_), array(arrayin), name(name_)
-//{
-//    icell = array.shape(1);
-//    jcell = array.shape(2);
-//    kcell = array.shape(3);
-//    int arrayShape[4] = {nd, arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
-//    array.resize(4, arrayShape);
-
-//    default_minmax();
-//    set_dxyz();
-
-//    std::cout << "CPLField name: " << name << std::endl;
-//}
 
 
 ///////////////////////////////////////////////////

@@ -164,7 +164,7 @@ TEST_F(CPL_interp_Test, test_interpolate) {
 //Test for CPL::interpolate 
 TEST_F(CPL_interp_Test, test_force) {
 
-    int nd = 3;
+    int nd = 9;
     int icell = 10; int jcell = 10; int kcell = 10;
 
     //Call constructor using cell numbers

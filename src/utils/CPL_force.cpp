@@ -11,7 +11,6 @@
 #include "CPL_misclib.h"
 #include "overlap/sphere_cube.hpp"
 
-
 ///////////////////////////////////////////////////////////////////
 //                                                               //
 //                    CPLForce base class                        //
@@ -22,22 +21,24 @@
 //Constructors
 CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){ 
     //Shared as we keep reference in fields list
-    fieldptr = std::make_shared<CPL::CPLField>(nd, icells, jcells, kcells);
+    cfd_array_field = std::make_shared<CPL::CPLField>(nd, icells, jcells, kcells);
 }
 
 CPLForce::CPLForce(CPL::ndArray<double> arrayin) {
     //Shared as we keep reference in fields list
-    fieldptr = std::make_shared<CPL::CPLField>(arrayin);
+    cfd_array_field = std::make_shared<CPL::CPLField>(arrayin);
 }
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForce::pre_force(double r[], double v[], double a[], double m, double s, double e) {
+void CPLForce::pre_force(double r[], double v[], double a[], 
+                         double m, double s, double e) {
 //    throw std::runtime_error("CPLForce::pre_force is not defined");
 }
 
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForce::get_force(double r[], double v[], double a[], double m, double s, double e){
+std::vector<double> CPLForce::get_force(double r[], double v[], double a[], 
+                                        double m, double s, double e){
 //    throw std::runtime_error("CPLForce::get_force is not defined");
     std::vector<double> f = {0.0, 0.0, 0.0};
     return f;
@@ -52,7 +53,7 @@ void CPLForce::resetsums(){
 
 //Set minimum and maximum values of field application
 void CPLForce::set_minmax(double min_in[], double max_in[]){
-    fieldptr->set_minmax(min_in, max_in);
+    cfd_array_field->set_minmax(min_in, max_in);
     for ( auto &f : fields ) { 
         f->set_minmax(min_in, max_in);
         //std::cout << "fields " << typeid(*f).name() << std::endl;
@@ -61,7 +62,7 @@ void CPLForce::set_minmax(double min_in[], double max_in[]){
 
 //If either min/max change or field object, we need to recalculate dx, dy and dz
 void CPLForce::set_dxyz(){
-    fieldptr->set_dxyz();
+    cfd_array_field->set_dxyz();
     for ( auto &f : fields ) { 
         f->set_dxyz();
     }
@@ -69,30 +70,30 @@ void CPLForce::set_dxyz(){
 
 //Get dA
 std::vector<double> CPLForce::get_dA(){
-    return fieldptr->get_dA();
+    return cfd_array_field->get_dA();
 }
 
 //Get dV
 double CPLForce::get_dV(){
-    return fieldptr->get_dV();
+    return cfd_array_field->get_dV();
 }
 
 
 //Get cell from min/max and dx
 std::vector<int> CPLForce::get_cell(double r[]){
     std::vector<int> cell(3);
-    cell = fieldptr->get_cell(r);
+    cell = cfd_array_field->get_cell(r);
     return cell;
 }
 
 //This function sets the main field obtained from the CFD 
 void CPLForce::set_field(CPL::ndArray<double> arrayin){
-    fieldptr->set_array(arrayin);   
+    cfd_array_field->set_array(arrayin);   
 };
 
 //Get main CFD field
 CPL::ndArray<double> CPLForce::get_field(){
-    return fieldptr->get_array();
+    return cfd_array_field->get_array();
 };
 
 std::shared_ptr<CPL::CPLField> CPLForce::get_internal_fields(const std::string& name){
@@ -116,7 +117,7 @@ std::shared_ptr<CPL::CPLField> CPLForce::get_internal_fields(const std::string& 
 //Constructor using cells
 CPLForceTest::CPLForceTest(int nd, int icells, int jcells, int kcells)
      : CPLForce(nd, icells, jcells, kcells){
-    initialisesums(fieldptr->get_array());
+    initialisesums(cfd_array_field->get_array());
 }
 
 //Constructor of datatype
@@ -155,7 +156,7 @@ std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[],
                                             double m, double s, double e){
 
     std::vector<int> indices = {0,1,2};
-    std::vector<double> f = fieldptr->get_array_value(indices, r);
+    std::vector<double> f = cfd_array_field->get_array_value(indices, r);
 
 //    std::cout << "CPLForceTest " << f[0] << " " << f[1] << " " << f[2] << std::endl;
 
@@ -170,12 +171,14 @@ std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[],
 ///////////////////////////////////////////////////////////////////
 
 //Constructor using cells
-CPLForceVelocity::CPLForceVelocity(int nd, int icells, int jcells, int kcells) : CPLForce(nd, icells, jcells, kcells){
-    initialisesums(fieldptr->get_array());
+CPLForceVelocity::CPLForceVelocity(int nd, int icells, int jcells, int kcells) 
+    : CPLForce(nd, icells, jcells, kcells){
+    initialisesums(cfd_array_field->get_array());
 }
 
 //Constructor of datatype
-CPLForceVelocity::CPLForceVelocity(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
+CPLForceVelocity::CPLForceVelocity(CPL::ndArray<double> arrayin) 
+    : CPLForce(arrayin){
     initialisesums(arrayin);
 }
 
@@ -212,7 +215,7 @@ std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a
 
     std::vector<double> f(3); 
     std::vector<int> cell = get_cell(r);
-    CPL::ndArray<double> array = fieldptr->get_array();
+    CPL::ndArray<double> array = cfd_array_field->get_array();
     int N = nSums(cell[0], cell[1], cell[2]);
     if (N < 1.0) {
         std::cout << "Warning: 0 particles in cell (" 
@@ -241,7 +244,7 @@ std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a
 //Constructor using cells
 CPLForceFlekkoy::CPLForceFlekkoy(int nd, int icells, int jcells, int kcells) 
     : CPLForce(nd, icells, jcells, kcells){
-    initialisesums(fieldptr->get_array());
+    initialisesums(cfd_array_field->get_array());
 }
 
 //Constructor of datatype
@@ -289,25 +292,27 @@ double CPLForceFlekkoy::flekkoyGWeight(double y, double ymin, double ymax) {
 }
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceFlekkoy::pre_force(double r[], double v[], double a[], double m, double s, double e) {
+void CPLForceFlekkoy::pre_force(double r[], double v[], double a[], 
+                                double m, double s, double e) {
 
     // Find in which cell number (local to processor) is the particle
     // and sum all the Flekkøy weights for each cell.
     std::vector<int> cell = get_cell(r);
 
-    double g = flekkoyGWeight(r[1], fieldptr->min[1], fieldptr->max[1]);
+    double g = flekkoyGWeight(r[1], cfd_array_field->min[1], cfd_array_field->max[1]);
     nSums(cell[0], cell[1], cell[2]) += 1.0; 
     gSums(cell[0], cell[1], cell[2]) += g;
 
 }
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
-std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[], double m, double s, double e){
+std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[], 
+                                               double m, double s, double e){
 
-    std::vector<double> dA = fieldptr->get_dA(); 
+    std::vector<double> dA = cfd_array_field->get_dA(); 
     std::vector<double> f = {0.0, 0.0, 0.0}; 
     std::vector<int> cell = get_cell(r);
-    CPL::ndArray<double> array = fieldptr->get_array();
+    CPL::ndArray<double> array = cfd_array_field->get_array();
     double n = nSums(cell[0], cell[1], cell[2]);
 
     if (n < 1.0) {
@@ -319,7 +324,7 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
         // Since the Flekkoy weight is considered only for 0 < y < L/2, for cells 
         // that are completely in y < 0 gSums(i, j, k) will be always 0.0 so can 
         // produce a NAN in the g/gSums division below.
-        double g = flekkoyGWeight(r[1], fieldptr->min[1], fieldptr->max[1]);
+        double g = flekkoyGWeight(r[1], cfd_array_field->min[1], cfd_array_field->max[1]);
 
         if (gSums(cell[0], cell[1], cell[2]) > 0.0) {
             double gdA = (g/gSums(cell[0], cell[1], cell[2])) * dA[1];
@@ -346,7 +351,7 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
 //Constructor using cells
 CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells) 
     : CPLForce(nd, icells, jcells, kcells){
-    initialisesums(fieldptr->get_array());
+    initialisesums(cfd_array_field->get_array());
 }
 
 //Constructor of datatype
@@ -355,30 +360,59 @@ CPLForceDrag::CPLForceDrag(CPL::ndArray<double> arrayin)
     initialisesums(arrayin);
 }
 
-//Constructor with optional argument overlap, interpolate and drag_coeff
-CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells, 
-                           bool overlap , bool interpolate, double Cd_)
-    : CPLForce(nd, icells, jcells, kcells)
+//Constructor of datatype
+CPLForceDrag::CPLForceDrag(CPL::ndArray<double> arrayin, 
+                           map_strstr arg_map) 
+    : CPLForce(arrayin)
 {
-
-    use_overlap = overlap;
-    use_interpolate = interpolate;
-    Cd = Cd_;
-    initialisesums(fieldptr->get_array());
+    unpack_arg_map(arg_map);
+    initialisesums(arrayin);
 }
 
 //Constructor with optional argument overlap, interpolate and drag_coeff
 CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells, 
-                           std::map <std::string, std::string> arg_map)
-//                           double Cd_=0.00001, bool overlap=false)
-//                           , bool interpolate=false, 
-//                           bool drag_on=true, bool gradP_on=true, 
-//                           bool divStress_on=false) 
+                           map_strstr arg_map)
     : CPLForce(nd, icells, jcells, kcells)
 {
+    unpack_arg_map(arg_map);
+    initialisesums(cfd_array_field->get_array());
+}
 
 
-    std::cout << "BEFORE "
+void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
+    
+    int i = arrayin.shape(1);
+    int j = arrayin.shape(2);
+    int k = arrayin.shape(3);
+    nSums = std::make_shared<CPL::CPLField>(1, i, j, k, "nSums");
+    vSums = std::make_shared<CPL::CPLField>(3, i, j, k, "vSums");
+    eSums = std::make_shared<CPL::CPLField>(1, i, j, k, "eSums");
+    FSums = std::make_shared<CPL::CPLField>(3, i, j, k, "FSums");
+    FcoeffSums = std::make_shared<CPL::CPLField>(1, i, j, k, "FcoeffSums");
+
+    build_fields_list();
+    resetsums();
+}
+
+void CPLForceDrag::build_fields_list(){
+
+    fields.push_back(nSums);
+    fields.push_back(vSums);
+    fields.push_back(eSums);
+    fields.push_back(FSums);
+    fields.push_back(FcoeffSums);
+}
+
+//Can be inhereted from Base Class
+void CPLForceDrag::resetsums(){
+
+    for ( auto &f : fields ) { 
+        f->zero_array(); 
+    }
+}
+
+void CPLForceDrag::unpack_arg_map(map_strstr arg_map){
+   std::cout << "BEFORE "
                 << "use_overlap " << use_overlap << " " 
                 << "use_interpolate " << use_interpolate << " " 
                 << "Cd " << Cd << " " 
@@ -397,12 +431,16 @@ CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells,
             use_overlap = checktrue(arg.second);
         } else if (string_contains(arg.first, "interpolate") != -1) {
             use_interpolate = checktrue(arg.second);
-        } else if (string_contains(arg.first, "Cd")  != -1) {
-            Cd = std::stod(arg.second);
         } else if (string_contains(arg.first, "gradP")  != -1) {
             use_gradP = checktrue(arg.second);
         } else if (string_contains(arg.first, "divStress")  != -1) {
             use_divStress = checktrue(arg.second);
+        } else if (string_contains(arg.first, "Cd")  != -1) {
+            Cd = std::stod(arg.second);
+        } else if (string_contains(arg.first, "mu")  != -1) {
+            mu = std::stod(arg.second);
+        } else if (string_contains(arg.first, "rho")  != -1) {
+            rho = std::stod(arg.second);
         } else {
             std::cout << "key: " << arg.first << 
             " for forcetype not recognised " << '\n';
@@ -418,41 +456,32 @@ CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells,
                 << "use_gradP " << use_gradP << " " 
                 << "use_divStress " << use_divStress << std::endl;
 
-    initialisesums(fieldptr->get_array());
 }
 
+//Unpack various CFD values from array into a range of fields.
+//Currently we use an array with all values "cfd_array_field".
+//void CPLForceDrag::unpack_CFD_array(CPL::ndArray<double> arrayin){
 
-void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
-    
-    int i = arrayin.shape(1);
-    int j = arrayin.shape(2);
-    int k = arrayin.shape(3);
-    nSums = std::make_shared<CPL::CPLField>(1, i, j, k, "nSums");
-    eSums = std::make_shared<CPL::CPLField>(1, i, j, k, "eSums");
-    FSums = std::make_shared<CPL::CPLField>(3, i, j, k, "FSums");
-    FcoeffSums = std::make_shared<CPL::CPLField>(1, i, j, k, "FcoeffSums");
-
-    build_fields_list();
-    resetsums();
-}
-
-void CPLForceDrag::build_fields_list(){
-
-    fields.push_back(nSums);
-    fields.push_back(eSums);
-    fields.push_back(FSums);
-    fields.push_back(FcoeffSums);
-}
-
-void CPLForceDrag::resetsums(){
-
-    for ( auto &f : fields ) { 
-        f->zero_array(); 
-    }
-}
+//    CPL::ndArray<double> CFDarrayu, CFDarrayp, CFDarrays;
+//    int arrayShape[4] = {3, arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+//    CFDarrayu.resize(4, arrayShape);
+//    CFDarrayp.resize(4, arrayShape);
+//    CFDarrays.resize(4, arrayShape);
+//    for (int n=0; n<CFDarrayu.shape(0); n++){
+//    for (int i=0; i<CFDarrayu.shape(1); i++){
+//    for (int j=0; j<CFDarrayu.shape(2); j++){
+//    for (int k=0; k<CFDarrayu.shape(3); k++){
+//        CFDarrayu(n,i,j,k) = arrayin(n,i,j,k);
+//        CFDarrayp(n,i,j,k) = arrayin(n+3,i,j,k);
+//        CFDarrays(n,i,j,k) = arrayin(n+6,i,j,k);
+//    }}}}
+//    UCFD = std::make_shared<CPL::CPLField>(CFDarrayu, "UCFD");
+//    gradPCFD = std::make_shared<CPL::CPLField>(CFDarrayp, "gradPCFD");
+//    gradStressCFD = std::make_shared<CPL::CPLField>(CFDarrays, "gradStressCFD");
+//}
 
 //Arbitary constant
-double CPLForceDrag::drag_coefficient() {
+double CPLForceDrag::drag_coefficient(double r[], double D) {
     return Cd;
 }
 
@@ -462,11 +491,12 @@ void CPLForceDrag::pre_force(double r[], double v[], double a[],
 
     double volume = (4./3.)*M_PI*pow(s,3); 
     nSums->add_to_array(r, 1.0);
-    if (! use_overlap)
-    {
+    if (! use_overlap){
         eSums->add_to_array(r, volume);
+        vSums->add_to_array(r, v);
     } else {
         eSums->add_to_array(r, s, volume);
+        vSums->add_to_array(r, s, v);
     }
 
 }
@@ -476,13 +506,15 @@ void CPLForceDrag::pre_force(double r[], double v[], double a[],
 std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], 
                                             double m,   double s,   double e){
 
+
+    //Define variable
     std::vector<double> f(3), Ui(3), Ui_v(3), gradP(3), divStress(4);
 
     //Check array is the right size
-    CPL::ndArray<double>& array = fieldptr->get_array_pointer();
+    CPL::ndArray<double>& array = cfd_array_field->get_array_pointer();
     assert(array.shape(0) == 9);
 
-    //Could we use a Function pointer to appropriate get_array_value
+    //Could use a Function pointer to appropriate get_array_value
     //std::vector<double> (CPLField::*get_array)(const std::vector<int>, const double*);
 
 
@@ -490,19 +522,19 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     if (! use_interpolate){
         //Based on cell
         std::vector<int> indices = {0,1,2}; 
-        Ui = fieldptr->get_array_value(indices, r);
+        Ui = cfd_array_field->get_array_value(indices, r);
         for (int &n : indices) n += 3; 
-        gradP = fieldptr->get_array_value(indices, r);
+        gradP = cfd_array_field->get_array_value(indices, r);
         for (int &n : indices) n += 3; 
-        divStress = fieldptr->get_array_value(indices, r);
+        divStress = cfd_array_field->get_array_value(indices, r);
     } else {
         //Or interpolate to position in space
         std::vector<int> indices = {0,1,2}; 
-        Ui = fieldptr->get_array_value_interp(indices, r);
+        Ui = cfd_array_field->get_array_value_interp(indices, r);
         for (int &n : indices) n += 3; 
-        gradP = fieldptr->get_array_value_interp(indices, r);
+        gradP = cfd_array_field->get_array_value_interp(indices, r);
         for (int &n : indices) n += 3; 
-        divStress = fieldptr->get_array_value_interp(indices, r);
+        divStress = cfd_array_field->get_array_value_interp(indices, r);
     }
 
     //Get uCFD - uDEM
@@ -510,8 +542,11 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
         Ui_v[i] = Ui[i]-v[i];
     }
 
+
+    //Get Diameter
+    double D = 2.0*s;
     //Get drag coefficient
-    double Cd = drag_coefficient();
+    double Cd = drag_coefficient(r, D);
 
     //Calculate force
     double volume = (4./3.)*M_PI*pow(s,3); 
@@ -564,11 +599,12 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
 //Constructor using cells
 CPLForceGranular::CPLForceGranular(int nd, int icells, int jcells, int kcells) 
     : CPLForceDrag(nd, icells, jcells, kcells){
-    initialisesums(fieldptr->get_array());
+    initialisesums(cfd_array_field->get_array());
 }
 
 //Constructor of datatype
-CPLForceGranular::CPLForceGranular(CPL::ndArray<double> arrayin) : CPLForceDrag(arrayin){
+CPLForceGranular::CPLForceGranular(CPL::ndArray<double> arrayin) 
+    : CPLForceDrag(arrayin){
     initialisesums(arrayin);
 }
 
@@ -619,7 +655,8 @@ double CPLForceGranular::magnitude(std::vector<double> v){
 } 
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-void CPLForceGranular::pre_force(double r[], double v[], double a[], double m, double s, double e) {
+void CPLForceGranular::pre_force(double r[], double v[], double a[], 
+                                 double m, double s, double e) {
 
     // Find in which cell number (local to processor) is the particle
     // and sum all the velocities for each cell.
@@ -634,18 +671,19 @@ void CPLForceGranular::pre_force(double r[], double v[], double a[], double m, d
 
 
 //Get force using sums collected in pre force
-std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a[], double m, double s, double e) {
+std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a[], 
+                                                double m, double s, double e) {
 
     std::vector<double> f(3), Ui(3), Ui_v(3);
     std::vector<int> cell = get_cell(r);
-    CPL::ndArray<double>& array = fieldptr->get_array_pointer();
+    CPL::ndArray<double>& array = cfd_array_field->get_array_pointer();
 
     double radius = s;
     double d = 2.0*radius;
     //double volume = (4./3.)*M_PI*pow(radius,3); 
 
     //Porosity e is cell volume - sum in volume
-    double cellvolume = fieldptr->dV;
+    double cellvolume = cfd_array_field->dV;
     double eps = 1.0 - eSums(cell[0], cell[1], cell[2])/cellvolume;
     double rho = 1.0; //m/volume;
     double mu = 1.0;
@@ -731,18 +769,19 @@ double CPLForceBVK::CPLForceBVK_expression(double eps, double D, double U, doubl
 
 
 //Get force using sums collected in pre force
-std::vector<double> CPLForceBVK::get_force(double r[], double v[], double a[], double m, double s, double e) {
+std::vector<double> CPLForceBVK::get_force(double r[], double v[], double a[], 
+                                           double m, double s, double e) {
 
     std::vector<double> f(3), Ui(3), Ui_v(3);
     std::vector<int> cell = get_cell(r);
-    CPL::ndArray<double>& array = fieldptr->get_array_pointer();
+    CPL::ndArray<double>& array = cfd_array_field->get_array_pointer();
 
     double radius = s;
     double d = 2.0*radius;
     //double volume = (4./3.)*M_PI*pow(radius,3); 
 
     //Porosity e is cell volume - sum in volume
-    double cellvolume = fieldptr->dV;
+    double cellvolume = cfd_array_field->dV;
     double eps = 1.0 - eSums(cell[0], cell[1], cell[2])/cellvolume;
     double rho = 1.0; //m/volume;
     double mu = 1.0;

@@ -59,7 +59,10 @@ Author(s)
 #include "CPL_ndArray.h"
 #include "CPL_field.h"
 
-//typedef std::unique_ptr<CPL::CPLField> CPLFieldPtr;
+typedef std::map <std::string, std::string> map_strstr;
+
+//typedef std::unique_ptr<CPL::CPLField> CPLuFieldPtr;
+//typedef std::shared_ptr<CPL::CPLField> CPLsFieldPtr;
 
 class CPLForce{
 
@@ -67,8 +70,8 @@ protected:
 
     double min[3], max[3], dxyz[3], dA[3], dV;
 
-    //CPL::CPLField* fieldptr;
-    std::shared_ptr<CPL::CPLField> fieldptr;
+    //CPL::CPLField* cfd_array_field;
+    std::shared_ptr<CPL::CPLField> cfd_array_field;
     std::vector<std::shared_ptr<CPL::CPLField>> fields;
 
 public:
@@ -100,7 +103,7 @@ public:
 
     //Destructor
     virtual ~CPLForce() {
-    //    delete fieldptr;
+    //    delete cfd_array_field;
     }
 
 private:
@@ -197,16 +200,17 @@ private:
 
 };
 
-
+// A base class for all drag related forces, includes overlap and interpolate
+// flags, sums for porosity and valeus for density/drag coefficients and viscosity
 class CPLForceDrag : public CPLForce {
 
 public:
 
     //Constructors
     CPLForceDrag(CPL::ndArray<double>);
+    CPLForceDrag(CPL::ndArray<double>, map_strstr);
     CPLForceDrag(int, int, int, int);
-    CPLForceDrag(int, int, int, int, bool, bool, double);
-    CPLForceDrag(int, int, int, int, std::map <std::string, std::string> );
+    CPLForceDrag(int, int, int, int, map_strstr);
 
     //Pre force collection and get force calculation
     // position, velocity, acceleration, mass, radius, interaction
@@ -215,22 +219,27 @@ public:
     std::vector<double> get_force(double r[], double v[], double a[], 
                                   double m, double s, double e);
 
+    void unpack_arg_map(map_strstr arg_map);
+    void unpack_CFD_array(CPL::ndArray<double> arrayin);
+
     //Force specific things
     bool calc_preforce = true;
     bool use_overlap = false;
     bool use_interpolate = false;
-
-    double drag_coefficient();
-    double Cd = 0.0000001;
-
     bool use_gradP = true;
     bool use_divStress = false;
+
+    double drag_coefficient(double r[], double D);
+    double Cd = 0.0000001;
+    double mu = 0.0008900;
+    double rho = 1e3;
 
     //Vector of fields
     void build_fields_list();
 
     //Shared pointer instead of unique as we also keep in fields list
     std::shared_ptr<CPL::CPLField> nSums;
+    std::shared_ptr<CPL::CPLField> vSums;
     std::shared_ptr<CPL::CPLField> eSums;
     std::shared_ptr<CPL::CPLField> FSums;
     std::shared_ptr<CPL::CPLField> FcoeffSums;
