@@ -68,6 +68,8 @@ public:
     double get_array_value(const int index, int i, int j, int k);
     std::vector<double> get_array_value(const std::vector<int> indices, int i, int j, int k);
     std::vector<double> get_array_value(const std::vector<int> indices, const double r[]);
+    double get_array_value(const int index, const double r[]);
+    double get_array_value(const double r[]);
     std::vector<double> get_array_value_interp(const std::vector<int> indices, const double r[]);
 
     //Variables

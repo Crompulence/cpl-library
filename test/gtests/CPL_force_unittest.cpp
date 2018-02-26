@@ -973,13 +973,14 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_eSumsFsum) {
     double r[3] = {0.0, 0.0, 0.0};
     double v[3] = {0.0, 0.0, 0.0};
     double a[3] = {0.0, 0.0, 0.0};
-    std::vector<double> F;
+    std::vector<double> F, Ur;
     double radius = 0.001;
     double volume = (4./3.)*M_PI*pow(radius,3);
     double m=1.; double s=radius; double e=1.;
-
+    //For test force, drag coefficient is a constant for all input
+    double Cd = c.drag_coefficient(r, s*2., Ur);
     //Test with PCM (volume assigned to cell based on centre)
-    c.use_overlap = false;
+    //c.use_overlap = false;
 
     //Setup esum
     trplefor(icell,jcell,kcell){
@@ -1007,9 +1008,9 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_eSumsFsum) {
         //Since introducing overlap mode, need assert near
         //ASSERT_NEAR(c.eSums(i,j,k), volume, 1e-14);
         ASSERT_DOUBLE_EQ(ebuf(0,i,j,k), volume);
-        ASSERT_DOUBLE_EQ(Fbuf(0,i,j,k), -c.drag_coefficient(r, ebuf(0,i,j,k))*i/double(icell));
-        ASSERT_DOUBLE_EQ(Fbuf(1,i,j,k), -c.drag_coefficient(r, ebuf(0,i,j,k))*j/double(jcell));
-        ASSERT_DOUBLE_EQ(Fbuf(2,i,j,k), -c.drag_coefficient(r, ebuf(0,i,j,k))*k/double(kcell));
+        ASSERT_DOUBLE_EQ(Fbuf(0,i,j,k), -Cd*i/double(icell));
+        ASSERT_DOUBLE_EQ(Fbuf(1,i,j,k), -Cd*j/double(jcell));
+        ASSERT_DOUBLE_EQ(Fbuf(2,i,j,k), -Cd*k/double(kcell));
     } } }
 
 
@@ -1040,9 +1041,9 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_eSumsFsum) {
     Fbuf = d.FSums->get_array();
     trplefor(icell,jcell,kcell){
         ASSERT_DOUBLE_EQ(ebuf(0,i,j,k), 0.);
-        ASSERT_NEAR(Fbuf(0,i,j,k), c.drag_coefficient(r, ebuf(0,i,j,k))*(0.-i/double(icell)),1e-13);
-        ASSERT_NEAR(Fbuf(1,i,j,k), c.drag_coefficient(r, ebuf(0,i,j,k))*(VCFD-j/double(jcell)),1e-13);
-        ASSERT_NEAR(Fbuf(2,i,j,k), c.drag_coefficient(r, ebuf(0,i,j,k))*(0.-k/double(kcell)),1e-13);
+        ASSERT_NEAR(Fbuf(0,i,j,k), Cd*(0.-i/double(icell)),1e-13);
+        ASSERT_NEAR(Fbuf(1,i,j,k), Cd*(VCFD-j/double(jcell)),1e-13);
+        ASSERT_NEAR(Fbuf(2,i,j,k), Cd*(0.-k/double(kcell)),1e-13);
     } } }
 
     //Check force based on pressure gradient
@@ -1291,10 +1292,19 @@ TEST_F(CPL_Force_Test, test_Granular_CPL_forces) {
         F = c.get_force(r, v, a, m, s, e);
     } } }
 
-    //Check values of esum & Fsum
+
+    //Get array pointers
+    std::string name("eSums");
+    auto field_ptr = c.get_internal_fields(name);
+
     trplefor(icell,jcell,kcell){
 
-        ASSERT_DOUBLE_EQ(c.eSums(i,j,k), volume);
+        if (field_ptr != nullptr){
+            ASSERT_DOUBLE_EQ(field_ptr->get_array_value(0, i, j, k), volume);
+        }
+
+
+        
 //        std::cout << i << " " << j << " " << k
 //                    << " " << c.eSums(i, j, k)
 //                    << " " << c.FSums(0, i, j, k)

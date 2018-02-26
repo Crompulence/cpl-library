@@ -211,8 +211,52 @@ CPL_force /                       __CPL_Di_Felice
                        \            
                         CPL_dragtest
 
-Tutorial on creating new Drag Forces
-=======================================
+Minimal tutorial on creating new Drag Forces
+=============================================
+
+The process of designing an appropriate drag force is given as an example here.
+We will outline the process of designing the Ergun drag force,
+
+F = 150.0*e*nu*rho/(pow(e*D, 2.0)) + 1.75*rho()*Ur/(e*D)
+
+where we need to work out both porosity e and the fluid velocity Ur = U_MD-U_CFD.
+A far more detailed version is given in the next section. 
+The minimal changes are given here, add the following to the
+CPL_force.h header file,
+
+*/ 
+
+class CPLForceErgun : public CPLForceGranular {
+
+public:
+
+    //Constructors
+    using CPLForceGranular::CPLForceGranular;
+
+    //Force specific things
+    double drag_coefficient(double r[], double D, std::vector<double> Ui_v);
+
+};
+
+// and the following code to CPL_force.cpp which changes the drag coefficient
+
+double CPLForceErgun::drag_coefficient(double r[], double D, std::vector<double> Ui_v) {
+    double eps = CPLForceGranular::get_eps(r);
+    if (eps == 0.0) {
+        return 0.0;
+    } else {
+        return 150.0*eps*(mu/rho)*rho/(pow(eps*D, 2.0)) + 1.75*rho/(eps*D);
+    }
+}
+
+/*
+
+That's it, provided the force can be defined in terms of position, D and relative velocity
+Ur with all fields from pre-force eSum and vSums. 
+
+
+Extended Tutorial on creating new Drag Forces
+==============================================
 
 The process of designing an appropriate drag force is given as an example here.
 Much of the code is indentical to existing constraints so would not actually 
@@ -430,13 +474,12 @@ routine here,
 
 double CPLForceErgun::drag_coefficient(double r[], double D) {
     //Porosity e is cell volume - sum in volume
-    double e = 1.0 - eSums.get_array_value(r)/eSums.dV;
+    double e = 1.0 - eSums->get_array_value(r)/eSums.dV;
     if (e < 1e-5) {
         std::cout << "Warning: 0 particles in cell (" 
                   << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
                   << std::endl;
-        f[0]=0.0; f[1]=0.0; f[2]=0.0;
-        return f;
+        return 0.0;
     }
     return 150.0*e*nu*rho/(pow(e*D, 2.0)) + 1.75*rho/(e*D);
 }

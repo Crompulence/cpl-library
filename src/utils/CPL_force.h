@@ -229,7 +229,7 @@ public:
     bool use_gradP = true;
     bool use_divStress = false;
 
-    double drag_coefficient(double r[], double D);
+    double drag_coefficient(double r[], double D, std::vector<double> Ui_v);
     double Cd = 0.0000001;
     double mu = 0.0008900;
     double rho = 1e3;
@@ -256,34 +256,21 @@ class CPLForceGranular : public CPLForceDrag {
 public:
 
     //Constructors
-    CPLForceGranular(CPL::ndArray<double> field);
-    CPLForceGranular(int nd, int icell, int jcell, int kcell);
+    using CPLForceDrag::CPLForceDrag;
 
-    //Pre force collection and get force calculation
-    // position, velocity, acceleration, mass, radius, interaction
-    void pre_force(double r[], double v[], double a[], 
-                   double m, double s, double e);
-    std::vector<double> get_force(double r[], double v[], double a[], 
-                                  double m, double s, double e);
-
-    //Force specific things
-    double Reynolds_number(double D, double U, double rho, double mu, double eps);
+    //CPLForceGranular functions
     double porousity_exponent(double Re);
-    double drag_coefficient(double Re);
+    double drag_coefficient_Re(double Re);
+
+    //Granular functions
+    double Reynolds_number(double D, double U, double rho, double mu, double eps);
     double magnitude(std::vector<double> v);
+    double get_eps(double r[]);
 
-    bool calc_preforce = true;
+    //Specific function overiden
+    double drag_coefficient(double r[], double D, std::vector<double> Ui_v);
 
-    CPL::ndArray<double> vSums;
-    CPL::ndArray<double> nSums;
-    CPL::ndArray<double> eSums;
-    CPL::ndArray<double> FSums;
-    CPL::ndArray<double> FcoeffSums;
-
-private:
-
-    void initialisesums(CPL::ndArray<double> f);
-    void resetsums();
+//private:
 
 };
 
@@ -292,33 +279,29 @@ class CPLForceBVK : public CPLForceGranular {
 public:
 
     //Constructors
-    CPLForceBVK(CPL::ndArray<double> field);
-    CPLForceBVK(int nd, int icell, int jcell, int kcell);
-
-    //Pre force collection and get force calculation
-    // position, velocity, acceleration, mass, radius, interaction
-    void pre_force(double r[], double v[], double a[], 
-                   double m, double s, double e);
-    std::vector<double> get_force(double r[], double v[], double a[], 
-                                  double m, double s, double e);
+    using CPLForceGranular::CPLForceGranular;
 
     //Force specific things
-    double Reynolds_number(double D, double U, double rho, double mu, double eps);
     double Stokes(double D, double U, double mu);
     double CPLForceBVK_expression(double eps, double D, double U, double rho, double mu);
+    double drag_coefficient(double r[], double D, std::vector<double> Ui_v);
 
-    bool calc_preforce = true;
+//private:
 
-    CPL::ndArray<double> vSums;
-    CPL::ndArray<double> nSums;
-    CPL::ndArray<double> eSums;
-    CPL::ndArray<double> FSums;
-    CPL::ndArray<double> FcoeffSums;
+};
 
-private:
 
-    void initialisesums(CPL::ndArray<double> f);
-    void resetsums();
+class CPLForceErgun : public CPLForceGranular {
+
+public:
+
+    //Constructors
+    using CPLForceGranular::CPLForceGranular;
+
+    //Force specific things
+    double drag_coefficient(double r[], double D, std::vector<double> Ui_v);
+
+//private:
 
 };
 

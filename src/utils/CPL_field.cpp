@@ -354,6 +354,15 @@ std::vector<double> CPLField::get_array_value(const std::vector<int> indices, co
     return v;
 }
 
+// A function which gets value using position of molecule, no interpolation
+double CPLField::get_array_value(const int index, const double r[]){
+    std::vector<int> cell = get_cell(r);
+    return array(index, cell[0], cell[1], cell[2]);
+}
+
+double CPLField::get_array_value(const double r[]){
+    return CPLField::get_array_value(0, r);
+}
 
 // A function which gets interpolated value in array cell using position of molecule
 std::vector<double> CPLField::get_array_value_interp(const std::vector<int> indices, const double r[]){
