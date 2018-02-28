@@ -346,7 +346,9 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
 //                      CPLForceDrag                             //
 //                                                               //
 ///////////////////////////////////////////////////////////////////
-
+// This has the form of a further abstract base class for drag 
+// based coupled examples, defining flags, appropriate internal
+// fields and necessary force functions.
 
 //Constructor using cells
 CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells) 
@@ -411,7 +413,17 @@ void CPLForceDrag::resetsums(){
     }
 }
 
+// Split into protected functions for a default set of inputs
+// and an extended set which, if defined, will supplement.
 void CPLForceDrag::unpack_arg_map(map_strstr arg_map){
+    bool extra_args = unpack_extra_arg_map(arg_map);
+    unpack_default_arg_map(arg_map, extra_args);
+}
+
+
+
+void CPLForceDrag::unpack_default_arg_map(map_strstr arg_map, bool extra_args){
+
 //   std::cout << "BEFORE "
 //                << "use_overlap " << use_overlap << " " 
 //                << "use_interpolate " << use_interpolate << " " 
@@ -421,14 +433,10 @@ void CPLForceDrag::unpack_arg_map(map_strstr arg_map){
 //                << "use_gradP " << use_gradP << " " 
 //                << "use_divStress " << use_divStress << std::endl;
 
+
     // Iterate over the map and print out all key/value pairs.
     for (const auto& arg : arg_map)
     {
-//        std::cout << "key: " << arg.first;
-//        std::cout << " value: " << arg.second
-//                  << " checktrue: " << checktrue(arg.second)
-//                  << " string contains: " << string_contains(arg.first, "Cd") << '\n';
-
         if (string_contains(arg.first, "overlap") != -1) {
             use_overlap = checktrue(arg.second);
         } else if (string_contains(arg.first, "interpolate") != -1) {
@@ -443,12 +451,11 @@ void CPLForceDrag::unpack_arg_map(map_strstr arg_map){
             mu = std::stod(arg.second);
         } else if (string_contains(arg.first, "rho")  != -1) {
             rho = std::stod(arg.second);
-        } else {
+        } else if (extra_args) {
             std::cout << "key: " << arg.first << 
-            " for forcetype not recognised " << '\n';
+            " for forcetype not recognised as default" << '\n';
             throw std::runtime_error("CPLForceDrag input not recognised");
         }
-
     }
 
 //    std::cout << "AFTER " 
@@ -459,6 +466,25 @@ void CPLForceDrag::unpack_arg_map(map_strstr arg_map){
 //                << "rho " << rho << " " 
 //                << "use_gradP " << use_gradP << " " 
 //                << "use_divStress " << use_divStress << std::endl;
+
+}
+
+// This is the function which should be overridden
+bool CPLForceDrag::unpack_extra_arg_map(map_strstr arg_map){
+
+    // Iterate over the map and print out all key/value pairs.
+    bool extra_args = false;
+    for (const auto& arg : arg_map)
+    {
+//        std::cout << "key: " << arg.first;
+//        std::cout << " value: " << arg.second
+//                  << " checktrue: " << checktrue(arg.second) << '\n';
+        if (string_contains(arg.first, "some_extra_argument") != -1) {
+            bool extra_args_name = checktrue(arg.second);
+            extra_args = true; //Set this to disable default check
+        }
+    }
+    return extra_args;
 
 }
 
@@ -485,8 +511,10 @@ void CPLForceDrag::unpack_arg_map(map_strstr arg_map){
 //}
 
 //Arbitary constant in this case so r and D are irrelevant
-double CPLForceDrag::drag_coefficient(double r[], double D, std::vector<double> Ui_v) {
-    return Cd;
+double CPLForceDrag::drag_coefficient(double r[], double D, 
+                                      std::vector<double> Ui_v) {
+    std::cout << "DRAG Cd: " << Cd << std::endl;
+    return Cd; //Use default Drag value
 }
 
 //Pre force collection of sums including overlap code to assign volumes
@@ -544,14 +572,15 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
 
     //Get Diameter
     double D = 2.0*s;
+
     //Get drag coefficient
-    double Cd = drag_coefficient(r, D, Ui_v);
+    double A = drag_coefficient(r, D, Ui_v);
 
     //Calculate force
     double volume = (4./3.)*M_PI*pow(s,3); 
     for (int i = 0; i < 3; ++i){
         //Just drag force here
-        f[i] = Cd*Ui_v[i];
+        f[i] = A*Ui_v[i];
         //Include pressure
         if (use_gradP)
             f[i] += -volume*gradP[i];
@@ -567,7 +596,7 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     // Xiao H., Sun J. (2011) Algorithms in a Robust Hybrid
     // CFD-DEM Solver for Particle-Laden Flows, 
     // Commun. Comput. Phys. 9, 2, 297
-    FcoeffSums->add_to_array(r, Cd);
+    FcoeffSums->add_to_array(r, A);
     FSums->add_to_array(r, &f[0]);
 
 //    std::cout << "Drag Force "  
@@ -583,58 +612,14 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
 //                    CPLForceGranular                           //
 //                                                               //
 ///////////////////////////////////////////////////////////////////
-// General Class to use for Ergun (1952), Di Felice (1994) and BVK.
-
-/////////////////////////////////////////////////////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-
-//Constructor using cells
-//CPLForceGranular::CPLForceGranular(int nd, int icells, int jcells, int kcells) 
-//    : CPLForceDrag(nd, icells, jcells, kcells){
-//}
-
-////Constructor of datatype
-//CPLForceGranular::CPLForceGranular(CPL::ndArray<double> arrayin) 
-//    : CPLForceDrag(arrayin){
-//}
-
-////Constructor using cells
-//CPLForceGranular::CPLForceGranular(int nd, int icells, int jcells, int kcells, map_strstr arg_map) 
-//    : CPLForceDrag(nd, icells, jcells, kcells, arg_map){
-//}
-
-////Constructor of datatype
-//CPLForceGranular::CPLForceGranular(CPL::ndArray<double> arrayin, map_strstr arg_map) 
-//    : CPLForceDrag(arrayin, arg_map){
-//}
-
-
-//void CPLForceGranular::resetsums(){
-//    CPLForceDrag::resetsums();
-//}
+// General Class to use for Ergun (1952), Di Felice (1994), BVK...
 
 // Reynolds Number
 // It is unclear here if Reynolds No. should be based
 // on the mean cell velocity or particle velocity (or mean/relative from both)
-double CPLForceGranular::Reynolds_number(double D, double U, double rho, double mu, double eps) {
+double CPLForceGranular::Reynolds_number(double D, double U, double rho,
+                                         double mu, double eps) {
     return rho * D * eps * U / mu;
-}
-
-// See Equation 12 in K. D. Kafui et al. / Chemical Engineering Science 57 (2002) 2395–2410
-double CPLForceGranular::porousity_exponent(double Re) {
-    return 3.7 - 0.65 * exp(pow(0.5*(-1.5 - log10(Re)),2));
-}
-
-// See Equation 13 in K. D. Kafui et al. / Chemical Engineering Science 57 (2002) 2395–2410
-double CPLForceGranular::drag_coefficient_Re(double Re) {
-    return pow((0.63 + 4.8/pow(Re,0.5)),2);
 }
 
 double CPLForceGranular::magnitude(std::vector<double> v){
@@ -655,68 +640,72 @@ double CPLForceGranular::get_eps(double r[]){
     }
 }
 
-//This combined all the above
-double CPLForceGranular::drag_coefficient(double r[], double D, std::vector<double> Ui_v) {
+////This combined all the above
+//double CPLForceGranular::drag_coefficient(double r[], double D, 
+//                                        std::vector<double> Ui_v) {
+//    double eps = get_eps(r);
+//    std::cout  << "Granular: " << mu*(1.-eps)*(150*(1-eps))/(pow(D, 2.)*eps) << " " << eps << " " << mu << " " << D  << std::endl;
+//    return mu*(1.-eps)*(150*(1-eps))/(pow(D, 2.)*eps) ;
 
-    double eps = get_eps(r);
-    double Re = Reynolds_number(D, CPLForceGranular::magnitude(Ui_v), rho, mu, eps);
-    double Cd = drag_coefficient_Re(Re);
-    double xi = porousity_exponent(Re);
-    return 0.125*Cd*rho*M_PI*pow(D,2)*pow(eps,2)
-            *CPLForceGranular::magnitude(Ui_v)*pow(eps,xi-1.0);
+//}
+
+///////////////////////////////////////////////////////////////////
+//                      Stokes                                  //
+///////////////////////////////////////////////////////////////////
+
+
+//This combined all the above
+double CPLForceStokes::drag_coefficient(double r[], double D, 
+                                        std::vector<double> Ui_v) {
+
+    std::cout  << "Stokes: " << 9.42477796076938 * mu * D << std::endl;
+    return 9.42477796076938 * mu * D;
 
 }
 
-////Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
-//void CPLForceGranular::pre_force(double r[], double v[], double a[], 
-//                                 double m, double s, double e) {
-//    CPLForceDrag::pre_force(r, v, a, m, s, e);
-//}
+///////////////////////////////////////////////////////////////////
+//                      Di_Felice                                //
+///////////////////////////////////////////////////////////////////
 
 
-////Get force using sums collected in pre force
-//std::vector<double> CPLForceGranular::get_force(double r[], double v[], double a[], 
-//                                                double m, double s, double e) {
-//     return CPLForceDrag::get_force(r, v, a, m, s, e);
-//}
+// See Equation 12 in K. D. Kafui et al. / Chemical Engineering Science 57 (2002) 2395–2410
+double CPLForceDi_Felice::porousity_exponent(double Re) {
+    return 3.7 - 0.65 * exp(pow(0.5*(-1.5 - log10(Re)),2));
+}
 
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// See Equation 13 in K. D. Kafui et al. / Chemical Engineering Science 57 (2002) 2395–2410
+double CPLForceDi_Felice::drag_coefficient_Re(double Re) {
+    return pow((0.63 + 4.8/pow(Re,0.5)),2);
+}
 
+
+//This combined all the above
+double CPLForceDi_Felice::drag_coefficient(double r[], double D, 
+                                          std::vector<double> Ui_v) {
+
+    double eps = get_eps(r);
+    double U = CPLForceGranular::magnitude(Ui_v);
+    double Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, eps);
+    double A = drag_coefficient_Re(Re);
+    double xi = porousity_exponent(Re);
+
+    std::cout  << "Di_Felice: " << 0.125*A*rho*M_PI*pow(D,2)*pow(eps,2)*U*pow(eps,xi-1.0) << std::endl;
+    if (eps == 0.0) {
+        return 0.0;
+    } else {
+        return 0.125*A*rho*M_PI*pow(D,2)*pow(eps,2)*U*pow(eps,xi-1.0);
+    }
+
+}
 
 ///////////////////////////////////////////////////////////////////
 //                          BVK                                  //
 ///////////////////////////////////////////////////////////////////
 
-//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-
 //Return Stokes force
 double CPLForceBVK::Stokes(double D, double U, double mu) {
     return 9.42477796076938 * mu * D * U;
 }
-
-// Reynolds Number
-// It is unclear here if Reynolds No. should be based
-// on the mean cell velocity or particle velocity (or mean/relative from both)
-//double CPLForceBVK::Reynolds_number(double D, double U, double rho, double mu, double eps) {
-//    return rho * D * eps * U / mu;
-//}
-
 //Calculate BVK drag force per particle
 double CPLForceBVK::CPLForceBVK_expression(double eps, double D, double U, 
                                            double rho, double mu) 
@@ -728,84 +717,40 @@ double CPLForceBVK::CPLForceBVK_expression(double eps, double D, double U,
           + (0.413*Re/(24*pow(eps,2))) 
           * (((1./eps) + 3 * phi * eps + 8.4 * pow(Re,-0.343)) 
              /(1 + pow(10,(3*phi)) * pow(Re,-0.5) *(1+4*phi)));
+    std::cout  << "BVK: " << Stokes(D, U, mu) * BVK << std::endl;
     return Stokes(D, U, mu) * BVK;
 }
 
 
-double CPLForceBVK::drag_coefficient(double r[], double D, std::vector<double> Ui_v) {
+double CPLForceBVK::drag_coefficient(double r[], double D, 
+                                     std::vector<double> Ui_v) {
 
     double eps = CPLForceGranular::get_eps(r);
     if (eps == 0.0) {
         return 0.0;
     } else {
-        return CPLForceBVK_expression(eps, D, CPLForceGranular::magnitude(Ui_v), rho, mu);
+        return CPLForceBVK_expression(eps, D, 
+                                      CPLForceGranular::magnitude(Ui_v), 
+                                      rho, mu);
     }
 
 }
 
-double CPLForceErgun::drag_coefficient(double r[], double D, std::vector<double> Ui_v) {
+///////////////////////////////////////////////////////////////////
+//                          Ergun                                //
+///////////////////////////////////////////////////////////////////
+
+
+double CPLForceErgun::drag_coefficient(double r[], double D, 
+                                       std::vector<double> Ui_v) {
     double eps = CPLForceGranular::get_eps(r);
     if (eps == 0.0) {
         return 0.0;
     } else {
+        std::cout  << "Ergun: " << 150.0*eps*(mu/rho)*rho/(pow(eps*D, 2.0)) + 1.75*rho/(eps*D) << std::endl;
         return 150.0*eps*(mu/rho)*rho/(pow(eps*D, 2.0)) + 1.75*rho/(eps*D);
     }
 }
-
-
-
-//Get force using sums collected in pre force
-//std::vector<double> CPLForceBVK::get_force(double r[], double v[], double a[], 
-//                                           double m, double s, double e) {
-
-//    std::vector<double> f(3), Ui(3), Ui_v(3);
-//    std::vector<int> cell = get_cell(r);
-//    CPL::ndArray<double>& array = cfd_array_field->get_array_pointer();
-
-//    double radius = s;
-//    double d = 2.0*radius;
-//    //double volume = (4./3.)*M_PI*pow(radius,3); 
-
-//    //Porosity e is cell volume - sum in volume
-//    double cellvolume = cfd_array_field->dV;
-//    double eps = 1.0 - eSums(cell[0], cell[1], cell[2])/cellvolume;
-//    double rho = 1.0; //m/volume;
-//    double mu = 1.0;
-
-//    //Should use std::vector<double> Ui(3) = field.interpolate(r);
-//    for (int i=0; i<3; i++){
-//        Ui[i] = array(i, cell[0], cell[1], cell[2]);
-//        Ui_v[i] = Ui[i]-v[i];
-//    }
-//    //double Re = Reynolds_number(d, magnitude(Ui_v), rho, mu, eps);
-
-//    //Calculate force
-//    if (eps < 1e-5) {
-//        std::cout << "Warning: 0 particles in cell (" 
-//                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
-//                  << std::endl;
-//        f[0]=0.0; f[1]=0.0; f[2]=0.0;
-//        return f;
-//    } else {
-//        double A = CPLForceBVK_expression(eps, d, magnitude(Ui_v), rho, mu);
-//        for (int i = 0; i < 3; ++i){
-//            f[i] = A*(Ui[i]-v[i]);
-//            FSums(i, cell[0], cell[1], cell[2]) += f[i];
-//        }
-//        return f;
-//    }
-//}
-
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-///////////// WARNING THIS IS CURRENTLY UNTESTED ////////////////
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 
 //Example print statement useful to copy in...
 //    std::cout << "FLEKKOY: " << cell[0] << " " << cell[1]  << " " << cell[2]  

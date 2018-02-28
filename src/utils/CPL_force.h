@@ -219,7 +219,6 @@ public:
     std::vector<double> get_force(double r[], double v[], double a[], 
                                   double m, double s, double e);
 
-    void unpack_arg_map(map_strstr arg_map);
     void unpack_CFD_array(CPL::ndArray<double> arrayin);
 
     //Force specific things
@@ -229,9 +228,9 @@ public:
     bool use_gradP = true;
     bool use_divStress = false;
 
-    double drag_coefficient(double r[], double D, std::vector<double> Ui_v);
+    virtual double drag_coefficient(double r[], double D, std::vector<double> Ui_v);
     double Cd = 0.0000001;
-    double mu = 0.0008900;
+    double mu = 0.001;
     double rho = 1e3;
 
     //Vector of fields
@@ -246,8 +245,14 @@ public:
 
 protected:
 
+    void unpack_default_arg_map(map_strstr arg_map, bool extra_args);
+    bool unpack_extra_arg_map(map_strstr arg_map);
     void initialisesums(CPL::ndArray<double> f);
     void resetsums();
+
+private:
+
+    void unpack_arg_map(map_strstr arg_map);
 };
 
 
@@ -258,17 +263,36 @@ public:
     //Constructors
     using CPLForceDrag::CPLForceDrag;
 
-    //CPLForceGranular functions
-    double porousity_exponent(double Re);
-    double drag_coefficient_Re(double Re);
-
     //Granular functions
     double Reynolds_number(double D, double U, double rho, double mu, double eps);
     double magnitude(std::vector<double> v);
     double get_eps(double r[]);
 
-    //Specific function overiden
-    double drag_coefficient(double r[], double D, std::vector<double> Ui_v);
+};
+
+class CPLForceStokes : public CPLForceGranular {
+
+public:
+
+    //Constructors
+    using CPLForceGranular::CPLForceGranular;
+
+    //Stokes specific functions
+    double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
+
+};
+
+class CPLForceDi_Felice : public CPLForceGranular {
+
+public:
+
+    //Constructors
+    using CPLForceGranular::CPLForceGranular;
+
+    //Di_Felice specific functions
+    double porousity_exponent(double Re);
+    double drag_coefficient_Re(double Re);
+    double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
 
 //private:
 
@@ -281,10 +305,10 @@ public:
     //Constructors
     using CPLForceGranular::CPLForceGranular;
 
-    //Force specific things
+    //BVK specific functions
     double Stokes(double D, double U, double mu);
     double CPLForceBVK_expression(double eps, double D, double U, double rho, double mu);
-    double drag_coefficient(double r[], double D, std::vector<double> Ui_v);
+    double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
 
 //private:
 
@@ -298,8 +322,8 @@ public:
     //Constructors
     using CPLForceGranular::CPLForceGranular;
 
-    //Force specific things
-    double drag_coefficient(double r[], double D, std::vector<double> Ui_v);
+    //Ergun specific functions
+    double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
 
 //private:
 
