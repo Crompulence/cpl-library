@@ -1,0 +1,17 @@
+# Particle coordinates for 1 sphere with diameter 10 mm.
+1 atom types
+1 atoms
+ 0.0 2.0 xlo xhi
+ 0.0 10.0 ylo yhi
+ 0.0 2.0 zlo zhi
+
+
+#Number, type, diameter, mass, position
+Atoms
+
+1 1 0.05 2.65 7.0e-01 9.9 7.0e-1
+
+#Number, velocity, angular_velocity
+Velocities
+
+1 0. 0. 0. 0. 0. 0.
