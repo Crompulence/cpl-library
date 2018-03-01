@@ -2,6 +2,11 @@
 #include "gmock/gmock.h"
 #include <vector>
 
+// basic file operations
+#include <iostream>
+#include <fstream>
+
+
 #include "cpl.h"
 #include "CPL_field.h"
 #include "CPL_force.h"
@@ -37,9 +42,9 @@ class CPL_drag_Test : public ::testing::Test {
   // Objects declared here can be used by all tests in the test case for Foo.
 };
 
-#define trplefor(Ni,Nj,Nz) for (int i = 0; i<Ni; ++i){ \
-                           for (int j = 0; j<Nj; ++j){ \
-                           for (int k = 0; k<Nz; ++k)
+#define trplefor(Ni,Nj,Nz) for (int ic = 0; ic<Ni; ++ic){ \
+                           for (int jc = 0; jc<Nj; ++jc){ \
+                           for (int kc = 0; kc<Nz; ++kc)
 
 
 //Test for CPL::ndArray - setup and array size 
@@ -52,19 +57,25 @@ TEST_F(CPL_drag_Test, All_Drags) {
     int icell = N;
     int jcell = N;
     int kcell = N;
+    double Lx = 1.0;
+    double Ly = 1.0;
+    double Lz = 1.0;
+    double xorigin = 0.0;
+    double yorigin = 0.0;
+    double zorigin = 0.0;
+    double min[3] = {xorigin, yorigin, zorigin};
+    double max[3] = {Lx, Ly, Lz};
+    double dx = Lx/float(icell);
+    double dy = Ly/float(jcell);
+    double dz = Lz/float(kcell);
 
     //Setup one particle per cell
     double r[3] = {0.0, 0.0, 0.0};
     double v[3] = {0.001, 0.0, 0.0};
     double a[3] = {0.0, 0.0, 0.0};
-    std::vector<double> F, Ur;
-    //double volume = (4./3.)*M_PI*pow(radius,3);
     double m=1.; double e=1.;
-
-//    CPLForceStokes Stokes(nd, icell, jcell, kcell);
-//    CPLForceDi_Felice Di_Felice(nd, icell, jcell, kcell);
-//    CPLForceBVK BVK(nd, icell, jcell, kcell);
-//    CPLForceErgun Ergun(nd, icell, jcell, kcell);
+    double radius;
+    std::vector<double> F;
 
     Drag = std::make_shared<CPLForceDrag>(nd, icell, jcell, kcell);
     //Granular = std::make_shared<CPLForceGranular>(nd, icell, jcell, kcell);
@@ -74,32 +85,67 @@ TEST_F(CPL_drag_Test, All_Drags) {
     Ergun = std::make_shared<CPLForceErgun>(nd, icell, jcell, kcell);
 
     std::vector<std::shared_ptr<CPLForceDrag>> forces{Drag, Stokes, Di_Felice, BVK, Ergun};
+    for ( auto &f : forces ) {
+        f->set_minmax(min, max);
+    }
 
-
-    double Volfrac = 0.5/float(N);
-    double s;
-    int maxn = 200;
+    //Choose a cell
     int i = 5; int j = 5; int k = 5;
-    r[0] = i/double(icell);
-    r[1] = j/double(jcell);
-    r[2] = k/double(kcell);
 
-    for ( auto &f : forces ) { 
+    //Particles per cell
+    int nx = 4; int ny = 4; int nz = 4;
+    int Npercell = nx*ny*nz;
+    double Volfrac = 0.6*(std::min(std::min(dx,dy),dz))/float(std::min(std::min(nx,ny),nz));
+    int maxn = 5; //Number of sizes to loop over
+
+    std::string fdir("./drag_output/");
+    std::ofstream myfile;
+    for ( auto &f : forces ) {
+        std::string force_type(typeid(*f).name());
+        std::string filename(force_type.substr(10));
+        myfile.open(fdir+filename, std::ios::out | std::ios::trunc);
+        //Write file header
+        myfile << "phi" << ", " << "D" << ", "  
+               <<  "v[0]" << ", " << "v[1]" << ", " << "v[2]"  << ", " 
+               <<  "F[0]" << ", " << "F[1]" << ", " << "F[2]" << std::endl;
         std::cout << "==========================================" << std::endl;
         for (int n=1; n < maxn; n++) {
             f->resetsums();
-            s = Volfrac*n/maxn;
+            radius = Volfrac*n/double(maxn);
 
-            //Setup esum
-            f->pre_force(r, v, a, m, s, e);
+            //Setup esum by sticking lots of particles per cell
+            for (int ip=0; ip<nx; ip++) {
+            for (int jp=0; jp<ny; jp++) {
+            for (int kp=0; kp<nz; kp++) {
+                r[0] = Lx*i/double(icell) + dx*(0.5/double(nx)+ip/double(nx));
+                r[1] = Ly*j/double(jcell) + dy*(0.5/double(ny)+jp/double(ny));
+                r[2] = Lz*k/double(kcell) + dz*(0.5/double(nz)+kp/double(nz));
+                f->pre_force(r, v, a, m, radius, e);
+                //std::cout << "particles " << r[0] << " " << r[1] << " " << r[2] << std::endl;
+
+            }}}
+
+            //Get esums
+            auto eSums = f->get_internal_fields("eSums");
+            trplefor(icell,jcell,kcell) {
+                double phi = eSums->get_array_value(0, ic, jc, kc)/eSums->get_dV();
+                if (phi != 0)
+                    std::cout << "phi: " << ic << " " << jc << " " << kc << " " << phi << std::endl;
+            }}}
+            double phi = eSums->get_array_value(0, i, j, k)/eSums->get_dV();
+            double eps = 1.0 - phi;
 
             //Get Force
-            F = f->get_force(r, v, a, m, s, e);
-            std::cout << "Drag Unittest: " << typeid(*f).name() << " " << s << " "
-                      << F[0] << " " << F[1] << " " << F[2] << std::endl;
+            F = f->get_force(r, v, a, m, radius, e);
+            std::cout << "Drag Unittest: " << typeid(*f).name() << " " << 2.*radius << " " 
+                      << phi << " "<< F[0] << " " << F[1] << " " << F[2] << std::endl;
+
+            myfile << phi << ", " << 2.*radius << ", "  
+                   <<  v[0] << ", " << v[1] << ", " << v[2]  << ", " 
+                   <<  F[0] << ", " << F[1] << ", " << F[2] << std::endl;
         }
         std::cout << "==========================================" << std::endl;
-
+        myfile.close();
     }
     
 }

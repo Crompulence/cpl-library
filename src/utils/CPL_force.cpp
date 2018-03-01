@@ -513,7 +513,7 @@ bool CPLForceDrag::unpack_extra_arg_map(map_strstr arg_map){
 //Arbitary constant in this case so r and D are irrelevant
 double CPLForceDrag::drag_coefficient(double r[], double D, 
                                       std::vector<double> Ui_v) {
-    std::cout << "DRAG Cd: " << Cd << std::endl;
+    //std::cout << "DRAG Cd: " << Cd << std::endl;
     return Cd; //Use default Drag value
 }
 
@@ -523,7 +523,7 @@ void CPLForceDrag::pre_force(double r[], double v[], double a[],
 
     double volume = (4./3.)*M_PI*pow(s,3); 
     nSums->add_to_array(r, 1.0);
-    std::cout << "Pre_force " << r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
+//    std::cout << "Pre_force " << r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
     if (! use_overlap){
         eSums->add_to_array(r, volume);
         vSums->add_to_array(r, v);
@@ -615,6 +615,11 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
 ///////////////////////////////////////////////////////////////////
 // General Class to use for Ergun (1952), Di Felice (1994), BVK...
 
+//Return Stokes force
+double CPLForceGranular::Stokes(double D, double mu) {
+    return 9.42477796076938 * mu * D;
+}
+
 // Reynolds Number
 // It is unclear here if Reynolds No. should be based
 // on the mean cell velocity or particle velocity (or mean/relative from both)
@@ -630,8 +635,8 @@ double CPLForceGranular::magnitude(std::vector<double> v){
 double CPLForceGranular::get_eps(double r[]){
     //Porosity e is cell volume - sum in volume
     double eps = 1.0 - eSums->get_array_value(r)/eSums->get_dV();
-    std::cout << "get eps " << eSums->get_array_value(r) << " " << 
-                       eSums->get_dV() << " " << eps << std::endl;
+//    std::cout << "get eps " << eSums->get_array_value(r) << " " << 
+//                       eSums->get_dV() << " " << eps << std::endl;
         
     if (eps < 1e-5) {
         std::vector<int> cell = get_cell(r);
@@ -662,8 +667,8 @@ double CPLForceGranular::get_eps(double r[]){
 double CPLForceStokes::drag_coefficient(double r[], double D, 
                                         std::vector<double> Ui_v) {
 
-    std::cout  << "Stokes: " << 9.42477796076938 * mu * D << std::endl;
-    return 9.42477796076938 * mu * D;
+//    std::cout  << "Stokes: " << 9.42477796076938 * mu * D << std::endl;
+    return CPLForceGranular::Stokes(D, mu);
 
 }
 
@@ -699,8 +704,8 @@ double CPLForceDi_Felice::drag_coefficient(double r[], double D,
         return 0;
     }
 
-    std::cout  << "Di_Felice: " << eps << " " << Re << " " << A << " " << 
-               xi << " " << 0.125*A*rho*M_PI*pow(D,2)*pow(eps,2)*U*pow(eps,xi-1.0) << std::endl;
+//    std::cout  << "Di_Felice: " << eps << " " << Re << " " << A << " " << 
+//               xi << " " << 0.125*A*rho*M_PI*pow(D,2)*pow(eps,2)*U*pow(eps,xi-1.0) << std::endl;
     if (eps == 0.0) {
         return 0.0;
     } else {
@@ -714,9 +719,9 @@ double CPLForceDi_Felice::drag_coefficient(double r[], double D,
 ///////////////////////////////////////////////////////////////////
 
 //Return Stokes force
-double CPLForceBVK::Stokes(double D, double U, double mu) {
-    return 9.42477796076938 * mu * D * U;
-}
+//double CPLForceBVK::Stokes(double D, double U, double mu) {
+//    return 9.42477796076938 * mu * D * U;
+//}
 //Calculate BVK drag force per particle
 double CPLForceBVK::CPLForceBVK_expression(double eps, double D, double U, 
                                            double rho, double mu) 
@@ -728,8 +733,8 @@ double CPLForceBVK::CPLForceBVK_expression(double eps, double D, double U,
           + (0.413*Re/(24*pow(eps,2))) 
           * (((1./eps) + 3 * phi * eps + 8.4 * pow(Re,-0.343)) 
              /(1 + pow(10,(3*phi)) * pow(Re,-0.5) *(1+4*phi)));
-    std::cout  << "BVK: " << Stokes(D, U, mu) * BVK << std::endl;
-    return Stokes(D, U, mu) * BVK;
+//    std::cout  << "BVK: " << Stokes(D, U, mu) * BVK << std::endl;
+    return CPLForceGranular::Stokes(D, mu) * BVK;
 }
 
 
@@ -750,16 +755,35 @@ double CPLForceBVK::drag_coefficient(double r[], double D,
 ///////////////////////////////////////////////////////////////////
 //                          Ergun                                //
 ///////////////////////////////////////////////////////////////////
+//double CPLForceErgun::Stokes(double D, double U, double mu) {
+//    return 9.42477796076938 * mu * D * U;
+//}
 
+//double CPLForceErgun::Reynolds_number(double D, double U, double rho,
+//                                         double mu) {
+//    return rho * D * U / mu;
+//}
 
 double CPLForceErgun::drag_coefficient(double r[], double D, 
                                        std::vector<double> Ui_v) {
     double eps = CPLForceGranular::get_eps(r);
+    double phi = 1 - eps;
+    double U = CPLForceGranular::magnitude(Ui_v);
     if (eps == 0.0) {
         return 0.0;
     } else {
-        std::cout  << "Ergun: " << 150.0*eps*(mu/rho)*rho/(pow(eps*D, 2.0)) + 1.75*rho/(eps*D) << std::endl;
-        return 150.0*eps*(mu/rho)*rho/(pow(eps*D, 2.0)) + 1.75*rho/(eps*D);
+        double Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, 1.0);
+        double Ergun = 0.0555555555555555 * (150 * (phi / pow(eps,2))
+                                             + 1.75*(Re / pow(eps,2)));
+
+        //Form matching Chris Knights code (and Gupta 2015 thesis, normalised by stokes)
+        return Ergun * CPLForceGranular::Stokes(D, mu);
+
+        //OpenFOAM Form
+        //return 150.0*    mu/(pow(phi*D, 2.0)) + 1.75*rho*Ur/(phi*D);
+
+        //Form from paper by ...
+        //return 150.0*eps*mu/(pow(eps*D, 2.0)) + 1.75*rho/(eps*D);
     }
 }
 

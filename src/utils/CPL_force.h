@@ -266,6 +266,7 @@ public:
     using CPLForceDrag::CPLForceDrag;
 
     //Granular functions
+    double Stokes(double D, double mu);
     double Reynolds_number(double D, double U, double rho, double mu, double eps);
     double magnitude(std::vector<double> v);
     double get_eps(double r[]);
@@ -308,7 +309,6 @@ public:
     using CPLForceGranular::CPLForceGranular;
 
     //BVK specific functions
-    double Stokes(double D, double U, double mu);
     double CPLForceBVK_expression(double eps, double D, double U, double rho, double mu);
     double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
 
