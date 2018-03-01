@@ -112,7 +112,9 @@ void CPLField::zero_array(){
 
 //Add value to a particular cell
 void CPLField::add_to_array(int n, int i, int j, int k, double value){
+    //std::cout << "CPLField::add_to_array " << n << " " << i << " " << j << " " << k << " " << value << std::endl;
     array(n, i, j, k) += value;
+    
 }
 
 //Just add to cell based on where centre of particle falls
@@ -124,9 +126,9 @@ void CPLField::add_to_array(const double r[], const double value[]){
 }
 
 //If just one value, then doesn't need to be a reference to array
-void CPLField::add_to_array(const double r[], const double value_){
+void CPLField::add_to_array(const double r[], const double value){
     std::vector<int> cell = get_cell(r);
-    add_to_array(0, cell[0], cell[1], cell[2], value_);
+    add_to_array(0, cell[0], cell[1], cell[2], value);
 }
    
 

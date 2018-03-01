@@ -188,6 +188,7 @@ public:
     CPL::ndArray<double> nSums;
 
     bool calc_preforce = true;
+    void resetsums();
 
 private:
 
@@ -196,7 +197,7 @@ private:
     friend class CPL_Force_Test_test_flekkoy_get_force_Test;
 
     void initialisesums(CPL::ndArray<double> f);
-    void resetsums();
+
 
 };
 
@@ -243,12 +244,13 @@ public:
     std::shared_ptr<CPL::CPLField> FSums;
     std::shared_ptr<CPL::CPLField> FcoeffSums;
 
+    void resetsums();
+
 protected:
 
     void unpack_default_arg_map(map_strstr arg_map, bool extra_args);
     bool unpack_extra_arg_map(map_strstr arg_map);
     void initialisesums(CPL::ndArray<double> f);
-    void resetsums();
 
 private:
 

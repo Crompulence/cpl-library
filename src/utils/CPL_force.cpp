@@ -523,6 +523,7 @@ void CPLForceDrag::pre_force(double r[], double v[], double a[],
 
     double volume = (4./3.)*M_PI*pow(s,3); 
     nSums->add_to_array(r, 1.0);
+    std::cout << "Pre_force " << r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
     if (! use_overlap){
         eSums->add_to_array(r, volume);
         vSums->add_to_array(r, v);
@@ -629,6 +630,9 @@ double CPLForceGranular::magnitude(std::vector<double> v){
 double CPLForceGranular::get_eps(double r[]){
     //Porosity e is cell volume - sum in volume
     double eps = 1.0 - eSums->get_array_value(r)/eSums->get_dV();
+    std::cout << "get eps " << eSums->get_array_value(r) << " " << 
+                       eSums->get_dV() << " " << eps << std::endl;
+        
     if (eps < 1e-5) {
         std::vector<int> cell = get_cell(r);
         std::cout << "Warning: 0 particles in cell (" 
@@ -685,11 +689,16 @@ double CPLForceDi_Felice::drag_coefficient(double r[], double D,
 
     double eps = get_eps(r);
     double U = CPLForceGranular::magnitude(Ui_v);
-    double Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, eps);
-    double A = drag_coefficient_Re(Re);
-    double xi = porousity_exponent(Re);
+    if (U > 1e-8) {
+        double Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, eps);
+        double A = drag_coefficient_Re(Re);
+        double xi = porousity_exponent(Re);
+    } else {
+        return 0;
+    }
 
-    std::cout  << "Di_Felice: " << 0.125*A*rho*M_PI*pow(D,2)*pow(eps,2)*U*pow(eps,xi-1.0) << std::endl;
+    std::cout  << "Di_Felice: " << eps << " " << Re << " " << A << " " << 
+               xi << " " << 0.125*A*rho*M_PI*pow(D,2)*pow(eps,2)*U*pow(eps,xi-1.0) << std::endl;
     if (eps == 0.0) {
         return 0.0;
     } else {
