@@ -687,12 +687,14 @@ double CPLForceDi_Felice::drag_coefficient_Re(double Re) {
 double CPLForceDi_Felice::drag_coefficient(double r[], double D, 
                                           std::vector<double> Ui_v) {
 
-    double eps = get_eps(r);
-    double U = CPLForceGranular::magnitude(Ui_v);
+    double Re, A, xi, U, eps;
+
+    eps = get_eps(r);
+    U = CPLForceGranular::magnitude(Ui_v);
     if (U > 1e-8) {
-        double Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, eps);
-        double A = drag_coefficient_Re(Re);
-        double xi = porousity_exponent(Re);
+        Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, eps);
+        A = drag_coefficient_Re(Re);
+        xi = porousity_exponent(Re);
     } else {
         return 0;
     }

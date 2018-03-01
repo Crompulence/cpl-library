@@ -55,7 +55,7 @@ TEST_F(CPL_drag_Test, All_Drags) {
 
     //Setup one particle per cell
     double r[3] = {0.0, 0.0, 0.0};
-    double v[3] = {0.0, 0.0, 0.0};
+    double v[3] = {0.001, 0.0, 0.0};
     double a[3] = {0.0, 0.0, 0.0};
     std::vector<double> F, Ur;
     //double volume = (4./3.)*M_PI*pow(radius,3);
@@ -78,7 +78,7 @@ TEST_F(CPL_drag_Test, All_Drags) {
 
     double Volfrac = 0.5/float(N);
     double s;
-    int maxn = 10;
+    int maxn = 200;
     int i = 5; int j = 5; int k = 5;
     r[0] = i/double(icell);
     r[1] = j/double(jcell);
