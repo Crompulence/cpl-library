@@ -47,6 +47,8 @@ script:
 #    - make webdocs-all
     - make test-valgrind
     - make test-gtests
+    - make test_Dragmodels
+
 
 after_success:
      - echo "Build Success"

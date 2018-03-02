@@ -3,8 +3,15 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 import subprocess as sp
 import os
+import pytest
+
+
+#Compare a range of cases
+rho = 1e3
+mu = 0.001
 
 #Plotting stuff
+plotstuff=False
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 
@@ -71,14 +78,7 @@ if download:
     import drag_utils.correlations as c
 
 
-#Compare a range of cases
-rho = 1e3
-mu = 0.001
-#cases = ["Stokes", "Di_Felice", "Ergun", "BVK"]
-cases = ["Di_Felice", "Stokes", "Ergun", "BVK", "Tang"]
-for case in cases:
-
-    print(case)
+def get_data(case):
 
     #Load CPLForce data from file
     data = np.genfromtxt(case, delimiter=",", names=True)
@@ -87,30 +87,51 @@ for case in cases:
     Forcefn = getattr(c, case.replace("_",""))
     Fpy = Forcefn(data['phi'], data['D'], data['v0'], rho=rho, mu=mu, norm=False)
 
-    #Plot Both
-    plt.plot(data['phi'], -Fpy, 'k-', label="Chris' Python Script")
-    plt.plot(data['phi'], data['F0'], 'ro', label="CPLForce")
-    #plt.plot(data['phi'], (Fpy+data['F0'])/Fpy, 'b-', label="Error")
+    return data, Fpy
 
-    plt.legend(loc=3)
-    plt.title(case)
-    plt.xlabel(r"$\phi$")
-    plt.ylabel("$F$")
-    plt.show()
-    #plt.savefig(case + "phi.pdf", bbox_inches="tight")
-
-    plt.plot(data['D'], -Fpy, 'k-', label="Chris' Python Script")
-    plt.plot(data['D'], data['F0'], 'ro', label="CPLForce")
-    #plt.plot(data['D'], (Fpy+data['F0'])/Fpy, 'b-', label="Error")
-
-    plt.legend(loc=3)
-    plt.title(case)
-    plt.xlabel(r"$D$")
-    plt.ylabel("$F$")
-    plt.show()
+@pytest.mark.parametrize("case,out", [
+    ("Di_Felice", True),
+    ("Stokes", True),
+    ("Ergun", True),
+    ("BVK", True),
+    ("Tang", True),
+])
+def test_answer(case,out):
+    data, Fpy = get_data(case)
+    assert(np.max(np.abs((Fpy+data['F0'])/Fpy) < 1e-5) == out)
 
 
-    print("Max Error = ", np.max(np.abs((Fpy+data['F0'])/Fpy)))
-    #plt.savefig(case + "D.pdf", bbox_inches="tight")
+cases = ["Di_Felice", "Stokes", "Ergun", "BVK", "Tang"]
 
-    assert(np.max(np.abs((Fpy+data['F0'])/Fpy) < 1e-5))
+if plotstuff:
+    for case in cases:
+
+        CPLdata, Fpy = get_data(case)
+
+        #Plot Both
+        plt.plot(CPLdata['phi'], -Fpy, 'k-', label="Chris' Python Script")
+        plt.plot(CPLdata['phi'], CPLdata['F0'], 'ro', label="CPLForce")
+        #plt.plot(CPLdata['phi'], (Fpy+CPLdata['F0'])/Fpy, 'b-', label="Error")
+
+        plt.legend(loc=3)
+        plt.title(case)
+        plt.xlabel(r"$\phi$")
+        plt.ylabel("$F$")
+        plt.show()
+        #plt.savefig(case + "phi.pdf", bbox_inches="tight")
+
+        plt.plot(CPLdata['D'], -Fpy, 'k-', label="Chris' Python Script")
+        plt.plot(CPLdata['D'], CPLdata['F0'], 'ro', label="CPLForce")
+        #plt.plot(CPLdata['D'], (Fpy+CPLdata['F0'])/Fpy, 'b-', label="Error")
+
+        plt.legend(loc=3)
+        plt.title(case)
+        plt.xlabel(r"$D$")
+        plt.ylabel("$F$")
+        plt.show()
+
+        print(case + " max Error = ", np.max(np.abs((Fpy+CPLdata['F0'])/Fpy)))
+        assert(np.max(np.abs((Fpy+CPLdata['F0'])/Fpy) < 1e-5) == True)
+        #plt.savefig(case + "D.pdf", bbox_inches="tight")
+
+    
