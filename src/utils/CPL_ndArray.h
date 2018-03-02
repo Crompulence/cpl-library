@@ -161,9 +161,12 @@ namespace CPL
         // Number of elements
         int size();
 
-        // Min/max functions
+        // Min/max/sum functions
         double min();
         double max();
+        double sum();
+        std::vector<T> sum(const int dim);
+
 
         // Allocation after empty construction
         void resize (const int nd, const int shape[]);

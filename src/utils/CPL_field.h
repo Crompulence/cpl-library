@@ -60,8 +60,10 @@ public:
     void add_to_array(int n, int i, int j, int k, double value);
     void add_to_array(const double r[], const double value[]);
     void add_to_array(const double r[], const double value);
+    void add_to_array(const int index, const double r[], const double value);
     void add_to_array(const double r[], double s, const double value[]);
     void add_to_array(const double r[], double s, const double value);
+    void add_to_array(const int index, const double r[], double s, const double value);
 
     // functions to get value from cell i,j,k
     std::vector<double> interpolate(double r[]);

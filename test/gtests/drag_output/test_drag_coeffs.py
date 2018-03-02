@@ -42,6 +42,7 @@ with cd("../"):
     try:
         dragtestbuild = sp.check_output("make drag_unittest", shell=True)
         dragtestrun = sp.check_output("./drag_unittest", shell=True)
+
     except sp.CalledProcessError as e:
         if e.output.startswith('error: {'):
             get_subprocess_error(e.output)
@@ -73,8 +74,8 @@ if download:
 #Compare a range of cases
 rho = 1e3
 mu = 0.001
-cases = ["Stokes", "Di_Felice", "Ergun", "BVK"]
-cases = ["Ergun"]
+#cases = ["Stokes", "Di_Felice", "Ergun", "BVK"]
+cases = ["Di_Felice", "Stokes", "Ergun", "BVK", "Tang"]
 for case in cases:
 
     print(case)
@@ -87,18 +88,29 @@ for case in cases:
     Fpy = Forcefn(data['phi'], data['D'], data['v0'], rho=rho, mu=mu, norm=False)
 
     #Plot Both
-    #plt.plot(data['phi'], data['F0'], 'r--', label="CPLForce")
-    #plt.plot(data['phi'], Fpy, 'k-', label="Chris' Python Script")
-    plt.plot(data['phi'], Fpy/data['F0'], 'k-', label="Chris' Python Script")
-    plt.legend()
+    plt.plot(data['phi'], -Fpy, 'k-', label="Chris' Python Script")
+    plt.plot(data['phi'], data['F0'], 'ro', label="CPLForce")
+    #plt.plot(data['phi'], (Fpy+data['F0'])/Fpy, 'b-', label="Error")
+
+    plt.legend(loc=3)
+    plt.title(case)
     plt.xlabel(r"$\phi$")
-    plt.ylabel("$F_{_{" + case + "}}$")
+    plt.ylabel("$F$")
+    plt.show()
+    #plt.savefig(case + "phi.pdf", bbox_inches="tight")
+
+    plt.plot(data['D'], -Fpy, 'k-', label="Chris' Python Script")
+    plt.plot(data['D'], data['F0'], 'ro', label="CPLForce")
+    #plt.plot(data['D'], (Fpy+data['F0'])/Fpy, 'b-', label="Error")
+
+    plt.legend(loc=3)
+    plt.title(case)
+    plt.xlabel(r"$D$")
+    plt.ylabel("$F$")
     plt.show()
 
-    plt.plot(data['D'], data['F0'], 'r--', label="CPLForce")
-    plt.plot(data['D'], Fpy, 'k-', label="Chris' Python Script")
-    plt.legend()
-    plt.xlabel(r"$D$")
-    plt.ylabel("$F_{_{" + case + "}}$")
-    plt.show()
-    #plt.savefig(case + ".pdf", bbox_inches="tight")
+
+    print("Max Error = ", np.max(np.abs((Fpy+data['F0'])/Fpy)))
+    #plt.savefig(case + "D.pdf", bbox_inches="tight")
+
+    assert(np.max(np.abs((Fpy+data['F0'])/Fpy) < 1e-5))

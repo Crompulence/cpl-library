@@ -132,6 +132,13 @@ void CPLField::add_to_array(const double r[], const double value){
 }
    
 
+//If just one value, then doesn't need to be a reference to array
+void CPLField::add_to_array(int index, const double r[], const double value){
+    std::vector<int> cell = get_cell(r);
+    add_to_array(index, cell[0], cell[1], cell[2], value);
+}
+   
+
 // If the radius of the particle is included, add a fraction
 //Add fraction of value to cell based on fraction of sphere inside
 void CPLField::add_to_array(const double r[], double s, const double value[]){
@@ -213,6 +220,19 @@ void CPLField::add_to_array(const double r[], double s, const double value_){
     double value[1] = {value_};
     add_to_array(r, s, value);
 }
+
+//If just one value, then doesn't need to be a reference to array
+void CPLField::add_to_array(const int index, const double r[], 
+                            double s, const double value_){
+    //Allocate an empty array up to index
+    double value[index];
+    for (int i=0; i<index; i++){
+        value[i] = 0;
+    }
+    value[index] = value_;
+    add_to_array(r, s, value);
+}
+
 
 
 

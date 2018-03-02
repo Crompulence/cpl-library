@@ -50,7 +50,7 @@ class CPL_drag_Test : public ::testing::Test {
 //Test for CPL::ndArray - setup and array size 
 TEST_F(CPL_drag_Test, All_Drags) {
 
-    std::shared_ptr<CPLForceDrag> Drag, Stokes, Di_Felice, BVK, Ergun;
+    std::shared_ptr<CPLForceDrag> Drag, Stokes, Di_Felice, BVK, Tang, Ergun;
 
     int nd = 9; 
     int N = 20;
@@ -82,9 +82,10 @@ TEST_F(CPL_drag_Test, All_Drags) {
     Stokes = std::make_shared<CPLForceStokes>(nd, icell, jcell, kcell);
     Di_Felice = std::make_shared<CPLForceDi_Felice>(nd, icell, jcell, kcell);
     BVK = std::make_shared<CPLForceBVK>(nd, icell, jcell, kcell);
+    Tang = std::make_shared<CPLForceTang>(nd, icell, jcell, kcell);
     Ergun = std::make_shared<CPLForceErgun>(nd, icell, jcell, kcell);
 
-    std::vector<std::shared_ptr<CPLForceDrag>> forces{Drag, Stokes, Di_Felice, BVK, Ergun};
+    std::vector<std::shared_ptr<CPLForceDrag>> forces{Drag, Stokes, Di_Felice, BVK, Tang, Ergun};
     for ( auto &f : forces ) {
         f->set_minmax(min, max);
     }
@@ -96,7 +97,7 @@ TEST_F(CPL_drag_Test, All_Drags) {
     int nx = 4; int ny = 4; int nz = 4;
     int Npercell = nx*ny*nz;
     double Volfrac = 0.6*(std::min(std::min(dx,dy),dz))/float(std::min(std::min(nx,ny),nz));
-    int maxn = 5; //Number of sizes to loop over
+    int maxn = 200; //Number of sizes to loop over
 
     std::string fdir("./drag_output/");
     std::ofstream myfile;

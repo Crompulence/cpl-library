@@ -249,8 +249,9 @@ public:
 protected:
 
     void unpack_default_arg_map(map_strstr arg_map, bool extra_args);
-    bool unpack_extra_arg_map(map_strstr arg_map);
+    virtual bool unpack_extra_arg_map(map_strstr arg_map);
     void initialisesums(CPL::ndArray<double> f);
+    virtual void initialise_extrasums(CPL::ndArray<double> arrayin);
 
 private:
 
@@ -293,15 +294,13 @@ public:
     using CPLForceGranular::CPLForceGranular;
 
     //Di_Felice specific functions
-    double porousity_exponent(double Re);
-    double drag_coefficient_Re(double Re);
     double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
 
 //private:
 
 };
 
-class CPLForceBVK : public CPLForceGranular {
+class CPLForceTang : public CPLForceGranular {
 
 public:
 
@@ -309,7 +308,6 @@ public:
     using CPLForceGranular::CPLForceGranular;
 
     //BVK specific functions
-    double CPLForceBVK_expression(double eps, double D, double U, double rho, double mu);
     double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
 
 //private:
@@ -330,5 +328,42 @@ public:
 //private:
 
 };
+
+
+class CPLForceBVK : public CPLForceGranular {
+
+public:
+
+    //Constructors
+    using CPLForceGranular::CPLForceGranular;
+
+    //BVK specific functions
+    double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
+
+//private:
+
+};
+
+
+
+//class CPLForceBVK_poly : public CPLForceBVK {
+
+//public:
+
+//    //Constructors
+//    using CPLForceBVK::CPLForceBVK;
+//    void initialise_extrasums(CPL::ndArray<double> arrayin) override;
+
+//    //Shared pointer instead of unique as we also keep in fields list
+//    std::shared_ptr<CPL::CPLField> DSums;
+//    std::shared_ptr<CPL::CPLField> FcoeffSums_prev;
+
+//    //BVK specific functions
+//    double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
+
+////private:
+
+//};
+
 
 #endif  // CPLForce_H_
