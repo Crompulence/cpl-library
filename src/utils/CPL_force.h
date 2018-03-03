@@ -55,6 +55,7 @@ Author(s)
 #include <vector>
 #include <iostream>
 #include <memory>
+#include <map>
 
 #include "CPL_ndArray.h"
 #include "CPL_field.h"

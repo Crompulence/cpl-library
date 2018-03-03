@@ -1,19 +1,15 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import rc
 import subprocess as sp
 import os
 import pytest
 
+plotstuff=False
 
 #Compare a range of cases
 rho = 1e3
 mu = 0.001
 
-#Plotting stuff
-plotstuff=False
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-rc('text', usetex=True)
+outputdir="./drag_output"
 
 #File and running stuff
 class cd:
@@ -36,7 +32,7 @@ def get_subprocess_error(e):
 
 #Generate drag results from CPL_force
 print("Rebuilding and running c++ code")
-with cd("../../../"):
+with cd("../../"):
 
     try:
         cplbuild = sp.check_output("make", shell=True)
@@ -45,15 +41,14 @@ with cd("../../../"):
             get_subprocess_error(e.output)
         raise
 
-with cd("../"):
-    try:
-        dragtestbuild = sp.check_output("make drag_unittest", shell=True)
-        dragtestrun = sp.check_output("./drag_unittest", shell=True)
-
-    except sp.CalledProcessError as e:
-        if e.output.startswith('error: {'):
-            get_subprocess_error(e.output)
-        raise
+try:
+    dragtestbuild = sp.check_output("make", shell=True)
+    mkdir_output = sp.check_output("mkdir -p " + outputdir, shell=True)
+    dragtestrun = sp.check_output("./run_CPLForce_drag_models", shell=True)
+except sp.CalledProcessError as e:
+    if e.output.startswith('error: {'):
+        get_subprocess_error(e.output)
+    raise
 
 import sys
 
@@ -81,7 +76,7 @@ if download:
 def get_data(case):
 
     #Load CPLForce data from file
-    data = np.genfromtxt(case, delimiter=",", names=True)
+    data = np.genfromtxt(outputdir+"/"+case, delimiter=",", names=True)
 
     #Get force type from Chris' library
     Forcefn = getattr(c, case.replace("_",""))
@@ -98,12 +93,20 @@ def get_data(case):
 ])
 def test_answer(case,out):
     data, Fpy = get_data(case)
+    print(case + " max Error = ", np.max(np.abs((Fpy+data['F0'])/Fpy)))
     assert(np.max(np.abs((Fpy+data['F0'])/Fpy) < 1e-5) == out)
 
 
 cases = ["Di_Felice", "Stokes", "Ergun", "BVK", "Tang"]
 
 if plotstuff:
+    import matplotlib.pyplot as plt
+    from matplotlib import rc
+
+    #Plotting stuff
+    rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+    rc('text', usetex=True)
+
     for case in cases:
 
         CPLdata, Fpy = get_data(case)
