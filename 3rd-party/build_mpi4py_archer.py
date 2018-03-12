@@ -15,6 +15,13 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 
+def get_subprocess_error(e):
+    print("subprocess ERROR")
+    import json
+    error = json.loads(e[7:])
+    print(error['code'], error['message'])
+
+
 def runcmd(cmd):
     try:
         run = sp.check_output(cmd, shell=True)
