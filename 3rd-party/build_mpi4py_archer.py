@@ -1,0 +1,118 @@
+dryrun = False
+
+import subprocess as sp
+import os
+
+class cd:
+    """Context manager for changing the current working directory"""
+    def __init__(self, newPath):
+        self.newPath = os.path.expanduser(newPath)
+
+    def __enter__(self):
+        self.savedPath = os.getcwd()
+        os.chdir(self.newPath)
+
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.savedPath)
+
+def runcmd(cmd):
+    try:
+        run = sp.check_output(cmd, shell=True)
+    except sp.CalledProcessError as e:
+        if e.output.startswith('error: {'):
+            get_subprocess_error(e.output)
+        raise
+
+
+#Relevant modules based on OpenFOAM 3.0.1
+#/opt/cray/lib64/libmpich_gnu_51.so.3
+modules = ["python-compute/2.7.6", "gcc/5.1.0", "cray-mpich/7.5.5"]
+for mod in modules:
+    if "gcc" in mod:
+        gcc_version = mod.split("/")[1].strip(".0")
+    if "mpich" in mod:
+        mpi_version = mod.split("/")[1]
+
+#Version to download
+mpi4py_version = "2.0.0"
+
+#Download mpi4py
+mpi4pysrcdir = "mpi4py-" + mpi4py_version
+mpi4pytar = "mpi4py-" + mpi4py_version + ".tar.gz"
+url = "https://bitbucket.org/mpi4py/mpi4py/downloads/"
+if not dryrun:
+    cmd = "wget -O " + mpi4pytar + " " + url + mpi4pytar
+    runcmd(cmd)
+    print("Unzipping " + mpi4pytar) 
+    cmd = "tar -xvf " + mpi4pytar
+    runcmd(cmd)
+else:
+    print("Non-dryrun would download to ", mpi4pytar)
+    print("from ", url + mpi4pytar)
+
+print("*****************************************")
+
+#Add to mpi.cfg
+archercase="""
+[ARCHER]
+mpicc = CC
+mpicxx = CC
+mpif90 = ftn
+libraries = mpich
+"""
+archercase+= ("mpi_dir              = /opt/cray/mpt/" 
+              +mpi_version
+              + "/gni/mpich-gnu/"
+              + gcc_version
+             )
+archercase+="""
+include_dirs         = %(mpi_dir)s/include 
+library_dirs         = %(mpi_dir)s/lib
+runtime_library_dirs = %(mpi_dir)s/lib
+"""
+
+#Add ARCHER case to mpi4py config file
+if not dryrun:
+    with cd("./" + mpi4pysrcdir):
+        with open('./mpi.cfg', 'w+') as f:
+            f.write("\n")
+            f.write(archercase)
+else:
+    print("Non-dryrun would write to mpi.cfd file in dir " + mpi4pysrcdir + " as follows " + archercase )
+
+print("*****************************************")
+#Build mpi4py
+swd = os.path.dirname(os.path.realpath(__file__))
+instdir = swd + "/mpi4py-" + mpi4py_version + "mpi" + mpi_version + "gcc" + gcc_version
+packagedir = instdir+"/lib/python2.7/site-packages"
+
+if not dryrun:
+    with cd("./" + mpi4pysrcdir):
+        print("Building code in " + mpi4pysrcdir) 
+        runcmd("python setup.py build --mpi=ARCHER")
+        print("Installing code in " + instdir) 
+        runcmd("python setup.py install --prefix=" + instdir)
+
+    #To use this, we need to stick this in the path before the default one
+    import sys
+    sys.path.insert(0, packagedir)
+    import mpi4py
+    #assert mpi4py.__path__ == packagedir + "/mpi4py"
+    assert mpi4py.__version__ == mpi4py_version
+
+else:
+    print("Non-dryrun would install to " + instdir)
+
+#Write this into the sourceme file
+
+print("*****************************************")
+print("WRITING MPI4PY into SOURCEME.sh")
+cmd = 'export PYTHONPATH="' + packagedir + ':$PYTHONPATH"'
+if not dryrun:
+    with open("../SOURCEME.sh", 'a') as f:
+        f.write(cmd)
+else:
+    print("Non-dryrun would write " + cmd + " to SOURCEME.sh")
+print("*****************************************")
+
+
