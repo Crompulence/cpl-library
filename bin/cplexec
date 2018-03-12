@@ -142,6 +142,7 @@ for k in Dicts:
         except ImportError:
             print("CPL library not importable in Python, " +
                   "have you called source SOURCEME.sh in cpl-library")
+            raise
 
         try:
             import mpi4py
@@ -154,8 +155,7 @@ for k in Dicts:
             else:
                 d["libs"] = {"libmpi.so":mpilibpath}
         except ImportError:
-            print("CPL library not importable in Python, " +
-                  "have you called source SOURCEME.sh in cpl-library")
+            print("mpi4py import error, please check this is installed correctly")
 
 
     else:
@@ -164,6 +164,13 @@ for k in Dicts:
             if "libcpl.so" in lib.lower():
                 #print(e + "CPL", lib, lpath)
                 d["cpl_path"] = os.path.normpath(lpath)
+
+    try:
+        d["cpl_path"]
+    except KeyError:
+        print("CPL library path not found, have you compiled you " +
+              "executable correctly to include libcpl.so?")
+
 
 if Dicts["MD"]["cpl_path"] != Dicts["CFD"]["cpl_path"]:
     print("Warning -- different CPL linked into executables")
