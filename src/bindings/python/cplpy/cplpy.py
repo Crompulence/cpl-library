@@ -142,14 +142,18 @@ class CPL:
     _py_init = _cpl_lib.CPLC_init
 
     #OpenMPI comm greater than c_int
-    if MPI._sizeof(MPI.Comm) == ctypes.sizeof(c_int): 
+    try:
+        if MPI._sizeof(MPI.Comm) == ctypes.sizeof(c_int): 
+            _py_init.argtypes = [c_int, POINTER(c_int)]
+        else:
+            excptstr ="Problem is in create_comm wrapper, as the OpenMPI COMM handle is not "
+            excptstr += "an integer, c_void_p should be used so C bindings needs something like **void" 
+            excptstr += "(No idea what to do in the Fortran code, maybe MPI_COMM_f2C required)"
+            raise OpenMPI_Not_Supported(excptstr)
+            _py_init.argtypes = [c_int, POINTER(c_void_p)]
+    except AttributeError:
         _py_init.argtypes = [c_int, POINTER(c_int)]
-    else:
-        excptstr ="Problem is in create_comm wrapper, as the OpenMPI COMM handle is not "
-        excptstr += "an integer, c_void_p should be used so C bindings needs something like **void" 
-        excptstr += "(No idea what to do in the Fortran code, maybe MPI_COMM_f2C required)"
-        raise OpenMPI_Not_Supported(excptstr)
-        _py_init.argtypes = [c_int, POINTER(c_void_p)]
+
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -159,10 +163,14 @@ class CPL:
         self.realm = calling_realm
         # Build a communicator mpi4py python object from the
         # handle returned by the CPL_init function.
-        if MPI._sizeof(MPI.Comm) == ctypes.sizeof(c_int):
+        try: 
+            if MPI._sizeof(MPI.Comm) == ctypes.sizeof(c_int):
+                MPI_Comm = c_int
+            else:
+                MPI_Comm = c_void_p
+        #Some versions of MPI4py have no _sizeof method.
+        except AttributeError:
             MPI_Comm = c_int
-        else:
-            MPI_Comm = c_void_p
 
         # Call create comm
         returned_realm_comm = c_int()
