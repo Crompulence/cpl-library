@@ -31,7 +31,7 @@ before_install:
 
 install:
     - export PATH=$MPI_DIR/bin:$PATH
-    - make
+    - make PLATFORM=gcc BUILD=debug
 
 before_script:
     - export PATH=$MPI_DIR/bin:$PATH
