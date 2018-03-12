@@ -2,13 +2,13 @@
 # Fortran/C++ compilers and linker
 # module swap PrgEnv-cray PrgEnv-gnu
 F90 = ftn
-CPP = cc
+CPP = CC
 LINK = ftn
 
 # Base flags for Fortran/C++/Linker
 FFLAGS = -fno-underscoring
 CFLAGS = -std=c++11
-LFLAGS = #-lgfortran -lstdc++ 
+LFLAGS = -lgfortran -lstdc++ 
 
 # Compiler's flag for specifying where to place compiled Fortran modules
 FMODKEY = -J
