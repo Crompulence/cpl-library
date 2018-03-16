@@ -126,14 +126,14 @@ TEST_F(CPL_drag_Test, All_Drags) {
 
             }}}
 
-            //Get esums
-            auto eSums = f->get_internal_fields("eSums");
+            //Get volSums
+            auto volSums = f->get_internal_fields("volSums");
             trplefor(icell,jcell,kcell) {
-                double phi = eSums->get_array_value(0, ic, jc, kc)/eSums->get_dV();
+                double phi = volSums->get_array_value(0, ic, jc, kc)/volSums->get_dV();
                 if (phi != 0)
                     std::cout << "phi: " << ic << " " << jc << " " << kc << " " << phi << std::endl;
             }}}
-            double phi = eSums->get_array_value(0, i, j, k)/eSums->get_dV();
+            double phi = volSums->get_array_value(0, i, j, k)/volSums->get_dV();
             double eps = 1.0 - phi;
 
             //Get Force

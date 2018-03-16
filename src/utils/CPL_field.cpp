@@ -19,6 +19,7 @@ CPLField::CPLField(int nd_, int icell_,
     // Fields
     int arrayShape[4] = {nd_, icell_, jcell_, kcell_};
     array.resize(4, arrayShape);
+    set_defaults();
     default_minmax();
     set_dxyz();
 
@@ -35,6 +36,7 @@ CPLField::CPLField(CPL::ndArray<double> arrayin,
     icell = arrayin.shape(1);
     jcell = arrayin.shape(2);
     kcell = arrayin.shape(3);
+    set_defaults();
     default_minmax();
     set_dxyz();
 
@@ -51,7 +53,7 @@ CPLField::CPLField(int nd_, CPL::ndArray<double> arrayin,
     kcell = array.shape(3);
     int arrayShape[4] = {nd, arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     array.resize(4, arrayShape);
-
+    set_defaults();
     default_minmax();
     set_dxyz();
 
@@ -66,6 +68,10 @@ CPLField::CPLField(int nd_, CPL::ndArray<double> arrayin,
 /  `----' `----' `-'    `-'  `----'`-' `-'`----'  /
 /                                                 /
 *//////////////////////////////////////////////////
+
+void CPLField::set_defaults(){
+    quickcalc = true;
+}
 
 void CPLField::default_minmax(){
     for (int i = 0; i < 3; ++i){
@@ -152,27 +158,194 @@ void CPLField::add_to_array(const double r[], double s, const double value[]){
     double dx = dxyz[0];
     double dy = dxyz[1];
     double dz = dxyz[2];
+    //Ratio of radius to cell size
     int nxps = ceil(s/dx);
     int nyps = ceil(s/dy);
     int nzps = ceil(s/dz);
+    //Min and max values
+    int minc[3], maxc[3];
+    //Cell indices
     int i = cell[0]; int j = cell[1]; int k = cell[2];
+
+    //std::cout << "quickcalc " << quickcalc << std::endl;
+
+    // We can check to see if particle is smaller than box
+    // If it is then we can get add volume directly or use
+    // spherical cap. If not then we need full overlap check
+    if ((nxps == 1) & (nxps == 1) & (nzps == 1) & quickcalc){
+        // Check if far enough inside that no overlap is possible
+        box[0] = (i  )*dx; box[3] = (i+1)*dx;
+        box[1] = (j  )*dy; box[4] = (j+1)*dy;
+        box[2] = (k  )*dz; box[5] = (k+1)*dz;
+
+        int sumbotfaces = (box[0] > r[0]-s) + (box[1] > r[1]-s) + (box[2] > r[2]-s);
+        int sumtopfaces = (r[0]+s > box[3]) + (r[1]+s > box[4]) + (r[2]+s > box[5]);
+
+//        std::cout << "overlap " << " x= " <<
+//                    box[0]<< " < " <<r[0]-s << " to " <<
+//                    r[0]+s<< " < " <<box[3] << " y= " <<
+//                    box[1]<< " < " <<r[1]-s << " to " << 
+//                    r[1]+s<< " < " <<box[4] << " z= " <<
+//                    box[2]<< " < " <<r[2]-s << " to " << 
+//                    r[2]+s<< " < " <<box[5] << " " << 
+//                    (box[0] > r[0]-s) << " " <<
+//                    (box[1] > r[1]-s) << " " <<
+//                    (box[2] > r[2]-s) << " " <<
+//                    (r[0]+s > box[3]) << " " <<
+//                    (r[1]+s > box[4]) << " " <<
+//                    (r[2]+s > box[5]) << " " <<
+//                    sumbotfaces << " " << sumtopfaces << std::endl;
+
+        if ((sumbotfaces + sumtopfaces) == 0) {
+        //        if ((box[0] < r[0]-s) & 
+        //            (r[0]+s < box[3]) &
+        //            (box[1] < r[1]-s) & 
+        //            (r[1]+s < box[4]) &
+        //            (box[2] < r[2]-s) & 
+        //            (r[2]+s < box[5])) {
+            quickcheck+= 1;
+//            std::cout << "overlap calc quickcheck ok"  << " x= " <<
+//                        box[0]<< " < " <<r[0]-s << " to " <<
+//                        r[0]+s<< " < " <<box[3] << " y= " <<
+//                        box[1]<< " < " <<r[1]-s << " to " << 
+//                        r[1]+s<< " < " <<box[4] << " z= " <<
+//                        box[2]<< " < " <<r[2]-s << " to " << 
+//                        r[2]+s<< " < " <<box[5] << std::endl;
+            for (int n=0; n < array.shape(0); n++)
+                add_to_array(n, i, j, k, value[n]);
+            return;
+
+        // Check if only one face is crossed -- Spherical cap case
+        // if either sumbotfaces or sumtopfaces > 1
+        } else if ((sumbotfaces + sumtopfaces) == 1) {
+            facequickcheck+= 1;
+            double h; 
+            std::vector<int> shift = {0, 0, 0};
+            //Check all three bottom faces
+            if (sumbotfaces == 1) {
+                for (int ixyz=0; ixyz<3; ixyz++){
+                    if (box[ixyz] > r[ixyz]-s){
+                        h = box[ixyz]-(r[ixyz]-s);
+                        shift[ixyz] = -1; 
+//                        std::cout << "sumbotfaces " <<  ixyz << " " <<
+//                                    box[ixyz]<< " < " << r[ixyz]-s << " to " <<
+//                                    r[ixyz]+s<< " < " <<box[ixyz] << h << " " << std::endl;
+                        break;
+                    }
+                }
+            //Check all three top faces
+            } else if (sumtopfaces == 1) {
+                for (int ixyz=0; ixyz<3; ixyz++){
+                    if (box[ixyz+3] < r[ixyz]+s){
+                        h = (r[ixyz]+s)-box[ixyz+3];
+                        shift[ixyz] = 1; 
+//                        std::cout << "sumtopfaces " <<  ixyz << " " <<
+//                                    box[ixyz]<< " < " << r[ixyz]-s << " to " <<
+//                                    r[ixyz]+s<< " < " << box[ixyz+3] << " " << h << " " << std::endl;
+                        break;
+                    }
+                }
+            }
+
+            double Vcap = (1./3.)*M_PI*pow(h,2)*(3.*s - h);
+            double Vremain = volume - Vcap;
+            double frac = Vremain/volume;
+//            std::cout << "face overlap " << " x= " <<
+//                        box[0]<< " < " <<r[0]-s << " to " <<
+//                        r[0]+s<< " < " <<box[3] << " y= " <<
+//                        box[1]<< " < " <<r[1]-s << " to " << 
+//                        r[1]+s<< " < " <<box[4] << " z= " <<
+//                        box[2]<< " < " <<r[2]-s << " to " << 
+//                        r[2]+s<< " < " <<box[5] << " " << h << " "
+//                        << Vcap << " " <<  frac << std::endl;
+            if (h > 2.*s){
+                std::cout << "face overlap " << " x= " <<
+                            box[0]<< " < " <<r[0]-s << " to " <<
+                            r[0]+s<< " < " <<box[3] << " y= " <<
+                            box[1]<< " < " <<r[1]-s << " to " << 
+                            r[1]+s<< " < " <<box[4] << " z= " <<
+                            box[2]<< " < " <<r[2]-s << " to " << 
+                            r[2]+s<< " < " <<box[5] << " " << h << " "
+                            << Vcap << " " <<  frac << std::endl;
+                assert(h < 2.*s);
+            }
+
+            assert(Vremain < volume);
+            //Add to cell particles centre is inside
+            for (int n=0; n < array.shape(0); n++)
+                add_to_array(n, i, j, k, frac*value[n]);
+            //Add spherical cap to adjacent cell
+            ip = i+shift[0]; jp = j+shift[1]; kp = k+shift[2];
+            if (ip < 0) ip = 0;
+            if (jp < 0) jp = 0;
+            if (kp < 0) kp = 0;
+            if (ip > array.shape(1)-1) ip = array.shape(1)-1;
+            if (jp > array.shape(2)-1) jp = array.shape(2)-1;
+            if (kp > array.shape(3)-1) kp = array.shape(3)-1;
+            for (int n=0; n < array.shape(0); n++)
+                add_to_array(n, ip, jp, kp, (1.-frac)*value[n]);
+            return;
+
+        } else if ((sumbotfaces + sumtopfaces) > 1) {
+            //Edge or corner case, loop over all surrounding cells
+            edgequickcheck+= 1;
+            //Set iteration below
+            if (box[0] > r[0]-s){minc[0] = -nxps;} else {minc[0] = 0;};
+            if (box[1] > r[1]-s){minc[1] = -nyps;} else {minc[1] = 0;};
+            if (box[2] > r[2]-s){minc[2] = -nzps;} else {minc[2] = 0;};
+            //Set iteration above
+            if (box[3] < r[0]+s){maxc[0] = nxps+1;} else {maxc[0] = 1;};
+            if (box[4] < r[1]+s){maxc[1] = nyps+1;} else {maxc[1] = 1;};
+            if (box[5] < r[2]+s){maxc[2] = nzps+1;} else {maxc[2] = 1;};
+
+//            std::cout << "full overlap needed " << " x= " <<
+//                        box[0]<< " < " <<r[0]-s << " to " <<
+//                        r[0]+s<< " < " <<box[3] << " y= " <<
+//                        box[1]<< " < " <<r[1]-s << " to " << 
+//                        r[1]+s<< " < " <<box[4] << " z= " <<
+//                        box[2]<< " < " <<r[2]-s << " to " << 
+//                        r[2]+s<< " < " <<box[5] << " " <<
+//                        minc[0] << " " << minc[1] << " " << minc[2] << " " <<
+//                        maxc[0] << " " << maxc[1] << " " << maxc[2] << std::endl;
+
+
+//            minc[0] = -nxps; minc[1] = -nyps; minc[2] = -nzps;
+//            maxc[0] = nxps+1; maxc[1] = nyps+1; maxc[2] = nzps+1;
+
+        }
+
+
+//        std::cout << "quickcheck  " << quickcheck << 
+//                     " facequickcheck "  << facequickcheck <<  
+//                     " edgequickcheck " << edgequickcheck << 
+//                     " nonquickcheck " << nonquickcheck << std::endl;
+        
+    } else {
+        //Particle is bigger than cell so 
+        //set iteration above and below
+        nonquickcheck+= 1;
+        minc[0] = -nxps; minc[1] = -nyps; minc[2] = -nzps;
+        maxc[0] = nxps+1; maxc[1] = nyps+1; maxc[2] = nzps+1;
+    }
+
 
 //    std::cout << "overlap calc "  
 //              << dx << " " << dy << " " << dz << " " 
 //              << i << " " << j << " " << k << " " 
 //              << nxps << " " << nyps << " " << nzps << std::endl;
 
-    for (int ic=-nxps; ic<nxps+1; ic++) {
-    for (int jc=-nyps; jc<nyps+1; jc++) {
-    for (int kc=-nzps; kc<nzps+1; kc++) {
-        ip = i+ic; jp = j+jc; kp = k+kc;
-        box[0] = (ip  )*dx;
-        box[1] = (jp  )*dy;
-        box[2] = (kp  )*dz;
-        box[3] = (ip+1)*dx;
-        box[4] = (jp+1)*dy;
-        box[5] = (kp+1)*dz;
 
+
+    //Otherwise we have to check all possible cases
+    for (int ic=minc[0]; ic<maxc[0]; ic++) {
+    for (int jc=minc[1]; jc<maxc[1]; jc++) {
+    for (int kc=minc[2]; kc<maxc[2]; kc++) {
+
+        ip = i+ic; jp = j+jc; kp = k+kc;
+        box[0] = (ip)*dx; box[3] = (ip+1)*dx;
+        box[1] = (jp)*dy; box[4] = (jp+1)*dy;
+        box[2] = (kp)*dz; box[5] = (kp+1)*dz;
+        
         //Input sphere centre, radius and 6 corners of cell
         double Vsphereinbox = sphere_cube_overlap(r[0], r[1], r[2], s, 
                                                   box[0], box[1], box[2], 
@@ -196,8 +369,7 @@ void CPLField::add_to_array(const double r[], double s, const double value[]){
 
         double frac = Vsphereinbox/volume;
         for (int n=0; n < array.shape(0); n++)
-            array(n, ip, jp, kp) += frac*value[n]; 
-
+            add_to_array(n, ip, jp, kp, frac*value[n]);
 //        if (Vsphereinbox > 1e-12) {
 //            std::cout << "overlap cells "  
 //                  << i << " " << j << " " << k << " " 

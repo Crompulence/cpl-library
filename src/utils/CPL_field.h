@@ -38,6 +38,7 @@ public:
     void set_array(CPL::ndArray<double> arrayin);
     void set_minmax(double min_in[], double max_in[]);
     void default_minmax();
+    void set_defaults();
     void set_dxyz();
     void zero_array();
     std::string field_name();
@@ -81,6 +82,13 @@ public:
     std::string name;
 
     double min[3], max[3], dxyz[3], dA[3], dV;
+
+
+    bool quickcalc;
+    int quickcheck; 
+    int facequickcheck;
+    int edgequickcheck;
+    int nonquickcheck;
 
 //private:
 

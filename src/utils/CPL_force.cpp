@@ -22,11 +22,14 @@
 CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){ 
     //Shared as we keep reference in fields list
     cfd_array_field = std::make_shared<CPL::CPLField>(nd, icells, jcells, kcells);
+    calc_preforce = false;
 }
 
 CPLForce::CPLForce(CPL::ndArray<double> arrayin) {
     //Shared as we keep reference in fields list
     cfd_array_field = std::make_shared<CPL::CPLField>(arrayin);
+    calc_preforce = false;
+
 }
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
@@ -127,7 +130,7 @@ CPLForceTest::CPLForceTest(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
 
 //Examples of initialise sums with another internal field
 void CPLForceTest::initialisesums(CPL::ndArray<double> arrayin){
-    
+    calc_preforce = false;
     auto otherfield = std::make_shared<CPL::CPLField>(1, arrayin.shape(1), 
                                                          arrayin.shape(2), 
                                                          arrayin.shape(3), 
@@ -180,9 +183,11 @@ CPLForceVelocity::CPLForceVelocity(int nd, int icells, int jcells, int kcells)
 CPLForceVelocity::CPLForceVelocity(CPL::ndArray<double> arrayin) 
     : CPLForce(arrayin){
     initialisesums(arrayin);
+
 }
 
 void CPLForceVelocity::initialisesums(CPL::ndArray<double> arrayin){
+    calc_preforce = true;
     int vsumsShape[4] = {arrayin.shape(0), arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     vSums.resize(4, vsumsShape); // Sum of velocity
     int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
@@ -253,7 +258,7 @@ CPLForceFlekkoy::CPLForceFlekkoy(CPL::ndArray<double> arrayin) : CPLForce(arrayi
 }
 
 void CPLForceFlekkoy::initialisesums(CPL::ndArray<double> arrayin){
-
+    calc_preforce = true;
     int sumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     gSums.resize(3, sumsShape); // Sum of Flekkøy g weights
     nSums.resize(3, sumsShape); // Sum of number of particles  
@@ -352,14 +357,19 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
 
 //Constructor using cells
 CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells) 
-    : CPLForce(nd, icells, jcells, kcells){
+    : CPLForce(nd, icells, jcells, kcells)
+{
+    set_defaults();
     initialisesums(cfd_array_field->get_array());
     initialise_extrasums(cfd_array_field->get_array());
+
 }
 
 //Constructor of datatype
 CPLForceDrag::CPLForceDrag(CPL::ndArray<double> arrayin) 
-    : CPLForce(arrayin){
+    : CPLForce(arrayin)
+{
+    set_defaults();
     initialisesums(arrayin);
     initialise_extrasums(arrayin);
 }
@@ -369,9 +379,11 @@ CPLForceDrag::CPLForceDrag(CPL::ndArray<double> arrayin,
                            map_strstr arg_map) 
     : CPLForce(arrayin)
 {
+    set_defaults();
     unpack_arg_map(arg_map);
     initialisesums(arrayin);
     initialise_extrasums(arrayin);
+
 }
 
 //Constructor with optional argument overlap, interpolate and drag_coeff
@@ -379,20 +391,34 @@ CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells,
                            map_strstr arg_map)
     : CPLForce(nd, icells, jcells, kcells)
 {
+    set_defaults();
     unpack_arg_map(arg_map);
     initialisesums(cfd_array_field->get_array());
     initialise_extrasums(cfd_array_field->get_array());
+
+}
+
+void CPLForceDrag::set_defaults(){
+
+    use_overlap = false;
+    use_interpolate = false;
+    use_gradP = true;
+    use_divStress = false;
+
 }
 
 
 void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
-    
+
+    //Default values
+    calc_preforce = true;
+
     int i = arrayin.shape(1);
     int j = arrayin.shape(2);
     int k = arrayin.shape(3);
     nSums = std::make_shared<CPL::CPLField>(1, i, j, k, "nSums");
     vSums = std::make_shared<CPL::CPLField>(3, i, j, k, "vSums");
-    eSums = std::make_shared<CPL::CPLField>(1, i, j, k, "eSums");
+    volSums = std::make_shared<CPL::CPLField>(1, i, j, k, "volSums");
     FSums = std::make_shared<CPL::CPLField>(3, i, j, k, "FSums");
     FcoeffSums = std::make_shared<CPL::CPLField>(1, i, j, k, "FcoeffSums");
 
@@ -412,7 +438,7 @@ void CPLForceDrag::build_fields_list(){
 
     fields.push_back(nSums);
     fields.push_back(vSums);
-    fields.push_back(eSums);
+    fields.push_back(volSums);
     fields.push_back(FSums);
     fields.push_back(FcoeffSums);
 }
@@ -444,7 +470,6 @@ void CPLForceDrag::unpack_default_arg_map(map_strstr arg_map, bool extra_args){
 //                << "rho " << rho << " " 
 //                << "use_gradP " << use_gradP << " " 
 //                << "use_divStress " << use_divStress << std::endl;
-
 
     // Iterate over the map and print out all key/value pairs.
     for (const auto& arg : arg_map)
@@ -492,7 +517,7 @@ bool CPLForceDrag::unpack_extra_arg_map(map_strstr arg_map){
 //        std::cout << " value: " << arg.second
 //                  << " checktrue: " << checktrue(arg.second) << '\n';
         if (string_contains(arg.first, "some_extra_argument") != -1) {
-            bool extra_args_name = checktrue(arg.second);
+            //bool extra_args_name = checktrue(arg.second);
             extra_args = true; //Set this to disable default check
         }
     }
@@ -534,14 +559,16 @@ void CPLForceDrag::pre_force(double r[], double v[], double a[],
                              double m, double s, double e) {
 
     double volume = (4./3.)*M_PI*pow(s,3); 
+    double v_vol[]= {v[0]*volume, v[1]*volume, v[2]*volume};
     nSums->add_to_array(r, 1.0);
-//    std::cout << "Pre_force " << r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
+
+    //std::cout << "Pre_force " << use_overlap << " " << r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
     if (! use_overlap){
-        eSums->add_to_array(r, volume);
-        vSums->add_to_array(r, v);
+        volSums->add_to_array(r, volume);           
+        vSums->add_to_array(r, v_vol);
     } else {
-        eSums->add_to_array(r, s, volume);
-        vSums->add_to_array(r, s, v);
+        volSums->add_to_array(r, s, volume);
+        vSums->add_to_array(r, s, v_vol);
     }
 
 }
@@ -553,7 +580,7 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
 
 
     //Define variable
-    std::vector<double> f(3), Ui(3), Ui_v(3), gradP(3), divStress(4);
+    std::vector<double> f(3),  Avi(3), Ui(3), Ui_v(3), gradP(3), divStress(4);
 
     //Check array is the right size
     CPL::ndArray<double>& array = cfd_array_field->get_array_pointer();
@@ -594,6 +621,11 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     for (int i = 0; i < 3; ++i){
         //Just drag force here
         f[i] = A*Ui_v[i];
+        //We split A*(vi - u_CFD) into implicit and explicit part following 
+        //Heng Xiao and Jin Sun (2011) Commun. Comput. Phys. Vol. 9, No. 2, pp. 297-323
+        //Define Avi=A*v[i] which is explicit part of the force based on molecular velocity
+        //and ForceCoeff is passed so implict A*u_CFD can be applied in SediFOAM
+        Avi[i] = A*v[i];
         //Include pressure
         if (use_gradP)
             f[i] += -volume*gradP[i];
@@ -610,7 +642,9 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     // CFD-DEM Solver for Particle-Laden Flows, 
     // Commun. Comput. Phys. 9, 2, 297
     FcoeffSums->add_to_array(r, A);
-    FSums->add_to_array(r, &f[0]);
+    FSums->add_to_array(r, Avi.data());
+
+    //FSums->add_to_array(r, &f[0]);
 
 //    std::cout << "Drag Force "  
 //              << r[2] << " " << v[0] << " " << Ui[0] << " "  << v[1] << " " << Ui[1] << " " << v[2] << " " << Ui[2] << " " 
@@ -646,9 +680,9 @@ double CPLForceGranular::magnitude(std::vector<double> v){
 
 double CPLForceGranular::get_eps(double r[]){
     //Porosity e is cell volume - sum in volume
-    double eps = 1.0 - eSums->get_array_value(r)/eSums->get_dV();
-//    std::cout << "get eps " << eSums->get_array_value(r) << " " << 
-//                       eSums->get_dV() << " " << eps << std::endl;
+    double eps = 1.0 - volSums->get_array_value(r)/volSums->get_dV();
+//    std::cout << "get eps " << volSums->get_array_value(r) << " " << 
+//                       volSums->get_dV() << " " << eps << std::endl;
         
     if (eps < 1e-5) {
         std::vector<int> cell = get_cell(r);

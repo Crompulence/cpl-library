@@ -100,7 +100,7 @@ public:
                                           double m, double s, double e) = 0;
     virtual void resetsums() = 0;
 
-    bool calc_preforce = false;
+    bool calc_preforce;
 
     //Destructor
     virtual ~CPLForce() {
@@ -132,8 +132,6 @@ public:
     void build_fields_list();
     void resetsums();
 
-    bool calc_preforce = false;
-
 };
 
 
@@ -153,7 +151,6 @@ public:
                                   double m, double s, double e);
 
     void resetsums();
-    bool calc_preforce = true;
 
 private:
 
@@ -188,7 +185,6 @@ public:
     CPL::ndArray<double> gSums;
     CPL::ndArray<double> nSums;
 
-    bool calc_preforce = true;
     void resetsums();
 
 private:
@@ -224,11 +220,11 @@ public:
     void unpack_CFD_array(CPL::ndArray<double> arrayin);
 
     //Force specific things
-    bool calc_preforce = true;
-    bool use_overlap = false;
-    bool use_interpolate = false;
-    bool use_gradP = true;
-    bool use_divStress = false;
+    void set_defaults();
+    bool use_overlap;
+    bool use_interpolate;
+    bool use_gradP;
+    bool use_divStress;
 
     virtual double drag_coefficient(double r[], double D, std::vector<double> Ui_v);
     double Cd = 0.0000001;
@@ -241,7 +237,7 @@ public:
     //Shared pointer instead of unique as we also keep in fields list
     std::shared_ptr<CPL::CPLField> nSums;
     std::shared_ptr<CPL::CPLField> vSums;
-    std::shared_ptr<CPL::CPLField> eSums;
+    std::shared_ptr<CPL::CPLField> volSums;
     std::shared_ptr<CPL::CPLField> FSums;
     std::shared_ptr<CPL::CPLField> FcoeffSums;
 
