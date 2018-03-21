@@ -458,37 +458,49 @@ subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
     integer, intent(out)  :: RETURNED_REALM_COMM, ierror
 
     integer :: MPMD_mode
-    logical :: initialised
+    logical :: MPI_initialised
+    logical, save :: CPL_initialised=.false.
 
-    call MPI_initialized(initialised, ierr)
-    if (.not.initialised) then
+    print*, "MPI_initialised", MPI_initialised, "CPL_initialised", CPL_initialised
+
+    call MPI_initialized(MPI_initialised, ierr)
+    if (.not.MPI_initialised) then
         call error_abort("Error in CPL_init -- MPI not initialised") 
     endif
 
-    !Set error to zero and copy realm
-    ierror=0
-    realm = callingrealm
+    if (.not.CPL_initialised) then
+        !Set error to zero and copy realm
+        ierror=0
+        realm = callingrealm
 
-    ! Test if we have an MPMD simulation with 
-    ! CFD and a MD realm sharing a single MPI_COMM_WORLD
-    ! or if two seperate codes with seperate MPI_COMM_WORLDs 
-    ! exist and must be connected by opening a port.
-    call test_realms(MPMD_mode)
+        ! Test if we have an MPMD simulation with 
+        ! CFD and a MD realm sharing a single MPI_COMM_WORLD
+        ! or if two seperate codes with seperate MPI_COMM_WORLDs 
+        ! exist and must be connected by opening a port.
+        call test_realms(MPMD_mode)
 
-    ! Create intercommunicator linking realms
-    ! and intracommunicators in each of the realms
-    call create_comm(MPMD_mode)
+        ! Create intercommunicator linking realms
+        ! and intracommunicators in each of the realms
+        call create_comm(MPMD_mode)
 
-    !Return a duplicate to protect the internal CPL_REALM_COMM 
-    call MPI_comm_dup(CPL_REALM_COMM, RETURNED_REALM_COMM, ierr)
+        !Return a duplicate to protect the internal CPL_REALM_COMM 
+        call MPI_comm_dup(CPL_REALM_COMM, RETURNED_REALM_COMM, ierr)
+        CPL_initialised = .true.
 
-    !Print header if necessary
-    if (output_mode .ne. QUIET) call print_cplheader
+        !Print header if necessary
+        if (output_mode .ne. QUIET) call print_cplheader
+    else
+        print*, "CPL_init has been called more than once. Returning same COMM"
+        call MPI_comm_dup(CPL_REALM_COMM, RETURNED_REALM_COMM, ierr)    
+        !Return an error flag but allow this
+        ierror = COUPLER_ERROR_INIT
+        !call error_abort("CPL_init is already initialised") 
+    endif
 
 contains
 
 !-----------------------------------------------------------------------------
-!   Test if CFD and MD realms are assigned correctly
+!   Print ascii header for CPL library
 !-----------------------------------------------------------------------------
 
 subroutine print_cplheader()
@@ -518,6 +530,10 @@ subroutine print_cplheader()
     call MPI_Barrier(CPL_WORLD_COMM, ierr)
 
 end subroutine print_cplheader
+
+!-----------------------------------------------------------------------------
+!   Test if CFD and MD realms are assigned correctly
+!-----------------------------------------------------------------------------
 
 subroutine test_realms(MPMD_mode)
     implicit none
