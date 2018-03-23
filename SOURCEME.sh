@@ -15,6 +15,9 @@ then
 else
     export PYTHONPATH="$CPL_PATH/src/bindings/python:$PYTHONPATH"
 fi
+#Add utilities
+export PYTHONPATH="$CPL_PATH/utils:$PYTHONPATH"
+
 export CPLPY_PATH="$CPL_PATH/src/bindings/python"
 
 # Third-party libs
