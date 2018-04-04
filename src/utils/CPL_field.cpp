@@ -271,7 +271,7 @@ void CPLField::add_to_array(const double r[], double s, const double value[]){
             }
 
             assert(Vremain < volume);
-            //Add to cell particles centre is inside
+            //Add to the cell that the particles centre is inside
             for (int n=0; n < array.shape(0); n++)
                 add_to_array(n, i, j, k, frac*value[n]);
             //Add spherical cap to adjacent cell
