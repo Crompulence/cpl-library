@@ -43,7 +43,8 @@ _CPL_GET_VARS = {"icmin_olap": c_int, "jcmin_olap": c_int, "kcmin_olap": c_int,
                  "zl_md": c_double, "xl_cfd": c_double, "yl_cfd": c_double,
                  "zl_cfd": c_double, "dx" : c_double, "dy" : c_double, "dz" : c_double,
                  "x_orig_cfd": c_double,"y_orig_cfd": c_double,"z_orig_cfd": c_double,
-                 "x_orig_md": c_double,"y_orig_md": c_double,"z_orig_md": c_double
+                 "x_orig_md": c_double,"y_orig_md": c_double,"z_orig_md": c_double,
+                 "timestep_ratio": c_int
                  }
 
 _CPL_SET_VARS = {"output_mode": c_int}
