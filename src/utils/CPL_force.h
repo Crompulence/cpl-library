@@ -101,6 +101,7 @@ public:
     virtual void resetsums() = 0;
 
     bool calc_preforce;
+    bool calc_preforce_everytime;
 
     //Destructor
     virtual ~CPLForce() {

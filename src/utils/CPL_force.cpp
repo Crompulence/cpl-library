@@ -23,12 +23,15 @@ CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){
     //Shared as we keep reference in fields list
     cfd_array_field = std::make_shared<CPL::CPLField>(nd, icells, jcells, kcells);
     calc_preforce = false;
+    calc_preforce_everytime = false;
 }
+
 
 CPLForce::CPLForce(CPL::ndArray<double> arrayin) {
     //Shared as we keep reference in fields list
     cfd_array_field = std::make_shared<CPL::CPLField>(arrayin);
     calc_preforce = false;
+    calc_preforce_everytime = false;
 
 }
 
@@ -131,6 +134,7 @@ CPLForceTest::CPLForceTest(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
 //Examples of initialise sums with another internal field
 void CPLForceTest::initialisesums(CPL::ndArray<double> arrayin){
     calc_preforce = false;
+    calc_preforce_everytime = false;
     auto otherfield = std::make_shared<CPL::CPLField>(1, arrayin.shape(1), 
                                                          arrayin.shape(2), 
                                                          arrayin.shape(3), 
@@ -188,6 +192,7 @@ CPLForceVelocity::CPLForceVelocity(CPL::ndArray<double> arrayin)
 
 void CPLForceVelocity::initialisesums(CPL::ndArray<double> arrayin){
     calc_preforce = true;
+    calc_preforce_everytime = true;
     int vsumsShape[4] = {arrayin.shape(0), arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     vSums.resize(4, vsumsShape); // Sum of velocity
     int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
@@ -259,6 +264,7 @@ CPLForceFlekkoy::CPLForceFlekkoy(CPL::ndArray<double> arrayin) : CPLForce(arrayi
 
 void CPLForceFlekkoy::initialisesums(CPL::ndArray<double> arrayin){
     calc_preforce = true;
+    calc_preforce_everytime = true;
     int sumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     gSums.resize(3, sumsShape); // Sum of Flekkøy g weights
     nSums.resize(3, sumsShape); // Sum of number of particles  
@@ -404,6 +410,7 @@ void CPLForceDrag::set_defaults(){
     use_interpolate = false;
     use_gradP = true;
     use_divStress = false;
+    calc_preforce_everytime = true;
 
 }
 
@@ -412,7 +419,6 @@ void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
 
     //Default values
     calc_preforce = true;
-
     int i = arrayin.shape(1);
     int j = arrayin.shape(2);
     int k = arrayin.shape(3);
@@ -488,6 +494,8 @@ void CPLForceDrag::unpack_default_arg_map(map_strstr arg_map, bool extra_args){
             mu = std::stod(arg.second);
         } else if (string_contains(arg.first, "rho")  != -1) {
             rho = std::stod(arg.second);
+        } else if (string_contains(arg.first, "preforce_everytime")  != -1) {
+            calc_preforce_everytime = checktrue(arg.second);
         } else if (extra_args) {
             std::cout << "key: " << arg.first << 
             " for forcetype not recognised as default" << '\n';
