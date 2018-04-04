@@ -461,8 +461,6 @@ subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
     logical :: MPI_initialised
     logical, save :: CPL_initialised=.false.
 
-    print*, "MPI_initialised", MPI_initialised, "CPL_initialised", CPL_initialised
-
     call MPI_initialized(MPI_initialised, ierr)
     if (.not.MPI_initialised) then
         call error_abort("Error in CPL_init -- MPI not initialised") 
@@ -555,6 +553,7 @@ subroutine test_realms(MPMD_mode)
     else
         allocate(realm_list(0))
     endif
+
     call MPI_gather(callingrealm, 1, MPI_INTEGER, realm_list, &
                     1, MPI_INTEGER, root, MPI_COMM_WORLD, ierr)
 
@@ -836,7 +835,10 @@ subroutine read_coupler_input()
     if (found) then
         read(infileid,*, IOSTAT=readin) CPL_full_overlap
     else
-        CPL_full_overlap = .false.
+        CPL_full_overlap = .false.       
+    endif
+
+    if (CPL_full_overlap .eqv. .false.) then
 
         call locate(infileid, 'OVERLAP_EXTENTS', found)
         if (found) then
@@ -885,6 +887,11 @@ subroutine read_coupler_input()
             kcmax_bnry = VOID
         end if
 
+    else
+        call locate(infileid, 'CONSTRAINT_INFO', found)
+        if (found) then
+            read(infileid,*) constraint_algo
+        endif
     endif
 
 
