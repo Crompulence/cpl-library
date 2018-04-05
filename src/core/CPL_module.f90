@@ -292,6 +292,12 @@ module coupler_module
         constraint_Flekkoy = 3,      &
         constraint_CV = 4   
 
+
+    !Sendtype flags
+    integer, protected :: &
+        sendtype_cfd_to_md,  &
+        sendtype_md_to_cfd
+
     ! Processor cell ranges 
     integer,protected, dimension(:), allocatable :: &
         icPmin_md,        &
@@ -948,6 +954,20 @@ subroutine read_coupler_input()
         comm_style = comm_style_send_recv
     end if
 
+    call locate(infileid, 'SENDTYPE_MD_TO_CFD', found) 
+    if (found) then
+        read(infileid, *) sendtype_md_to_cfd
+    else
+        sendtype_md_to_cfd = 1
+    end if
+
+    call locate(infileid, 'SENDTYPE_CFD_TO_MD', found) 
+    if (found) then
+        read(infileid, *) sendtype_cfd_to_md
+    else
+        sendtype_cfd_to_md = 1
+    end if
+
     close(infileid,status="keep")
 
     if (myid_world .eq. rootid_world) then
@@ -1464,8 +1484,6 @@ subroutine coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, ncxyz
 
     !Broadcast the overlap to CFD on intracommunicator
     call MPI_bcast(ncy_olap,1,MPI_INTEGER,rootid_realm,CPL_REALM_COMM,ierr)
-    !Broadcast the overlap to MD over intercommunicator
-    call MPI_bcast(ncy_olap,1,MPI_INTEGER,source,CPL_INTER_COMM,ierr)
 
     ! Establish mapping between MD and CFD
     call MPI_Barrier(CPL_WORLD_COMM, ierr)

@@ -2262,7 +2262,8 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
                    cpl_cfd_bc_slice, cpl_md_bc_slice,            &
                    nsteps_md, nsteps_cfd, nsteps_coupled,        &
                    cpl_cfd_bc_x, cpl_cfd_bc_y, cpl_cfd_bc_z,     &
-                   timestep_ratio, comm_style)
+                   timestep_ratio, comm_style,                   &
+                   sendtype_cfd_to_md, sendtype_md_to_cfd)
 ! Wrapper to retrieve (read only) parameters from the coupler_module 
 ! Note - this ensures all variable in the coupler are protected
 ! from corruption by either CFD or MD codes
@@ -2330,8 +2331,10 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
                                 cpl_cfd_bc_y_ => cpl_cfd_bc_y, &
                                 cpl_cfd_bc_z_ => cpl_cfd_bc_z, &
                                 comm_style_ => comm_style, &
-                                comm_style_send_recv_ => comm_style_send_recv, &
-                                comm_style_gath_scat_ => comm_style_gath_scat
+                                comm_style_send_recv_ => comm_style_send_recv,&
+                                comm_style_gath_scat_ => comm_style_gath_scat,&
+                                sendtype_cfd_to_md_ => sendtype_cfd_to_md,    &
+                                sendtype_md_to_cfd_ =>  sendtype_md_to_cfd
     implicit none
 
     logical,dimension(3),optional,intent(out) :: staggered_averages
@@ -2342,7 +2345,8 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
     integer, optional, intent(out)          :: ncx,ncy,ncz
     integer, optional, intent(out)          :: npx_md,npy_md,npz_md
     integer, optional, intent(out)          :: npx_cfd,npy_cfd,npz_cfd
-    integer, optional, intent(out)          :: md_cfd_match_cellsize,timestep_ratio
+    integer, optional, intent(out)          :: md_cfd_match_cellsize
+    integer, optional, intent(out)          :: timestep_ratio
 
     integer, optional, intent(out)          :: constraint_algo
     integer, optional, intent(out)          :: constraint_CVflag
@@ -2360,7 +2364,10 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
     integer, optional, intent(out)          :: cpl_cfd_bc_y 
     integer, optional, intent(out)          :: cpl_cfd_bc_z 
     integer, optional, intent(out)          :: cpl_md_bc_slice 
-    integer, optional, intent(out)          :: nsteps_md, nsteps_cfd, nsteps_coupled
+    integer, optional, intent(out)          :: nsteps_md, nsteps_cfd
+    integer, optional, intent(out)          :: nsteps_coupled
+    integer, optional, intent(out)          :: sendtype_cfd_to_md
+    integer, optional, intent(out)          :: sendtype_md_to_cfd
 
     real(kind(0.d0)), optional, intent(out) :: density_cfd,density_md
     real(kind(0.d0)), optional, intent(out) :: dt_cfd,dt_MD
@@ -2452,6 +2459,8 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
 
     ! Communication style
     if (present(comm_style)) comm_style = comm_style_
+    if (present(sendtype_cfd_to_md)) sendtype_cfd_to_md = sendtype_cfd_to_md_
+    if (present(sendtype_md_to_cfd)) sendtype_md_to_cfd = sendtype_md_to_cfd_
 
     ! Coupling styles
     if (present(cpl_cfd_bc_slice)) cpl_cfd_bc_slice = cpl_cfd_bc_slice_
