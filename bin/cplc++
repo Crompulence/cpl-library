@@ -223,7 +223,7 @@ if [ -n "$profConf" ] ; then
 fi
 
 final_cxxflags=" "
-final_cppflags=" "
+final_cppflags=" -std=c++11"
 final_ldflags=" "
 final_libs=""
 if test "yes" = "no" -o "${interlib_deps}" = "no" ; then
