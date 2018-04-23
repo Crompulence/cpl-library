@@ -2650,9 +2650,11 @@ end function CPL_cfd2md
 !-----------------------------------------------------------------------------
 
 subroutine CPL_map_cell2coord(i, j, k, coord_xyz)
-
     use coupler_module, only: xg, yg, zg, realm, &
-                              md_realm, cfd_realm, error_abort
+                              ncx, ncy, ncz, &
+                              md_realm, cfd_realm, & 
+                              maxgridsize, error_abort
+
     integer, intent(in)  :: i, j, k
     real(kind(0.d0)), intent(out) :: coord_xyz(3)
 
@@ -2668,9 +2670,15 @@ subroutine CPL_map_cell2coord(i, j, k, coord_xyz)
                          "Aborting simulation.") 
     end if
 
-    coord_xyz(1) = xg(i, j, k)
-    coord_xyz(2) = yg(i, j, k) 
-    coord_xyz(3) = zg(i, j, k)
+    if (ncx*ncy*ncz .lt. maxgridsize) then
+        coord_xyz(1) = xg(i, j, k)
+        coord_xyz(2) = yg(i, j, k) 
+        coord_xyz(3) = zg(i, j, k)
+    else
+        coord_xyz(1) = xg(i, 1, 1)
+        coord_xyz(2) = yg(1, j, 1) 
+        coord_xyz(3) = zg(1, 1, k)
+    endif
 
     if (realm .eq. md_realm) then
         aux_ret = CPL_map_cfd2md_coord(coord_xyz, coord_md)

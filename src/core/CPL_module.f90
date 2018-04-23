@@ -87,6 +87,9 @@ module coupler_module
     integer, parameter:: QUIET = 0
     integer, parameter:: NORMAL = 1
 
+    !! Max
+    integer, parameter :: maxgridsize = 2*1024**2 !! Maximum size to store global grid
+
     !! error codes
     integer, parameter :: & 
         COUPLER_ERROR_REALM  = 1        !! wrong realm value
@@ -1162,24 +1165,45 @@ subroutine CPL_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
         kTmin(z+1) = z*nczl + 1
         kTmax(z+1) = kTmin(z+1) + nczl - 1
     enddo
-    
-    allocate(xgrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
-    allocate(ygrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
-    allocate(zgrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
 
-    ! Construct cartesian grid
-    dx =  xyzL(1) / ncxyz(1)
-    dy =  xyzL(2) / ncxyz(2)
-    dz =  xyzL(3) / ncxyz(3)
-    do i=1, ncxyz(1) + 1
-    do j=1, ncxyz(2) + 1
-    do k=1, ncxyz(3) + 1
-            xgrid(i, j, k) = (i-1) * dx + xyz_orig(1)
-            ygrid(i, j, k) = (j-1) * dy + xyz_orig(2)
-            zgrid(i, j, k) = (k-1) * dz + xyz_orig(3)
-    enddo
-    enddo
-    enddo
+    !Check if allocating global meshgrid is reasonable
+    if (product(ncxyz) .lt. maxgridsize) then
+        allocate(xgrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
+        allocate(ygrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
+        allocate(zgrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
+        ! Construct cartesian grid
+        dx =  xyzL(1) / ncxyz(1)
+        dy =  xyzL(2) / ncxyz(2)
+        dz =  xyzL(3) / ncxyz(3)
+        do i=1, ncxyz(1) + 1
+        do j=1, ncxyz(2) + 1
+        do k=1, ncxyz(3) + 1
+                xgrid(i, j, k) = (i-1) * dx + xyz_orig(1)
+                ygrid(i, j, k) = (j-1) * dy + xyz_orig(2)
+                zgrid(i, j, k) = (k-1) * dz + xyz_orig(3)
+        enddo
+        enddo
+        enddo
+    else
+        !Other allocate 3 arrays for each dimension
+        allocate(xgrid(ncxyz(1) + 1, 1, 1), stat=ierr)
+        allocate(ygrid(1, ncxyz(2) + 1, 1), stat=ierr)
+        allocate(zgrid(1, 1, ncxyz(3) + 1), stat=ierr)
+        ! Construct cartesian grid
+        dx =  xyzL(1) / ncxyz(1)
+        dy =  xyzL(2) / ncxyz(2)
+        dz =  xyzL(3) / ncxyz(3)
+        do i=1, ncxyz(1) + 1
+                xgrid(i, 1, 1) = (i-1) * dx + xyz_orig(1)
+        enddo
+        do j=1, ncxyz(2) + 1
+                ygrid(1, j, 1) = (j-1) * dy + xyz_orig(2)
+        enddo
+        do k=1, ncxyz(3) + 1
+                zgrid(1, 1, k) = (k-1) * dz + xyz_orig(3)
+        enddo
+    endif
+
 
     call coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, &
                           xyz_orig, ncxyz, ijkcmax, ijkcmin, iTmin, &
@@ -1496,58 +1520,70 @@ contains
 
     subroutine check_mesh
         implicit none
+
+        integer, dimension(3) :: sizex, sizey, sizez
+
+        if (ncx*ncy*ncz .lt. maxgridsize) then
+            sizex(1) = ncx + 1
+            sizex(2) = ncy + 1
+            sizex(3) = ncz + 1
+            sizey(1) = ncx + 1
+            sizey(2) = ncy + 1
+            sizey(3) = ncz + 1
+            sizez(1) = ncx + 1
+            sizez(2) = ncy + 1
+            sizez(3) = ncz + 1
+
+            !Define cell sizes dx,dy & dz and check for grid stretching
+            ! - - x - -
+            dx = xg(2,1,1)-xg(1,1,1)
+            dxmax = maxval(xg(2:ncx+1,2:ncy+1,2:ncz+1)-xg(1:ncx,1:ncy,1:ncz))
+            dxmin = minval(xg(2:ncx+1,2:ncy+1,2:ncz+1)-xg(1:ncx,1:ncy,1:ncz))
+            if (dxmax-dx.gt.0.00001d0 .or.dx-dxmin.gt.0.00001d0) then
+                print'(3(a,f15.7))', 'Max dx = ', dxmax, ' dx = ', dx, ' Min dx = ',dxmin
+                call error_abort("check_mesh error -  Grid stretching in x not supported")
+            endif
+            ! - - y - -
+            dy = yg(1,2,1)-yg(1,1,1)
+            dymax = maxval(yg(2:ncx+1,2:ncy+1,2:ncz+1)-yg(1:ncx,1:ncy,1:ncz))
+            dymin = minval(yg(2:ncx+1,2:ncy+1,2:ncz+1)-yg(1:ncx,1:ncy,1:ncz))
+            if (dymax-dy.gt.0.00001d0 .or. dy-dymin.gt.0.00001d0) then
+                print'(3(a,f15.7))', 'Max dy = ', dymax, ' dy = ', dy, ' Min dy = ',dymin
+                call error_abort("check_mesh error -  Grid stretching in y not supported")
+            endif
+
+            ! - - z - -
+            dz = zg(1,1,2)-zg(1,1,1)
+            dzmax = maxval(zg(2:ncx+1,2:ncy+1,2:ncz+1)-zg(1:ncx,1:ncy,1:ncz))
+            dzmin = minval(zg(2:ncx+1,2:ncy+1,2:ncz+1)-zg(1:ncx,1:ncy,1:ncz))
+            if (dzmax-dz.gt.0.00001d0 .or. dz-dzmin.gt.0.00001d0) then
+                print'(3(a,f15.7))', 'Max dz = ', dzmax, ' dz = ', dz, ' Min dz = ',dzmin
+                call error_abort("check_mesh error - Grid stretching in z not supported")
+            endif
+
+        else
+            sizex = 1; sizey = 1; sizez = 1
+            sizex(1) = ncx + 1
+            sizey(2) = ncy + 1
+            sizez(3) = ncz + 1
+        endif
   
-        ! Check grids are the right size 
-        if (size(xg,1) .ne. (ncx + 1) .or. & 
-            size(xg,2) .ne. (ncy + 1) .or. &
-            size(xg,3) .ne. (ncz + 1)) then
+        ! Check grids are the right size
+        if (size(xg,1) .ne. sizex(1) .or. & 
+            size(xg,2) .ne. sizex(2) .or. &
+            size(xg,3) .ne. sizex(3)) then
             call error_abort('check_mesh error - xg is the wrong size in cpl_cfd_init')
         end if
-        if (size(yg,1) .ne. (ncx + 1) .or. & 
-            size(yg,2) .ne. (ncy + 1) .or. &
-            size(yg,3) .ne. (ncz + 1)) then
+        if (size(yg,1) .ne. sizey(1) .or. & 
+            size(yg,2) .ne. sizey(2) .or. &
+            size(yg,3) .ne. sizey(3)) then
             call error_abort('check_mesh error - yg is the wrong size in cpl_cfd_init')
         end if
-        if (size(zg,1) .ne. (ncx + 1) .or. & 
-            size(zg,2) .ne. (ncy + 1) .or. &
-            size(zg,3) .ne. (ncz + 1)) then
+        if (size(zg,1) .ne. sizez(1) .or. & 
+            size(zg,2) .ne. sizez(2) .or. &
+            size(zg,3) .ne. sizez(3)) then
             call error_abort('check_mesh error - zg is the wrong size in cpl_cfd_init')
         end if
-
-        !Define cell sizes dx,dy & dz and check for grid stretching
-        ! - - x - -
-        dx = xg(2,1,1)-xg(1,1,1)
-        dxmax = maxval(xg(2:ncx+1,2:ncy+1,2:ncz+1)-xg(1:ncx,1:ncy,1:ncz))
-        dxmin = minval(xg(2:ncx+1,2:ncy+1,2:ncz+1)-xg(1:ncx,1:ncy,1:ncz))
-        if (dxmax-dx.gt.0.00001d0 .or.dx-dxmin.gt.0.00001d0) then
-            print'(3(a,f15.7))', 'Max dx = ', dxmax, ' dx = ', dx, ' Min dx = ',dxmin
-            call error_abort("check_mesh error -  Grid stretching in x not supported")
-        endif
-        ! - - y - -
-        dy = yg(1,2,1)-yg(1,1,1)
-        dymax = maxval(yg(2:ncx+1,2:ncy+1,2:ncz+1)-yg(1:ncx,1:ncy,1:ncz))
-        dymin = minval(yg(2:ncx+1,2:ncy+1,2:ncz+1)-yg(1:ncx,1:ncy,1:ncz))
-        if (dymax-dy.gt.0.00001d0 .or. dy-dymin.gt.0.00001d0) then
-            print'(3(a,f15.7))', 'Max dy = ', dymax, ' dy = ', dy, ' Min dy = ',dymin
-            call error_abort("check_mesh error -  Grid stretching in y not supported")
-        endif
-        !if (dymax-dy.gt.0.0001 .or. dy-dymin.gt.0.0001) then
-        !    print*, "********************************************************************"
-        !    print*, " Grid stretching employed in CFD domain - range of dy sizes:        "
-        !   print*, "dymin = ", dymin, " dy = ",dy, " dymax = ", dymax
-        !    print*, "********************************************************************"
-        !    print*,
-        !endif
-        ! - - z - -
-
-        dz = zg(1,1,2)-zg(1,1,1)
-        dzmax = maxval(zg(2:ncx+1,2:ncy+1,2:ncz+1)-zg(1:ncx,1:ncy,1:ncz))
-        dzmin = minval(zg(2:ncx+1,2:ncy+1,2:ncz+1)-zg(1:ncx,1:ncy,1:ncz))
-        if (dzmax-dz.gt.0.00001d0 .or. dz-dzmin.gt.0.00001d0) then
-            print'(3(a,f15.7))', 'Max dz = ', dzmax, ' dz = ', dz, ' Min dz = ',dzmin
-            call error_abort("check_mesh error - Grid stretching in z not supported")
-        endif
-
 
     end subroutine check_mesh
 
@@ -1833,7 +1869,11 @@ subroutine coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain, xyz_orig)
     deallocate(buf)
 
     ! Receive & Store array of global grid points
-    allocate(xg(ncx+1,ncy+1,ncz+1),yg(ncx+1,ncy+1,ncz+1),zg(ncx+1,ncy+1,ncz+1))
+    if (ncx*ncy*ncz .lt. maxgridsize) then
+        allocate(xg(ncx+1,ncy+1,ncz+1),yg(ncx+1,ncy+1,ncz+1),zg(ncx+1,ncy+1,ncz+1))
+    else
+        allocate(xg(ncx+1,1,1),yg(1,ncy+1,1),zg(1,1,ncz+1))
+    endif
     call MPI_bcast(xg,size(xg),MPI_double_precision,0,CPL_INTER_COMM,ierr) !Receive
     call MPI_bcast(yg,size(yg),MPI_double_precision,0,CPL_INTER_COMM,ierr) !Receive
     call MPI_bcast(zg,size(zg),MPI_double_precision,0,CPL_INTER_COMM,ierr) !Receive 
