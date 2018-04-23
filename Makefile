@@ -212,7 +212,7 @@ install:
 	mkdir -p $(PREFIX)/$(includedir)
 	mkdir -p $(PREFIX)/$(bindir)
 	cp -r ./$(libdir)/libcpl.so $(PREFIX)/lib/
-	cp -r ./$(includedir)/* $(PREFIX)/$(includedir)/
+	cp -r ./$(includedir) $(PREFIX)/$(includedir)/
 	cp ./$(bindir)/cplexec $(PREFIX)/bin/
 	cp ./$(bindir)/cplf90 $(PREFIX)/bin/
 	cp ./$(bindir)/cplc++ $(PREFIX)/bin/
@@ -220,8 +220,12 @@ install:
 
 .PHONY: uninstall
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/lib/libcpl.so
-	rm -f $(DESTDIR)$(PREFIX)/include/cpl*
+	rm -f $(PREFIX)/lib/libcpl.so
+	rm -f $(PREFIX)/include/cpl/*
+	rmdir $(PREFIX)/include/cpl
+	rm $(PREFIX)/bin/cplexec
+	rm $(PREFIX)/bin/cplf90
+	rm $(PREFIX)/bin/cplc++
 
 # Clean
 clean:
