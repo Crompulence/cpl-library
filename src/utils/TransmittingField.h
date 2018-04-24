@@ -36,7 +36,8 @@ public:
     TransmittingField(std::string field_name) : PoolElement(field_name) {}
     virtual void setup()=0;
     virtual void update(){}
-    virtual void addToPool(std::map<std::string, TransmittingField*>* pool, bool overwrite=true);
+    // virtual void addToPool(std::map<std::string, TransmittingField*>* pool, bool overwrite=true);
+    virtual void addToPool(CPL::Pool<TransmittingField>* pool, bool overwrite=true);
     void setBuffer(const BufferPtr& buff) {buffer = buff;}
     int data_size;
     CPL::PortionField region; 
@@ -87,14 +88,17 @@ protected:
 };
 
 
-typedef std::map<std::string, TransmittingField*> TransmittingFieldMap;
+// typedef std::map<std::string, TransmittingField*> TransmittingFieldMap;
+typedef CPL::Pool<TransmittingField> TransmittingFieldPoolT;
 
-class TransmittingFieldPool : public TransmittingFieldMap {
+class TransmittingFieldPool : public CPL::Pool<TransmittingField> {
     public:
-        TransmittingFieldPool(): TransmittingFieldMap() {}
+        // TransmittingFieldPool(): TransmittingFieldMap() {}
+        TransmittingFieldPool(): CPL::Pool<TransmittingField>() {}
         TransmittingFieldPool(const CPL::PortionField& portion_region,
                               const CPL::PortionField& region) : 
-                              TransmittingFieldMap(), portionField(portion_region), 
+                              // TransmittingFieldMap(), portionField(portion_region), 
+                              CPL::Pool<TransmittingField>(), portionField(portion_region), 
                               field(region) {}
         void setupAll();
         void updateAll();

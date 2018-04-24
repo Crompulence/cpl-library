@@ -2,32 +2,33 @@
 #include "cpl.h"
 
 void CPL::TransmittingFieldPool::setupAll() {
-    CPL::TransmittingFieldMap::iterator f;
+    CPL::Pool<TransmittingField>::iterator f;
     for (f = this->begin(); f != this->end(); f++)
         f->second->setup();
 }
 
 
 void CPL::TransmittingFieldPool::updateAll() {
-    CPL::TransmittingFieldMap::iterator f;
+    CPL::Pool<TransmittingField>::iterator f;
     for (f = this->begin(); f != this->end(); f++)
         f->second->update();
 }
 
 void CPL::IncomingFieldPool::unpackAll() {
-    CPL::TransmittingFieldMap::iterator f;
+    CPL::Pool<TransmittingField>::iterator f;
     for (f = this->begin(); f != this->end(); f++)
         static_cast<CPL::IncomingField*>(f->second)->unpack();
 }
 
 void CPL::OutgoingFieldPool::packAll() {
-    CPL::TransmittingFieldMap::iterator f;
+    CPL::Pool<TransmittingField>::iterator f;
     for (f = this->begin(); f != this->end(); f++)
         static_cast<CPL::OutgoingField*>(f->second)->pack();
 }
 
 
-void CPL::TransmittingField::addToPool(std::map<std::string, TransmittingField*>* 
+// void CPL::TransmittingField::addToPool(std::map<std::string, TransmittingField*>* 
+void CPL::TransmittingField::addToPool(CPL::Pool<TransmittingField>* 
                                        pool, bool overwrite) {
     // Add portion and region information to the transmitting field
     CPL::PortionField a, b;
