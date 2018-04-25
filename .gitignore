@@ -63,3 +63,7 @@ test/valgrind/vg_md.0
 test/valgrind/vg_md.1
 test/valgrind/vg_md.2
 test/valgrind/vg_md.3
+3rd-party/include/
+3rd-party/json-fortran/build/
+3rd-party/lib/
+
