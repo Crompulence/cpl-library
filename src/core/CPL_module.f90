@@ -169,6 +169,8 @@ module coupler_module
         myid_graph  !! Processor ID from 0 to nproc_graph-1;
     integer,protected :: &
         rank_graph  !! Processor rank from 1 to nproc_graph;
+    integer,protected :: &
+        rank_intersect  !! Processor rank in intersection of overlaping proces;
 
     !! Get rank in CPL_world_COMM from rank in local COMM
     integer,protected, dimension(:), allocatable    :: &
@@ -2536,13 +2538,15 @@ subroutine prepare_overlap_comms()
     !   7. split world comm according to groups
     !      if group(world_rank) == 0, set olap_comm to null 
 
-    integer :: i,j,k,ic,jc,kc
-    integer :: trank_md, trank_cfd, trank_world, nolap
+    integer :: i,j,k,ic,jc,kc,n
+    integer :: trank_md, trank_cfd, trank_world, nolap, color
     integer, dimension(:), allocatable :: mdicoords, mdjcoords, mdkcoords
     integer, parameter :: olap_null = -666
     integer :: group(nproc_world)
     integer :: cfdcoord(3)
     integer :: tempsize
+    !integer :: local_leader, remote_leader, comm_size
+    !integer :: jbuf(2), ibuf(2)
 
     tempsize = size(cfd_icoord2olap_md_icoords,2)
     allocate(mdicoords(tempsize))
@@ -2634,7 +2638,50 @@ subroutine prepare_overlap_comms()
     deallocate(mdicoords)
     deallocate(mdjcoords)
     deallocate(mdkcoords)
-    
+
+    !Create a COMM for overlapping processes only
+    if (olap_mask(rank_world).eqv..true.) then
+        color = 1
+    else
+        color = 2
+    endif
+    call MPI_comm_split(CPL_WORLD_COMM, color,  myid_world, & 
+                        CPL_REALM_INTERSECTION_COMM, ierr)
+
+    call MPI_comm_rank(CPL_REALM_INTERSECTION_COMM, rank_intersect, ierr)
+    rank_intersect = rank_intersect + 1
+
+    !Create an intercomm for overlapping processes only
+!    do n = 1,size(olap_mask,1)
+!        if (olap_mask(n).eqv..true.) then
+!            local_leader = n
+!            exit
+!        endif
+!    enddo
+!    ! Get the MPI_comm_world ranks that hold the largest ranks in cfd_comm and md_comm
+!    call MPI_comm_size(CPL_REALM_COMM, comm_size, ierr)
+!    ibuf(:) = -1
+!    jbuf(:) = -1
+!    if ( myid_realm .eq. comm_size - 1) then
+!        ibuf(realm) = myid_world
+!    endif
+
+!    call MPI_allreduce( ibuf ,jbuf, 2, MPI_INTEGER, MPI_MAX, &
+!                        CPL_WORLD_COMM, ierr)
+
+!    !Set this largest rank on each process to be the inter-communicators (WHY NOT 0??)
+!    select case (realm)
+!    case (cfd_realm)
+!        remote_leader = jbuf(md_realm)
+!    case (md_realm)
+!        remote_leader = jbuf(cfd_realm)
+!    end select
+
+!    print*, "intercomm create started", realm, local_leader, remote_leader,rank_world 
+!    call MPI_intercomm_create(CPL_REALM_COMM, comm_size-1, CPL_OLAP_COMM, &
+!                              remote_leader, 1, CPL_REALM_INTERSECTION_COMM, ierr)
+!    print*, "intercomm create finished", realm, local_leader, remote_leader,rank_world 
+!    
     !if (realm.eq.md_realm) call write_overlap_comms_md
 
 end subroutine prepare_overlap_comms

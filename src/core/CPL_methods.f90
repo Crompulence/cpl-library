@@ -726,7 +726,7 @@ subroutine CPL_send(asend, limits, send_flag)
                                rank_world, realm, ierr, VOID, &
                                CPL_setup_complete, REALM_NAME, &
                                myid_realm, rootid_realm, & 
-                               CPL_INTER_COMM
+                               rank_intersect, CPL_REALM_INTERSECTION_COMM
     implicit none
 
     
@@ -750,7 +750,7 @@ subroutine CPL_send(asend, limits, send_flag)
     real(kind=kind(0.d0)), allocatable  :: vbuf(:)
 
     !Check counter
-    integer       :: source
+    integer       :: source, check_recv
     integer, save :: first_counter = 4
 
     !Check setup is complete
@@ -784,13 +784,15 @@ subroutine CPL_send(asend, limits, send_flag)
     !Check send/recv are consistent size
     if (first_counter .ne. 0) then
         first_counter = first_counter - 1
-        !Send only from root processor
-        if ( myid_realm .eq. rootid_realm ) then
-            source=MPI_ROOT
-        else
-            source=MPI_PROC_NULL
+        check_recv = 0
+        call MPI_AllReduce(size(asend,1), check_recv, 1, MPI_INTEGER, & 
+                           MPI_SUM, CPL_REALM_INTERSECTION_COMM, ierr)
+        call MPI_comm_size(CPL_REALM_INTERSECTION_COMM, n, ierr)
+        if (check_recv/n .ne. npercell) then
+            print*, "Error in CPL send in ", realm_name(realm), & 
+                    " realm, expected send size: ", npercell
+            call error_abort("Error in CPL send -- first index of send array does not match recv data size")
         endif
-        call MPI_bcast(size(asend,1), 1, MPI_INTEGER, source, CPL_INTER_COMM, ierr)
     endif
 
     !Get neighbours
@@ -924,7 +926,8 @@ subroutine CPL_recv(arecv, limits, recv_flag)
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
                                rank_world, realm, realm_name, & 
                                iblock_realm,jblock_realm,kblock_realm,VOID,ierr, &
-                               REALM_NAME, realm, CPL_INTER_COMM
+                               REALM_NAME, realm, & 
+                               rank_intersect, CPL_REALM_INTERSECTION_COMM
     implicit none
 
     logical, intent(out), optional  :: recv_flag  !Flag set if processor has received data
@@ -959,19 +962,14 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     !Check send/recv are consistent size
     if (first_counter .ne. 0) then
         first_counter = first_counter - 1
-        call MPI_bcast(check_recv, 1, MPI_INTEGER, 0, CPL_INTER_COMM, ierr)
-        if (check_recv .ne. npercell) then
-            print*, "Error in CPL recv number of ", realm_name(realm), & 
-                    " realm, expected size: ", npercell, & 
-                    " data to be sent is size ", check_recv
+        call MPI_AllReduce(size(arecv,1), check_recv, 1, MPI_INTEGER, & 
+                        MPI_SUM, CPL_REALM_INTERSECTION_COMM, ierr)
+        call MPI_comm_size(CPL_REALM_INTERSECTION_COMM, n, ierr)
+        if (check_recv/n .ne. npercell) then
+            print*, "Error in CPL recv in ", realm_name(realm), & 
+                    " realm, expected recv size: ", npercell
             call error_abort("Error in CPL recv -- first index of recv array does not match sent data size")
         endif
-!    else
-        !Reset check counter if size changes
-        !first_counter = 4
-!        if (check_recv .ne. npercell) then
-!            call error_abort("Error in CPL recv -- first index of recv array has changed during run, Not supported")
-!        endif
     endif
 
     ! Get local grid box ranges seen by this rank for CFD and allocate buffer
