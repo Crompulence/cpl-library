@@ -2,14 +2,25 @@
 
 os: linux
 sudo: required
-
+dist: precise
 language: python
 python:
     - 2.7
 
+compiler: gcc
+addons:
+apt:
+  sources:
+    - ubuntu-toolchain-r-test
+  packages:
+    - g++-5 gcc-5 libstdc++-5-dev gfortran-5
 env:
-    - MPI=mpich3 GCC_VERSION=5
-#    - MPI=openmpi GCC_VERSION=5
+    - DIST="precise"
+    - GCC_VERSION=5
+    - CXX_COMPILER=g++-5
+    - C_COMPILER=gcc-5
+    - F_COMPILER=gfortran-5
+    - MPI=mpich3
 
 branches:
   only:
@@ -21,9 +32,6 @@ cache:
     - mpi
 
 before_install:
-
-    - sh ./make/travis/travis-install-gcc.sh 'gcc-'$GCC_VERSION;
-    - sh ./make/travis/travis-install-fortran.sh 'gfortran-'$GCC_VERSION
     - test -n $CC  && unset CC
     - test -n $CXX && unset CXX
     - export MPI_BUILD_DIR=$TRAVIS_BUILD_DIR/mpi
