@@ -41,23 +41,6 @@ matrix:
         - F_COMPILER=gfortran-6
         - MPI=mpich3
 
-    #Build for 14.04 with mpich from repo
-    - dist: trusty
-      compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-6 gcc-6 libstdc++-6-dev gfortran-6
-      # change default compiler to newer gcc-6
-      env:
-        - GCC_VERSION=6
-        - CXX_COMPILER=g++-6
-        - C_COMPILER=gcc-6
-        - F_COMPILER=gfortran-6
-        - MPI=mpich2
-
 branches:
   only:
     - master
