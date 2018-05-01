@@ -10,9 +10,9 @@ else
     echo "Build dir specified as " $BUILD_DIR
 fi
 INSTALL_DIR=$BUILD_DIR/$1
-
+echo $INSTALL_DIR
 #If file exist then use this
-if [ -f $INSTALL_DIR ]; then
+if [ -f $INSTALL_DIR/bin/mpirun ]; then
     echo "Using cached MPI in "$INSTALL_DIR
 else
     if [ $# -lt 3 ]; then
