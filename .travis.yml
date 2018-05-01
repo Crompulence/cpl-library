@@ -2,7 +2,6 @@
 
 os: linux
 sudo: required
-dist: precise
 language: python
 python:
     - 2.7
@@ -15,7 +14,7 @@ addons:
       packages:
         - g++-5 gcc-5 libstdc++-5-dev gfortran-5
     env:
-        - DIST="precise" GCC_VERSION=5 CXX_COMPILER=g++-5 C_COMPILER=gcc-5 F_COMPILER=gfortran-5 MPI=mpich3
+        - GCC_VERSION=5 CXX_COMPILER=g++-5 C_COMPILER=gcc-5 F_COMPILER=gfortran-5 MPI=mpich3
 
 branches:
   only:
@@ -23,8 +22,8 @@ branches:
 
 cache:
   apt: true
-  directories:
-    - mpi
+#  directories:
+#    - mpi
 
 before_install:
     - test -n $CC  && unset CC
