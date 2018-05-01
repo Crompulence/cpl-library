@@ -1,5 +1,4 @@
 # http://travis-ci.org/Crompulence/cpl-library
-
 os: linux
 sudo: required
 language: python
@@ -10,8 +9,7 @@ python:
 matrix:
   include:
     #Build for 12.04
-    - os: linux
-      dist: precise
+    - dist: precise
       compiler: gcc
       addons:
         apt:
@@ -27,8 +25,7 @@ matrix:
         - MPI=mpich3
 
     #Build for 14.04
-    - os: linux
-      dist: trusty
+    - dist: trusty
       compiler: gcc
       addons:
         apt:
@@ -44,21 +41,37 @@ matrix:
         - F_COMPILER=gfortran-6
         - MPI=mpich3
 
+    #Build for 14.04 with mpich from repo
+    - dist: trusty
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6 gcc-6 libstdc++-6-dev gfortran-6
+      # change default compiler to newer gcc-6
+      env:
+        - GCC_VERSION=6
+        - CXX_COMPILER=g++-6
+        - C_COMPILER=gcc-6
+        - F_COMPILER=gfortran-6
+        - MPI=mpich2
+
 branches:
   only:
     - master
 
 cache:
-  apt: true
-#  directories:
-#    - mpi
+  directories:
+    - mpi
 
 before_install:
     - test -n $CC  && unset CC
     - test -n $CXX && unset CXX
     - export MPI_BUILD_DIR=$TRAVIS_BUILD_DIR/mpi
     - export MPI_DIR=$MPI_BUILD_DIR/$MPI
-    - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR
+    - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR $GCC_VERSION
     - sh ./make/travis/travis-install-mpi4py.sh $MPI_DIR
 
 install:
