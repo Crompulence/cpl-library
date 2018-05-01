@@ -1,23 +1,26 @@
 #!/bin/sh
 set -e
-if [ -f "mpi" ]; then
-    echo "Using cached MPI"
+#Check location of build
+if [ $# -lt 2 ]; then
+    PWD=$(pwd)
+    echo "No Build dir specified, attempting to build in " $PWD
+    BUILD_DIR=$PWD
 else
-    if [ $# -lt 2 ]; then
-        PWD=$(pwd)
-        echo "No Build dir specified, attempting to build in " $PWD
-        BUILD_DIR=$PWD
-    else
-        BUILD_DIR=$2
-        echo "Build dir specified as " $BUILD_DIR
-    fi
+    BUILD_DIR=$2
+    echo "Build dir specified as " $BUILD_DIR
+fi
+INSTALL_DIR=$BUILD_DIR/$1
+
+#If file exist then use this
+if [ -f $INSTALL_DIR ]; then
+    echo "Using cached MPI in "$INSTALL_DIR
+else
     if [ $# -lt 3 ]; then
         GCC_VERSION=5
     else
         GCC_VERSION=$3
     fi
     mkdir -p $BUILD_DIR
-    INSTALL_DIR=$BUILD_DIR/$1
     case $1 in
       mpich3) set -x;
         cd $BUILD_DIR
