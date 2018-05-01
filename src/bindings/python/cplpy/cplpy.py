@@ -182,6 +182,7 @@ class CPL:
         newcomm_ptr = MPI._addressof(newcomm)
         comm_val = MPI_Comm.from_address(newcomm_ptr)
         comm_val.value = returned_realm_comm.value
+        self.COMM = newcomm
 
         return newcomm
 
@@ -254,10 +255,29 @@ class CPL:
     def setup_cfd(self, icomm_grid, xyzL, 
                         xyz_orig, ncxyz):
         """
-        Keyword arguments:
-        real -- the real part (default 0.0)
-        imag -- the imaginary part (default 0.0)
+            setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz):
         """
+
+        if (  ((type(icomm_grid) is list) and (len(icomm_grid) is 3))
+           or ((type(icomm_grid) is np.array) and (icomm_grid.shape[0] is 3))):
+            icomm_grid = self.COMM.Create_cart([icomm_grid[0], 
+                                                icomm_grid[1], 
+                                                icomm_grid[2]])
+
+        if ((type(xyzL) is list) or 
+            (xyzL.dtype != np.float64) or 
+            (not xyzL.flags["F_CONTIGUOUS"])):
+            xyzL = np.array(xyzL, order='F', dtype=np.float64)
+
+        if ((type(xyz_orig) is list) or 
+            (xyz_orig.dtype != np.float64) or 
+            (not xyz_orig.flags["F_CONTIGUOUS"])):
+            xyz_orig = np.array(xyz_orig, order='F', dtype=np.float64)
+
+        if ((type(ncxyz) is list) or 
+            (ncxyz.dtype != np.int32) or 
+            (not ncxyz.flags["F_CONTIGUOUS"])):
+            ncxyz = np.array(ncxyz, order='F', dtype=np.int32)
 
         self.py_setup_cfd(MPI._handleof(icomm_grid), xyzL,
                           xyz_orig, ncxyz)
@@ -275,11 +295,25 @@ class CPL:
     @abortMPI
     def setup_md(self, icomm_grid, xyzL, xyz_orig):
         """
-        setup_md(self, dt, icomm_grid, xyzL, xyz_orig)
-        Keyword arguments:
-        real -- the real part (default 0.0)
-        imag -- the imaginary part (default 0.0)
+        setup_md(icomm_grid, xyzL, xyz_orig)
+
         """
+        if (  ((type(icomm_grid) is list) and (len(icomm_grid) is 3))
+           or ((type(icomm_grid) is np.array) and (icomm_grid.shape[0] is 3))):
+            icomm_grid = self.COMM.Create_cart([icomm_grid[0], 
+                                                icomm_grid[1], 
+                                                icomm_grid[2]])
+
+        if ((type(xyzL) is list) or 
+            (xyzL.dtype != np.float64) or 
+            (not xyzL.flags["F_CONTIGUOUS"])):
+            xyzL = np.array(xyzL, order='F', dtype=np.float64)
+
+        if ((type(xyz_orig) is list) or 
+            (xyz_orig.dtype != np.float64) or 
+            (not xyz_orig.flags["F_CONTIGUOUS"])):
+            xyz_orig = np.array(xyz_orig, order='F', dtype=np.float64)
+
         self.py_setup_md(MPI._handleof(icomm_grid), xyzL, xyz_orig)
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -786,7 +820,8 @@ def prepare_config(tmpdir, test_dir, md_fname, cfd_fname):
 
 
 def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
-             cfd_fname, cfd_args, md_params, cfd_params, err_msg, debug=False, mpirun="split"):
+             cfd_fname, cfd_args, md_params, cfd_params, err_msg, 
+             debug=False, mpirun="split", printoutput=False):
 
     from distutils.spawn import find_executable
     import sys
@@ -810,16 +845,24 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
             
         if os.path.exists(md_fname) and os.path.exists(cfd_fname):
 
-            if mpirun == "port":
+            if "port" in mpirun:
                 cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_args, 
                                 "& PID=$!;", "mpiexec", "-n", str(cfdprocs), 
                                 cfd_exec, cfd_args, "; wait $PID"])
-            else:
+#                cmd = " ".join(["cplexec",
+#                                "-m ", str(mdprocs), " ' ", md_exec, md_args, " ' "
+#                                "-c ", str(cfdprocs), " ' ", cfd_exec, cfd_args, " ' "])
+            elif "split" in mpirun:
                 cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_args,
                             ":", "-n", str(cfdprocs), cfd_exec, cfd_args])
+            else:
+                raise ValueError("MPIrun type unknown", mpirun)
+
             if debug:
                 print ("\nMPI run: " + cmd)
-            check_output(cmd, stderr=STDOUT, shell=True)
+            out = check_output(cmd, stderr=STDOUT, shell=True)
+            if printoutput:
+                print(out)
         else:
             print ("Current directory: " + os.getcwd())
             print (md_fname + " or " + cfd_fname + " are not found.")

@@ -2044,11 +2044,22 @@ subroutine check_config_feasibility()
         call error_abort(string)
     end if
 
+
     !Check CFD and MD cell range
+    if (npx_md .lt. npx_cfd) then
+        call error_abort("CPL_create_map error - number of MD " // &
+                         "processors must be greater than or equal" // &
+                         " to CFD processors in x")
+    endif
     if (npy_md .lt. npy_cfd) then
-        call error_abort("get_md_cell_ranges error - number of MD " // &
-                         "processors in y must be greater than or equal" // &
+        call error_abort("CPL_create_map error - number of MD " // &
+                         "processors must be greater than or equal" // &
                          " to CFD processors in y")
+    endif
+    if (npz_md .lt. npz_cfd) then
+        call error_abort("CPL_create_map error - number of MD " // &
+                         "processors must be greater than or equal" // &
+                         " to CFD processors in z")
     endif
 
     ! Check there is only one overlap CFD proc in y
@@ -2172,7 +2183,7 @@ subroutine check_config_feasibility()
                             ' number of CFD processors in x ', npx_cfd
 
         call error_abort("CPL_create_map error - get_overlap_blocks error - number of MD "    // & 
-                         "processors in x must be an integer multiple "// &
+                         "processors must be an integer multiple "// &
                          "of number of CFD processors in x")
 
     elseif (mod(npz_md,npz_cfd) .ne. 0) then
@@ -2181,7 +2192,7 @@ subroutine check_config_feasibility()
                             ' number of CFD processors in z ', npz_cfd
 
         call error_abort("CPL_create_map error - get_overlap_blocks error - number of MD "    // &
-                         "processors in z must be an integer multiple "// &
+                         "processors must be an integer multiple "// &
                          "of number of CFD processors in z")
 
     endif

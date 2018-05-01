@@ -26,60 +26,60 @@ def prepare_config_fix(tmpdir):
     prepare_config(tmpdir, TEST_DIR, MD_FNAME, CFD_FNAME)
 
 
-@pytest.mark.parametrize("mdprocs, err_msg", [
-                         ((1, 4, 4), "number of MD processors in x must be"),
-                         ((4, 4, 2), "number of MD processors in z must be"),
-                         ((4, 3, 4), "number of MD processors in y must be"),
-                         ((4, 4, 4), "")])
-def test_mdprocs(prepare_config_fix, mdprocs, err_msg):
-    MD_PARAMS = {"lx": 24.0, "ly": 24.0, "lz": 24.0}
-    MD_PARAMS["npx"], MD_PARAMS["npy"], MD_PARAMS["npz"] = mdprocs
+#@pytest.mark.parametrize("mdprocs, err_msg", [
+#                         ((1, 2, 2), "number of MD processors must be"),
+#                         ((2, 2, 1), "number of MD processors must be"),
+#                         ((2, 1, 2), "number of MD processors must be"),
+#                         ((2, 2, 2), "")])
+#def test_mdprocs(prepare_config_fix, mdprocs, err_msg):
+#    MD_PARAMS = {"lx": 24.0, "ly": 24.0, "lz": 24.0}
+#    MD_PARAMS["npx"], MD_PARAMS["npy"], MD_PARAMS["npz"] = mdprocs
 
-    CFD_PARAMS = {"npx": 4, "npy": 4, "npz": 4,
-                  "lx": 24.0, "ly": 24.0, "lz": 24.0,
-                  "ncx": 24, "ncy": 24, "ncz": 24, }
+#    CFD_PARAMS = {"npx": 2, "npy": 2, "npz": 2,
+#                  "lx": 24.0, "ly": 24.0, "lz": 24.0,
+#                  "ncx": 24, "ncy": 24, "ncz": 24, }
 
-    CONFIG_PARAMS = {"cfd_bcx": 1, "cfd_bcy": 1, "cfd_bcz": 1,
-                     "olap_xlo": 1, "olap_xhi": 24,
-                     "olap_ylo": 1, "olap_yhi": 4,
-                     "olap_zlo": 1, "olap_zhi": 24,
-                     "cnst_xlo": 1, "cnst_xhi": 1,
-                     "cnst_ylo": 1, "cnst_yhi": 1,
-                     "cnst_zlo": 1, "cnst_zhi": 1,
-                     "tstep_ratio": 50, }
+#    CONFIG_PARAMS = {"cfd_bcx": 1, "cfd_bcy": 1, "cfd_bcz": 1,
+#                     "olap_xlo": 1, "olap_xhi": 24,
+#                     "olap_ylo": 1, "olap_yhi": 4,
+#                     "olap_zlo": 1, "olap_zhi": 24,
+#                     "cnst_xlo": 1, "cnst_xhi": 1,
+#                     "cnst_ylo": 1, "cnst_yhi": 1,
+#                     "cnst_zlo": 1, "cnst_zhi": 1,
+#                     "tstep_ratio": 50, }
 
-    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
-             CFD_EXEC, CFD_FNAME, CFD_ARGS, MD_PARAMS, CFD_PARAMS, err_msg, True)
+#    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
+#             CFD_EXEC, CFD_FNAME, CFD_ARGS, MD_PARAMS, CFD_PARAMS, err_msg, True)
 
 
-# EXPLANATION: These tests fail due to no_procs(MD) != k*no_procs(CFD),
-#              k in [1,2,3,...] in one direction.
-@pytest.mark.parametrize("cfdprocs, err_msg", [
-                         ((2, 2, 3), "number of MD processors in z must be an integer"),
-                         ((3, 2, 2), "number of MD processors in x must be an integer"),
-                         ((2, 3, 2), ""),
-                         ((4, 4, 6), "number of MD processors in z must be an integer"),
-                         ((4, 6, 4), "number of MD processors in y must be greater"),
-                         ((6, 4, 4), "number of MD processors in x must be an integer")])
-def test_cfdprocs(prepare_config_fix, cfdprocs, err_msg):
-    MD_PARAMS = {"npx": 4, "npy": 4, "npz": 4,
-                 "lx": 24.0, "ly": 24.0, "lz": 24.0, }
+## EXPLANATION: These tests fail due to no_procs(MD) != k*no_procs(CFD),
+##              k in [1,2,3,...] in one direction.
+#@pytest.mark.parametrize("cfdprocs, err_msg", [
+#                         ((2, 2, 3), "number of MD processors in z must be an integer"),
+#                         ((3, 2, 2), "number of MD processors in x must be an integer"),
+#                         ((2, 3, 2), ""),
+#                         ((4, 4, 6), "number of MD processors in z must be an integer"),
+#                         ((4, 6, 4), "number of MD processors in y must be greater"),
+#                         ((6, 4, 4), "number of MD processors in x must be an integer")])
+#def test_cfdprocs(prepare_config_fix, cfdprocs, err_msg):
+#    MD_PARAMS = {"npx": 4, "npy": 4, "npz": 4,
+#                 "lx": 24.0, "ly": 24.0, "lz": 24.0, }
 
-    CFD_PARAMS = {"lx": 24.0, "ly": 24.0, "lz": 24.0,
-                  "ncx": 24, "ncy": 24, "ncz": 24, }
-    CFD_PARAMS["npx"], CFD_PARAMS["npy"], CFD_PARAMS["npz"] = cfdprocs
+#    CFD_PARAMS = {"lx": 24.0, "ly": 24.0, "lz": 24.0,
+#                  "ncx": 24, "ncy": 24, "ncz": 24, }
+#    CFD_PARAMS["npx"], CFD_PARAMS["npy"], CFD_PARAMS["npz"] = cfdprocs
 
-    CONFIG_PARAMS = {"cfd_bcx": 1, "cfd_bcy": 1, "cfd_bcz": 1,
-                     "olap_xlo": 1, "olap_xhi": 24,
-                     "olap_ylo": 1, "olap_yhi": 4,
-                     "olap_zlo": 1, "olap_zhi": 24,
-                     "cnst_xlo": 1, "cnst_xhi": 1,
-                     "cnst_ylo": 1, "cnst_yhi": 1,
-                     "cnst_zlo": 1, "cnst_zhi": 1,
-                     "tstep_ratio": 50, }
+#    CONFIG_PARAMS = {"cfd_bcx": 1, "cfd_bcy": 1, "cfd_bcz": 1,
+#                     "olap_xlo": 1, "olap_xhi": 24,
+#                     "olap_ylo": 1, "olap_yhi": 4,
+#                     "olap_zlo": 1, "olap_zhi": 24,
+#                     "cnst_xlo": 1, "cnst_xhi": 1,
+#                     "cnst_ylo": 1, "cnst_yhi": 1,
+#                     "cnst_zlo": 1, "cnst_zhi": 1,
+#                     "tstep_ratio": 50, }
 
-    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
-             CFD_EXEC, CFD_FNAME, CFD_ARGS, MD_PARAMS, CFD_PARAMS, err_msg)
+#    run_test(TEST_TEMPLATE_DIR, CONFIG_PARAMS, MD_EXEC, MD_FNAME, MD_ARGS,
+#             CFD_EXEC, CFD_FNAME, CFD_ARGS, MD_PARAMS, CFD_PARAMS, err_msg)
 
 
 # EXPLANATION: These tests fail due to bad ranges in overlap cell ranges OR
@@ -97,10 +97,10 @@ def test_cfdprocs(prepare_config_fix, cfdprocs, err_msg):
                          #((1, 24, 1, -12, 1, 24), "Overlap region limits contains a negative index"),
                          ((15, 5, 1, 12, 1, 24), "Overlap region lower limits are greater than")])
 def test_olapcells(prepare_config_fix, olapcells, err_msg):
-    MD_PARAMS = {"npx": 4, "npy": 4, "npz": 4,
+    MD_PARAMS = {"npx": 2, "npy": 2, "npz": 2,
                  "lx": 24.0, "ly": 24.0, "lz": 24.0, }
 
-    CFD_PARAMS = {"npx": 2, "npy": 2, "npz": 2,
+    CFD_PARAMS = {"npx": 1, "npy": 1, "npz": 1,
                   "lx": 24.0, "ly": 24.0, "lz": 24.0,
                   "ncx": 24, "ncy": 24, "ncz": 24, }
 
@@ -127,7 +127,7 @@ def test_olapcells(prepare_config_fix, olapcells, err_msg):
                     #TODO     ((8, 3, 8), ""),
                          ((5, 8, 8), "cells in the cfd domain is not an integer multipl")])
 def test_domaincells(prepare_config_fix, domaincells, err_msg):
-    MD_PARAMS = {"npx": 4, "npy": 4, "npz": 4,
+    MD_PARAMS = {"npx": 2, "npy": 2, "npz": 2,
                  "lx": 24.0, "ly": 24.0, "lz": 24.0, }
 
     CFD_PARAMS = {"npx": 1, "npy": 1, "npz": 1,
