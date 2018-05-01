@@ -17,6 +17,8 @@ branches:
 
 cache:
   apt: true
+  directories:
+    - mpi
 
 before_install:
 
