@@ -168,23 +168,26 @@ json-fortran: $(CPL_THIRD_PARTY_LIB) $(CPL_THIRD_PARTY_INC)
 	bash $(MAKEINCPATH)/json-fortran.build
 
 3rd-party: json-fortran
-	
-test-all:
-	python2 $(testdir)/pytests all
-	
-test-mapping:
-	python2 $(testdir)/pytests mapping
 
-test-initialisation:
-	python2 $(testdir)/pytests initialisation
+test-all: test-pytest-mapping test-pytest-initialisation test-examples test-valgrind test-gtests test_Dragmodels
+	echo "Running all test"
+	
+test-pytest:
+	py.test -v $(testdir)/pytests
+	
+test-pytest-mapping:
+	py.test -v $(testdir)/pytests/mapping
+
+test-pytest-initialisation:
+	py.test -v $(testdir)/pytests/initialisation
 
 test-examples:
-	./examples/sendrecv_globcell/test_all.sh
-	./examples/sendrecv_globcell/test_all_port.sh
+	py.test -v $(testdir)/examples
+#	./examples/sendrecv_globcell/test_all.sh
+#	./examples/sendrecv_globcell/test_all_port.sh
 
 test-valgrind:
 	py.test -v  $(testdir)/valgrind
-	#./test/valgrind/debug_all.sh
 
 test-gtests: CPL_force_unittest
 	cd $(testdir)/gtests/ && ./CPL_force_unittest
@@ -193,7 +196,8 @@ CPL_force_unittest:
 	make -C $(testdir)/gtests
 
 test_Dragmodels:
-	cd $(testdir)/drag && py.test
+	py.test -v $(testdir)/drag
+	#cd $(testdir)/drag && py.test
 
 webdocs-api:
 	bash ./utils/update-webdocs-api.sh

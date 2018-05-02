@@ -70,12 +70,13 @@ before_script:
 
 
 script:
-    - make test-all
-#    - make test-examples
-#    - make webdocs-all
+    - make test-pytest-initialisation
+    - make test-examples
     - make test-valgrind
+    - make test-pytest-mapping
     - make test-gtests
     - make test_Dragmodels
+#    - make webdocs-all
 
 
 after_success:

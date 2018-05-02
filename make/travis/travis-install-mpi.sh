@@ -25,7 +25,6 @@ else
       mpich3) set -x;
         cd $BUILD_DIR
         wget -q --no-check-certificate http://www.mpich.org/static/downloads/3.2.1/mpich-3.2.1.tar.gz
-
         tar -xzf mpich-3.2.1.tar.gz
         cd mpich-3.2.1
         mkdir build && cd build
@@ -37,13 +36,6 @@ else
 
         make -j4
         make install;;
-
-        #Previous attempt using repo version doesn't work with repo fortran
-        #sudo apt-get install -q libcr0 default-jdk;
-        #wget -q http://www.cebacad.net/files/mpich/ubuntu/mpich-3.1/mpich_3.1-1ubuntu_amd64.deb;
-        #sudo dpkg -i ./mpich_3.1-1ubuntu_amd64.deb;
-        #rm -f ./mpich_3.1-1ubuntu_amd64.deb;;
-
       mpich1) set -x;
         sudo apt-get install -q mpich-shmem-bin libmpich-shmem1.0-dev;;
       mpich2) set -x;

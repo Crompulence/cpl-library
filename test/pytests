@@ -1,4 +1,1 @@
-import cplpy
-import sys
-
-cplpy.exec_tests(sys.argv[1])
+../src/bindings/python/cplpy/test/
