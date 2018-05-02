@@ -196,8 +196,8 @@ CPL_force_unittest:
 	make -C $(testdir)/gtests
 
 test_Dragmodels:
-	py.test -v $(testdir)/drag
-	#cd $(testdir)/drag && py.test
+	cd $(testdir)/drag && py.test -v ./
+	#py.test -v $(testdir)/drag
 
 webdocs-api:
 	bash ./utils/update-webdocs-api.sh

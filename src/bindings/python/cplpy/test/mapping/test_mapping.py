@@ -31,7 +31,7 @@ maxprocs = 16
 tests = ["cell_test", "coord_test"]
 cpltypes = ["split", "port"]
 cases = list(itertools.combinations_with_replacement(range(1,maxprocperdir), 3))
-perms = []
+perms = []; n=0
 for cpltype in cpltypes:
     for test in tests:
         for i in range(len(cases)):
@@ -45,7 +45,6 @@ for cpltype in cpltypes:
                       (ncz%cases[i+j][2] != 0)):
                     errstr="The number of cells in the cfd domain is not an integer multiple of the number of processors"
                 elif ((cases[i+j][0]%cases[i][0] != 0) or
-                      (cases[i+j][1]%cases[i][1] != 0) or
                       (cases[i+j][2]%cases[i][2] != 0)):
                     errstr="number of MD processors must be an integer multiple of number of CFD processors"
                 else:
@@ -53,7 +52,8 @@ for cpltype in cpltypes:
                 #Skip any errors greater than 16 processors and cases greater than 32
                 if (np.product(cases[i])+np.product(cases[i+j]) < maxprocs):
                     perms.append((cpltype, test, cases[i], cases[i+j], errstr))
-                    print(perms[-1])
+                    print(n, perms[-1])
+                    n += 1
 
 
 
