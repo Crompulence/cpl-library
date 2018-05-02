@@ -3,7 +3,6 @@ from cplpy import CPL
 import numpy as np
 
 comm = MPI.COMM_WORLD
-comm.Barrier()
 CPL = CPL()
 nsteps = 1
 dt = 0.2
