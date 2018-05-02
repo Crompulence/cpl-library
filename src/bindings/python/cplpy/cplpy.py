@@ -99,7 +99,10 @@ class CPL:
     _libname = "libcpl"
     try:
         _lib_path = os.environ["CPL_LIBRARY_PATH"]
-        _cpl_lib = load_library(_libname, _lib_path)
+        if os.path.exists(_lib_path + "/"+ _libname + ".so"):
+            _cpl_lib = load_library(_libname, _lib_path)
+        else:
+            raise CPLLibraryNotFound("Compiled CPL library libcpl.so not found at " + _lib_path + "/"+ _libname + ".so")
     except KeyError as e:
         print("CPL info: ", "CPL_LIBRARY_PATH not defined. Looking in system directories...")
         try:
@@ -786,6 +789,7 @@ def cart_create(old_comm, dims, periods, coords):
 CONFIG_FILE = "COUPLER.in"
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 TEST_NAME = os.path.basename(os.path.realpath(__file__))
+TESTS_DIR_NAMES = ["initialisation", "mapping"]
 
 def copyanything(src_dir, dst_dir, name):
     src_dir = os.path.join(src_dir, name)
@@ -882,6 +886,19 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
             assert True
     return True
 
+def exec_tests(test="all"):
+    import pytest
+    import os
+    test_path = os.path.dirname(os.path.realpath(__file__))
+    test_path = os.path.join(test_path, "test")
+    print(test_path)
+    if test != "all":
+        test_path = os.path.join(test_path, test)
+    pytest.main(["-v", test_path])
+
+def get_test_dir():
+    import os
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), "test")
 
 if __name__ == "__main__":
     lib = CPL()
