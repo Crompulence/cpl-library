@@ -2121,11 +2121,18 @@ subroutine check_config_feasibility()
     yL_olap = ncy_olap * dy
     zL_olap = ncz_olap * dz
     ! Tolerance of half a cell width
-    if (xL_md .lt. (xL_olap - dx/2.d0) .or. &
-        yL_md .lt. (yL_olap - dy/2.d0) .or. &
-        zL_md .lt. (zL_olap - dz/2.d0)      ) then
-
-        print'(3(2f15.6,i8,f15.6))',  xL_md, xL_olap, ncx_olap , dx, yL_md, yL_olap, ncy_olap , dy, zL_md, zL_olap, ncz_olap , dz
+    if (xL_md .lt. (xL_olap - dx/2.d0)) then
+        print'(2(a,f15.6),a, i8,a,f15.6)',  "xL_md= ", xL_md, " xL_olap= ", xL_olap, " ncx_olap= ", ncx_olap , " dx= ",dx
+        string = "CPL_create_map error - Overlap region is larger than the MD region. "       // &
+                 "Aborting simulation."
+        call error_abort(string)
+    elseif (yL_md .lt. (yL_olap - dy/2.d0)) then
+        print'(2(a,f15.6),a, i8,a,f15.6)',  "yL_md= ", yL_md, " yL_olap= ", yL_olap, " ncy_olap= ", ncy_olap , " dy= ",dy
+        string = "CPL_create_map error - Overlap region is larger than the MD region. "       // &
+                 "Aborting simulation."
+        call error_abort(string)
+    elseif (zL_md .lt. (zL_olap - dz/2.d0)) then
+        print'(2(a,f15.6),a, i8,a,f15.6)',  "zL_md= ", zL_md, " zL_olap= ", zL_olap, " ncz_olap= ", ncz_olap , " dz= ",dz
         string = "CPL_create_map error - Overlap region is larger than the MD region. "       // &
                  "Aborting simulation."
         call error_abort(string)
@@ -2185,6 +2192,16 @@ subroutine check_config_feasibility()
         call error_abort("CPL_create_map error - get_overlap_blocks error - number of MD "    // & 
                          "processors must be an integer multiple "// &
                          "of number of CFD processors in x")
+
+    elseif (mod(npy_md,npy_cfd) .ne. 0 .and. CPL_full_overlap) then
+
+        print'(a,i8,a,i8)', ' number of MD processors in y ', npy_md,     & 
+                            ' number of CFD processors in y ', npy_cfd
+
+        call error_abort("CPL_create_map error - get_overlap_blocks error - number of MD "    // &
+                         "processors must be an integer multiple "// &
+                         "of number of CFD processors in y")
+
 
     elseif (mod(npz_md,npz_cfd) .ne. 0) then
 
