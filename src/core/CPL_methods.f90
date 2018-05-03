@@ -724,7 +724,9 @@ subroutine CPL_send(asend, limits, send_flag)
     use coupler_module, only : md_realm, cfd_realm, error_abort, & 
                                CPL_GRAPH_COMM, myid_graph,olap_mask, &
                                rank_world, realm, ierr, VOID, &
-                               CPL_setup_complete, REALM_NAME
+                               CPL_setup_complete, REALM_NAME, &
+                               myid_realm, rootid_realm, & 
+                               rank_intersect, CPL_REALM_INTERSECTION_COMM
     implicit none
 
     
@@ -746,6 +748,10 @@ subroutine CPL_send(asend, limits, send_flag)
     integer,dimension(3)                :: pcoords, Ncell
     integer,dimension(6)                :: portion, myportion
     real(kind=kind(0.d0)), allocatable  :: vbuf(:)
+
+    !Check counter
+    integer       :: source, check_recv
+    integer, save :: first_counter = 4
 
     !Check setup is complete
     if (CPL_setup_complete .ne. 1) then
@@ -773,6 +779,20 @@ subroutine CPL_send(asend, limits, send_flag)
     if (myportion(6)-myportion(5)+1 .ne. size(asend,4)) then
         print*, myportion(6)-myportion(5)+1, size(asend,4)
         call error_abort("Error in CPL send -- z size of asend must be the same as portion(6)-portion(5)+1")
+    endif
+
+    !Check send/recv are consistent size
+    if (first_counter .ne. 0) then
+        first_counter = first_counter - 1
+        check_recv = 0
+        call MPI_AllReduce(size(asend,1), check_recv, 1, MPI_INTEGER, & 
+                           MPI_SUM, CPL_REALM_INTERSECTION_COMM, ierr)
+        call MPI_comm_size(CPL_REALM_INTERSECTION_COMM, n, ierr)
+        if (check_recv/n .ne. npercell) then
+            print*, "Error in CPL send in ", realm_name(realm), & 
+                    " realm, expected send size: ", npercell
+            call error_abort("Error in CPL send -- first index of send array does not match recv data size")
+        endif
     endif
 
     !Get neighbours
@@ -904,9 +924,10 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     use mpi
     use coupler_module, only : md_realm, cfd_realm, rank_graph, &
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
-                               rank_world, realm, & 
+                               rank_world, realm, realm_name, & 
                                iblock_realm,jblock_realm,kblock_realm,VOID,ierr, &
-                               REALM_NAME, realm
+                               REALM_NAME, realm, & 
+                               rank_intersect, CPL_REALM_INTERSECTION_COMM
     implicit none
 
     logical, intent(out), optional  :: recv_flag  !Flag set if processor has received data
@@ -929,11 +950,27 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     integer,dimension(:,:),allocatable :: status
     real(kind(0.d0)),dimension(:), allocatable ::  vbuf
 
+    !Check counter
+    integer, save :: first_counter = 4, check_recv
+
     ! This local CFD domain is outside MD overlap zone 
     if (olap_mask(rank_world).eqv. .false.) return
 
     ! Number of components at each grid point
     npercell = size(arecv,1)
+
+    !Check send/recv are consistent size
+    if (first_counter .ne. 0) then
+        first_counter = first_counter - 1
+        call MPI_AllReduce(size(arecv,1), check_recv, 1, MPI_INTEGER, & 
+                        MPI_SUM, CPL_REALM_INTERSECTION_COMM, ierr)
+        call MPI_comm_size(CPL_REALM_INTERSECTION_COMM, n, ierr)
+        if (check_recv/n .ne. npercell) then
+            print*, "Error in CPL recv in ", realm_name(realm), & 
+                    " realm, expected recv size: ", npercell
+            call error_abort("Error in CPL recv -- first index of recv array does not match sent data size")
+        endif
+    endif
 
     ! Get local grid box ranges seen by this rank for CFD and allocate buffer
     if (realm .eq. cfd_realm) then 

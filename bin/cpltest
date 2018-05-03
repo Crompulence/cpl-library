@@ -1,5 +1,0 @@
-#!/usr/bin/python
-import cplpy
-import sys
-
-cplpy.exec_tests(sys.argv[1])

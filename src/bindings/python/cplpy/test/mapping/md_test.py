@@ -15,7 +15,6 @@ CPL.set("output_mode", 0)
 # Load parameters for the run
 params = cPickle.load(open("md_params.dic", "rb"))
 
-
 # Test selector flag
 try:
     which_test = params["which_test"]
@@ -92,7 +91,6 @@ if CPL.overlap():
                 errix, errjy, errkz = ixcfd - ixmd, jycfd - jymd, kzcfd - kzmd
                 if abs(errix) > 1e-6 or abs(errjy) > 1e-6 or abs(errkz) > 1e-6:
                     test_passed = False
-
 
                 lines += str(ixcfd) + " " + str(jycfd) + " " + str(kzcfd) + " " +\
                          str(ixmd) + " " + str(jymd) + " " + str(kzmd) + "\n"

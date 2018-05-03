@@ -1,32 +1,60 @@
 # http://travis-ci.org/Crompulence/cpl-library
-
 os: linux
 sudo: required
-
 language: python
 python:
     - 2.7
 
-env:
-    - MPI=mpich3 GCC_VERSION=5
-#    - MPI=openmpi GCC_VERSION=5
+# set up build matrix
+matrix:
+  include:
+    #Build for 12.04
+    - dist: precise
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5 gcc-5 libstdc++-5-dev gfortran-5
+      env:
+        - GCC_VERSION=5
+        - CXX_COMPILER=g++-5
+        - C_COMPILER=gcc-5
+        - F_COMPILER=gfortran-5
+        - MPI=mpich3
+
+    #Build for 14.04
+    - dist: trusty
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6 gcc-6 libstdc++-6-dev gfortran-6
+      # change default compiler to newer gcc-6
+      env:
+        - GCC_VERSION=6
+        - CXX_COMPILER=g++-6
+        - C_COMPILER=gcc-6
+        - F_COMPILER=gfortran-6
+        - MPI=mpich3
 
 branches:
   only:
     - master
 
 cache:
-  apt: true
+  directories:
+    - mpi
 
 before_install:
-
-    - sh ./make/travis/travis-install-gcc.sh 'gcc-'$GCC_VERSION;
-    - sh ./make/travis/travis-install-fortran.sh 'gfortran-'$GCC_VERSION
     - test -n $CC  && unset CC
     - test -n $CXX && unset CXX
     - export MPI_BUILD_DIR=$TRAVIS_BUILD_DIR/mpi
     - export MPI_DIR=$MPI_BUILD_DIR/$MPI
-    - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR
+    - sh ./make/travis/travis-install-mpi.sh $MPI $MPI_BUILD_DIR $GCC_VERSION
     - sh ./make/travis/travis-install-mpi4py.sh $MPI_DIR
 
 install:
@@ -42,12 +70,13 @@ before_script:
 
 
 script:
-    - make test-all
-#    - make test-examples
-#    - make webdocs-all
+    - make test-pytest-initialisation
+    - make test-examples
     - make test-valgrind
+    - make test-pytest-mapping
     - make test-gtests
     - make test_Dragmodels
+#    - make webdocs-all
 
 
 after_success:
