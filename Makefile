@@ -195,6 +195,9 @@ CPL_force_unittest:
 test_Dragmodels:
 	cd $(testdir)/drag && py.test
 
+examples-coupled:
+	py.test -v ./examples/coupled
+
 webdocs-api:
 	bash ./utils/update-webdocs-api.sh
 
