@@ -220,7 +220,6 @@ install:
 	cp ./$(bindir)/cplexec $(PREFIX)/bin/
 	cp ./$(bindir)/cplf90 $(PREFIX)/bin/
 	cp ./$(bindir)/cplc++ $(PREFIX)/bin/
-	ldconfig
 
 .PHONY: uninstall
 uninstall:
