@@ -7,6 +7,7 @@
 
 namespace CPL {
 
+
 template <class T >
 class Pool: public std::map<std::string, T*> {
 public:
@@ -14,10 +15,11 @@ public:
     virtual ~Pool(){std::cout << "POOL DESTRUCTOR" << std::endl; clearPool();};
     virtual void clearPool(){
         typename std::map<std::string, T*>::iterator f;
+        //TODO: Make this work properly. Fails with OpenFOAM producing a SegFault.
         // Free the memmory
-        for (f = this->begin(); f != this->end(); f++)
-            delete f->second;
-        this->clear();
+        // for (f = this->begin(); f != this->end(); f++)
+        //     delete f->second;
+        // this->clear();
 
     }
 };
