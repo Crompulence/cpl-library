@@ -33,6 +33,24 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 
+def which(program):
+    """Get exectuables which exist on path"""
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return program
+
+
 
 # This script runs two codes seperatly in thier own directories
 # and ensure the coupled run works correctly. To do this:
@@ -125,6 +143,11 @@ for k in Dicts:
     #Check executables exist
     d = Dicts[k]
     e = d["exec"]
+
+    #If just executable then get full path
+    if e.find("/") == -1:
+        e = which(e)
+
     if not os.path.isfile(e):
         msg = "Executable " + e + " not found. "
         raise IOError(msg)
