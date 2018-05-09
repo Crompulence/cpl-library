@@ -1,14 +1,17 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import re
 try:
     import subprocess32 as sp
 except ImportError:
-    import subprocess  as sp
+    import subprocess as sp
 import argparse
 import os 
 import atexit
 import signal
 import glob
+import time
+import sys
 
 def kill_sp(pids):
     """ensure processes killed if this script is killed"""
@@ -33,6 +36,7 @@ class cd:
     def __exit__(self, etype, value, traceback):
         os.chdir(self.savedPath)
 
+
 def which(program):
     """Get exectuables which exist on path"""
     def is_exe(fpath):
@@ -50,6 +54,65 @@ def which(program):
 
     return program
 
+
+def get_subprocess_error(e):
+    print("subprocess ERROR")
+    import json
+    error = json.loads(e[7:])
+    print(error['code'], error['message'])
+
+
+def runcmd(cmd):
+
+    try:
+        run = sp.Popen(cmd, stdout=sp.PIPE, stderr=None, shell=True)
+    except sp.CalledProcessError as e:
+        if e.output.startswith('error: {'):
+            get_subprocess_error(e.output)
+        raise
+
+    return run
+
+def execute(cmd, blocking=True):
+    """
+    Outputs results as they are generated, example usage:
+
+    from __future__ import print_function
+
+    for path in execute(["locate", "a"]):
+        print(path, end="")
+
+    """
+    popen = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, 
+                     shell=True, universal_newlines=True)
+    for stdout_line in iter(popen.stdout.readline, ""):
+        yield stdout_line 
+    popen.stdout.close()
+    if blocking:
+        return_code = popen.wait()
+
+    if return_code:
+        raise sp.CalledProcessError(return_code, cmd)
+
+
+
+def check_for_error(proc):
+    """
+        If an Error (e.g. NameError) is raised by a Python
+        script after cpl has opened a port and merged two processes
+        do not trigger the subprocess error code (as the coupled code
+        in this case does not call MPI Abort due to a Python error)
+        So we need to catch this manually
+    """
+    for line in iter(proc.stderr.readline, b''):
+        if "NameError" in line:
+            raise NameError(line)
+            sys.exit(1)
+        elif "Error" in line:
+            print(line)
+            sys.exit(1)
+        else:
+            print(line)
 
 
 # This script runs two codes seperatly in thier own directories
@@ -95,8 +158,18 @@ parser.add_argument('-c', '--cfd', nargs=2,
                     help='Specify two arguments: No. of CFD processors and CFD executable with all space seperated arguments in quotes',
                     required=True)
 
+parser.add_argument('-v', '--verbose', help='Specify verbosity', required=False, action="store_true")
+
 
 args = vars(parser.parse_args())
+
+if args["verbose"]:
+    print("\n")
+    print("============")
+    print("Verbose Mode")
+    print("============\n")
+    print("\n")
+
 
 nprocs_CFD = args['cfd'][0]
 arg = args['cfd'][1].split(" ")
@@ -112,27 +185,6 @@ if len(arg) > 1:
     args_MD = arg[1:]
 else:
     args_MD = []
-#nprocs_CFD = args['cfd'][0]
-#if len(args['cfd']) == 1:
-#    print("No CFD executable supplied, trying ./cfd")
-#    exec_CFD = "./cfd"
-#else:
-#    exec_CFD = args['cfd'][1]
-#if len(args['cfd']) > 2:
-#    args_CFD = args['cfd'][2:]
-#else:
-#    args_CFD = []
-
-#nprocs_MD = args['md'][0]
-#if len(args['cfd']) == 1:
-#    print("No MD executable supplied, trying ./md")
-#    exec_MD = "./md"
-#else:
-#    exec_MD = args['md'][1]
-#if len(args['md']) > 2:
-#    args_MD = args['md'][2:]
-#else:
-#    args_MD = []
 
 #Create dict for run info
 CFDDict = {"exec":exec_CFD, "nproces":nprocs_CFD, "args":args_CFD}
@@ -144,7 +196,7 @@ for k in Dicts:
     d = Dicts[k]
     e = d["exec"]
 
-    #If just executable then get full path
+    #If just executable specified (e.g. on path) then get full path
     if e.find("/") == -1:
         e = which(e)
 
@@ -162,6 +214,8 @@ for k in Dicts:
         try:
             from cplpy import CPL
             d["cpl_path"] = CPL._lib_path + "/" + CPL._libname +".so"
+            if args["verbose"]:
+                print("CPL path ", d["cpl_path"])
         except ImportError:
             print("CPL library not importable in Python, " +
                   "have you called source SOURCEME.sh in cpl-library")
@@ -185,7 +239,6 @@ for k in Dicts:
         d["libs"] = get_libraries(e)
         for lib, lpath in d["libs"].items():
             if "libcpl.so" in lib.lower():
-                #print(e + "CPL", lib, lpath)
                 d["cpl_path"] = os.path.normpath(lpath)
 
     try:
@@ -194,7 +247,7 @@ for k in Dicts:
         print("CPL library path not found, have you compiled you " +
               "executable correctly to include libcpl.so?")
 
-
+#Compare versions of CPL
 if Dicts["MD"]["cpl_path"] != Dicts["CFD"]["cpl_path"]:
     print("Warning -- different CPL linked into executables")
 else:
@@ -224,19 +277,22 @@ else:
 #Check for MPI libraries for both cpl and executables are the same
 for lib, lpath in cpllib.items():
     if "mpi" in lib:
-        #print("CPL MPI libs", lib, lpath)
+        if args["verbose"]:
+            print("CPL MPI libs", lib, lpath)
         CPL_mpi = os.path.realpath(lpath)
 
 for lib, lpath in Dicts["CFD"]["libs"].items():
     if "mpi" in lib:
-        #print("CFD MPI libs", lib, lpath)
+        if args["verbose"]:
+            print("CFD MPI libs", lib, lpath)
         #CFD_mpi = os.path.normpath(lpath)
         Dicts["CFD"]["MPI"] = os.path.realpath(lpath)
 
 
 for lib, lpath in Dicts["MD"]["libs"].items():
     if "mpi" in lib:
-        #print("MD MPI libs", lib, lpath)
+        if args["verbose"]:
+            print("MD MPI libs", lib, lpath)
         #MD_mpi = os.path.normpath(lpath)
         Dicts["MD"]["MPI"] = os.path.realpath(lpath)
 
@@ -261,8 +317,8 @@ for lib in libs:
                 else:
                     checkDict[c] = mlpath
 
-
-print("Compilers all the same : ", checkDict)
+if args["verbose"]:
+    print("Compilers all the same : ", checkDict)
 
 # We will also need to check for and copy port file if needed here because
 # executables are in different folders...
@@ -279,23 +335,71 @@ sp.Popen("rm -f ./port", shell=True)
 
 cmdstr_MD = ["mpiexec", "-n", str(nprocs_MD), MDDict["exec"]] + MDDict["args"]
 cmdstr_CFD = ["mpiexec", "-n", str(nprocs_CFD), CFDDict["exec"]] + CFDDict["args"]
-#p_CFD = sp.Popen(cmdstr_CFD)
-#p_MD  = sp.Popen(cmdstr_MD)
+
+if args["verbose"]:
+    print("MD Commands to run ", cmdstr_MD)
+    print("CFD Commands to run ", cmdstr_CFD)
 
 # Create a processor group using preexec_fn=os.setsid
 # so they can be killed as one.
-# I don't think this works...
-p_CFD = sp.Popen(' '.join(cmdstr_CFD), shell=True,
-                  preexec_fn=os.setsid)
-p_MD = sp.Popen(' '.join(cmdstr_MD), shell=True,
-                  preexec_fn=os.setsid)
+p_CFD = sp.Popen(' '.join(cmdstr_CFD), stderr=sp.PIPE, 
+                 shell=True, preexec_fn=os.setsid, bufsize=1)
+p_MD = sp.Popen(' '.join(cmdstr_MD), stderr=sp.PIPE, 
+                shell=True, preexec_fn=os.setsid, bufsize=1)
 
 #Register killer of subprocesses if python script killed 
 atexit.register(kill_sp, [os.getpgid(p_MD.pid), os.getpgid(p_CFD.pid)])
 
-p_MD.wait()
-p_CFD.wait()
+#Endless loop polling to see if codes have failed and checking
+#output error streams for any hint of error
+while True:
+    time.sleep(2.0)
+    if args["verbose"]:
+        print("POLL CFD = ", p_CFD.poll())
+        print("POLL MD = ", p_MD.poll())
+
+    if p_CFD.poll():
+        raise sp.CalledProcessError(p_CFD.poll(), ' '.join(cmdstr_CFD))
+        sys.exit(1)
+    else:
+        check_for_error(p_CFD)
+
+    if p_MD.poll():
+        raise sp.CalledProcessError(p_MD.poll(), ' '.join(cmdstr_MD))
+        sys.exit(1)
+    else:
+        check_for_error(p_MD)
 
 
+    if p_MD.poll() == 0 and p_CFD.poll() == 0:
+        if args["verbose"]:
+            print("cplexec Finished successfully")
+        break
+
+#Return successful exit code
+sys.exit(0)
+
+#CFD_gen = execute(' '.join(cmdstr_CFD))
+#MD_gen = execute(' '.join(cmdstr_MD))
+#c = CFD_gen.next()
+#m = MD_gen.next()
+#for path in range(1000):
+#    cn = CFD_gen.next()
+#    if (c != cn):
+#        print(cn)
+#        c = cn
+
+#    mn = CFD_gen.next()
+#    if (m != mn):
+#        print(mn)
+
+
+#rc_CFD = p_CFD.wait()
+#if rc_CFD:
+#    raise sp.CalledProcessError(rc_CFD, ' '.join(cmdstr_CFD))
+
+#rc_MD = p_MD.wait()
+#if rc_MD:
+#    raise sp.CalledProcessError(rc_MD, ' '.join(cmdstr_MD))
 
 
