@@ -6,6 +6,7 @@ try:
 except ImportError:
     import subprocess as sp
 import argparse
+from argparse import RawTextHelpFormatter
 import os 
 import atexit
 import signal
@@ -114,19 +115,6 @@ def check_for_error(proc):
         else:
             print(line)
 
-
-# This script runs two codes seperatly in thier own directories
-# and ensure the coupled run works correctly. To do this:
-# 1) The version of CPL library, MPI and compiler should be the same
-#    for both codes, this is checked before running.
-# 2) The two codes can be started in MPMD mode or individually.
-#    Starting indivdually is more general (and potentially more efficients
-#    as intra-communications are 3D while coupled only along a 2D plane.)
-#    The MPI instances are connected by opening a port, writing details to 
-#    file and reading with the other code. This script ensures the 
-#    port file, written at location of exec 1 is available to exec 2.
-# 3) Running with PBS or other service is simplified by a single cplexec
-
 def get_libraries(filename=None):
     """
      Get List of Librairies in Dictionary
@@ -143,13 +131,59 @@ def get_libraries(filename=None):
 
 #Keyword arguments
 description = """
-Run coupled case. Note, only script.py needed for python.
-First argument after keywords is the exectuable and all other arguments are inputs.
-If using some form of debugger or testing (gdb, valgrind, etc) then you need to specify
-the executable seperatly.
-"""
-parser = argparse.ArgumentParser(description=description)
 
+Run coupled case using MPI_port system (Must be supported by your MPI version). 
+Note, only script.py needed for python (i.e. "python script.py" not needed).
+All commands and arguments should be in quotes, example usage:
+
+Run a CFD and MD code in the local file
+
+    cplexec -c 24 "./CFD" -m 48 "./MD"
+
+Run OpenFOAM and LAMMPS Coupled with OpenFOAM executable CPLSediFOAM on the path, 
+input file in folder stored in $OPEN_FOAM_CASE environment variable and piping OpenFOAM
+ouput to log.openfoam, while lammps input is in lammps/fcc.in and output on commandline
+
+    cplexec -c 1 "CPLSediFOAM -case ${OPEN_FOAM_CASE} -parallel > log.openfoam" -m 1 "../lmp_cpl < lammps/fcc.in"
+    
+Run LAMMPS executable which is on the path (from source SOURCEME.sh or installing)
+and using a local mock script for debugging purposes
+
+    cplexec -c 24 "./CFD_mock_fcc.py" -m 1056 "lmp_cpl < lammps/in.in"
+
+First argument after the number of processors is the exectuable and all other arguments are inputs, etc.
+If using some form of debugger or testing (gdb, valgrind, etc) then you need to specify
+as follows.
+
+    cplexec -c 1 "./CFD_mock_fcc.py" -m 1 "valgrind lmp_cpl -in lammps/fcc.in"
+
+It is advisable to use cplexec for coupled runs.
+
+The purpose of cplexec is threefold: 
+
+ 1) The version of CPL library, MPI and compiler should be the same
+    for both codes, this is checked before starting a run, preventing
+    a host of very weird errors from the internals of MPI.
+ 2) The two codes can be started in MPMD mode or individually as subprocesses.
+    Starting indivdually is more general (and potentially more efficient
+    as it forces both codes to optimise individually and then the intra-communications 
+    is establised after (3D comms in code vs coupled comms along a 2D plane.)
+    The MPI instances are connected by opening a port, writing details to 
+    file and reading with the other code. This script ensures the 
+    port file, written at location of exec 1 is available to exec 2.
+ 3) The two processes are linked so an error in one is (hopefully) caught
+    and the other process can be terminated. For port connected codes
+    this is non-trvial, for example a Python script which parses a minor typo
+    after CPL_init has been called cannot propergate the error to the coupled code.
+    To handle this, cplexec polls both codes and monitors the stderror streams to look
+    for evidence of problems
+
+ In  addition, running with SimWrapLib, PBS or other service is simplified by a single cplexec.
+
+"""
+
+parser = argparse.ArgumentParser(description=description, formatter_class=RawTextHelpFormatter)
+parser.add_argument('-v', '--verbose', help='Specify verbosity', required=False, action="store_true")
 parser.add_argument('-m', '--md', nargs=2,
                     help='Specify two arguments: No. of MD processors and MD executable with all space seperated arguments in quotes', 
                     required=True)
@@ -157,9 +191,6 @@ parser.add_argument('-m', '--md', nargs=2,
 parser.add_argument('-c', '--cfd', nargs=2,
                     help='Specify two arguments: No. of CFD processors and CFD executable with all space seperated arguments in quotes',
                     required=True)
-
-parser.add_argument('-v', '--verbose', help='Specify verbosity', required=False, action="store_true")
-
 
 args = vars(parser.parse_args())
 
@@ -253,27 +284,6 @@ if Dicts["MD"]["cpl_path"] != Dicts["CFD"]["cpl_path"]:
 else:
     cpllib = get_libraries(Dicts["MD"]["cpl_path"])
 
-
-#Check version of cpl library is linked in correctly 
-# and is the same version for executables
-#CFDlib = get_libraries(CFD)
-#for lib, lpath in CFDlib.items():
-#    if "libcpl.so" in lib.lower():
-#        print("CFD CPL", lib, lpath)
-#        CFD_cpl = os.path.normpath(lpath)
-
-#MDlib  = get_libraries(MD)
-#for lib, lpath in MDlib.items():
-#    if "libcpl.so" in lib.lower():
-#        print("MD CPL", lib, lpath)
-#        MD_cpl = os.path.normpath(lpath)
-
-##Check cpl library is actually linked in
-#if MD_cpl != CFD_cpl:
-#    print("Warning -- different CPL linked into executables")
-#else:
-#    cpllib = get_libraries(CFD_cpl)
-
 #Check for MPI libraries for both cpl and executables are the same
 for lib, lpath in cpllib.items():
     if "mpi" in lib:
@@ -320,9 +330,6 @@ for lib in libs:
 if args["verbose"]:
     print("Compilers all the same : ", checkDict)
 
-# We will also need to check for and copy port file if needed here because
-# executables are in different folders...
-
 #Python scripts
 for k in Dicts:
     d = Dicts[k]
@@ -349,6 +356,11 @@ p_MD = sp.Popen(' '.join(cmdstr_MD), stderr=sp.PIPE,
 
 #Register killer of subprocesses if python script killed 
 atexit.register(kill_sp, [os.getpgid(p_MD.pid), os.getpgid(p_CFD.pid)])
+
+# We will also need to check for and copy port file if needed here because
+# executables are in different folders...
+
+
 
 #Endless loop polling to see if codes have failed and checking
 #output error streams for any hint of error
@@ -378,28 +390,4 @@ while True:
 
 #Return successful exit code
 sys.exit(0)
-
-#CFD_gen = execute(' '.join(cmdstr_CFD))
-#MD_gen = execute(' '.join(cmdstr_MD))
-#c = CFD_gen.next()
-#m = MD_gen.next()
-#for path in range(1000):
-#    cn = CFD_gen.next()
-#    if (c != cn):
-#        print(cn)
-#        c = cn
-
-#    mn = CFD_gen.next()
-#    if (m != mn):
-#        print(mn)
-
-
-#rc_CFD = p_CFD.wait()
-#if rc_CFD:
-#    raise sp.CalledProcessError(rc_CFD, ' '.join(cmdstr_CFD))
-
-#rc_MD = p_MD.wait()
-#if rc_MD:
-#    raise sp.CalledProcessError(rc_MD, ' '.join(cmdstr_MD))
-
 
