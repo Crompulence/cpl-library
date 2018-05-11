@@ -56,6 +56,32 @@ def which(program):
     return program
 
 
+def split_procs_exec_args(args, exectype):
+
+    nprocs = args[exectype][0]
+    arg = args[exectype][1].split()
+    preexec = []
+    if "valgrind" in arg[0]:
+        preexec.append("valgrind")
+        for argoffset in range(1, len(arg[1:])):
+            if "-" in arg[argoffset]:
+                preexec.append(arg[argoffset])
+                argoffset += 1
+            else:
+                execname = arg[argoffset]
+                break
+    else:
+        execname = arg[0]
+        argoffset = 0
+        
+    if len(arg[argoffset+1:]) > 1:
+        args_list = arg[argoffset+1:]
+    else:
+        args_list = []
+
+    return nprocs, preexec, execname, args_list
+
+
 def get_subprocess_error(e):
     print("subprocess ERROR")
     import json
@@ -105,14 +131,17 @@ def check_for_error(proc):
         So we need to catch this manually
     """
     for line in iter(proc.stderr.readline, b''):
-        if "NameError" in line:
-            raise NameError(line)
-            sys.exit(1)
-        elif "Error" in line:
-            print(line)
-            sys.exit(1)
-        else:
-            print(line)
+        try:
+            if "NameError" in line:
+                raise NameError(line)
+                sys.exit(1)
+            elif "Error" in line:
+                print(line)
+                sys.exit(1)
+            else:
+                print(line.replace("\n",""))
+        except IOError:
+            pass
 
 def get_libraries(filename=None):
     """
@@ -203,20 +232,26 @@ if args["verbose"]:
     print("\n")
 
 
-nprocs_CFD = args['cfd'][0]
-arg = args['cfd'][1].split(" ")
-exec_CFD = arg[0]
-if len(arg) > 1:
-    args_CFD = arg[1:]
-else:
-    args_CFD = []
-nprocs_MD = args['md'][0]
-arg = args['md'][1].split(" ")
-exec_MD = arg[0]
-if len(arg) > 1:
-    args_MD = arg[1:]
-else:
-    args_MD = []
+nprocs_CFD, preexec_CFD, exec_CFD, args_CFD = split_procs_exec_args(args, 'cfd')
+nprocs_MD, preexec_MD, exec_MD, args_MD = split_procs_exec_args(args, 'md')
+
+#nprocs_CFD = args['cfd'][0]
+#arg = args['cfd'][1].split(" ")
+#exec_CFD = arg[0]
+#if len(arg) > 1:
+#    args_CFD = arg[1:]
+#else:
+#    args_CFD = []
+
+#nprocs_MD = args['md'][0]
+#arg = args['md'][1].split()
+#exec_MD = arg[0]
+#if len(arg) > 1:
+#    args_MD = arg[1:]
+#else:
+#    args_MD = []
+
+#print(nprocs_CFD, exec_CFD, args_CFD, nprocs_MD, exec_MD, args_MD)
 
 #Create dict for run info
 CFDDict = {"exec":exec_CFD, "nproces":nprocs_CFD, "args":args_CFD}
@@ -346,8 +381,8 @@ for k in Dicts:
 #Remove previous port file
 sp.Popen("rm -f ./port", shell=True)
 
-cmdstr_MD = ["mpiexec", "-n", str(nprocs_MD), MDDict["exec"]] + MDDict["args"]
-cmdstr_CFD = ["mpiexec", "-n", str(nprocs_CFD), CFDDict["exec"]] + CFDDict["args"]
+cmdstr_MD = ["mpiexec", "-n", str(nprocs_MD)] + preexec_MD + [MDDict["exec"]] + MDDict["args"]
+cmdstr_CFD = ["mpiexec", "-n", str(nprocs_CFD)] + preexec_CFD + [CFDDict["exec"]] + CFDDict["args"]
 
 if args["MPMD"]:
     cmd_CPL = (' '.join(cmdstr_CFD) + 
