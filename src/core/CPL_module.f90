@@ -281,7 +281,7 @@ module coupler_module
 
     !Flag to check if setup has completed successfully
     integer :: CPL_setup_complete = 0
- 
+    logical :: CPL_initialised=.false.
     
     ! Coupling constrained regions, average MD quantities 
     ! in spanwise direction (flags)
@@ -470,7 +470,6 @@ subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
 
     integer :: MPMD_mode
     logical :: MPI_initialised
-    logical, save :: CPL_initialised=.false.
 
     call MPI_initialized(MPI_initialised, ierr)
     if (.not.MPI_initialised) then
@@ -813,6 +812,48 @@ subroutine CPL_finalize(ierr)
         if (CPL_CART_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_CART_COMM, ierr)
         if (CPL_GRAPH_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_GRAPH_COMM, ierr)
     endif
+
+    !Deallocate all memory
+    if (allocated(rank_world2rank_mdrealm)) deallocate(rank_world2rank_mdrealm)
+    if (allocated(rank_world2rank_mdcart)) deallocate(rank_world2rank_mdcart)
+    if (allocated(rank_world2rank_cfdrealm)) deallocate(rank_world2rank_cfdrealm)
+    if (allocated(rank_world2rank_cfdcart)) deallocate(rank_world2rank_cfdcart)
+    if (allocated(rank_world2rank_olap)) deallocate(rank_world2rank_olap)
+    if (allocated(rank_world2rank_graph)) deallocate(rank_world2rank_graph)
+    if (allocated(rank_world2rank_inter)) deallocate(rank_world2rank_inter)
+    if (allocated(rank_mdrealm2rank_world)) deallocate(rank_mdrealm2rank_world)
+    if (allocated(rank_mdcart2rank_world)) deallocate(rank_mdcart2rank_world)
+    if (allocated(rank_cfdrealm2rank_world)) deallocate(rank_cfdrealm2rank_world)
+    if (allocated(rank_cfdcart2rank_world)) deallocate(rank_cfdcart2rank_world)
+    if (allocated(rank_olap2rank_world)) deallocate(rank_olap2rank_world)
+    if (allocated(rank_graph2rank_world)) deallocate(rank_graph2rank_world)
+    if (allocated(rank_inter2rank_world)) deallocate(rank_inter2rank_world)
+    if (allocated(rank_olap2rank_realm)) deallocate(rank_olap2rank_realm)
+    if (allocated(olap_mask)) deallocate(olap_mask)
+    if (allocated(rank2coord_cfd)) deallocate(rank2coord_cfd)
+    if (allocated(rank2coord_md)) deallocate(rank2coord_md)
+    if (allocated(coord2rank_cfd)) deallocate(coord2rank_cfd)
+    if (allocated(coord2rank_md)) deallocate(coord2rank_md)
+    if (allocated(icPmin_md)) deallocate(icPmin_md)
+    if (allocated(icPmax_md)) deallocate(icPmax_md)
+    if (allocated(jcPmin_md)) deallocate(jcPmin_md)
+    if (allocated(jcPmax_md)) deallocate(jcPmax_md)
+    if (allocated(kcPmin_md)) deallocate(kcPmin_md)
+    if (allocated(kcPmax_md)) deallocate(kcPmax_md)
+    if (allocated(icPmin_cfd)) deallocate(icPmin_cfd)
+    if (allocated(icPmax_cfd)) deallocate(icPmax_cfd)
+    if (allocated(jcPmin_cfd)) deallocate(jcPmin_cfd)
+    if (allocated(jcPmax_cfd)) deallocate(jcPmax_cfd)
+    if (allocated(kcPmin_cfd)) deallocate(kcPmin_cfd)
+    if (allocated(kcPmax_cfd)) deallocate(kcPmax_cfd)
+    if (allocated(xg)) deallocate(xg)
+    if (allocated(yg)) deallocate(yg)
+    if (allocated(zg)) deallocate(zg)
+    if (allocated(cfd_icoord2olap_md_icoords)) deallocate(cfd_icoord2olap_md_icoords)
+    if (allocated(cfd_jcoord2olap_md_jcoords)) deallocate(cfd_jcoord2olap_md_jcoords)
+    if (allocated(cfd_kcoord2olap_md_kcoords)) deallocate(cfd_kcoord2olap_md_kcoords)
+
+    CPL_initialised = .false.
 
     !Barrier over both CFD and MD realms
     call MPI_Barrier(MPI_COMM_WORLD, ierr)
