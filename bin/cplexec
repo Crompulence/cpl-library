@@ -96,7 +96,6 @@ def execute(cmd, blocking=True):
         raise sp.CalledProcessError(return_code, cmd)
 
 
-
 def check_for_error(proc):
     """
         If an Error (e.g. NameError) is raised by a Python
@@ -183,7 +182,9 @@ The purpose of cplexec is threefold:
 """
 
 parser = argparse.ArgumentParser(description=description, formatter_class=RawTextHelpFormatter)
+parser.add_argument('-M', '--MPMD', help='Use MPMD Based Coupling', required=False, action="store_true")
 parser.add_argument('-v', '--verbose', help='Specify verbosity', required=False, action="store_true")
+parser.add_argument('-p', '--permissive', help='Allow run with different compilers', required=False, action="store_true")
 parser.add_argument('-m', '--md', nargs=2,
                     help='Specify two arguments: No. of MD processors and MD executable with all space seperated arguments in quotes', 
                     required=True)
@@ -281,6 +282,8 @@ for k in Dicts:
 #Compare versions of CPL
 if Dicts["MD"]["cpl_path"] != Dicts["CFD"]["cpl_path"]:
     print("Warning -- different CPL linked into executables")
+    if not args["permissive"]:
+        sys.exit(1)
 else:
     cpllib = get_libraries(Dicts["MD"]["cpl_path"])
 
@@ -308,7 +311,8 @@ for lib, lpath in Dicts["MD"]["libs"].items():
 
 if (Dicts["MD"]["MPI"] != Dicts["CFD"]["MPI"]) or (CPL_mpi != Dicts["CFD"]["MPI"]):
     print("Warning -- different MPI linked into executables")
-    mpilibs = get_libraries(CPL_mpi)
+    if not args["permissive"]:
+        sys.exit(1)
 else:
     mpilibs = get_libraries(CPL_mpi)
 
@@ -324,6 +328,8 @@ for lib in libs:
                 if c in checkDict:
                     if (checkDict[c] != mlpath):
                         print("Warning -- different version of ", c ," linked into executables")
+                        if not args["permissive"]:
+                            sys.exit(1)
                 else:
                     checkDict[c] = mlpath
 
@@ -343,50 +349,69 @@ sp.Popen("rm -f ./port", shell=True)
 cmdstr_MD = ["mpiexec", "-n", str(nprocs_MD), MDDict["exec"]] + MDDict["args"]
 cmdstr_CFD = ["mpiexec", "-n", str(nprocs_CFD), CFDDict["exec"]] + CFDDict["args"]
 
-if args["verbose"]:
-    print("MD Commands to run ", cmdstr_MD)
-    print("CFD Commands to run ", cmdstr_CFD)
+if args["MPMD"]:
+    cmd_CPL = (' '.join(cmdstr_CFD) + 
+               ' '.join(cmdstr_MD).replace("mpiexec", " : "))
 
-# Create a processor group using preexec_fn=os.setsid
-# so they can be killed as one.
-p_CFD = sp.Popen(' '.join(cmdstr_CFD), stderr=sp.PIPE, 
-                 shell=True, preexec_fn=os.setsid, bufsize=1)
-p_MD = sp.Popen(' '.join(cmdstr_MD), stderr=sp.PIPE, 
-                shell=True, preexec_fn=os.setsid, bufsize=1)
-
-#Register killer of subprocesses if python script killed 
-atexit.register(kill_sp, [os.getpgid(p_MD.pid), os.getpgid(p_CFD.pid)])
-
-# We will also need to check for and copy port file if needed here because
-# executables are in different folders...
-
-
-
-#Endless loop polling to see if codes have failed and checking
-#output error streams for any hint of error
-while True:
-    time.sleep(2.0)
     if args["verbose"]:
-        print("POLL CFD = ", p_CFD.poll())
-        print("POLL MD = ", p_MD.poll())
+        print("CPL Commands to run ", cmd_CPL)
 
-    if p_CFD.poll():
-        raise sp.CalledProcessError(p_CFD.poll(), ' '.join(cmdstr_CFD))
+    p_CPL = sp.Popen(cmd_CPL, stderr=sp.PIPE, 
+                     shell=True, bufsize=1)
+
+    if p_CPL.poll():
+        raise sp.CalledProcessError(p_CPL.poll(), ' '.join(cmd))
         sys.exit(1)
     else:
-        check_for_error(p_CFD)
+        if not args["permissive"]:
+            check_for_error(p_CPL)
 
-    if p_MD.poll():
-        raise sp.CalledProcessError(p_MD.poll(), ' '.join(cmdstr_MD))
-        sys.exit(1)
-    else:
-        check_for_error(p_MD)
+else:
 
+    if args["verbose"]:
+        print("MD Commands to run ", cmdstr_MD)
+        print("CFD Commands to run ", cmdstr_CFD)
 
-    if p_MD.poll() == 0 and p_CFD.poll() == 0:
+    # Create a processor group using preexec_fn=os.setsid
+    # so they can be killed as one.
+    p_CFD = sp.Popen(' '.join(cmdstr_CFD), stderr=sp.PIPE, 
+                     shell=True, preexec_fn=os.setsid, bufsize=1)
+    p_MD = sp.Popen(' '.join(cmdstr_MD), stderr=sp.PIPE, 
+                    shell=True, preexec_fn=os.setsid, bufsize=1)
+
+    #Register killer of subprocesses if python script killed 
+    atexit.register(kill_sp, [os.getpgid(p_MD.pid), os.getpgid(p_CFD.pid)])
+
+    # We will also need to check for and copy port file if needed here because
+    # executables are in different folders...
+
+    #Endless loop polling to see if codes have failed and checking
+    #output error streams for any hint of error
+    while True:
+        time.sleep(2.0)
         if args["verbose"]:
-            print("cplexec Finished successfully")
-        break
+            print("POLL CFD = ", p_CFD.poll())
+            print("POLL MD = ", p_MD.poll())
+
+        if p_CFD.poll():
+            raise sp.CalledProcessError(p_CFD.poll(), ' '.join(cmdstr_CFD))
+            sys.exit(1)
+        else:
+            if not args["permissive"]:
+                check_for_error(p_CFD)
+
+        if p_MD.poll():
+            raise sp.CalledProcessError(p_MD.poll(), ' '.join(cmdstr_MD))
+            sys.exit(1)
+        else:
+            if not args["permissive"]:
+                check_for_error(p_MD)
+
+
+        if p_MD.poll() == 0 and p_CFD.poll() == 0:
+            if args["verbose"]:
+                print("cplexec Finished successfully")
+            break
 
 #Return successful exit code
 sys.exit(0)
