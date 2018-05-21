@@ -34,6 +34,8 @@ The force class is designed to provide the force for a given particle, first by 
 in a molecular system in `pre_force`, before combining this with information obtained from the 
 coupled exchange in `get_force`.
 
+#### Test for CPL::forces Baseclass
+
  - Test constructors for base class
  - Check getting and setting internal field (whihc is recv from coupling)
  - Get cell method to bin molecules
@@ -41,13 +43,13 @@ coupled exchange in `get_force`.
  - Test constructor for internal fields and name retrival
  - Test for velocity class with pre force and get force
  
-### Test for CPL::forces Flekkoy
+#### Test for CPL::forces Flekkoy
  - Test for Flekkoy style force
  - Check gweight calculation 
  - Check Flekkoy pre foce 
  - Test with varying domain sizes
  
-### Test for CPL::forces Drag
+#### Test for CPL::forces Drag
  - Test constructors for drag class
  - Test constructor with optional inputs and setting with names
  - Test summing volume and forces in cells
@@ -55,11 +57,11 @@ coupled exchange in `get_force`.
  - Test overlap calculation used in force
  - Test Drag force with specified drag coefficient
  
-### Test for CPL::forces Granular
+#### Test for CPL::forces Granular
  - Test granular constructor
  - Test force calculation
  
-### Test for interpolation
+#### Test for interpolation
 
  - Test mapping of cell to node
  - Test interpolation within cells
