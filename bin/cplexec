@@ -429,6 +429,10 @@ else:
             print("POLL MD = ", p_MD.poll())
 
         if p_CFD.poll():
+            c = p_CFD.communicate()
+            print("Error code = ", p_CFD.poll(), c[0])
+            for l in c[1].split("\n"):
+                print(l)
             raise sp.CalledProcessError(p_CFD.poll(), ' '.join(cmdstr_CFD))
             sys.exit(1)
         else:
@@ -436,6 +440,10 @@ else:
                 check_for_error(p_CFD)
 
         if p_MD.poll():
+            c = p_MD.communicate()
+            print("Error code = ", p_MD.poll(), c[0])
+            for l in c[1].split("\n"):
+                print(l)
             raise sp.CalledProcessError(p_MD.poll(), ' '.join(cmdstr_MD))
             sys.exit(1)
         else:
