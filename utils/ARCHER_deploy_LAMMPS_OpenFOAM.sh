@@ -94,9 +94,9 @@ cd ../
 #      Make Run directory
 ###################################################
 
-mkdir run
-cp ./OpenFOAM/CPL_APP_OPENFOAM-3.0.1/bin/CPLSediFOAM ./
-cp ./LAMMPS/CPL_APP_LAMMPS-DEV/bin/lmp_cpl ./
+mkdir ./run
+cp ./OpenFOAM/CPL_APP_OPENFOAM-3.0.1/bin/CPLSediFOAM ./run
+cp ./LAMMPS/CPL_APP_LAMMPS-DEV/bin/lmp_cpl ./run
 
 
 
