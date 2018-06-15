@@ -515,22 +515,23 @@
 
         <p>
             The aim of coupling is to link two highly non-linear codes,
-            which means that ensuring correct behaviour is highly non-trivial.
+            so that ensuring correct behaviour is highly non-trivial.
             Even if the two linked codes are each free of bugs, there
             are issues of numerical stability, resolution, overlap size,
             averaging time, choice of exchanged variable and much more.
             For this reason, the proposed method of development of any
-            coupling application is though the use of 
+            coupling application is through the use of 
             <mark class="CPL">CPL Mocks</mark>, minimal Python scripts
             used to inject known values and check the response.
             In this way, the MD and CFD codes can be separated and tested in 
-            isolation, which the expected response used to automate this 
+            isolation, with the expected response used to automate this 
             test as part of a continuous testing framework (on e.g. Travis CI).
-            This provides a way to explore the functionality of either code,
+            This also provides a way to explore the functionality of either code,
             and ensures that when we link them together, we can quickly identify
-            if the problem is in the CFD, the MD or due to their (highly 
-            non-linear) interaction. An example of a mock pairing is shown
-            here, first the minimal MD mock code:
+            if the problem is in the CFD, MD or due to their (highly 
+            non-linear) interaction. An example of a
+            <mark class="CPL">CPL Mocks</mark> code is shown here, first the 
+            minimal MD <mark class="CPL">CPL Mocks</mark> code:
         </p>
 
         <div class="code">
@@ -538,7 +539,8 @@
         </div>
 
         <p>
-            The minimal CFD mock code is as follows:
+            The minimal CFD <mark class="CPL">CPL Mocks</mark> code is as
+            follows:
         </p>
 
         <div class="code">
@@ -551,15 +553,15 @@
             These should be turned into assert statements as part of a testing
             to ensure that for a given CPL_send value, the coupled code
             is working as expected. For examples of how we use these mocks, see the test
-            folders under the various <a class="links" href="https://github.com/Crompulence/CPL_APP_LAMMPS-DEV/tree/master/test/constant_force">APPS</a>.
+            folders under the various
+             <a class="links" href="https://github.com/Crompulence/CPL_APP_LAMMPS-DEV/tree/master/test/constant_force">APPS</a>.
 
 
-            Not a difficulty of MPI runs in that they must be started with mpiexec, so 
+            Note a difficulty of MPI runs in that they must be started with mpiexec, so 
             it is not possible to bootstrap the complete test from the mock code.
             Instead, the mocks can be used to trigger an error which is picked up
-            by a higher level script which creates a range of different mpiexec 
-            instances between the code and the mock.
-
+            by the higher level script which creates the mpiexec 
+            instance between the code and the mock.
 
 
             Even with minimal mock scripts, designing coupled simulation can still be
