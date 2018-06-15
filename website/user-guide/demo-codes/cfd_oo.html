@@ -89,10 +89,13 @@ http://www.gnu.org/software/src-highlite -->
         <b><font color="#0000FF">if</font></b> ax <font color="#990000">==</font> None<font color="#990000">:</font>
             ax<font color="#990000">=</font>self<font color="#990000">.</font>ax
 
-        sm <font color="#990000">=</font> ax<font color="#990000">.</font><b><font color="#000000">imshow</font></b><font color="#990000">(</font>self<font color="#990000">.</font>u<font color="#990000">.</font>T<font color="#990000">,</font>aspect<font color="#990000">=</font><font color="#FF0000">'auto'</font><font color="#990000">,</font>origin<font color="#990000">=</font><font color="#FF0000">'lower'</font><font color="#990000">,</font>
-                       extent<font color="#990000">=[</font>self<font color="#990000">.</font>xmin<font color="#990000">,</font>self<font color="#990000">.</font>xmax<font color="#990000">,</font>
-                               self<font color="#990000">.</font>ymin<font color="#990000">,</font>self<font color="#990000">.</font>ymax<font color="#990000">],</font>
-                       interpolation<font color="#990000">=</font><font color="#FF0000">"none"</font><font color="#990000">,</font>vmin<font color="#990000">=-</font><font color="#993399">1</font><font color="#990000">.,</font>vmax<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">.,</font>
+        <b><font color="#0000FF">if</font></b> <b><font color="#000000">type</font></b><font color="#990000">(</font>ax<font color="#990000">)</font> <b><font color="#0000FF">is</font></b> list<font color="#990000">:</font>
+            ax  <font color="#990000">=</font> ax<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font>
+
+        sm <font color="#990000">=</font> ax<font color="#990000">.</font><b><font color="#000000">imshow</font></b><font color="#990000">(</font>self<font color="#990000">.</font>u<font color="#990000">.</font>T<font color="#990000">,</font> aspect<font color="#990000">=</font><font color="#FF0000">'auto'</font><font color="#990000">,</font> origin<font color="#990000">=</font><font color="#FF0000">'lower'</font><font color="#990000">,</font>
+                       extent<font color="#990000">=[</font>self<font color="#990000">.</font>xmin<font color="#990000">,</font> self<font color="#990000">.</font>xmax<font color="#990000">,</font>
+                               self<font color="#990000">.</font>ymin<font color="#990000">,</font> self<font color="#990000">.</font>ymax<font color="#990000">],</font>
+                       interpolation<font color="#990000">=</font><font color="#FF0000">"none"</font><font color="#990000">,</font> vmin<font color="#990000">=-</font><font color="#993399">1</font><font color="#990000">.,</font> vmax<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">.,</font>
                        alpha<font color="#990000">=</font><font color="#993399">0.5</font><font color="#990000">,</font> cmap<font color="#990000">=</font>plt<font color="#990000">.</font>cm<font color="#990000">.</font>RdYlBu_r<font color="#990000">)</font>
 
 <i><font color="#9A1900">#        sm = ax.pcolormesh(self.X,self.Y,self.u.T,vmin=-1.,vmax=1.,alpha=0.5,</font></i>
@@ -123,9 +126,13 @@ http://www.gnu.org/software/src-highlite -->
 <b><font color="#0000FF">if</font></b> __name__ <font color="#990000">==</font> <font color="#FF0000">"__main__"</font><font color="#990000">:</font>
 
     t0 <font color="#990000">=</font> <font color="#993399">0</font><font color="#990000">;</font> tf <font color="#990000">=</font> <font color="#993399">30</font><font color="#990000">.;</font> Nsteps <font color="#990000">=</font> <font color="#993399">10000</font>
-    time <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>t0<font color="#990000">,</font>tf<font color="#990000">,</font>Nsteps<font color="#990000">)</font>
+    time <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">linspace</font></b><font color="#990000">(</font>t0<font color="#990000">,</font> tf<font color="#990000">,</font> Nsteps<font color="#990000">)</font>
     dt <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">mean</font></b><font color="#990000">(</font>np<font color="#990000">.</font><b><font color="#000000">diff</font></b><font color="#990000">(</font>time<font color="#990000">))</font>
     uwall <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">.</font>
+    ncx <font color="#990000">=</font> <font color="#993399">8</font><font color="#990000">;</font> ncy <font color="#990000">=</font> <font color="#993399">8</font>
+    xl_cfd <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">.;</font> yl_cfd <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">.</font>
+
+    fig<font color="#990000">,</font> ax <font color="#990000">=</font> plt<font color="#990000">.</font><b><font color="#000000">subplots</font></b><font color="#990000">(</font><font color="#993399">1</font><font color="#990000">,</font><font color="#993399">1</font><font color="#990000">)</font>
     
     cfd <font color="#990000">=</font> <b><font color="#000000">CFD</font></b><font color="#990000">(</font>nu<font color="#990000">=</font><font color="#993399">0.575</font><font color="#990000">,</font> dt<font color="#990000">=</font>dt<font color="#990000">,</font> fig<font color="#990000">=</font>fig<font color="#990000">,</font>
               xsize <font color="#990000">=</font> ncx<font color="#990000">,</font> ysize <font color="#990000">=</font> ncy<font color="#990000">+</font><font color="#993399">2</font><font color="#990000">,</font>

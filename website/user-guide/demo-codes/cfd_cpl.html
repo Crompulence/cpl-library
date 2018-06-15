@@ -25,7 +25,7 @@ ncxyz <font color="#990000">=</font> np<font color="#990000">.</font><b><font co
 
 <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>nprocs_realm <font color="#990000">!=</font> NProcs<font color="#990000">):</font>
     <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"Non-coherent number of processes in CFD "</font><font color="#990000">,</font> nprocs_realm<font color="#990000">,</font>
-            <font color="#FF0000">" no equal to "</font><font color="#990000">,</font>  npxyz<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> <font color="#FF0000">" X "</font><font color="#990000">,</font> npxyz<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> <font color="#FF0000">" X "</font><font color="#990000">,</font> npxyz<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">])</font>
+            <font color="#FF0000">" not equal to "</font><font color="#990000">,</font>  npxyz<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> <font color="#FF0000">" X "</font><font color="#990000">,</font> npxyz<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> <font color="#FF0000">" X "</font><font color="#990000">,</font> npxyz<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">])</font>
     MPI<font color="#990000">.</font><b><font color="#000000">Abort</font></b><font color="#990000">(</font>errorcode<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">)</font>
 
 <i><font color="#9A1900">#Setup coupled simulation</font></i>
@@ -46,7 +46,7 @@ portion <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font
 A_send <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">((</font><font color="#993399">2</font><font color="#990000">,</font> ncxl<font color="#990000">,</font> ncyl<font color="#990000">,</font> nczl<font color="#990000">),</font> order<font color="#990000">=</font><font color="#FF0000">'F'</font><font color="#990000">,</font> dtype<font color="#990000">=</font>np<font color="#990000">.</font>float64<font color="#990000">)</font>
 
 <i><font color="#9A1900">#Set CFD simulation object</font></i>
-md_cfd_dt_ratio <font color="#990000">=</font> <font color="#993399">25</font>
+md_cfd_dt_ratio <font color="#990000">=</font> <font color="#993399">50</font>
 dt <font color="#990000">=</font> <font color="#993399">0.125</font><font color="#990000">;</font> Nsteps <font color="#990000">=</font> <font color="#993399">100000</font><font color="#990000">/</font>md_cfd_dt_ratio<font color="#990000">;</font> tf <font color="#990000">=</font> Nsteps<font color="#990000">*</font>dt
 time <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">arange</font></b><font color="#990000">(-</font>dt<font color="#990000">,</font>tf<font color="#990000">,</font>dt<font color="#990000">)</font>
 uwall <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">.</font>
@@ -54,8 +54,6 @@ cfd <font color="#990000">=</font> <b><font color="#000000">CFD</font></b><font 
           xsize <font color="#990000">=</font> ncxyz<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> ysize <font color="#990000">=</font> ncxyz<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">]+</font><font color="#993399">2</font><font color="#990000">,</font>
           xmin <font color="#990000">=</font> xyz_orig<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> xmax <font color="#990000">=</font> xyzL<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font>
           ymin <font color="#990000">=</font> xyz_orig<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> ymax <font color="#990000">=</font> xyzL<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">])</font>
-
-
 
 <i><font color="#9A1900">#Main Run</font></i>
 <b><font color="#0000FF">for</font></b> n<font color="#990000">,</font>t <b><font color="#0000FF">in</font></b> <b><font color="#000000">enumerate</font></b><font color="#990000">(</font>time<font color="#990000">):</font>
