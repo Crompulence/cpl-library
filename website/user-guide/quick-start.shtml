@@ -515,7 +515,7 @@
 
         <p>
             The aim of coupling is to link two highly non-linear codes,
-            so that ensuring correct behaviour is highly non-trivial.
+            as a result, ensuring correct behaviour is highly non-trivial.
             Even if the two linked codes are each free of bugs, there
             are issues of numerical stability, resolution, overlap size,
             averaging time, choice of exchanged variable and much more.
