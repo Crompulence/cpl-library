@@ -85,10 +85,13 @@ class CFD:
         if ax == None:
             ax=self.ax
 
-        sm = ax.imshow(self.u.T,aspect='auto',origin='lower',
-                       extent=[self.xmin,self.xmax,
-                               self.ymin,self.ymax],
-                       interpolation="none",vmin=-1.,vmax=1.,
+        if type(ax) is list:
+            ax  = ax[0]
+
+        sm = ax.imshow(self.u.T, aspect='auto', origin='lower',
+                       extent=[self.xmin, self.xmax,
+                               self.ymin, self.ymax],
+                       interpolation="none", vmin=-1., vmax=1.,
                        alpha=0.5, cmap=plt.cm.RdYlBu_r)
 
 #        sm = ax.pcolormesh(self.X,self.Y,self.u.T,vmin=-1.,vmax=1.,alpha=0.5,
@@ -119,9 +122,13 @@ class CFD:
 if __name__ == "__main__":
 
     t0 = 0; tf = 30.; Nsteps = 10000
-    time = np.linspace(t0,tf,Nsteps)
+    time = np.linspace(t0, tf, Nsteps)
     dt = np.mean(np.diff(time))
     uwall = 1.
+    ncx = 8; ncy = 8
+    xl_cfd = 1.; yl_cfd = 1.
+
+    fig, ax = plt.subplots(1,1)
     
     cfd = CFD(nu=0.575, dt=dt, fig=fig,
               xsize = ncx, ysize = ncy+2,

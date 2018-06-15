@@ -51,8 +51,6 @@ cfd = CFD(nu=0.575, dt=dt,
           xmin = xyz_orig[0], xmax = xyzL[0],
           ymin = xyz_orig[1], ymax = xyzL[1])
 
-
-
 #Main Run
 for n,t in enumerate(time):
 

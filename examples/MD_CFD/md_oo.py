@@ -120,7 +120,7 @@ class MD:
         return 48.*(invrij2**7-.5*invrij2**4)
 
 
-    def get_bin(r, binsize):
+    def get_bin(self, r, binsize):
         ib = [int((r[ixyz]+0.5*self.domain[ixyz])
               /binsize[ixyz]) for ixyz in range(self.nd)]
         return ib
@@ -135,7 +135,7 @@ class MD:
             binsize = self.domain/bins
             #Loop over all molecules in r
             for i in range(self.r.shape[0]):
-                ib = self.get_bin(r[i,:], binsize)
+                ib = self.get_bin(self.r[i,:], binsize)
                 mbin[ib[0], ib[1]] += 1
                 if plusdt:
                     vi = self.v[i,:] + self.dt*self.a[i,:]
@@ -274,7 +274,7 @@ class MD:
 
         #Get the MD velocity field
         binsize_CFD = self.domain/u_CFD.shape[1:2]
-        binsize_MD = self.domain/[self.xbin,self.ybin]
+        binsize_MD = self.domain/[self.xbin, self.ybin]
         assert binsize_CFD[0] == binsize_MD[0]
         assert binsize_CFD[1] == binsize_MD[1]
         u_MD, mbin = self.get_velfield([self.xbin,self.ybin], getmbin=True)
@@ -284,7 +284,7 @@ class MD:
         ucheck = np.zeros([2,self.xbin])
         hd = self.halfdomain
         for i in range(self.N):
-            ib = self.get_bin(r[i,:], binsize_MD)
+            ib = self.get_bin(self.r[i,:], binsize_MD)
             #Ensure within domain
             if ib[0] > u_MD.shape[1]:
                 ib[0] = u_MD.shape[1]
@@ -307,7 +307,7 @@ class MD:
 
         #Get the MD velocity field
         binsize_CFD = self.domain/u_CFD.shape[1:2]
-        binsize_MD = self.domain/[self.xbin,self.ybin]
+        binsize_MD = self.domain/[self.xbin, self.ybin]
         assert binsize_CFD[0] == binsize_MD[0]
         assert binsize_CFD[1] == binsize_MD[1]
         u_MD = self.get_velfield([self.xbin,self.ybin], freq=1)
@@ -334,7 +334,7 @@ class MD:
                 if (mbin[ib[0],ib[1]] != 0):
                     F[:] = ( (du_MDdt - du_CFDdt)
                            /(float(mbin[ib[0],ib[1]])*self.dt))
-                else
+                else:
                     F[:] = 0.
 
         self.u_MD = u_MD
