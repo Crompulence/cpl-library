@@ -362,14 +362,16 @@ for lib in libs:
             if c in mlib:
                 if c in checkDict:
                     if (checkDict[c] != mlpath):
-                        print("Warning -- different version of ", c ," linked into executables")
+                        print("Warning -- different version of ", c,
+                              " linked into executables: ", checkDict[c], 
+                              " not equal to ", mlpath)
                         if not args["permissive"]:
                             sys.exit(1)
                 else:
                     checkDict[c] = mlpath
 
 if args["verbose"]:
-    print("Compilers all the same : ", checkDict)
+    print("Compilers : ", checkDict)
 
 #Python scripts
 for k in Dicts:
