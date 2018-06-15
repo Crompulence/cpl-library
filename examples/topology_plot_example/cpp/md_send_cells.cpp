@@ -1,7 +1,9 @@
-#include "cpl.h"
 #include "mpi.h"
 #include <iostream>
 #include <math.h>       /* sin */
+
+#include "cpl.h"
+#include "CPL_ndArray.h"
 
 #define pi 3.14159265359
 

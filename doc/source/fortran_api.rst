@@ -2,7 +2,7 @@
 Fortran Bindings
 ==================
 
-.. f:autofunction:: CPL_init
+.. f:autofunction:: cpl_init
 .. f:autofunction:: cpl_setup_md
 .. f:autofunction:: cpl_setup_cfd
 .. f:autofunction:: cpl_send
