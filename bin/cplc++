@@ -13,7 +13,7 @@ then
 fi
 
 prefix=${CPL_PATH}
-CPL_VERSION=1.0
+CPL_VERSION=2.0.1
 
 exec_prefix=${prefix}/bin
 sysconfdir=${prefix}/etc
@@ -200,9 +200,6 @@ fi
 # default, environment, configuration file (if any) and command-line
 # options (if any)
 cxxlibs=
-if [ "mpicxx" != "mpi" ] ; then
-    cxxlibs="-lmpicxx"
-fi
 
 PROFILE_FOO=
 # Handle the case of a profile switch
