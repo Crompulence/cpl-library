@@ -1,4 +1,5 @@
 #!/bin/bash
+MYPWD=${PWD}
 
 #Setup variable
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -29,3 +30,4 @@ mpiexec -n 16 ./cpp/md : -n 4 python ./python/cfd_send_cells.py
 mpiexec -n 16 python ./python/md_recv_cells.py : -n 4 ./fortran/cfd
 mpiexec -n 16 python ./python/md_recv_cells.py : -n 4 ./cpp/cfd
 mpiexec -n 16 python ./python/md_recv_cells.py : -n 4 python ./python/cfd_send_cells.py
+cd $MYPWD

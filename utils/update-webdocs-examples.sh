@@ -14,7 +14,6 @@ source-highlight --src-lang fortran --out-format html --input $INIT_DIR/md_init.
 source-highlight --src-lang C --out-format html --input $INIT_DIR/cfd_init.cpp --output $WEBSITE_DEMO_DIR/cfd_init_cpp.html
 source-highlight --src-lang python --out-format html --input $INIT_DIR/md_init.py --output $WEBSITE_DEMO_DIR/md_init_python.html
 
-
 #then do sendrecv_globcell
 SENDRECV_DIR=$EXAMPLES_DIR/sendrecv_globcell
 FORT_DIR=$SENDRECV_DIR/fortran
@@ -46,9 +45,16 @@ source-highlight --src-lang fortran --out-format html --input $FORT_DIR/md_send_
 source-highlight --src-lang C --out-format html --input $CPP_DIR/md_send_cells.cpp --output $WEBSITE_DEMO_DIR/Interactive_cpp.html
 source-highlight --src-lang python --out-format html --input $PYTHON_DIR/CFD_recv_and_plot_grid_interactive.py --output $WEBSITE_DEMO_DIR/Interactive_python.html
 
-#finally generate MD CFD example
+#generate MD CFD example
 MDCFD_DIR=$EXAMPLES_DIR/MD_CFD
 source-highlight --src-lang python --out-format html --input $MDCFD_DIR/cfd_oo.py --output $WEBSITE_DEMO_DIR/cfd_oo.html
 source-highlight --src-lang python --out-format html --input $MDCFD_DIR/md_oo.py --output $WEBSITE_DEMO_DIR/md_oo.html
 source-highlight --src-lang python --out-format html --input $MDCFD_DIR/cfd_cpl.py --output $WEBSITE_DEMO_DIR/cfd_cpl.html
 source-highlight --src-lang python --out-format html --input $MDCFD_DIR/md_cpl.py --output $WEBSITE_DEMO_DIR/md_cpl.html
+
+
+#Generate minimal mocks examples
+MOCK_DIR=$EXAMPLES_DIR/minimal_send_recv_mocks/
+source-highlight --src-lang python --out-format html --input $MOCK_DIR/minimal_CFD.py --output $WEBSITE_DEMO_DIR/minimal_CFD.html
+source-highlight --src-lang python --out-format html --input $MOCK_DIR/minimal_MD.py --output $WEBSITE_DEMO_DIR/minimal_MD.html
+

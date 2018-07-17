@@ -30,6 +30,7 @@
             <a href=#compilation ><li>Compilation</li></a>
             <a href=#MLE><li>Demo: a minimal linking example</li></a>
             <a href=#linking><li>Demo: a minimum send/recv example</li></a>
+            <a href=#mock><li>CPL Mocks</li></a>
             <a href=#analysing><li>Demo: visualising a coupled simulation</li></a>
             <a href=#interactive><li>Demo: Interactive GUI using CPL library</li></a>
             <a href=#MD_CFD><li>Minimal CFD and MD code with coupling</li></a>
@@ -38,7 +39,6 @@
         <p>
             These examples are all included in the /cpl-library/examples folder
             with the <mark class="CPL">CPL library</mark> software.
-            Once the code has been successfully compiled, the 
         </p>
 
 
@@ -46,9 +46,9 @@
         Before you begin, make sure you have the following installed on your
         system:
         <ul>
-            <li>A C/C++ compiler that supports the C++14 standard, </li>
+            <li>A C/C++ compiler that supports the C++11 standard, </li>
             <li>A Fortran compiler that supports the F2008 standard, and</li>
-            <li>An MPI library</li>
+            <li>An MPI library - currently MPICH is supported</li>
         </ul>
 
         <mark class="CPL">CPL library</mark> was developed and tested using the
@@ -57,16 +57,21 @@
         which are both free and open-source. The
         following guide assumes that you're working with a Unix-like operating
         system like Linux or OS X. Please <a href="/contact.shtml">email us</a>
-        if you'd like some help getting it to work on Windows.
+        if you'd like help getting it working for a new system.
 
 
         <p>
         <em> IMPORTANT NOTE: To minimise compatibility problems, 
-             you are advised to install gcc-5 and gfortran-5 (from a 
+             you are advised to install gcc-5 and gfortran-5 or later
+             (from a 
              <a href="/faq.shtml">ppa</a> or 
-             build it yourself), then download the latest mpich and
-             build this new version with gcc-5 and gfortran-5. 
+             build it yourself).
+             Then download the latest version of mpich and
+             build this new version with gcc and gfortran. 
         </em>
+
+        <details>
+            <summary> MPICH with gcc-5 setup </summary>
 
              <div class="code"> $ ./configure --prefix \ <br>
                                 /PATH/TO/INSTALL/mpich_gcc5/ \ <br>
@@ -75,10 +80,13 @@
                                 $make install <br>
                                 $ export PATH:/PATH/TO/INSTALL/mpich_gcc5/:$PATH <br>
              </div>
+        </details>
+
         <em>
              <br>
-             You should then build cpl-library and ALL the codes you 
-             plan to couple with this new version of mpic++ and mpif90.
+             You should then build <mark class="CPL">CPL library</mark> and ALL the codes you 
+             plan to couple with the same compiler and version of mpic++ 
+             and mpif90.
              Although this sounds like a lot of work, especially if you
              have custom versions of codes already installed, it is
              absolutely essential to guarantee correct behaviour in a coupled 
@@ -120,12 +128,21 @@
             likely to work with Gnu make:
 
             <div class="code"> $  cd PATH/TO/cpl-library/</div>
-            <div class="code"> $  make </div>
+            <div class="code"> $  make PLATFORM=gcc </div>
 
         </p>
 
         <p>
-            where the library will be created at the path,
+            The platform commands specifies the platform specific options,
+            a list of which are available in the cpl-library/make folder.
+            This build has been verified for the GCC compiler collection and
+            MPICH. Support for Intel (R)
+            compiler suites have also been tested on various platforms. 
+            For more specific build requirements, the user should copy and change
+            the compiler template file as outlined in cpl-library/README.            
+
+            The CPL library is not installed. 
+            Instead, a library will be created at the path,
         </p>
 
         <div class="code"> cpl-library/lib/ </div>
@@ -137,24 +154,30 @@
         <div class="code"> cpl-library/include/ </div>
 
         <p>
-            The wrapper binaries for cplf90 and cplc++ are located in
+            The wrapper scripts for cplf90, cplc++ and cplexec are located in
         </p>
             
         <div class="code"> cpl-library/bin/ </div>
 
         <p>
-            This build has been verified for the GCC compiler collection and
-            MPICH. Support for Intel (R)
-            compiler suites is in development. For
-            more specific build requirements, the user should copy and change
-            the compiler template file as outlined in cpl-library/README.
+            These can be added to the user's path by calling,
         </p>
+
+        <div class="code"> $  source SOURCEME.sh </div>
+
+        <p>
+            which is used instead of installing into the system directory 
+            so different versions of CPL library 
+            (although a make install option is provided).
+        </p>
+
 
         <h2 id="MLE">Demo: a minimal linking example</h2>
 
         <p>
             This simple example shows you how to link two massively-parallel 
-            codes with <mark class="CPL">CPL library</mark>. The example MD code is written in Fortran,
+            codes with <mark class="CPL">CPL library</mark>. 
+            The example MD code is written in Fortran,
             and the CFD code in C++. Both programs may run with any number of
             processes. Take a look at the simple Fortran example code:
         </p>
@@ -165,8 +188,9 @@
 
         <p>
             This code initialises MPI, and gets the MD communicator from
-            <mark class="CPL">CPL library</mark>. It must, therefore, be linked to both the MPI and CPL
-            libraries when it is compiled. The compilation can be performed with a call to mpif90 of the form:
+            <mark class="CPL">CPL library</mark>. It must, therefore, be linked
+            to both the MPI and CPL libraries when it is compiled. The 
+            compilation can be performed with a call to mpif90 of the form:
         </p>
  
 
@@ -438,7 +462,7 @@
             similar.
         </p>
             <details>
-                <summary> See CFD C++ code <a href=demo-codes/md_send_cells.cpp>(download)</a> </summary>
+                <summary> See CFD C++ code </summary>
                  <!--#include virtual="demo-codes/cfd_send_cells_cpp.html"-->
             </details>   
 
@@ -480,13 +504,74 @@
         <p>
             This minimal send and receive example forms part of the testing 
             framework of the <mark class="CPL">CPL library</mark> and represents the core functionality
-            of coupled simulation. Designing coupled simulation can still be
-            more tricky than this simple example, owing to the different possible
+            of coupled simulation. We use this idea in the next section 
+            to develop a mock framework to allow testing of coupled 
+            simulations.
+        </p>
+
+
+        <h2 id="mock">CPL Mocks</h2>
+
+
+        <p>
+            The aim of coupling is to link two highly non-linear codes,
+            which means that ensuring correct behaviour is highly non-trivial.
+            Even if the two linked codes are each free of bugs, there
+            are issues of numerical stability, resolution, overlap size,
+            averaging time, choice of exchanged variable and much more.
+            For this reason, the proposed method of development of any
+            coupling application is though the use of 
+            <mark class="CPL">CPL Mocks</mark>, minimal Python scripts
+            used to inject known values and check the response.
+            In this way, the MD and CFD codes can be separated and tested in 
+            isolation, which the expected response used to automate this 
+            test as part of a continuous testing framework (on e.g. Travis CI).
+            This provides a way to explore the functionality of either code,
+            and ensures that when we link them together, we can quickly identify
+            if the problem is in the CFD, the MD or due to their (highly 
+            non-linear) interaction. An example of a mock pairing is shown
+            here, first the minimal MD mock code:
+        </p>
+
+        <div class="code">
+            <!--#include virtual="demo-codes/minimal_CFD.html"-->
+        </div>
+
+        <p>
+            The minimal CFD mock code is as follows:
+        </p>
+
+        <div class="code">
+            <!--#include virtual="demo-codes/minimal_MD.html"-->
+        </div>
+
+
+       <p>
+            Running these codes together will print the send and recv values.
+            These should be turned into assert statements as part of a testing
+            to ensure that for a given CPL_send value, the coupled code
+            is working as expected. For examples of how we use these mocks, see the test
+            folders under the various <a class="links" href="https://github.com/Crompulence/CPL_APP_LAMMPS-DEV/tree/master/test/constant_force">APPS</a>.
+
+
+            Not a difficulty of MPI runs in that they must be started with mpiexec, so 
+            it is not possible to bootstrap the complete test from the mock code.
+            Instead, the mocks can be used to trigger an error which is picked up
+            by a higher level script which creates a range of different mpiexec 
+            instances between the code and the mock.
+
+
+
+            Even with minimal mock scripts, designing coupled simulation can still be
+            tricky, owing to the different possible
             data formats in the various codes as well as different grid index systems.
             In the next section, visualisation of a coupled code is presented to show
             how design and development of coupled simulation can be aided by 
             minimal CFD and MD code with <mark class="CPL">CPL library</mark> tools.
         </p>
+
+
+
 
         <!--<div class="code">
             make PLATFORM=template cpl_
@@ -592,8 +677,8 @@
             plotting, the two codes can be visualised, unit-tested and verified individually.
             The simple plotting interface can then be simply swapped out for the other code.
             Both for debugging and controlling simulation, <mark class="CPL">CPL library</mark> can be used to not only display the 
-            current state of the simulation, but also to control it by specifiying a boundary condition.
-            In the next section, the plotting code sends back a user changeable value to interactivly
+            current state of the simulation, but also to control it by specifying a boundary condition.
+            In the next section, the plotting code sends back a user changeable value to interactively
             develop a coupled simulation. 
         </p> 
 

@@ -734,7 +734,9 @@ subroutine CPL_send_full(asend, limits, send_flag)
     use coupler_module, only : md_realm, cfd_realm, error_abort, & 
                                CPL_GRAPH_COMM, myid_graph,olap_mask, &
                                rank_world, realm, ierr, VOID, &
-                               CPL_setup_complete, REALM_NAME
+                               CPL_setup_complete, REALM_NAME, &
+                               myid_realm, rootid_realm, & 
+                               rank_intersect, CPL_REALM_INTERSECTION_COMM
     implicit none
 
     
@@ -756,6 +758,10 @@ subroutine CPL_send_full(asend, limits, send_flag)
     integer,dimension(3)                :: pcoords, Ncell
     integer,dimension(6)                :: portion, myportion
     real(kind=kind(0.d0)), allocatable  :: vbuf(:)
+
+    !Check counter
+    integer       :: source, check_recv
+    integer, save :: first_counter = 4
 
     !Check setup is complete
     if (CPL_setup_complete .ne. 1) then
@@ -783,6 +789,20 @@ subroutine CPL_send_full(asend, limits, send_flag)
     if (myportion(6)-myportion(5)+1 .ne. size(asend,4)) then
         print*, myportion(6)-myportion(5)+1, size(asend,4)
         call error_abort("Error in CPL send -- z size of asend must be the same as portion(6)-portion(5)+1")
+    endif
+
+    !Check send/recv are consistent size
+    if (first_counter .ne. 0) then
+        first_counter = first_counter - 1
+        check_recv = 0
+        call MPI_AllReduce(size(asend,1), check_recv, 1, MPI_INTEGER, & 
+                           MPI_SUM, CPL_REALM_INTERSECTION_COMM, ierr)
+        call MPI_comm_size(CPL_REALM_INTERSECTION_COMM, n, ierr)
+        if (check_recv/n .ne. npercell) then
+            print*, "Error in CPL send in ", realm_name(realm), & 
+                    " realm, expected send size: ", npercell
+            call error_abort("Error in CPL send -- first index of send array does not match recv data size")
+        endif
     endif
 
     !Get neighbours
@@ -932,9 +952,10 @@ subroutine CPL_recv_full(arecv, limits, recv_flag)
     use mpi
     use coupler_module, only : md_realm, cfd_realm, rank_graph, &
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
-                               rank_world, realm, & 
+                               rank_world, realm, realm_name, & 
                                iblock_realm,jblock_realm,kblock_realm,VOID,ierr, &
-                               REALM_NAME, realm
+                               REALM_NAME, realm, & 
+                               rank_intersect, CPL_REALM_INTERSECTION_COMM
     implicit none
 
     logical, intent(out), optional  :: recv_flag  !Flag set if processor has received data
@@ -957,11 +978,27 @@ subroutine CPL_recv_full(arecv, limits, recv_flag)
     integer,dimension(:,:),allocatable :: status
     real(kind(0.d0)),dimension(:), allocatable ::  vbuf
 
+    !Check counter
+    integer, save :: first_counter = 4, check_recv
+
     ! This local CFD domain is outside MD overlap zone 
     if (olap_mask(rank_world).eqv. .false.) return
 
     ! Number of components at each grid point
     npercell = size(arecv,1)
+
+    !Check send/recv are consistent size
+    if (first_counter .ne. 0) then
+        first_counter = first_counter - 1
+        call MPI_AllReduce(size(arecv,1), check_recv, 1, MPI_INTEGER, & 
+                        MPI_SUM, CPL_REALM_INTERSECTION_COMM, ierr)
+        call MPI_comm_size(CPL_REALM_INTERSECTION_COMM, n, ierr)
+        if (check_recv/n .ne. npercell) then
+            print*, "Error in CPL recv in ", realm_name(realm), & 
+                    " realm, expected recv size: ", npercell
+            call error_abort("Error in CPL recv -- first index of recv array does not match sent data size")
+        endif
+    endif
 
     ! Get local grid box ranges seen by this rank for CFD and allocate buffer
     if (realm .eq. cfd_realm) then 
@@ -2311,7 +2348,8 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
                    cpl_cfd_bc_slice, cpl_md_bc_slice,            &
                    nsteps_md, nsteps_cfd, nsteps_coupled,        &
                    cpl_cfd_bc_x, cpl_cfd_bc_y, cpl_cfd_bc_z,     &
-                   timestep_ratio, comm_style)
+                   timestep_ratio, comm_style,                   &
+                   sendtype_cfd_to_md, sendtype_md_to_cfd)
 ! Wrapper to retrieve (read only) parameters from the coupler_module 
 ! Note - this ensures all variable in the coupler are protected
 ! from corruption by either CFD or MD codes
@@ -2379,8 +2417,10 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
                                 cpl_cfd_bc_y_ => cpl_cfd_bc_y, &
                                 cpl_cfd_bc_z_ => cpl_cfd_bc_z, &
                                 comm_style_ => comm_style, &
-                                comm_style_send_recv_ => comm_style_send_recv, &
-                                comm_style_gath_scat_ => comm_style_gath_scat
+                                comm_style_send_recv_ => comm_style_send_recv,&
+                                comm_style_gath_scat_ => comm_style_gath_scat,&
+                                sendtype_cfd_to_md_ => sendtype_cfd_to_md,    &
+                                sendtype_md_to_cfd_ =>  sendtype_md_to_cfd
     implicit none
 
     logical,dimension(3),optional,intent(out) :: staggered_averages
@@ -2391,7 +2431,8 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
     integer, optional, intent(out)          :: ncx,ncy,ncz
     integer, optional, intent(out)          :: npx_md,npy_md,npz_md
     integer, optional, intent(out)          :: npx_cfd,npy_cfd,npz_cfd
-    integer, optional, intent(out)          :: md_cfd_match_cellsize,timestep_ratio
+    integer, optional, intent(out)          :: md_cfd_match_cellsize
+    integer, optional, intent(out)          :: timestep_ratio
 
     integer, optional, intent(out)          :: constraint_algo
     integer, optional, intent(out)          :: constraint_CVflag
@@ -2409,7 +2450,10 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
     integer, optional, intent(out)          :: cpl_cfd_bc_y 
     integer, optional, intent(out)          :: cpl_cfd_bc_z 
     integer, optional, intent(out)          :: cpl_md_bc_slice 
-    integer, optional, intent(out)          :: nsteps_md, nsteps_cfd, nsteps_coupled
+    integer, optional, intent(out)          :: nsteps_md, nsteps_cfd
+    integer, optional, intent(out)          :: nsteps_coupled
+    integer, optional, intent(out)          :: sendtype_cfd_to_md
+    integer, optional, intent(out)          :: sendtype_md_to_cfd
 
     real(kind(0.d0)), optional, intent(out) :: density_cfd,density_md
     real(kind(0.d0)), optional, intent(out) :: dt_cfd,dt_MD
@@ -2501,6 +2545,8 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
 
     ! Communication style
     if (present(comm_style)) comm_style = comm_style_
+    if (present(sendtype_cfd_to_md)) sendtype_cfd_to_md = sendtype_cfd_to_md_
+    if (present(sendtype_md_to_cfd)) sendtype_md_to_cfd = sendtype_md_to_cfd_
 
     ! Coupling styles
     if (present(cpl_cfd_bc_slice)) cpl_cfd_bc_slice = cpl_cfd_bc_slice_
@@ -2690,9 +2736,11 @@ end function CPL_cfd2md
 !-----------------------------------------------------------------------------
 
 subroutine CPL_map_cell2coord(i, j, k, coord_xyz)
-
     use coupler_module, only: xg, yg, zg, realm, &
-                              md_realm, cfd_realm, error_abort
+                              ncx, ncy, ncz, &
+                              md_realm, cfd_realm, & 
+                              maxgridsize, error_abort
+
     integer, intent(in)  :: i, j, k
     real(kind(0.d0)), intent(out) :: coord_xyz(3)
 
@@ -2708,9 +2756,15 @@ subroutine CPL_map_cell2coord(i, j, k, coord_xyz)
                          "Aborting simulation.") 
     end if
 
-    coord_xyz(1) = xg(i, j, k)
-    coord_xyz(2) = yg(i, j, k) 
-    coord_xyz(3) = zg(i, j, k)
+    if (ncx*ncy*ncz .lt. maxgridsize) then
+        coord_xyz(1) = xg(i, j, k)
+        coord_xyz(2) = yg(i, j, k) 
+        coord_xyz(3) = zg(i, j, k)
+    else
+        coord_xyz(1) = xg(i, 1, 1)
+        coord_xyz(2) = yg(1, j, 1) 
+        coord_xyz(3) = zg(1, 1, k)
+    endif
 
     if (realm .eq. md_realm) then
         aux_ret = CPL_map_cfd2md_coord(coord_xyz, coord_md)

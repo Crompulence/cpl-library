@@ -58,7 +58,7 @@ http://www.gnu.org/software/src-highlite -->
     recv_array <font color="#990000">=</font> <font color="#993399">0.d0</font>
     <b><font color="#0000FF">call</font></b> <b><font color="#000000">CPL_recv</font></b><font color="#990000">(</font>recv_array<font color="#990000">,</font> limits<font color="#990000">,</font> recv_flag<font color="#990000">)</font>
 
-    <i><font color="#9A1900">! Check that every processor inside the overlap region receives correctly the cell</font></i>
+    <i><font color="#9A1900">! Check that every processor inside the overlap region receives the cell correctly</font></i>
     <i><font color="#9A1900">! number.  </font></i>
     <b><font color="#0000FF">if</font></b> <font color="#990000">(</font><b><font color="#000000">CPL_overlap</font></b><font color="#990000">())</font> <b><font color="#0000FF">then</font></b>
         no_error <font color="#990000">=</font> <font color="#990000">.</font>true<font color="#990000">.</font>

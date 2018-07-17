@@ -1,7 +1,8 @@
 #!/bin/bash
+MYPWD=${PWD}
 
 #Setup variable
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &PID=$! & pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 CPL_PATH=${DIR}/../../
 export CPL_PATH
 
@@ -29,3 +30,4 @@ mpiexec -n 16 ./cpp/md PID=$! & mpiexec -n 4 python ./python/cfd_send_cells.py ;
 mpiexec -n 16 python ./python/md_recv_cells.py PID=$! & mpiexec -n 4 ./fortran/cfd ; wait $PID
 mpiexec -n 16 python ./python/md_recv_cells.py PID=$! & mpiexec -n 4 ./cpp/cfd ; wait $PID
 mpiexec -n 16 python ./python/md_recv_cells.py PID=$! & mpiexec -n 4 python ./python/cfd_send_cells.py ; wait $PID
+cd $MYPWD

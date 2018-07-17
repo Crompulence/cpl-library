@@ -87,6 +87,9 @@ module coupler_module
     integer, parameter:: QUIET = 0
     integer, parameter:: NORMAL = 1
 
+    !! Max
+    integer, parameter :: maxgridsize = 2*1024**2 !! Maximum size to store global grid
+
     !! error codes
     integer, parameter :: & 
         COUPLER_ERROR_REALM  = 1        !! wrong realm value
@@ -166,6 +169,8 @@ module coupler_module
         myid_graph  !! Processor ID from 0 to nproc_graph-1;
     integer,protected :: &
         rank_graph  !! Processor rank from 1 to nproc_graph;
+    integer,protected :: &
+        rank_intersect  !! Processor rank in intersection of overlaping proces;
 
     !! Get rank in CPL_world_COMM from rank in local COMM
     integer,protected, dimension(:), allocatable    :: &
@@ -276,7 +281,7 @@ module coupler_module
 
     !Flag to check if setup has completed successfully
     integer :: CPL_setup_complete = 0
- 
+    logical :: CPL_initialised=.false.
     
     ! Coupling constrained regions, average MD quantities 
     ! in spanwise direction (flags)
@@ -291,6 +296,12 @@ module coupler_module
         constraint_NCER = 2,         &
         constraint_Flekkoy = 3,      &
         constraint_CV = 4   
+
+
+    !Sendtype flags
+    integer, protected :: &
+        sendtype_cfd_to_md,  &
+        sendtype_md_to_cfd
 
     ! Processor cell ranges 
     integer,protected, dimension(:), allocatable :: &
@@ -459,9 +470,6 @@ subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
 
     integer :: MPMD_mode
     logical :: MPI_initialised
-    logical, save :: CPL_initialised=.false.
-
-    print*, "MPI_initialised", MPI_initialised, "CPL_initialised", CPL_initialised
 
     call MPI_initialized(MPI_initialised, ierr)
     if (.not.MPI_initialised) then
@@ -555,6 +563,7 @@ subroutine test_realms(MPMD_mode)
     else
         allocate(realm_list(0))
     endif
+
     call MPI_gather(callingrealm, 1, MPI_INTEGER, realm_list, &
                     1, MPI_INTEGER, root, MPI_COMM_WORLD, ierr)
 
@@ -804,6 +813,48 @@ subroutine CPL_finalize(ierr)
         if (CPL_GRAPH_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_GRAPH_COMM, ierr)
     endif
 
+    !Deallocate all memory
+    if (allocated(rank_world2rank_mdrealm)) deallocate(rank_world2rank_mdrealm)
+    if (allocated(rank_world2rank_mdcart)) deallocate(rank_world2rank_mdcart)
+    if (allocated(rank_world2rank_cfdrealm)) deallocate(rank_world2rank_cfdrealm)
+    if (allocated(rank_world2rank_cfdcart)) deallocate(rank_world2rank_cfdcart)
+    if (allocated(rank_world2rank_olap)) deallocate(rank_world2rank_olap)
+    if (allocated(rank_world2rank_graph)) deallocate(rank_world2rank_graph)
+    if (allocated(rank_world2rank_inter)) deallocate(rank_world2rank_inter)
+    if (allocated(rank_mdrealm2rank_world)) deallocate(rank_mdrealm2rank_world)
+    if (allocated(rank_mdcart2rank_world)) deallocate(rank_mdcart2rank_world)
+    if (allocated(rank_cfdrealm2rank_world)) deallocate(rank_cfdrealm2rank_world)
+    if (allocated(rank_cfdcart2rank_world)) deallocate(rank_cfdcart2rank_world)
+    if (allocated(rank_olap2rank_world)) deallocate(rank_olap2rank_world)
+    if (allocated(rank_graph2rank_world)) deallocate(rank_graph2rank_world)
+    if (allocated(rank_inter2rank_world)) deallocate(rank_inter2rank_world)
+    if (allocated(rank_olap2rank_realm)) deallocate(rank_olap2rank_realm)
+    if (allocated(olap_mask)) deallocate(olap_mask)
+    if (allocated(rank2coord_cfd)) deallocate(rank2coord_cfd)
+    if (allocated(rank2coord_md)) deallocate(rank2coord_md)
+    if (allocated(coord2rank_cfd)) deallocate(coord2rank_cfd)
+    if (allocated(coord2rank_md)) deallocate(coord2rank_md)
+    if (allocated(icPmin_md)) deallocate(icPmin_md)
+    if (allocated(icPmax_md)) deallocate(icPmax_md)
+    if (allocated(jcPmin_md)) deallocate(jcPmin_md)
+    if (allocated(jcPmax_md)) deallocate(jcPmax_md)
+    if (allocated(kcPmin_md)) deallocate(kcPmin_md)
+    if (allocated(kcPmax_md)) deallocate(kcPmax_md)
+    if (allocated(icPmin_cfd)) deallocate(icPmin_cfd)
+    if (allocated(icPmax_cfd)) deallocate(icPmax_cfd)
+    if (allocated(jcPmin_cfd)) deallocate(jcPmin_cfd)
+    if (allocated(jcPmax_cfd)) deallocate(jcPmax_cfd)
+    if (allocated(kcPmin_cfd)) deallocate(kcPmin_cfd)
+    if (allocated(kcPmax_cfd)) deallocate(kcPmax_cfd)
+    if (allocated(xg)) deallocate(xg)
+    if (allocated(yg)) deallocate(yg)
+    if (allocated(zg)) deallocate(zg)
+    if (allocated(cfd_icoord2olap_md_icoords)) deallocate(cfd_icoord2olap_md_icoords)
+    if (allocated(cfd_jcoord2olap_md_jcoords)) deallocate(cfd_jcoord2olap_md_jcoords)
+    if (allocated(cfd_kcoord2olap_md_kcoords)) deallocate(cfd_kcoord2olap_md_kcoords)
+
+    CPL_initialised = .false.
+
     !Barrier over both CFD and MD realms
     call MPI_Barrier(MPI_COMM_WORLD, ierr)
 
@@ -836,7 +887,10 @@ subroutine read_coupler_input()
     if (found) then
         read(infileid,*, IOSTAT=readin) CPL_full_overlap
     else
-        CPL_full_overlap = .false.
+        CPL_full_overlap = .false.       
+    endif
+
+    if (CPL_full_overlap .eqv. .false.) then
 
         call locate(infileid, 'OVERLAP_EXTENTS', found)
         if (found) then
@@ -885,6 +939,11 @@ subroutine read_coupler_input()
             kcmax_bnry = VOID
         end if
 
+    else
+        call locate(infileid, 'CONSTRAINT_INFO', found)
+        if (found) then
+            read(infileid,*) constraint_algo
+        endif
     endif
 
 
@@ -939,6 +998,20 @@ subroutine read_coupler_input()
         read(infileid, *) comm_style
     else
         comm_style = comm_style_send_recv
+    end if
+
+    call locate(infileid, 'SENDTYPE_MD_TO_CFD', found) 
+    if (found) then
+        read(infileid, *) sendtype_md_to_cfd
+    else
+        sendtype_md_to_cfd = 1
+    end if
+
+    call locate(infileid, 'SENDTYPE_CFD_TO_MD', found) 
+    if (found) then
+        read(infileid, *) sendtype_cfd_to_md
+    else
+        sendtype_cfd_to_md = 1
     end if
 
     close(infileid,status="keep")
@@ -1135,24 +1208,45 @@ subroutine CPL_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
         kTmin(z+1) = z*nczl + 1
         kTmax(z+1) = kTmin(z+1) + nczl - 1
     enddo
-    
-    allocate(xgrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
-    allocate(ygrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
-    allocate(zgrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
 
-    ! Construct cartesian grid
-    dx =  xyzL(1) / ncxyz(1)
-    dy =  xyzL(2) / ncxyz(2)
-    dz =  xyzL(3) / ncxyz(3)
-    do i=1, ncxyz(1) + 1
-    do j=1, ncxyz(2) + 1
-    do k=1, ncxyz(3) + 1
-            xgrid(i, j, k) = (i-1) * dx + xyz_orig(1)
-            ygrid(i, j, k) = (j-1) * dy + xyz_orig(2)
-            zgrid(i, j, k) = (k-1) * dz + xyz_orig(3)
-    enddo
-    enddo
-    enddo
+    !Check if allocating global meshgrid is reasonable
+    if (product(ncxyz) .lt. maxgridsize) then
+        allocate(xgrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
+        allocate(ygrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
+        allocate(zgrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
+        ! Construct cartesian grid
+        dx =  xyzL(1) / ncxyz(1)
+        dy =  xyzL(2) / ncxyz(2)
+        dz =  xyzL(3) / ncxyz(3)
+        do i=1, ncxyz(1) + 1
+        do j=1, ncxyz(2) + 1
+        do k=1, ncxyz(3) + 1
+                xgrid(i, j, k) = (i-1) * dx + xyz_orig(1)
+                ygrid(i, j, k) = (j-1) * dy + xyz_orig(2)
+                zgrid(i, j, k) = (k-1) * dz + xyz_orig(3)
+        enddo
+        enddo
+        enddo
+    else
+        !Other allocate 3 arrays for each dimension
+        allocate(xgrid(ncxyz(1) + 1, 1, 1), stat=ierr)
+        allocate(ygrid(1, ncxyz(2) + 1, 1), stat=ierr)
+        allocate(zgrid(1, 1, ncxyz(3) + 1), stat=ierr)
+        ! Construct cartesian grid
+        dx =  xyzL(1) / ncxyz(1)
+        dy =  xyzL(2) / ncxyz(2)
+        dz =  xyzL(3) / ncxyz(3)
+        do i=1, ncxyz(1) + 1
+                xgrid(i, 1, 1) = (i-1) * dx + xyz_orig(1)
+        enddo
+        do j=1, ncxyz(2) + 1
+                ygrid(1, j, 1) = (j-1) * dy + xyz_orig(2)
+        enddo
+        do k=1, ncxyz(3) + 1
+                zgrid(1, 1, k) = (k-1) * dz + xyz_orig(3)
+        enddo
+    endif
+
 
     call coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, &
                           xyz_orig, ncxyz, ijkcmax, ijkcmin, iTmin, &
@@ -1457,8 +1551,6 @@ subroutine coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, ncxyz
 
     !Broadcast the overlap to CFD on intracommunicator
     call MPI_bcast(ncy_olap,1,MPI_INTEGER,rootid_realm,CPL_REALM_COMM,ierr)
-    !Broadcast the overlap to MD over intercommunicator
-    call MPI_bcast(ncy_olap,1,MPI_INTEGER,source,CPL_INTER_COMM,ierr)
 
     ! Establish mapping between MD and CFD
     call MPI_Barrier(CPL_WORLD_COMM, ierr)
@@ -1471,58 +1563,70 @@ contains
 
     subroutine check_mesh
         implicit none
+
+        integer, dimension(3) :: sizex, sizey, sizez
+
+        if (ncx*ncy*ncz .lt. maxgridsize) then
+            sizex(1) = ncx + 1
+            sizex(2) = ncy + 1
+            sizex(3) = ncz + 1
+            sizey(1) = ncx + 1
+            sizey(2) = ncy + 1
+            sizey(3) = ncz + 1
+            sizez(1) = ncx + 1
+            sizez(2) = ncy + 1
+            sizez(3) = ncz + 1
+
+            !Define cell sizes dx,dy & dz and check for grid stretching
+            ! - - x - -
+            dx = xg(2,1,1)-xg(1,1,1)
+            dxmax = maxval(xg(2:ncx+1,2:ncy+1,2:ncz+1)-xg(1:ncx,1:ncy,1:ncz))
+            dxmin = minval(xg(2:ncx+1,2:ncy+1,2:ncz+1)-xg(1:ncx,1:ncy,1:ncz))
+            if (dxmax-dx.gt.0.00001d0 .or.dx-dxmin.gt.0.00001d0) then
+                print'(3(a,f15.7))', 'Max dx = ', dxmax, ' dx = ', dx, ' Min dx = ',dxmin
+                call error_abort("check_mesh error -  Grid stretching in x not supported")
+            endif
+            ! - - y - -
+            dy = yg(1,2,1)-yg(1,1,1)
+            dymax = maxval(yg(2:ncx+1,2:ncy+1,2:ncz+1)-yg(1:ncx,1:ncy,1:ncz))
+            dymin = minval(yg(2:ncx+1,2:ncy+1,2:ncz+1)-yg(1:ncx,1:ncy,1:ncz))
+            if (dymax-dy.gt.0.00001d0 .or. dy-dymin.gt.0.00001d0) then
+                print'(3(a,f15.7))', 'Max dy = ', dymax, ' dy = ', dy, ' Min dy = ',dymin
+                call error_abort("check_mesh error -  Grid stretching in y not supported")
+            endif
+
+            ! - - z - -
+            dz = zg(1,1,2)-zg(1,1,1)
+            dzmax = maxval(zg(2:ncx+1,2:ncy+1,2:ncz+1)-zg(1:ncx,1:ncy,1:ncz))
+            dzmin = minval(zg(2:ncx+1,2:ncy+1,2:ncz+1)-zg(1:ncx,1:ncy,1:ncz))
+            if (dzmax-dz.gt.0.00001d0 .or. dz-dzmin.gt.0.00001d0) then
+                print'(3(a,f15.7))', 'Max dz = ', dzmax, ' dz = ', dz, ' Min dz = ',dzmin
+                call error_abort("check_mesh error - Grid stretching in z not supported")
+            endif
+
+        else
+            sizex = 1; sizey = 1; sizez = 1
+            sizex(1) = ncx + 1
+            sizey(2) = ncy + 1
+            sizez(3) = ncz + 1
+        endif
   
-        ! Check grids are the right size 
-        if (size(xg,1) .ne. (ncx + 1) .or. & 
-            size(xg,2) .ne. (ncy + 1) .or. &
-            size(xg,3) .ne. (ncz + 1)) then
+        ! Check grids are the right size
+        if (size(xg,1) .ne. sizex(1) .or. & 
+            size(xg,2) .ne. sizex(2) .or. &
+            size(xg,3) .ne. sizex(3)) then
             call error_abort('check_mesh error - xg is the wrong size in cpl_cfd_init')
         end if
-        if (size(yg,1) .ne. (ncx + 1) .or. & 
-            size(yg,2) .ne. (ncy + 1) .or. &
-            size(yg,3) .ne. (ncz + 1)) then
+        if (size(yg,1) .ne. sizey(1) .or. & 
+            size(yg,2) .ne. sizey(2) .or. &
+            size(yg,3) .ne. sizey(3)) then
             call error_abort('check_mesh error - yg is the wrong size in cpl_cfd_init')
         end if
-        if (size(zg,1) .ne. (ncx + 1) .or. & 
-            size(zg,2) .ne. (ncy + 1) .or. &
-            size(zg,3) .ne. (ncz + 1)) then
+        if (size(zg,1) .ne. sizez(1) .or. & 
+            size(zg,2) .ne. sizez(2) .or. &
+            size(zg,3) .ne. sizez(3)) then
             call error_abort('check_mesh error - zg is the wrong size in cpl_cfd_init')
         end if
-
-        !Define cell sizes dx,dy & dz and check for grid stretching
-        ! - - x - -
-        dx = xg(2,1,1)-xg(1,1,1)
-        dxmax = maxval(xg(2:ncx+1,2:ncy+1,2:ncz+1)-xg(1:ncx,1:ncy,1:ncz))
-        dxmin = minval(xg(2:ncx+1,2:ncy+1,2:ncz+1)-xg(1:ncx,1:ncy,1:ncz))
-        if (dxmax-dx.gt.0.00001d0 .or.dx-dxmin.gt.0.00001d0) then
-            print'(3(a,f15.7))', 'Max dx = ', dxmax, ' dx = ', dx, ' Min dx = ',dxmin
-            call error_abort("check_mesh error -  Grid stretching in x not supported")
-        endif
-        ! - - y - -
-        dy = yg(1,2,1)-yg(1,1,1)
-        dymax = maxval(yg(2:ncx+1,2:ncy+1,2:ncz+1)-yg(1:ncx,1:ncy,1:ncz))
-        dymin = minval(yg(2:ncx+1,2:ncy+1,2:ncz+1)-yg(1:ncx,1:ncy,1:ncz))
-        if (dymax-dy.gt.0.00001d0 .or. dy-dymin.gt.0.00001d0) then
-            print'(3(a,f15.7))', 'Max dy = ', dymax, ' dy = ', dy, ' Min dy = ',dymin
-            call error_abort("check_mesh error -  Grid stretching in y not supported")
-        endif
-        !if (dymax-dy.gt.0.0001 .or. dy-dymin.gt.0.0001) then
-        !    print*, "********************************************************************"
-        !    print*, " Grid stretching employed in CFD domain - range of dy sizes:        "
-        !   print*, "dymin = ", dymin, " dy = ",dy, " dymax = ", dymax
-        !    print*, "********************************************************************"
-        !    print*,
-        !endif
-        ! - - z - -
-
-        dz = zg(1,1,2)-zg(1,1,1)
-        dzmax = maxval(zg(2:ncx+1,2:ncy+1,2:ncz+1)-zg(1:ncx,1:ncy,1:ncz))
-        dzmin = minval(zg(2:ncx+1,2:ncy+1,2:ncz+1)-zg(1:ncx,1:ncy,1:ncz))
-        if (dzmax-dz.gt.0.00001d0 .or. dz-dzmin.gt.0.00001d0) then
-            print'(3(a,f15.7))', 'Max dz = ', dzmax, ' dz = ', dz, ' Min dz = ',dzmin
-            call error_abort("check_mesh error - Grid stretching in z not supported")
-        endif
-
 
     end subroutine check_mesh
 
@@ -1808,7 +1912,11 @@ subroutine coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain, xyz_orig)
     deallocate(buf)
 
     ! Receive & Store array of global grid points
-    allocate(xg(ncx+1,ncy+1,ncz+1),yg(ncx+1,ncy+1,ncz+1),zg(ncx+1,ncy+1,ncz+1))
+    if (ncx*ncy*ncz .lt. maxgridsize) then
+        allocate(xg(ncx+1,ncy+1,ncz+1),yg(ncx+1,ncy+1,ncz+1),zg(ncx+1,ncy+1,ncz+1))
+    else
+        allocate(xg(ncx+1,1,1),yg(1,ncy+1,1),zg(1,1,ncz+1))
+    endif
     call MPI_bcast(xg,size(xg),MPI_double_precision,0,CPL_INTER_COMM,ierr) !Receive
     call MPI_bcast(yg,size(yg),MPI_double_precision,0,CPL_INTER_COMM,ierr) !Receive
     call MPI_bcast(zg,size(zg),MPI_double_precision,0,CPL_INTER_COMM,ierr) !Receive 
@@ -1977,11 +2085,22 @@ subroutine check_config_feasibility()
         call error_abort(string)
     end if
 
+
     !Check CFD and MD cell range
+    if (npx_md .lt. npx_cfd) then
+        call error_abort("CPL_create_map error - number of MD " // &
+                         "processors must be greater than or equal" // &
+                         " to CFD processors in x")
+    endif
     if (npy_md .lt. npy_cfd) then
-        call error_abort("get_md_cell_ranges error - number of MD " // &
-                         "processors in y must be greater than or equal" // &
+        call error_abort("CPL_create_map error - number of MD " // &
+                         "processors must be greater than or equal" // &
                          " to CFD processors in y")
+    endif
+    if (npz_md .lt. npz_cfd) then
+        call error_abort("CPL_create_map error - number of MD " // &
+                         "processors must be greater than or equal" // &
+                         " to CFD processors in z")
     endif
 
     ! Check there is only one overlap CFD proc in y
@@ -2043,11 +2162,18 @@ subroutine check_config_feasibility()
     yL_olap = ncy_olap * dy
     zL_olap = ncz_olap * dz
     ! Tolerance of half a cell width
-    if (xL_md .lt. (xL_olap - dx/2.d0) .or. &
-        yL_md .lt. (yL_olap - dy/2.d0) .or. &
-        zL_md .lt. (zL_olap - dz/2.d0)      ) then
-
-        print'(3(2f15.6,i8,f15.6))',  xL_md, xL_olap, ncx_olap , dx, yL_md, yL_olap, ncy_olap , dy, zL_md, zL_olap, ncz_olap , dz
+    if (xL_md .lt. (xL_olap - dx/2.d0)) then
+        print'(2(a,f15.6),a, i8,a,f15.6)',  "xL_md= ", xL_md, " xL_olap= ", xL_olap, " ncx_olap= ", ncx_olap , " dx= ",dx
+        string = "CPL_create_map error - Overlap region is larger than the MD region. "       // &
+                 "Aborting simulation."
+        call error_abort(string)
+    elseif (yL_md .lt. (yL_olap - dy/2.d0)) then
+        print'(2(a,f15.6),a, i8,a,f15.6)',  "yL_md= ", yL_md, " yL_olap= ", yL_olap, " ncy_olap= ", ncy_olap , " dy= ",dy
+        string = "CPL_create_map error - Overlap region is larger than the MD region. "       // &
+                 "Aborting simulation."
+        call error_abort(string)
+    elseif (zL_md .lt. (zL_olap - dz/2.d0)) then
+        print'(2(a,f15.6),a, i8,a,f15.6)',  "zL_md= ", zL_md, " zL_olap= ", zL_olap, " ncz_olap= ", ncz_olap , " dz= ",dz
         string = "CPL_create_map error - Overlap region is larger than the MD region. "       // &
                  "Aborting simulation."
         call error_abort(string)
@@ -2105,8 +2231,18 @@ subroutine check_config_feasibility()
                             ' number of CFD processors in x ', npx_cfd
 
         call error_abort("CPL_create_map error - get_overlap_blocks error - number of MD "    // & 
-                         "processors in x must be an integer multiple "// &
+                         "processors must be an integer multiple "// &
                          "of number of CFD processors in x")
+
+    elseif (mod(npy_md,npy_cfd) .ne. 0 .and. CPL_full_overlap) then
+
+        print'(a,i8,a,i8)', ' number of MD processors in y ', npy_md,     & 
+                            ' number of CFD processors in y ', npy_cfd
+
+        call error_abort("CPL_create_map error - get_overlap_blocks error - number of MD "    // &
+                         "processors must be an integer multiple "// &
+                         "of number of CFD processors in y")
+
 
     elseif (mod(npz_md,npz_cfd) .ne. 0) then
 
@@ -2114,7 +2250,7 @@ subroutine check_config_feasibility()
                             ' number of CFD processors in z ', npz_cfd
 
         call error_abort("CPL_create_map error - get_overlap_blocks error - number of MD "    // &
-                         "processors in z must be an integer multiple "// &
+                         "processors must be an integer multiple "// &
                          "of number of CFD processors in z")
 
     endif
@@ -2471,13 +2607,15 @@ subroutine prepare_overlap_comms()
     !   7. split world comm according to groups
     !      if group(world_rank) == 0, set olap_comm to null 
 
-    integer :: i,j,k,ic,jc,kc
-    integer :: trank_md, trank_cfd, trank_world, nolap
+    integer :: i,j,k,ic,jc,kc,n
+    integer :: trank_md, trank_cfd, trank_world, nolap, color
     integer, dimension(:), allocatable :: mdicoords, mdjcoords, mdkcoords
     integer, parameter :: olap_null = -666
     integer :: group(nproc_world)
     integer :: cfdcoord(3)
     integer :: tempsize
+    !integer :: local_leader, remote_leader, comm_size
+    !integer :: jbuf(2), ibuf(2)
 
     tempsize = size(cfd_icoord2olap_md_icoords,2)
     allocate(mdicoords(tempsize))
@@ -2569,7 +2707,50 @@ subroutine prepare_overlap_comms()
     deallocate(mdicoords)
     deallocate(mdjcoords)
     deallocate(mdkcoords)
-    
+
+    !Create a COMM for overlapping processes only
+    if (olap_mask(rank_world).eqv..true.) then
+        color = 1
+    else
+        color = 2
+    endif
+    call MPI_comm_split(CPL_WORLD_COMM, color,  myid_world, & 
+                        CPL_REALM_INTERSECTION_COMM, ierr)
+
+    call MPI_comm_rank(CPL_REALM_INTERSECTION_COMM, rank_intersect, ierr)
+    rank_intersect = rank_intersect + 1
+
+    !Create an intercomm for overlapping processes only
+!    do n = 1,size(olap_mask,1)
+!        if (olap_mask(n).eqv..true.) then
+!            local_leader = n
+!            exit
+!        endif
+!    enddo
+!    ! Get the MPI_comm_world ranks that hold the largest ranks in cfd_comm and md_comm
+!    call MPI_comm_size(CPL_REALM_COMM, comm_size, ierr)
+!    ibuf(:) = -1
+!    jbuf(:) = -1
+!    if ( myid_realm .eq. comm_size - 1) then
+!        ibuf(realm) = myid_world
+!    endif
+
+!    call MPI_allreduce( ibuf ,jbuf, 2, MPI_INTEGER, MPI_MAX, &
+!                        CPL_WORLD_COMM, ierr)
+
+!    !Set this largest rank on each process to be the inter-communicators (WHY NOT 0??)
+!    select case (realm)
+!    case (cfd_realm)
+!        remote_leader = jbuf(md_realm)
+!    case (md_realm)
+!        remote_leader = jbuf(cfd_realm)
+!    end select
+
+!    print*, "intercomm create started", realm, local_leader, remote_leader,rank_world 
+!    call MPI_intercomm_create(CPL_REALM_COMM, comm_size-1, CPL_OLAP_COMM, &
+!                              remote_leader, 1, CPL_REALM_INTERSECTION_COMM, ierr)
+!    print*, "intercomm create finished", realm, local_leader, remote_leader,rank_world 
+!    
     !if (realm.eq.md_realm) call write_overlap_comms_md
 
 end subroutine prepare_overlap_comms

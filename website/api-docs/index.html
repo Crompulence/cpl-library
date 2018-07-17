@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -6,16 +8,14 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>&lt;no title&gt; &mdash; cpl 1.0.0 documentation</title>
-	<link rel="stylesheet" href="/styles.css"> 
-	<link rel="shortcut icon" href="/cpl_logo.ico">
+    <title>Welcome to CPL library’s documentation &mdash; cpl 1.0.0 documentation</title>
     
-    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
+        URL_ROOT:    '',
         VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
@@ -25,39 +25,1162 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="cpl 1.0.0 documentation" href="#" />
-    <link rel="next" title="C++ Bindings" href="cpp_api.html" /> 
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="cpl 1.0.0 documentation" href="#" /> 
   </head>
-  <body role="document">
-	 <!--#include virtual="/nav.html"-->
-     <div class="topnav" role="navigation" aria-label="top navigation">
-      
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="#">cpl 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-cpl-library-s-documentation">
+<h1>Welcome to CPL library&#8217;s documentation<a class="headerlink" href="#welcome-to-cpl-library-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>CPL Library is a communications and topology management system for coupling any continuum fluid dynamics (CFD) solver to any molecular dynamics (MD) code. CPL Library is free and open-source, please see <a class="reference external" href="http://www.cpl-library.org/download.shtml">CPL</a> for more information.</p>
+</div>
+<div class="section" id="first-steps-with-cpl">
+<h1>First Steps with CPL<a class="headerlink" href="#first-steps-with-cpl" title="Permalink to this headline">¶</a></h1>
+<p>This document list the interface for CPL library in python, C/C++ and Fortran.</p>
+<div class="section" id="install-cpl-library">
+<h2>Install CPL library<a class="headerlink" href="#install-cpl-library" title="Permalink to this headline">¶</a></h2>
+<p>Install CPL library by following instructions on our website
+<a class="reference external" href="http://www.cpl-library.org/download.shtml">CPL</a> or clone with</p>
+<div class="highlight-python"><pre>$ git clone https://github.com/Crompulence/cpl-library.git</pre>
+</div>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+</div>
+<div class="section" id="cpl-python-bindings">
+<h2>CPL python Bindings<a class="headerlink" href="#cpl-python-bindings" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="cpl-c-bindings">
+<h2>CPL C++ Bindings<a class="headerlink" href="#cpl-c-bindings" title="Permalink to this headline">¶</a></h2>
+<dl class="type">
+<dt id="CPL">
+<span class="target" id="cpp_cplnamespaceCPL"></span><em class="property">namespace </em><tt class="descname">CPL</tt><a class="headerlink" href="#CPL" title="Permalink to this definition">¶</a></dt>
+<dd><div class="breathe-sectiondef container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="CPL::init__i.iR">
+<span class="target" id="cpp_cplnamespaceCPL_1ad4d75a46cb7304ef48d44a34bddc0337"></span>void <tt class="descname">init</tt><big>(</big>int <em>calling_realm</em>, int&amp; <em>returned_realm_comm</em><big>)</big><a class="headerlink" href="#CPL::init__i.iR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::setup_cfd__i.double.i.doubleA.doubleA.iA.double">
+<span class="target" id="cpp_cplnamespaceCPL_1ae6e030ba528996e6a73b586897be80ec"></span>void <tt class="descname">setup_cfd</tt><big>(</big>int <em>nsteps</em>, double <em>dt</em>, int <em>icomm_grid</em>, double <em>xyzL</em>[], double <em>xyz_orig</em>[], int <em>ncxyz</em>[], double <em>density</em><big>)</big><a class="headerlink" href="#CPL::setup_cfd__i.double.i.doubleA.doubleA.iA.double" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::setup_md__iR.iR.double.i.doubleA.doubleA.double">
+<span class="target" id="cpp_cplnamespaceCPL_1ac8ae709e722566943976e336c62d1354"></span>void <tt class="descname">setup_md</tt><big>(</big>int&amp; <em>nsteps</em>, int&amp; <em>initialstep</em>, double <em>dt</em>, int <em>icomm_grid</em>, double <em>xyzL</em>[], double <em>xyz_orig</em>[], double <em>density</em><big>)</big><a class="headerlink" href="#CPL::setup_md__iR.iR.double.i.doubleA.doubleA.double" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::send__doubleP.iP.iP">
+<span class="target" id="cpp_cplnamespaceCPL_1a4a915f89d05dad930a2166b8883604f9"></span>bool <tt class="descname">send</tt><big>(</big>double* <em>asend</em>, int* <em>asend_shape</em>, int* <em>limits</em><big>)</big><a class="headerlink" href="#CPL::send__doubleP.iP.iP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::recv__doubleP.iP.iP">
+<span class="target" id="cpp_cplnamespaceCPL_1a60f31d1581d677efe993f10d308ade0e"></span>bool <tt class="descname">recv</tt><big>(</big>double* <em>arecv</em>, int* <em>arecv_shape</em>, int* <em>limits</em><big>)</big><a class="headerlink" href="#CPL::recv__doubleP.iP.iP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::scatter__doubleP.iP.iP.doubleP.iP">
+<span class="target" id="cpp_cplnamespaceCPL_1a2af4132541cd7609a6a3599cda3300af"></span>void <tt class="descname">scatter</tt><big>(</big>double* <em>scatterarray</em>, int* <em>scatter_shape</em>, int* <em>limits</em>, double* <em>recvarray</em>, int* <em>recv_shape</em><big>)</big><a class="headerlink" href="#CPL::scatter__doubleP.iP.iP.doubleP.iP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::gather__doubleP.iP.iP.doubleP.iP">
+<span class="target" id="cpp_cplnamespaceCPL_1ace58b63e62bdffb596bb20a248f0ed81"></span>void <tt class="descname">gather</tt><big>(</big>double* <em>gatherarray</em>, int* <em>gather_shape</em>, int* <em>limits</em>, double* <em>recvarray</em>, int* <em>recv_shape</em><big>)</big><a class="headerlink" href="#CPL::gather__doubleP.iP.iP.doubleP.iP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::proc_extents__iA.i.iA">
+<span class="target" id="cpp_cplnamespaceCPL_1a5c17c020148e385df1e58fe5889d21d3"></span>void <tt class="descname">proc_extents</tt><big>(</big>int <em>coord</em>[], int <em>realm</em>, int <em>extents</em>[]<big>)</big><a class="headerlink" href="#CPL::proc_extents__iA.i.iA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::my_proc_extents__iA">
+<span class="target" id="cpp_cplnamespaceCPL_1a30e0920ca21c6570349b9ef3e6a8732d"></span>void <tt class="descname">my_proc_extents</tt><big>(</big>int <em>extents</em>[]<big>)</big><a class="headerlink" href="#CPL::my_proc_extents__iA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::proc_portion__iA.i.iA.iA">
+<span class="target" id="cpp_cplnamespaceCPL_1a449fb23b029bff3acd6dfc3d0a78a9f9"></span>void <tt class="descname">proc_portion</tt><big>(</big>int <em>coord</em>[], int <em>realm</em>, int <em>limits</em>[], int <em>portion</em>[]<big>)</big><a class="headerlink" href="#CPL::proc_portion__iA.i.iA.iA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::my_proc_portion__iA.iA">
+<span class="target" id="cpp_cplnamespaceCPL_1a0e63a259c8c6790666308fffb49e8ab3"></span>void <tt class="descname">my_proc_portion</tt><big>(</big>int <em>limits</em>[], int <em>portion</em>[]<big>)</big><a class="headerlink" href="#CPL::my_proc_portion__iA.iA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::map_cell2coord__i.i.i.doubleA">
+<span class="target" id="cpp_cplnamespaceCPL_1a29a186308a3457f8bfa82a799e09aafc"></span>void <tt class="descname">map_cell2coord</tt><big>(</big>int <em>i</em>, int <em>j</em>, int <em>k</em>, double <em>coord_xyz</em>[]<big>)</big><a class="headerlink" href="#CPL::map_cell2coord__i.i.i.doubleA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::map_coord2cell__double.double.double.iA">
+<span class="target" id="cpp_cplnamespaceCPL_1a667987ec612b42bb2d09c7227e53c36b"></span>bool <tt class="descname">map_coord2cell</tt><big>(</big>double <em>x</em>, double <em>y</em>, double <em>z</em>, int <em>cell_ijk</em>[]<big>)</big><a class="headerlink" href="#CPL::map_coord2cell__double.double.double.iA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::get_no_cells__iA.iA">
+<span class="target" id="cpp_cplnamespaceCPL_1ad7758485fafb33d9280c3155edd2d551"></span>void <tt class="descname">get_no_cells</tt><big>(</big>int <em>limits</em>[], int <em>no_cells</em>[]<big>)</big><a class="headerlink" href="#CPL::get_no_cells__iA.iA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::map_glob2loc_cell__iA.iA.iA">
+<span class="target" id="cpp_cplnamespaceCPL_1aaa031537fcd69614650bba24caf52396"></span>bool <tt class="descname">map_glob2loc_cell</tt><big>(</big>int <em>limits</em>[], int <em>glob_cell</em>[], int <em>loc_cell</em>[]<big>)</big><a class="headerlink" href="#CPL::map_glob2loc_cell__iA.iA.iA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::get_olap_limits__iA">
+<span class="target" id="cpp_cplnamespaceCPL_1a2e249f42126d5ac3871207abcd44508f"></span>void <tt class="descname">get_olap_limits</tt><big>(</big>int <em>limits</em>[]<big>)</big><a class="headerlink" href="#CPL::get_olap_limits__iA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::get_cnst_limits__iA">
+<span class="target" id="cpp_cplnamespaceCPL_1a13a6700ca71e56cdd2a8dae97d8a8375"></span>void <tt class="descname">get_cnst_limits</tt><big>(</big>int <em>limits</em>[]<big>)</big><a class="headerlink" href="#CPL::get_cnst_limits__iA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::map_cfd2md_coord__doubleA.doubleA">
+<span class="target" id="cpp_cplnamespaceCPL_1accbfb53b73a10ed4d43a873aaaa46b6b"></span>bool <tt class="descname">map_cfd2md_coord</tt><big>(</big>double <em>cfd_coord</em>[], double <em>md_coord</em>[]<big>)</big><a class="headerlink" href="#CPL::map_cfd2md_coord__doubleA.doubleA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::map_md2cfd_coord__doubleA.doubleA">
+<span class="target" id="cpp_cplnamespaceCPL_1a12dc0de5f3ae711f3620f83574e62d54"></span>bool <tt class="descname">map_md2cfd_coord</tt><big>(</big>double <em>md_coord</em>[], double <em>cfd_coord</em>[]<big>)</big><a class="headerlink" href="#CPL::map_md2cfd_coord__doubleA.doubleA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::overlap">
+<span class="target" id="cpp_cplnamespaceCPL_1acee7624e8b93aa9d776a555419bd1846"></span>bool <tt class="descname">overlap</tt><big>(</big><big>)</big><a class="headerlink" href="#CPL::overlap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::set_output_mode__i">
+<span class="target" id="cpp_cplnamespaceCPL_1a65e047db16b69f0fad5215369f638166"></span>void <tt class="descname">set_output_mode</tt><big>(</big>int <em>mode</em><big>)</big><a class="headerlink" href="#CPL::set_output_mode__i" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<em class="property">template </em>&lt;<em class="property">class</em> T&gt;</dt>
+<dt id="CPL::get__ss">
+<span class="target" id="cpp_cplnamespaceCPL_1af6caf5ca546acced3fd351c00bddb0a9"></span>T <tt class="descname">get</tt><big>(</big>std::string <em>name</em><big>)</big><a class="headerlink" href="#CPL::get__ss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CPL::density_cfd">
+<span class="target" id="cpp_cplnamespaceCPL_1afe824021abc7022cec8c9f3450bc2fe6"></span>double <tt class="descname">density_cfd</tt><big>(</big><big>)</big><a class="headerlink" href="#CPL::density_cfd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef container">
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="member">
+<dt id="CPL::cfd_realm__iC">
+<span class="target" id="cpp_cplnamespaceCPL_1a769aaa349d2c5fcbe171303e273004c3"></span>const int <tt class="descname">cfd_realm</tt><a class="headerlink" href="#CPL::cfd_realm__iC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="CPL::md_realm__iC">
+<span class="target" id="cpp_cplnamespaceCPL_1a48c7a7628ef85643232d0d5fe9aa0afa"></span>const int <tt class="descname">md_realm</tt><a class="headerlink" href="#CPL::md_realm__iC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="cpl-fortran-bindings">
+<h2>CPL Fortran Bindings<a class="headerlink" href="#cpl-fortran-bindings" title="Permalink to this headline">¶</a></h2>
+<dl class="subroutine">
+<dt id="f/_/cpl_init">
+<em class="property">subroutine  </em><tt class="descname">cpl_init</tt><big>(</big><em>callingrealm</em>, <em>returned_realm_comm</em>, <em>ierror</em><big>)</big><a class="headerlink" href="#f/_/cpl_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>(cfd+md) Splits MPI_COMM_WORLD in both the CFD and MD code respectively
+and create intercommunicator between CFD and MD</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes MPI has been initialised <cite>MPI_init</cite> and communicator MPI_COMM_WORLD exists
+and contains all processors in both CFD and MD regions</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">CPL_init</span><span class="p">(</span>
+         <span class="n">callingrealm</span><span class="p">,</span>
+         <span class="n">RETURNED_REALM_COMM</span><span class="p">,</span>
+         <span class="n">ierror</span>
+         <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><em>callingrealm</em><ul>
+<li>Should identify calling processor as either CFD_REALM (integer with value 1) or MD_REALM (integer with value 2).</li>
+</ul>
+</li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li>RETURNED_REALM_COMM<ul>
+<li>Communicator based on callingrealm value local to CFD or MD processor and resulting from the split of MPI_COMM_WORLD</li>
+</ul>
+</li>
+<li>ierror<ul>
+<li>Error flag</li>
+</ul>
+</li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="highlight-python"><pre>program main_CFD
+   use cpl, only : CPL_init
+   use mpi
+   implicit none
+
+   integer :: rank, nprocs, ierr
+   integer :: CFD_COMM
+   integer, parameter :: CFD_realm=1
+
+   !Initialise MPI
+   call MPI_Init(ierr)
+
+   !Create MD Comm by spliting world
+   call CPL_init(CFD_realm, CFD_COMM, ierr)
+
+   !get local processor rank and print
+   call MPI_comm_size(CFD_COMM, nprocs, ierr)
+   call MPI_comm_rank(CFD_COMM, rank, ierr)
+
+   print*, "CFD code processor ", rank+1, " of ", nprocs
+
+   !No need for seperate CPL finalise as MPI finalise takes care of this
+   call MPI_finalize(ierr)
+
+end program main_CFD
+</pre>
+</div>
+<div class="highlight-python"><pre>program main_MD
+   use cpl, only : CPL_init
+   use mpi
+   implicit none
+
+   integer :: rank, nprocs, ierr
+   integer :: MD_COMM
+   integer, parameter :: MD_realm=2
+
+   !Initialise MPI
+   call MPI_Init(ierr)
+
+   !Create MD Comm by spliting world
+   call CPL_init(MD_realm, MD_COMM, ierr)
+
+   call MPI_comm_size(MD_COMM, nprocs, ierr)
+   call MPI_comm_rank(MD_COMM, rank, ierr)
+
+   print*, "MD code processor ", rank+1, " of ", nprocs
+
+   !No need for seperate CPL finalise as MPI finalise takes care of this
+   call MPI_finalize(ierr)
+
+end program main_MD
 
 
-      </div>
-      <div class="content">
-        
-        
-  <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="cpp_api.html">C++ Bindings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fortran_api.html">Fortran Bindings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python_api.html">Python Bindings</a></li>
+</pre>
+</div>
+<p><strong>Errors</strong></p>
+<blockquote>
+<div>COUPLER_ERROR_REALM  = 1       ! wrong realm value
+COUPLER_ERROR_ONE_REALM = 2    ! one realm missing
+COUPLER_ERROR_INIT = 3         ! initialisation error</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>callingrealm</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: CFD_REALM=1 or MD_REALM=2</li>
+<li><strong>returned_realm_comm</strong><em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>ierror</strong><em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><tt class="xref f f-mod docutils literal"><span class="pre">mpi</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_setup_md">
+<em class="property">subroutine  </em><tt class="descname">cpl_setup_md</tt><big>(</big><em>nsteps</em>, <em>initialstep</em>, <em>dt</em>, <em>icomm_grid</em>, <em>xyzl</em>, <em>xyz_orig</em>, <em>density</em><big>)</big><a class="headerlink" href="#f/_/cpl_setup_md" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialisation routine for coupler module - Every variable is sent and stored
+to ensure both md and cfd region have an identical list of parameters</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes CPL has been initialised <cite>CPL_init</cite> and communicator MD_REALM exists</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">coupler_md_init</span><span class="p">(</span>
+                <span class="n">nsteps</span><span class="p">,</span>
+                <span class="n">initialstep</span><span class="p">,</span>
+                <span class="n">dt</span><span class="p">,</span>
+                <span class="n">icomm_grid</span><span class="p">,</span>
+                <span class="n">xyzL</span><span class="p">,</span>
+                <span class="n">xyz_orig</span><span class="p">,</span>
+                <span class="n">density</span>
+                <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><em>nsteps</em><ul>
+<li>Number of steps in MD simulation.</li>
+</ul>
+</li>
+<li><em>initialstep</em><ul>
+<li>Initial steps in MD simulation.</li>
+</ul>
+</li>
+<li><em>dt</em><ul>
+<li>Timestep in MD simulation.</li>
+</ul>
+</li>
+<li><em>icomm_grid</em><ul>
+<li>Communicator based on MD processor topology returned from a call to MPI_CART_CREATE.</li>
+</ul>
+</li>
+<li><em>xyzL</em><ul>
+<li>MD domain size.</li>
+</ul>
+</li>
+<li><em>xyz_orig</em><ul>
+<li>MD origin.</li>
+</ul>
+</li>
+<li><em>density</em><ul>
+<li>Density of molecules in MD code.</li>
+</ul>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nsteps</strong><em> [</em><em>integer</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>initialstep</strong><em> [</em><em>integer</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>icomm_grid</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xyzl</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xyz_orig</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>density</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><tt class="xref f f-mod docutils literal"><span class="pre">mpi</span></tt></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><tt class="xref f f-func docutils literal"><span class="pre">coupler_md_init()</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_setup_cfd">
+<em class="property">subroutine  </em><tt class="descname">cpl_setup_cfd</tt><big>(</big><em>nsteps</em>, <em>dt</em>, <em>icomm_grid</em>, <em>xyzl</em>, <em>xyz_orig</em>, <em>ncxyz</em>, <em>density</em><big>)</big><a class="headerlink" href="#f/_/cpl_setup_cfd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialisation routine for coupler module - Every variable is sent and stored
+to ensure both md and cfd region have an identical list of parameters</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes CPL has been initialised <cite>CPL_init</cite> and communicator MD_REALM exists</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">coupler_cfd_init</span><span class="p">(</span>
+                <span class="n">nsteps</span><span class="p">,</span>
+                <span class="n">dt_cfd</span><span class="p">,</span>
+                <span class="n">icomm_grid</span><span class="p">,</span>
+                <span class="n">xyzL</span><span class="p">,</span>
+                <span class="n">xyz_orig</span><span class="p">,</span>
+                <span class="n">ncxyz</span><span class="p">,</span>
+                <span class="n">density</span>
+                <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><em>nsteps (inout)</em><ul>
+<li>Number of steps in CFD simulation.</li>
+</ul>
+</li>
+<li><em>dt_cfd (inout)</em><ul>
+<li>Timestep in CFD simulation.</li>
+</ul>
+</li>
+<li><em>icomm_grid</em><ul>
+<li>Communicator based on CFD processor topology returned from a call to MPI_CART_CREATE.</li>
+</ul>
+</li>
+<li><em>xyzL</em><ul>
+<li>CFD domain size.</li>
+</ul>
+</li>
+<li><em>xyz_orig</em><ul>
+<li>CFD origin.</li>
+</ul>
+</li>
+<li><em>ncxyz</em><ul>
+<li>Number of CFD cells in global domain.</li>
+</ul>
+</li>
+<li><em>density</em><ul>
+<li>Density used in CFD code (still required when working with non-dimensionalised units in CFD as MD has an actual value of density based on domain.).</li>
+</ul>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nsteps</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>icomm_grid</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xyzl</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xyz_orig</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncxyz</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>density</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><tt class="xref f f-mod docutils literal"><span class="pre">mpi</span></tt></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><tt class="xref f f-func docutils literal"><span class="pre">coupler_cfd_init()</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_send">
+<em class="property">subroutine  </em><tt class="descname">cpl_send</tt><big>(</big><em>asend</em>, <em>limits</em><span class="optional">[</span>, <em>send_flag</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#f/_/cpl_send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send four dimensional array <em>asend</em> of data from all processors in the
+current realm with data between global cell array <em>limits</em> to the
+corresponding processors from the other realm.</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes the coupler has been initialised with <a class="reference external" href="#f/_/cpl_init">CPL_init</a> and
+topological mapping has been setup using either <a class="reference external" href="#f/_/cpl_setup_md">CPL_setup_md</a>
+or <a class="reference external" href="#f/_/cpl_setup_cfd">CPL_setup_cfd</a> as appropriate.</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">CPL_send</span><span class="p">(</span>
+         <span class="n">asend</span><span class="p">,</span>
+         <span class="n">limits</span><span class="p">,</span>
+         <span class="n">send_flag</span>
+         <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><em>asend</em><ul>
+<li>Array of data to send. Should be a four dimensional array allocated using the number of cells on the current processor between the limits. Size should be be obtained from <a class="reference external" href="#f/_/cpl_my_proc_portion">CPL_my_proc_portion(limits, portion)</a>.</li>
+</ul>
+</li>
+<li>limits<ul>
+<li>Limits in global cell coordinates, must be the same as corresponding recieve</li>
+</ul>
+</li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li>send_flag<ul>
+<li>Returned flag which indicates success or failure of send process</li>
+</ul>
+</li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="highlight-guess"><div class="highlight"><pre><span class="n">call</span> <span class="n">CPL_get_olap_limits</span><span class="p">(</span><span class="n">limits</span><span class="p">)</span>
+<span class="n">call</span> <span class="n">CPL_my_proc_portion</span><span class="p">(</span><span class="n">limits</span><span class="p">,</span> <span class="n">portion</span><span class="p">)</span>
+<span class="n">call</span> <span class="n">CPL_get_no_cells</span><span class="p">(</span><span class="n">portion</span><span class="p">,</span> <span class="n">Ncells</span><span class="p">)</span>
+
+<span class="o">!</span><span class="n">Coupled</span> <span class="n">Send</span> <span class="n">array</span>
+<span class="n">allocate</span><span class="p">(</span><span class="n">A</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">Ncells</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">Ncells</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">Ncells</span><span class="p">(</span><span class="mi">3</span><span class="p">)))</span>
+
+<span class="k">do</span> <span class="n">i</span> <span class="o">=</span><span class="n">portion</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="n">portion</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="k">do</span> <span class="n">j</span> <span class="o">=</span><span class="n">portion</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="n">portion</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="k">do</span> <span class="n">k</span> <span class="o">=</span><span class="n">portion</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span><span class="n">portion</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+   <span class="n">ii</span> <span class="o">=</span> <span class="n">i</span><span class="o">-</span><span class="n">portion</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span> <span class="n">jj</span> <span class="o">=</span> <span class="n">j</span><span class="o">-</span><span class="n">portion</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span> <span class="n">kk</span> <span class="o">=</span> <span class="n">k</span><span class="o">-</span><span class="n">portion</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span>
+   <span class="n">A</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">ii</span><span class="p">,</span><span class="n">jj</span><span class="p">,</span><span class="n">kk</span><span class="p">)</span> <span class="o">=</span> <span class="n">dble</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+   <span class="n">A</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">ii</span><span class="p">,</span><span class="n">jj</span><span class="p">,</span><span class="n">kk</span><span class="p">)</span> <span class="o">=</span> <span class="n">dble</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+   <span class="n">A</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="n">ii</span><span class="p">,</span><span class="n">jj</span><span class="p">,</span><span class="n">kk</span><span class="p">)</span> <span class="o">=</span> <span class="n">dble</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+<span class="n">enddo</span>
+<span class="n">enddo</span>
+<span class="n">enddo</span>
+<span class="n">call</span> <span class="n">CPL_send</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">limits</span><span class="p">,</span> <span class="n">send_flag</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>asend</strong> (,,*,*)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em> :: Array containing data to send</li>
+<li><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: Global cell indices with minimum and maximum values to send</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>send_flag</strong><em> [</em><em>logical</em><em>,</em><em>out,optional</em><em>]</em> :: Flag set if processor has passed data</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kblock_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">error_abort()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">md_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">rank_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">rank_world()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">void()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cfd_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">ierr()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">iblock_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">rank_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jblock_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">olap_mask()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cpl_graph_comm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">myid_graph()</span></tt>), <tt class="xref f f-mod docutils literal"><span class="pre">mpi</span></tt></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/_/cpl_my_proc_portion" title="f/_/cpl_my_proc_portion"><tt class="xref f f-func docutils literal"><span class="pre">cpl_my_proc_portion()</span></tt></a>, <tt class="xref f f-func docutils literal"><span class="pre">cpl_cart_coords()</span></tt>, <a class="reference internal" href="#f/_/cpl_proc_portion" title="f/_/cpl_proc_portion"><tt class="xref f f-func docutils literal"><span class="pre">cpl_proc_portion()</span></tt></a>, <tt class="xref f f-func docutils literal"><span class="pre">cpl_get_no_cells()</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_recv">
+<em class="property">subroutine  </em><tt class="descname">cpl_recv</tt><big>(</big><em>arecv</em>, <em>limits</em><span class="optional">[</span>, <em>recv_flag</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#f/_/cpl_recv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive data from to local grid from the associated ranks from the other
+realm</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes the coupler has been initialised with <a class="reference external" href="#f/_/cpl_init">CPL_init</a> and
+topological mapping has been setup using either <a class="reference external" href="#f/_/cpl_setup_md">CPL_setup_md</a>
+or <a class="reference external" href="#f/_/cpl_setup_cfd">CPL_setup_cfd</a> as appropriate.</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">CPL_send</span><span class="p">(</span>
+         <span class="n">arecv</span><span class="p">,</span>
+         <span class="n">limits</span><span class="p">,</span>
+         <span class="n">recv_flag</span>
+         <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><em>arecv</em><ul>
+<li>Array of data to recv. Should be a four dimensional array allocated using the number of cells on the current processor between the limits. Size should be be obtained from <a class="reference external" href="#f/_/cpl_my_proc_portion">CPL_my_proc_portion(limits, portion)</a>.</li>
+</ul>
+</li>
+<li>limits<ul>
+<li>Limits in global cell coordinates, must be the same as corresponding send</li>
+</ul>
+</li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li>recv_flag<ul>
+<li>Returned flag which indicates success or failure of recv process</li>
+</ul>
+</li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="highlight-guess"><div class="highlight"><pre><span class="n">call</span> <span class="n">CPL_get_olap_limits</span><span class="p">(</span><span class="n">limits</span><span class="p">)</span>
+<span class="n">call</span> <span class="n">CPL_my_proc_portion</span><span class="p">(</span><span class="n">limits</span><span class="p">,</span> <span class="n">portion</span><span class="p">)</span>
+<span class="n">call</span> <span class="n">CPL_get_no_cells</span><span class="p">(</span><span class="n">portion</span><span class="p">,</span> <span class="n">Ncells</span><span class="p">)</span>
+
+<span class="o">!</span><span class="n">Coupled</span> <span class="n">Recieve</span>
+<span class="n">allocate</span><span class="p">(</span><span class="n">A</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">Ncells</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">Ncells</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">Ncells</span><span class="p">(</span><span class="mi">3</span><span class="p">)))</span>
+<span class="n">call</span> <span class="n">CPL_recv</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">limits</span><span class="p">,</span> <span class="n">recv_flag</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>arecv</strong> (,,*,*)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em> :: Pre allocated array that recieves data</li>
+<li><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: Global cell indices with minimum and maximum values to recv</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>recv_flag</strong><em> [</em><em>logical</em><em>,</em><em>out,optional</em><em>]</em> :: Flag set if processor has received data</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">rank_graph()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kblock_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">error_abort()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">md_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">rank_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">rank_world()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">void()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cfd_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">ierr()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">iblock_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">rank_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jblock_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">olap_mask()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cpl_graph_comm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">myid_graph()</span></tt>), <tt class="xref f f-mod docutils literal"><span class="pre">mpi</span></tt></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><tt class="xref f f-func docutils literal"><span class="pre">cpl_cart_coords()</span></tt>, <a class="reference internal" href="#f/_/cpl_proc_portion" title="f/_/cpl_proc_portion"><tt class="xref f f-func docutils literal"><span class="pre">cpl_proc_portion()</span></tt></a>, <a class="reference internal" href="#f/_/cpl_my_proc_portion" title="f/_/cpl_my_proc_portion"><tt class="xref f f-func docutils literal"><span class="pre">cpl_my_proc_portion()</span></tt></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/('_/cpl_proc_extents', None)">
+<em class="property">subroutine  </em><tt class="descname">cpl_proc_extents</tt><big>(</big><em>coord</em>, <em>realm</em>, <em>extents</em><span class="optional">[</span>, <em>ncells</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#f/('_/cpl_proc_extents', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>realm</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>extents</strong> (6)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>ncells</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">jcpmax_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcpmax_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcpmin_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icpmax_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">error_abort()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">md_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icpmin_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cfd_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icpmin_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icpmax_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcpmin_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcpmax_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcpmax_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcpmin_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcpmin_md()</span></tt>), <tt class="xref f f-mod docutils literal"><span class="pre">mpi</span></tt></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/_/cpl_proc_portion" title="f/_/cpl_proc_portion"><tt class="xref f f-func docutils literal"><span class="pre">cpl_proc_portion()</span></tt></a>, <a class="reference internal" href="#f/_/cpl_my_proc_extents" title="f/_/cpl_my_proc_extents"><tt class="xref f f-func docutils literal"><span class="pre">cpl_my_proc_extents()</span></tt></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_my_proc_extents">
+<em class="property">subroutine  </em><tt class="descname">cpl_my_proc_extents</tt><big>(</big><em>extents</em><big>)</big><a class="headerlink" href="#f/_/cpl_my_proc_extents" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>extents</strong> (6)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">rank2coord_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">md_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">rank2coord_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cfd_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">rank_cart()</span></tt>)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><tt class="xref f f-func docutils literal"><span class="pre">cpl_proc_extents()</span></tt></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_proc_portion">
+<em class="property">subroutine  </em><tt class="descname">cpl_proc_portion</tt><big>(</big><em>coord</em>, <em>realm</em>, <em>limits</em>, <em>portion</em><span class="optional">[</span>, <em>ncells</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#f/_/cpl_proc_portion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get maximum and minimum cell indices, i.e. the &#8216;portion&#8217;, of the
+input cell extents &#8216;limits&#8217; that is contributed by the processor
+specified by processor coord.</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes the coupler has been initialised with <a class="reference external" href="#f/_/cpl_init">CPL_init</a> and
+topological mapping has been setup using either <a class="reference external" href="#f/_/cpl_setup_md">CPL_setup_md</a>
+or <a class="reference external" href="#f/_/cpl_setup_cfd">CPL_setup_cfd</a> as appropriate.</p>
+<blockquote>
+<div><ul class="simple">
+<li>Note: limits(6) and portion(6) are of the form: (xmin,xmax,ymin,ymax,zmin,zmax)</li>
+</ul>
+</div></blockquote>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">CPL_proc_portion</span><span class="p">(</span>
+                 <span class="n">coord</span><span class="p">,</span>
+                 <span class="n">realm</span><span class="p">,</span>
+                 <span class="n">limits</span><span class="p">,</span>
+                 <span class="n">portion</span><span class="p">,</span>
+                 <span class="n">ncells</span>
+                 <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><em>coord</em><ul>
+<li>processor cartesian coordinate (3 x integer)</li>
+</ul>
+</li>
+<li><em>realm</em><ul>
+<li>cfd_realm (1) or md_realm (2) (integer)</li>
+</ul>
+</li>
+<li><em>limits</em><ul>
+<li>Array of cell extents that specify the input region.</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+<p><strong>Outputs</strong></p>
+<blockquote>
+<div><ul>
+<li><p class="first"><em>portion</em>
+- Array of cell extents that define the local processor&#8217;s</p>
+<blockquote>
+<div><p>contribution to the input region &#8216;limits&#8217;.</p>
+</div></blockquote>
+</li>
+<li><dl class="first docutils">
+<dt><em>ncells (optional)</em></dt>
+<dd><ul class="first last simple">
+<li>number of cells in portion (integer)</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>realm</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>portion</strong> (6)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>ncells</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">void()</span></tt>), <tt class="xref f f-mod docutils literal"><span class="pre">mpi</span></tt></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/_/cpl_send" title="f/_/cpl_send"><tt class="xref f f-func docutils literal"><span class="pre">cpl_send()</span></tt></a>, <a class="reference internal" href="#f/_/cpl_recv" title="f/_/cpl_recv"><tt class="xref f f-func docutils literal"><span class="pre">cpl_recv()</span></tt></a>, <tt class="xref f f-func docutils literal"><span class="pre">cpl_scatter()</span></tt>, <a class="reference internal" href="#f/_/cpl_my_proc_portion" title="f/_/cpl_my_proc_portion"><tt class="xref f f-func docutils literal"><span class="pre">cpl_my_proc_portion()</span></tt></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><tt class="xref f f-func docutils literal"><span class="pre">cpl_proc_extents()</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_my_proc_portion">
+<em class="property">subroutine  </em><tt class="descname">cpl_my_proc_portion</tt><big>(</big><em>limits</em>, <em>portion</em><big>)</big><a class="headerlink" href="#f/_/cpl_my_proc_portion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get maximum and minimum cell indices, i.e. the &#8216;portion&#8217;, of the
+input cell extents &#8216;limits&#8217; that is contributed by calling processor.</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes the coupler has been initialised with <a class="reference external" href="#f/_/cpl_init">CPL_init</a> and
+topological mapping has been setup using either <a class="reference external" href="#f/_/cpl_setup_md">CPL_setup_md</a>
+or <a class="reference external" href="#f/_/cpl_setup_cfd">CPL_setup_cfd</a> as appropriate.</p>
+<blockquote>
+<div><ul class="simple">
+<li>Note: limits(6) and portion(6) are of the form: (xmin,xmax,ymin,ymax,zmin,zmax)</li>
+</ul>
+</div></blockquote>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">CPL_proc_portion</span><span class="p">(</span>
+                 <span class="n">limits</span><span class="p">,</span>
+                 <span class="n">portion</span><span class="p">,</span>
+                 <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><em>limits</em><ul>
+<li>Array of cell extents that specify the input region.</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+<p><strong>Outputs</strong></p>
+<blockquote>
+<div><ul>
+<li><p class="first"><em>portion</em>
+- Array of cell extents that define the local processor&#8217;s</p>
+<blockquote>
+<div><p>contribution to the input region &#8216;limits&#8217;.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>portion</strong> (6)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">rank2coord_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">md_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">rank2coord_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cfd_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">rank_cart()</span></tt>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/_/cpl_send" title="f/_/cpl_send"><tt class="xref f f-func docutils literal"><span class="pre">cpl_send()</span></tt></a>, <a class="reference internal" href="#f/_/cpl_recv" title="f/_/cpl_recv"><tt class="xref f f-func docutils literal"><span class="pre">cpl_recv()</span></tt></a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/_/cpl_proc_portion" title="f/_/cpl_proc_portion"><tt class="xref f f-func docutils literal"><span class="pre">cpl_proc_portion()</span></tt></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/_/cpl_map_coord2cell">
+<em class="property">function  </em><tt class="descname">cpl_map_coord2cell</tt><big>(</big><em>x</em>, <em>y</em>, <em>z</em>, <em>cell_ijk</em><big>)</big><a class="headerlink" href="#f/_/cpl_map_coord2cell" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>y</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>z</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>cell_ijk</strong> (3)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>ret</strong><em> [</em><em>logical</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">jcmin_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icmin_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">dz()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">dx()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">dy()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcmin_olap()</span></tt>)</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/_/cpl_map_cell2coord" title="f/_/cpl_map_cell2coord"><tt class="xref f f-func docutils literal"><span class="pre">cpl_map_cell2coord()</span></tt></a>, <tt class="xref f f-func docutils literal"><span class="pre">cpl_get_olap_limits()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">is_cell_inside()</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_map_cell2coord">
+<em class="property">subroutine  </em><tt class="descname">cpl_map_cell2coord</tt><big>(</big><em>i</em>, <em>j</em>, <em>k</em>, <em>coord_xyz</em><big>)</big><a class="headerlink" href="#f/_/cpl_map_cell2coord" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>j</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>coord_xyz</strong> (3)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">error_abort()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">md_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">zg()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cfd_realm()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">xg()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">yg()</span></tt>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/_/cpl_map_coord2cell" title="f/_/cpl_map_coord2cell"><tt class="xref f f-func docutils literal"><span class="pre">cpl_map_coord2cell()</span></tt></a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><tt class="xref f f-func docutils literal"><span class="pre">cpl_get_olap_limits()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">is_cell_inside()</span></tt>, <a class="reference internal" href="#f/_/cpl_map_cfd2md_coord" title="f/_/cpl_map_cfd2md_coord"><tt class="xref f f-func docutils literal"><span class="pre">cpl_map_cfd2md_coord()</span></tt></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/('_/cpl_get_no_cells', None)">
+<em class="property">subroutine  </em><tt class="descname">cpl_get_no_cells</tt><big>(</big><em>limits</em>, <em>no_cells</em><big>)</big><a class="headerlink" href="#f/('_/cpl_get_no_cells', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>no_cells</strong> (3)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/_/cpl_send" title="f/_/cpl_send"><tt class="xref f f-func docutils literal"><span class="pre">cpl_send()</span></tt></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/_/cpl_map_glob2loc_cell">
+<em class="property">function  </em><tt class="descname">cpl_map_glob2loc_cell</tt><big>(</big><em>limits</em>, <em>glob_cell</em>, <em>loc_cell</em><big>)</big><a class="headerlink" href="#f/_/cpl_map_glob2loc_cell" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>glob_cell</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>loc_cell</strong> (3)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>ret</strong><em> [</em><em>logical</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">void()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">error_abort()</span></tt>)</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><tt class="xref f f-func docutils literal"><span class="pre">cpl_get_olap_limits()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">is_cell_inside()</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/('_/cpl_get_olap_limits', None)">
+<em class="property">subroutine  </em><tt class="descname">cpl_get_olap_limits</tt><big>(</big><em>limits</em><big>)</big><a class="headerlink" href="#f/('_/cpl_get_olap_limits', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">jcmin_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icmin_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icmax_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcmax_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcmin_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcmax_olap()</span></tt>)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><a class="reference internal" href="#f/_/cpl_map_coord2cell" title="f/_/cpl_map_coord2cell"><tt class="xref f f-func docutils literal"><span class="pre">cpl_map_coord2cell()</span></tt></a>, <a class="reference internal" href="#f/_/cpl_map_cell2coord" title="f/_/cpl_map_cell2coord"><tt class="xref f f-func docutils literal"><span class="pre">cpl_map_cell2coord()</span></tt></a>, <a class="reference internal" href="#f/_/cpl_map_glob2loc_cell" title="f/_/cpl_map_glob2loc_cell"><tt class="xref f f-func docutils literal"><span class="pre">cpl_map_glob2loc_cell()</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/('_/cpl_get_cnst_limits', None)">
+<em class="property">subroutine  </em><tt class="descname">cpl_get_cnst_limits</tt><big>(</big><em>limits</em><big>)</big><a class="headerlink" href="#f/('_/cpl_get_cnst_limits', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>limits</strong> (6)<em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">kcmax_cnst()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcmax_cnst()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcmin_cnst()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcmin_cnst()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icmax_cnst()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icmin_cnst()</span></tt>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/_/cpl_map_cfd2md_coord">
+<em class="property">function  </em><tt class="descname">cpl_map_cfd2md_coord</tt><big>(</big><em>coord_cfd</em>, <em>coord_md</em><big>)</big><a class="headerlink" href="#f/_/cpl_map_cfd2md_coord" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord_cfd</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>coord_md</strong> (3)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>valid_coord</strong><em> [</em><em>logical</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">z_orig_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">xl_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcmin_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icmin_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">x_orig_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">z_orig_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icmax_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">zg()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">y_orig_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">xg()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">yg()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcmin_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">yl_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">zl_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">y_orig_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">yl_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">x_orig_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">zl_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcmax_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">xl_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcmax_olap()</span></tt>)</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/_/cpl_map_cell2coord" title="f/_/cpl_map_cell2coord"><tt class="xref f f-func docutils literal"><span class="pre">cpl_map_cell2coord()</span></tt></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><tt class="xref f f-func docutils literal"><span class="pre">is_coord_inside()</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/_/cpl_map_md2cfd_coord">
+<em class="property">function  </em><tt class="descname">cpl_map_md2cfd_coord</tt><big>(</big><em>coord_md</em>, <em>coord_cfd</em><big>)</big><a class="headerlink" href="#f/_/cpl_map_md2cfd_coord" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord_md</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>coord_cfd</strong> (3)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>valid_coord</strong><em> [</em><em>logical</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">z_orig_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">xl_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcmin_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icmin_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">x_orig_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">z_orig_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icmax_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">zg()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">y_orig_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">xg()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">yg()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcmin_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">yl_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">zl_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">y_orig_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">yl_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">x_orig_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">zl_cfd()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcmax_olap()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">xl_md()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcmax_olap()</span></tt>)</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><tt class="xref f f-func docutils literal"><span class="pre">is_coord_inside()</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/('_/cpl_overlap', None)">
+<em class="property">function  </em><tt class="descname">cpl_overlap</tt><big>(</big><big>)</big><a class="headerlink" href="#f/('_/cpl_overlap', None)" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return:</th><td class="field-body"><strong>p</strong><em> [</em><em>logical</em><em>]</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">olap_mask()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">rank_world()</span></tt>)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><tt class="xref f f-func docutils literal"><span class="pre">cpl_scatter()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cpl_gather()</span></tt></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/_/cpl_get">
+<em class="property">subroutine  </em><tt class="descname">cpl_get</tt><big>(</big><span class="optional">[</span><em>icmax_olap</em><span class="optional">[</span>, <em>icmin_olap</em><span class="optional">[</span>, <em>jcmax_olap</em><span class="optional">[</span>, <em>jcmin_olap</em><span class="optional">[</span>, <em>kcmax_olap</em><span class="optional">[</span>, <em>kcmin_olap</em><span class="optional">[</span>, <em>density_cfd</em><span class="optional">[</span>, <em>density_md</em><span class="optional">[</span>, <em>dt_cfd</em><span class="optional">[</span>, <em>dt_md</em><span class="optional">[</span>, <em>dx</em><span class="optional">[</span>, <em>dy</em><span class="optional">[</span>, <em>dz</em><span class="optional">[</span>, <em>ncx</em><span class="optional">[</span>, <em>ncy</em><span class="optional">[</span>, <em>ncz</em><span class="optional">[</span>, <em>xg</em><span class="optional">[</span>, <em>yg</em><span class="optional">[</span>, <em>zg</em><span class="optional">[</span>, <em>xl_md</em><span class="optional">[</span>, <em>xl_cfd</em><span class="optional">[</span>, <em>yl_md</em><span class="optional">[</span>, <em>yl_cfd</em><span class="optional">[</span>, <em>zl_md</em><span class="optional">[</span>, <em>zl_cfd</em><span class="optional">[</span>, <em>npx_md</em><span class="optional">[</span>, <em>npy_md</em><span class="optional">[</span>, <em>npz_md</em><span class="optional">[</span>, <em>npx_cfd</em><span class="optional">[</span>, <em>npy_cfd</em><span class="optional">[</span>, <em>npz_cfd</em><span class="optional">[</span>, <em>constraint_algo</em><span class="optional">[</span>, <em>constraint_cvflag</em><span class="optional">[</span>, <em>constraint_ot</em><span class="optional">[</span>, <em>constraint_ncer</em><span class="optional">[</span>, <em>constraint_flekkoy</em><span class="optional">[</span>, <em>constraint_off</em><span class="optional">[</span>, <em>constraint_cv</em><span class="optional">[</span>, <em>icmin_cnst</em><span class="optional">[</span>, <em>icmax_cnst</em><span class="optional">[</span>, <em>jcmin_cnst</em><span class="optional">[</span>, <em>jcmax_cnst</em><span class="optional">[</span>, <em>kcmin_cnst</em><span class="optional">[</span>, <em>kcmax_cnst</em><span class="optional">[</span>, <em>md_cfd_match_cellsize</em><span class="optional">[</span>, <em>staggered_averages</em><span class="optional">[</span>, <em>cpl_cfd_bc_slice</em><span class="optional">[</span>, <em>cpl_md_bc_slice</em><span class="optional">[</span>, <em>cpl_cfd_bc_x</em><span class="optional">[</span>, <em>cpl_cfd_bc_y</em><span class="optional">[</span>, <em>cpl_cfd_bc_z</em><span class="optional">[</span>, <em>timestep_ratio</em><span class="optional">[</span>, <em>comm_style</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#f/_/cpl_get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to retrieve (read only) parameters from the coupler_module
+Note - this ensures all variable in the coupler are protected
+from corruption by either CFD or MD codes</p>
+<p><strong>Synopsis</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li>CPL_get([see coupler_module])</li>
+</ul>
+</div></blockquote>
+<p><strong>Input</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li>NONE</li>
+</ul>
+</div></blockquote>
+<p><strong>Output</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li>See below</li>
+</ul>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Options:</th><td class="field-body"><ul class="first simple">
+<li><strong>icmax_olap</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>icmin_olap</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>jcmax_olap</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>jcmin_olap</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>kcmax_olap</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>kcmin_olap</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>density_cfd</strong><em> [</em><em>real</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>density_md</strong><em> [</em><em>real</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>dt_cfd</strong><em> [</em><em>real</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>dt_md</strong><em> [</em><em>real</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>dx</strong><em> [</em><em>real</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>dy</strong><em> [</em><em>real</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>dz</strong><em> [</em><em>real</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>ncx</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>ncy</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>ncz</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>xg</strong> (,)<em> [</em><em>real</em><em>,</em><em>out,optional/allocatable</em><em>]</em></li>
+<li><strong>yg</strong> (,)<em> [</em><em>real</em><em>,</em><em>out,optional/allocatable</em><em>]</em></li>
+<li><strong>zg</strong> (*)<em> [</em><em>real</em><em>,</em><em>out,optional/allocatable</em><em>]</em></li>
+<li><strong>xl_md</strong><em> [</em><em>real</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>xl_cfd</strong><em> [</em><em>real</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>yl_md</strong><em> [</em><em>real</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>yl_cfd</strong><em> [</em><em>real</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>zl_md</strong><em> [</em><em>real</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>zl_cfd</strong><em> [</em><em>real</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>npx_md</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>npy_md</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>npz_md</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>npx_cfd</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>npy_cfd</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>npz_cfd</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>constraint_algo</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>constraint_cvflag</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>constraint_ot</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>constraint_ncer</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>constraint_flekkoy</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>constraint_off</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>constraint_cv</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>icmin_cnst</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>icmax_cnst</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>jcmin_cnst</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>jcmax_cnst</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>kcmin_cnst</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>kcmax_cnst</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>md_cfd_match_cellsize</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>staggered_averages</strong> (3)<em> [</em><em>logical</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>cpl_cfd_bc_slice</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>cpl_md_bc_slice</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>cpl_cfd_bc_x</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>cpl_cfd_bc_y</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>cpl_cfd_bc_z</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>timestep_ratio</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+<li><strong>comm_style</strong><em> [</em><em>integer</em><em>,</em><em>out,optional</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><tt class="xref f f-mod docutils literal"><span class="pre">coupler_module</span></tt> (<tt class="xref f f-func docutils literal"><span class="pre">npx_md_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">npx_md_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">zg_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">zg_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">comm_style_send_recv_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">comm_style_send_recv_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icmin_cnst_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">icmin_cnst_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcmin_olap_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">jcmin_olap_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">dt_md_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">dt_md_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icmin_olap_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">icmin_olap_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">xl_md_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">xl_md_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">constraint_ot_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">constraint_ot_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">comm_style_gath_scat_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">comm_style_gath_scat_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">comm_style_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">comm_style_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">zl_md_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">zl_md_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">ncy_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">ncy_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">constraint_ncer_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">constraint_ncer_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">dx_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">dx_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">density_cfd_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">density_cfd_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cpl_md_bc_slice_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">cpl_md_bc_slice_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icmax_cnst_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">icmax_cnst_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">density_md_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">density_md_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">yl_md_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">yl_md_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">icmax_olap_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">icmax_olap_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">xg_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">xg_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">constraint_flekkoy_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">constraint_flekkoy_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">npz_cfd_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">npz_cfd_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcmax_cnst_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">kcmax_cnst_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">yg_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">yg_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cpl_cfd_bc_z_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">cpl_cfd_bc_z_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cpl_cfd_bc_y_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">cpl_cfd_bc_y_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">npz_md_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">npz_md_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">npy_cfd_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">npy_cfd_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">npx_cfd_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">npx_cfd_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">xl_cfd_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">xl_cfd_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">constraint_off_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">constraint_off_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">dt_cfd_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">dt_cfd_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">ncx_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">ncx_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">constraint_algo_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">constraint_algo_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcmax_olap_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">jcmax_olap_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cpl_cfd_bc_x_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">cpl_cfd_bc_x_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">ncz_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">ncz_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">staggered_averages_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">staggered_averages_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">yl_cfd_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">yl_cfd_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">dz_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">dz_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">timestep_ratio_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">timestep_ratio_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">zl_cfd_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">zl_cfd_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">dy_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">dy_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcmin_cnst_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">jcmin_cnst_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcmin_cnst_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">kcmin_cnst_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">jcmax_cnst_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">jcmax_cnst_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcmin_olap_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">kcmin_olap_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">md_cfd_match_cellsize_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">md_cfd_match_cellsize_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">constraint_cvflag_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">constraint_cvflag_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">kcmax_olap_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">kcmax_olap_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">cpl_cfd_bc_slice_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">cpl_cfd_bc_slice_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">constraint_cv_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">constraint_cv_()</span></tt>, <tt class="xref f f-func docutils literal"><span class="pre">npy_md_()</span></tt> =&gt; <tt class="xref f f-func docutils literal"><span class="pre">npy_md_()</span></tt>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
 </ul>
 </div>
 
 
+          </div>
+        </div>
       </div>
-      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
-      
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to CPL library&#8217;s documentation</a></li>
+<li><a class="reference internal" href="#first-steps-with-cpl">First Steps with CPL</a><ul>
+<li><a class="reference internal" href="#install-cpl-library">Install CPL library</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#cpl-python-bindings">CPL python Bindings</a></li>
+<li><a class="reference internal" href="#cpl-c-bindings">CPL C++ Bindings</a></li>
+<li><a class="reference internal" href="#cpl-fortran-bindings">CPL Fortran Bindings</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
 
-
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
       </div>
-
-    <div class="footer" role="contentinfo">
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="#">cpl 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
         &copy; Copyright 2016, E. Smith, E. Ramos, D. Trevelyan.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.3.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
   </body>
 </html>

@@ -13,8 +13,7 @@
 # Get compilers and base flags from platform include file 
 MAKEINCPATH= ./make
 include $(MAKEINCPATH)/platform.inc
-
-
+PREFIX = /usr/local
 
 #                          Definitions
 
@@ -23,6 +22,8 @@ testdir = ./test
 objdir = obj
 srcdir = src
 libdir = lib
+bindir = bin
+
 #TODO: Add here 3partylibs dir for json-fortran and fdict
 includedir = include/cpl
 coresrcdir = $(srcdir)/core
@@ -32,11 +33,8 @@ fbinddir = $(binddir)/fortran
 cbinddir = $(binddir)/c
 cppbinddir = $(binddir)/cpp
 
-
 # Targets 
 lib = $(libdir)/libcpl.so
-
-
 
 # Check for building json support
 # TODO: Maybe move it to an inc file.
@@ -170,23 +168,26 @@ json-fortran: $(CPL_THIRD_PARTY_LIB) $(CPL_THIRD_PARTY_INC)
 	bash $(MAKEINCPATH)/json-fortran.build
 
 3rd-party: json-fortran
-	
-test-all:
-	python2 $(testdir)/pytests all
-	
-test-mapping:
-	python2 $(testdir)/pytests mapping
 
-test-initialisation:
-	python2 $(testdir)/pytests initialisation
+test-all: test-pytest-mapping test-pytest-initialisation test-examples test-valgrind test-gtests test_Dragmodels
+	echo "Running all test"
+	
+test-pytest:
+	py.test -v $(testdir)/pytests
+	
+test-pytest-mapping:
+	py.test -v $(testdir)/pytests/mapping
+
+test-pytest-initialisation:
+	py.test -v $(testdir)/pytests/initialisation
 
 test-examples:
-	./examples/sendrecv_globcell/test_all.sh
-	./examples/sendrecv_globcell/test_all_port.sh
+	py.test -v $(testdir)/examples
+#	./examples/sendrecv_globcell/test_all.sh
+#	./examples/sendrecv_globcell/test_all_port.sh
 
 test-valgrind:
 	py.test -v  $(testdir)/valgrind
-	#./test/valgrind/debug_all.sh
 
 test-gtests: CPL_force_unittest
 	cd $(testdir)/gtests/ && ./CPL_force_unittest
@@ -195,7 +196,11 @@ CPL_force_unittest:
 	make -C $(testdir)/gtests
 
 test_Dragmodels:
-	cd $(testdir)/drag && py.test
+	cd $(testdir)/drag && py.test -v ./
+	#py.test -v $(testdir)/drag
+
+examples-coupled:
+	py.test -v ./examples/coupled
 
 webdocs-api:
 	bash ./utils/update-webdocs-api.sh
@@ -207,15 +212,26 @@ webdocs-all:
 	bash ./utils/update-webdocs-api.sh
 	bash ./utils/update-webdocs-examples.sh
 
+
+.PHONY: install
 install:
-	mkdir -p /usr/include/cpl
-	cp -r ./include/* /usr/include/cpl/
-	mkdir -p /usr/lib/cpl
-	cp -r ./lib/* /usr/lib/cpl/
-	chmod 0755 /usr/lib/cpl/libcpl.so
-	ln -sf /usr/lib/cpl/libcpl.so /usr/lib/libcpl.so
-	#ldconfig -n -v /usr/lib/
-	ldconfig
+	mkdir -p $(PREFIX)/$(libdir)
+	mkdir -p $(PREFIX)/$(includedir)
+	mkdir -p $(PREFIX)/$(bindir)
+	cp -r ./$(libdir)/libcpl.so $(PREFIX)/lib/
+	cp -r ./$(includedir) $(PREFIX)/$(includedir)/
+	cp ./$(bindir)/cplexec $(PREFIX)/bin/
+	cp ./$(bindir)/cplf90 $(PREFIX)/bin/
+	cp ./$(bindir)/cplc++ $(PREFIX)/bin/
+
+.PHONY: uninstall
+uninstall:
+	rm -f $(PREFIX)/lib/libcpl.so
+	rm -f $(PREFIX)/include/cpl/*
+	rmdir $(PREFIX)/include/cpl
+	rm $(PREFIX)/bin/cplexec
+	rm $(PREFIX)/bin/cplf90
+	rm $(PREFIX)/bin/cplc++
 
 # Clean
 clean:
