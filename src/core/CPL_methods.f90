@@ -71,15 +71,25 @@
 module coupler
     implicit none
 
-    private
+    private CPL_send_full, CPL_send_min, CPL_recv_full, CPL_recv_min
 
-    public CPL_send, CPL_recv, CPL_gather, CPL_scatter, CPL_get, CPL_proc_extents,&
+    public CPL_gather, CPL_scatter, CPL_get, CPL_proc_extents,&
            CPL_my_proc_extents, CPL_proc_portion, CPL_my_proc_portion, &
            CPL_map_cell2coord, CPL_map_coord2cell, CPL_get_no_cells, &
            CPL_map_glob2loc_cell, CPL_get_olap_limits, CPL_get_cnst_limits, &
            CPL_get_bnry_limits, CPL_map_cfd2md_coord, CPL_map_md2cfd_coord, & 
            CPL_overlap, CPL_realm, CPL_cart_coords, CPL_cfd_dt, CPL_md2cfd, &
            CPL_cfd2md, CPL_is_proc_inside, CPL_swaphalos
+
+    !Interface for error handling functions
+    interface CPL_send
+        module procedure CPL_send_full, CPL_send_min
+    end interface CPL_send
+
+    interface CPL_recv
+        module procedure CPL_recv_full, CPL_recv_min
+    end interface CPL_recv
+
 
 contains
 
@@ -656,7 +666,7 @@ contains
 end subroutine CPL_scatter
 
 ! ----------------------------------------------------------------------------
-subroutine CPL_send(asend, limits, send_flag)
+subroutine CPL_send_full(asend, limits, send_flag)
 ! ----------------------------------------------------------------------------
 !Send four dimensional array *asend* of data from all processors in the 
 !current realm with data between global cell array *limits* to the 
@@ -845,11 +855,29 @@ subroutine CPL_send(asend, limits, send_flag)
     !Barrier for CPL_isend version
     !call MPI_barrier(CPL_GRAPH_COMM, ierr)
 
-end subroutine CPL_send
+end subroutine CPL_send_full
+
+subroutine CPL_send_min(asend)
+    use coupler_module, only : md_realm, cfd_realm, realm
+
+    real(kind=kind(0.d0)),dimension(:,:,:,:), intent(in):: asend ! Array containing data to send
+
+    logical  :: send_flag !Flag set if processor has passed data   
+    integer, dimension(6) :: limits ! Global cell indices with minimum and maximum values to send
+
+    if (realm .eq. cfd_realm) then
+        call CPL_get_cnst_limits(limits)
+    elseif (realm .eq. md_realm) then
+        call CPL_get_bnry_limits(limits)
+    endif
+
+    call CPL_send_full(asend, limits, send_flag)
+
+end subroutine CPL_send_min
 
 
 ! ----------------------------------------------------------------------------
-subroutine CPL_recv(arecv, limits, recv_flag)
+subroutine CPL_recv_full(arecv, limits, recv_flag)
 ! ----------------------------------------------------------------------------
 !
 ! Receive data from to local grid from the associated ranks from the other 
@@ -1099,7 +1127,28 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     !Barrier for CPL_isend version
     !call MPI_barrier(CPL_GRAPH_COMM, ierr)
            
-end subroutine CPL_recv
+end subroutine CPL_recv_full
+
+
+subroutine CPL_recv_min(arecv)
+    use coupler_module, only : md_realm, cfd_realm, realm
+
+    ! Array containing data to recv
+    real(kind=kind(0.d0)),dimension(:,:,:,:), intent(out):: arecv 
+
+    logical  :: recv_flag !Flag set if processor has passed data   
+    integer, dimension(6) :: limits ! Global cell indices with minimum and maximum values to recv
+
+    if (realm .eq. cfd_realm) then
+        call CPL_get_bnry_limits(limits)
+    elseif (realm .eq. md_realm) then
+        call CPL_get_cnst_limits(limits)
+    endif
+
+    call CPL_recv_full(arecv, limits, recv_flag)
+
+end subroutine CPL_recv_min
+
 
 
 
