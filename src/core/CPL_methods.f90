@@ -750,7 +750,7 @@ subroutine CPL_send(asend, limits, send_flag)
     real(kind=kind(0.d0)), allocatable  :: vbuf(:)
 
     !Check counter
-    integer       :: source, check_recv
+    integer       :: source, check_send
     integer, save :: first_counter = 4
 
     !Check setup is complete
@@ -784,13 +784,13 @@ subroutine CPL_send(asend, limits, send_flag)
     !Check send/recv are consistent size
     if (first_counter .ne. 0) then
         first_counter = first_counter - 1
-        check_recv = 0
-        call MPI_AllReduce(size(asend,1), check_recv, 1, MPI_INTEGER, & 
+        check_send = 0
+        call MPI_AllReduce(npercell, check_send, 1, MPI_INTEGER, & 
                            MPI_SUM, CPL_REALM_INTERSECTION_COMM, ierr)
         call MPI_comm_size(CPL_REALM_INTERSECTION_COMM, n, ierr)
-        if (check_recv/n .ne. npercell) then
+        if (check_send/n .ne. npercell) then
             print*, "Error in CPL send in ", realm_name(realm), & 
-                    " realm, expected send size: ", npercell
+                    " realm, expected send size: ", npercell, " but recv is expecting ", check_send/n
             call error_abort("Error in CPL send -- first index of send array does not match recv data size")
         endif
     endif
@@ -961,13 +961,14 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 
     !Check send/recv are consistent size
     if (first_counter .ne. 0) then
+        check_recv = 0
         first_counter = first_counter - 1
         call MPI_AllReduce(size(arecv,1), check_recv, 1, MPI_INTEGER, & 
                         MPI_SUM, CPL_REALM_INTERSECTION_COMM, ierr)
         call MPI_comm_size(CPL_REALM_INTERSECTION_COMM, n, ierr)
         if (check_recv/n .ne. npercell) then
             print*, "Error in CPL recv in ", realm_name(realm), & 
-                    " realm, expected recv size: ", npercell
+                    " realm, expected recv size: ", npercell, " but got ", check_recv/n
             call error_abort("Error in CPL recv -- first index of recv array does not match sent data size")
         endif
     endif
@@ -995,7 +996,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 
     ! Receive from all attached processors
     allocate(req(nneighbors)); req = MPI_REQUEST_NULL
-    allocate(status(MPI_STATUS_SIZE, nneighbors))
+    allocate(status(MPI_STATUS_SIZE, nneighbors)); 
     start_address = 1 
     do nbr = 1, nneighbors
 
@@ -2922,7 +2923,7 @@ function is_cell_inside(cell, limits) result(res)
     integer, intent(in) :: cell(3)
     integer, intent(in) :: limits(6)
     logical :: res
-    
+   
     res = .true.
     ! Check send limits are inside a certain region
     if (any(limits.eq.VOID)) then
@@ -2937,6 +2938,7 @@ function is_cell_inside(cell, limits) result(res)
 
         res = .false.
     end if
+
 end function is_cell_inside
 
 !PRIVATE FUNCTION

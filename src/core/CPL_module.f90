@@ -1211,9 +1211,9 @@ subroutine CPL_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
 
     !Check if allocating global meshgrid is reasonable
     if (product(ncxyz) .lt. maxgridsize) then
-        allocate(xgrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
-        allocate(ygrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
-        allocate(zgrid(ncxyz(1) + 1, ncxyz(2) + 1, ncxyz(3) + 1), stat=ierr)
+        allocate(xgrid(ncxyz(1)+1, ncxyz(2)+1, ncxyz(3)+1), stat=ierr)
+        allocate(ygrid(ncxyz(1)+1, ncxyz(2)+1, ncxyz(3)+1), stat=ierr)
+        allocate(zgrid(ncxyz(1)+1, ncxyz(2)+1, ncxyz(3)+1), stat=ierr)
         ! Construct cartesian grid
         dx =  xyzL(1) / ncxyz(1)
         dy =  xyzL(2) / ncxyz(2)
@@ -1561,7 +1561,7 @@ subroutine coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, ncxyz
 
 contains
 
-    subroutine check_mesh
+    subroutine check_mesh()
         implicit none
 
         integer, dimension(3) :: sizex, sizey, sizez
@@ -1610,21 +1610,30 @@ contains
             sizey(2) = ncy + 1
             sizez(3) = ncz + 1
         endif
-  
+
         ! Check grids are the right size
         if (size(xg,1) .ne. sizex(1) .or. & 
             size(xg,2) .ne. sizex(2) .or. &
             size(xg,3) .ne. sizex(3)) then
+            print'(8(a,i8))', "size xg1 = ", size(xg,1), " vs sizex1 = ", sizex(1), &
+                              "size xg2 = ", size(xg,2), " vs sizex2 = ", sizex(2), &
+                              "size xg3 = ", size(xg,3), " vs sizex3 = ", sizex(3)
             call error_abort('check_mesh error - xg is the wrong size in cpl_cfd_init')
         end if
         if (size(yg,1) .ne. sizey(1) .or. & 
             size(yg,2) .ne. sizey(2) .or. &
             size(yg,3) .ne. sizey(3)) then
+            print'(8(a,i8))', "size yg1 = ", size(yg,1), " vs sizey1 = ", sizey(1), &
+                              "size yg2 = ", size(yg,2), " vs sizey2 = ", sizey(2), &
+                              "size yg3 = ", size(yg,3), " vs sizey3 = ", sizey(3)
             call error_abort('check_mesh error - yg is the wrong size in cpl_cfd_init')
         end if
         if (size(zg,1) .ne. sizez(1) .or. & 
             size(zg,2) .ne. sizez(2) .or. &
             size(zg,3) .ne. sizez(3)) then
+            print'(8(a,i8))', "size zg1 = ", size(zg,1), " vs sizez1 = ", sizez(1), &
+                              "size zg2 = ", size(zg,2), " vs sizez2 = ", sizez(2), &
+                              "size zg3 = ", size(zg,3), " vs sizez3 = ", sizez(3)
             call error_abort('check_mesh error - zg is the wrong size in cpl_cfd_init')
         end if
 
