@@ -48,6 +48,7 @@ class CPL_Force_Test : public ::testing::Test {
   // Objects declared here can be used by all tests in the test case for Foo.
 };
 
+#define ssmap std::map <std::string, std::string>
 #define threeD for (int ixyz = 0; ixyz<3; ++ixyz) \
 
 #define trplefor_rng(si,sj,sk,Ni,Nj,Nz) for (int i = si; i<Ni; ++i){ \
@@ -1044,7 +1045,7 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_argmap) {
     //Check overlap, interpolate, gradP and divStress from default values
     //Check default arguments 
     CPLForceDrag d(nd, icell, jcell, kcell);
-    ASSERT_EQ(d.use_overlap, false);
+    ASSERT_EQ(d.use_overlap, true);
     ASSERT_EQ(d.use_interpolate, false);
     ASSERT_EQ(d.use_gradP, true);
     ASSERT_EQ(d.use_divStress, false);
@@ -1065,7 +1066,7 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_argmap) {
             bool interp = i;
             bool press = p;
             bool stress = s;
-            std::map <std::string, std::string> args_map
+            ssmap args_map
             {
                 { "use_overlap", std::to_string(overlap) },
                 { "use_interpolate",  std::to_string(interp) },
@@ -1108,7 +1109,7 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_argmap) {
 
     std::vector<std::shared_ptr<CPLForceDrag>> forces{Drag, Granular, Stokes, Di_Felice, BVK, Tang, Ergun};
     for ( auto &f : forces ) {
-        ASSERT_EQ(f->use_overlap, false) << "Object type is " << typeid(f).name();
+        ASSERT_EQ(f->use_overlap, true) << "Object type is " << typeid(f).name();
         ASSERT_EQ(f->use_interpolate, false) << "Object type is " << typeid(f).name();
         ASSERT_EQ(f->use_gradP, true) << "Object type is " << typeid(f).name();
         ASSERT_EQ(f->use_divStress, false) << "Object type is " << typeid(f).name();
@@ -1124,8 +1125,10 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_initial_volSumsFsum) {
 
     int nd = 3; int icell = 3; int jcell = 3; int kcell = 3;
 
+    ssmap args_map{{ "use_overlap", std::to_string(0)}};
+
     //Call constructor using cell numbers
-    CPLForceDrag c(nd, icell, jcell, kcell);
+    CPLForceDrag c(nd, icell, jcell, kcell, args_map);
 
     CPL::ndArray<double> volbuf = c.volSums->get_array();
     CPL::ndArray<double> Fbuf = c.FSums->get_array();
@@ -1147,8 +1150,10 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_volSumsFsum) {
 
     int nd = 9; int icell = 3; int jcell = 3; int kcell = 3;
 
+    ssmap args_map{{ "use_overlap", std::to_string(0)}};
+
     //Call constructor using cell numbers
-    CPLForceDrag c(nd, icell, jcell, kcell);
+    CPLForceDrag c(nd, icell, jcell, kcell, args_map);
 
     //Setup one particle per cell
     double r[3] = {0.0, 0.0, 0.0};
@@ -1322,7 +1327,7 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_overlap_field) {
     double m=1.; double s=radius; double e=1.;
 
     //Call constructor using cell numbers
-    std::map <std::string, std::string> args_map
+    ssmap args_map
     {
         { "use_overlap", "1" },
         { "use_interpolate", "0" },
@@ -1380,7 +1385,7 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_overlap_field) {
 
     //Domain is from 0 to 1 so cell size is 0.1
     icell = 10; jcell = 10; kcell = 10;
-    std::map <std::string, std::string> args_map_
+    ssmap args_map_
     {
         { "use_overlap", "1" },
         { "use_interpolate", "0" },
@@ -1402,13 +1407,13 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_overlap_field) {
     //Setup volsum for particle much smaller than cells
     // (overlap should be identical to non-overlap case)
     icell = 10; jcell = 10; kcell = 10;
-    std::map <std::string, std::string> args_map_overlap
+    ssmap args_map_overlap
     {
         { "use_overlap", "1" },
     };
     CPLForceDrag overlap(nd, icell, jcell, kcell, args_map_overlap);
 
-    std::map <std::string, std::string> args_map_nooverlap
+    ssmap args_map_nooverlap
     {
         { "use_overlap", "0" },
     };
@@ -1487,7 +1492,8 @@ TEST_F(CPL_Force_Test, test_Granular_CPL_forces) {
     } } }
 
     //Call constructor using cell numbers
-    CPLForceGranular c(field);
+    ssmap args_map{{ "use_overlap", std::to_string(0)}};
+    CPLForceGranular c(field, args_map);
 
     //Setup one particle per cell
     double r[3] = {0.0, 0.0, 0.0};

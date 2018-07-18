@@ -69,11 +69,17 @@ class CPLForce{
 
 protected:
 
+    int shapeVector[4];
     double min[3], max[3], dxyz[3], dA[3], dV;
 
     //CPL::CPLField* cfd_array_field;
+    CPL::ndArray<double> array;
     std::shared_ptr<CPL::CPLField> cfd_array_field;
     std::vector<std::shared_ptr<CPL::CPLField>> fields;
+
+    //Define variable
+    std::vector<int> cell{3};
+    std::vector<double> Avi{3}, Ui_v{3}, f{3}, Ui{3}, gradP{3}, divStress{3};
 
 public:
 
@@ -102,6 +108,7 @@ public:
 
     bool calc_preforce;
     bool calc_preforce_everytime;
+//    void setup_fast_array();
 
     //Destructor
     virtual ~CPLForce() {

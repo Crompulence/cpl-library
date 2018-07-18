@@ -116,12 +116,10 @@ void CPLField::zero_array(){
 // which cell it is in and adds the appropriate value
 // to that cell, e.g. 1 for Nsums, velocity for vsum, etc
 
-//Add value to a particular cell
-void CPLField::add_to_array(int n, int i, int j, int k, double value){
-    //std::cout << "CPLField::add_to_array " << n << " " << i << " " << j << " " << k << " " << value << std::endl;
-    array(n, i, j, k) += value;
-    
-}
+//Add value to a particular cell (moved to header as inline)
+//void CPLField::add_to_array(int n, int i, int j, int k, double value){
+//    array(n, i, j, k) += value; 
+//}
 
 //Just add to cell based on where centre of particle falls
 //assuming that array of values is the same size as array
@@ -398,9 +396,8 @@ void CPLField::add_to_array(const int index, const double r[],
                             double s, const double value_){
     //Allocate an empty array up to index
     double value[index];
-    for (int i=0; i<index; i++){
+    for (int i=0; i<index; i++)
         value[i] = 0;
-    }
     value[index] = value_;
     add_to_array(r, s, value);
 }
@@ -533,10 +530,10 @@ std::vector<double> CPLField::get_array_value(const std::vector<int> indices, in
     return v;
 }
 
-// wrapper for single index
-double CPLField::get_array_value(const int index, int i, int j, int k){
-    return array(index, i, j, k);
-}
+// wrapper for single index (moved to header as inline)
+//inline double CPLField::get_array_value(const int index, int i, int j, int k){
+//    return array(index, i, j, k);
+//}
 
 // A function which gets value using position of molecule, no interpolation
 std::vector<double> CPLField::get_array_value(const std::vector<int> indices, const double r[]){
@@ -583,6 +580,13 @@ std::vector<double> CPLField::interpolate(const double r[],
     int jc = cell[1];
     int kc = cell[2];
 
+//    if (ic < 1) ic = 1;
+//    if (jc < 1) jc = 1;
+//    if (kc < 1) kc = 1;
+//    if (ic > array.shape(1)-2) ic = array.shape(1)-2;
+//    if (jc > array.shape(2)-2) jc = array.shape(2)-2;
+//    if (kc > array.shape(3)-2) kc = array.shape(3)-2;
+
     //Assume 3D and set order in each direction
     m = 3;
     n_1d = new int[m];
@@ -599,10 +603,12 @@ std::vector<double> CPLField::interpolate(const double r[],
     b[1] = (jc+1)*dxyz[1];
     b[2] = (kc+1)*dxyz[2];
 
+//	std::cout << "result:    " << ic+2 << " " << jc+2 << " " << kc+2  << std::endl;
+
     //Setup grid and get nodes
-    assert(cell_array.shape(1) > ic+2);
-    assert(cell_array.shape(2) > jc+2);
-    assert(cell_array.shape(3) > kc+2);
+    assert(cell_array.shape(1) >= ic+2);
+    assert(cell_array.shape(2) >= jc+2);
+    assert(cell_array.shape(3) >= kc+2);
 
     std::vector<double> v;
     for ( auto &n : indices ) {

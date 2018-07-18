@@ -114,6 +114,31 @@ std::shared_ptr<CPL::CPLField> CPLForce::get_internal_fields(const std::string& 
     return nullptr;
 }
 
+
+//void CPLForce::setup_fast_array()
+//{
+
+//    int nc = cfd_array_field->array.shapeData()[0];
+//    int ic = cfd_array_field->array.shapeData()[1];
+//    int jc = cfd_array_field->array.shapeData()[2];
+//    int kc = cfd_array_field->array.shapeData()[3];
+
+//    //if (nc*ic*jc*kc < 1000000){
+//        double *fastarray = new double[9][32][32][32];
+//    //}
+
+//    for (int i0=0; i0<nc; i0++) {
+//    for (int i1=0; i1<ic; i1++) {
+//    for (int i2=0; i2<jc; i2++) {
+//    for (int i3=0; i3<kc; i3++) {
+//        fastarray[i0][i1][i2][i3] = cfd_array_field->get_array_value(i0, i1, i2, i3);
+//    }}}}
+
+//    delete[] fastarray;
+
+//}
+
+
 ///////////////////////////////////////////////////////////////////
 //                                                               //
 //                      CPLForceTest                             //
@@ -406,11 +431,11 @@ CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells,
 
 void CPLForceDrag::set_defaults(){
 
-    use_overlap = false;
+    use_overlap = true;
     use_interpolate = false;
     use_gradP = true;
     use_divStress = false;
-    calc_preforce_everytime = true;
+    calc_preforce_everytime = false;
 
 }
 
@@ -419,15 +444,22 @@ void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
 
     //Default values
     calc_preforce = true;
+    int n = arrayin.shape(0);
     int i = arrayin.shape(1);
     int j = arrayin.shape(2);
     int k = arrayin.shape(3);
+    shapeVector[0] = n;
+    shapeVector[1] = i;
+    shapeVector[2] = j;
+    shapeVector[3] = k;
     nSums = std::make_shared<CPL::CPLField>(1, i, j, k, "nSums");
     vSums = std::make_shared<CPL::CPLField>(3, i, j, k, "vSums");
     volSums = std::make_shared<CPL::CPLField>(1, i, j, k, "volSums");
     FSums = std::make_shared<CPL::CPLField>(3, i, j, k, "FSums");
     FcoeffSums = std::make_shared<CPL::CPLField>(1, i, j, k, "FcoeffSums");
 
+    //Get pointer to recved fields
+    array = cfd_array_field->get_array_pointer();
     build_fields_list();
     resetsums();
 }
@@ -578,31 +610,63 @@ void CPLForceDrag::pre_force(double r[], double v[], double a[],
         volSums->add_to_array(r, s, volume);
         vSums->add_to_array(r, s, v_vol);
     }
-
 }
 
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
 std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], 
-                                            double m,   double s,   double e){
+                                            double m,   double s,   double e)
+{
 
-
-    //Define variable
-    std::vector<double> f(3),  Avi(3), Ui(3), Ui_v(3), gradP(3), divStress(4);
-
-    //Check array is the right size
-    CPL::ndArray<double>& array = cfd_array_field->get_array_pointer();
-    assert(array.shape(0) == 9);
 
     //Get all elements of recieved field
     if (! use_interpolate){
+
+        //Check array is the right size
+        //CPL::ndArray<double>& array = cfd_array_field->get_array_pointer();
+        //assert(array.shape(0) == 9);
         //Based on cell
-        std::vector<int> indices = {0,1,2}; 
-        Ui = cfd_array_field->get_array_value(indices, r);
-        for (int &n : indices) n += 3; 
-        gradP = cfd_array_field->get_array_value(indices, r);
-        for (int &n : indices) n += 3; 
-        divStress = cfd_array_field->get_array_value(indices, r);
+        cell = cfd_array_field->get_cell(r);
+        Ui[0] = cfd_array_field->get_array_value(0, cell[0], cell[1], cell[2]);
+        Ui[1] = cfd_array_field->get_array_value(1, cell[0], cell[1], cell[2]);
+        Ui[2] = cfd_array_field->get_array_value(2, cell[0], cell[1], cell[2]);
+        gradP[0] = cfd_array_field->get_array_value(3, cell[0], cell[1], cell[2]);
+        gradP[1] = cfd_array_field->get_array_value(4, cell[0], cell[1], cell[2]);
+        gradP[2] = cfd_array_field->get_array_value(5, cell[0], cell[1], cell[2]);
+        divStress[0] = cfd_array_field->get_array_value(6, cell[0], cell[1], cell[2]);
+        divStress[1] = cfd_array_field->get_array_value(7, cell[0], cell[1], cell[2]);
+        divStress[2] = cfd_array_field->get_array_value(8, cell[0], cell[1], cell[2]);
+
+
+        //Another attempt using indexing
+//        cell[0] = floor((r[0]-min[0])/dxyz[0]);
+//        cell[1] = floor((r[1]-min[1])/dxyz[1]);
+//        cell[2] = floor((r[2]-min[2])/dxyz[2]);
+//        int indx = cell[2]*shapeVector[0]*shapeVector[1]*shapeVector[2]
+//                 + cell[1]*shapeVector[0]*shapeVector[1]
+//                 + cell[0]*shapeVector[0];
+//        Ui[0] = cfd_array_field->get_array_value(indx);
+//        Ui[0] = cfd_array_field->get_array_value(indx+1);
+//        Ui[0] = cfd_array_field->get_array_value(indx+2);
+
+        //This is extremly slow, better to get cells once and inline static lookup
+//        std::vector<int> indices = {0,1,2}; 
+//        Ui = cfd_array_field->get_array_value(indices, r);
+//        for (int &n : indices) n += 3; 
+//        gradP = cfd_array_field->get_array_value(indices, r);
+//        for (int &n : indices) n += 3; 
+//        divStress = cfd_array_field->get_array_value(indices, r);
+
+          //An attempt to use static memory allocation
+//        Ui[0] = fastarray[0][cell[0]][cell[1]][cell[2]];
+//        Ui[1] = fastarray[1][cell[0]][cell[1]][cell[2]];
+//        Ui[2] = fastarray[2][cell[0]][cell[1]][cell[2]];
+//        gradP[0] = fastarray[3][cell[0]][cell[1]][cell[2]];
+//        gradP[1] = fastarray[4][cell[0]][cell[1]][cell[2]];
+//        gradP[2] = fastarray[5][cell[0]][cell[1]][cell[2]];
+//        divStress[0] = fastarray[6][cell[0]][cell[1]][cell[2]];
+//        divStress[1] = fastarray[7][cell[0]][cell[1]][cell[2]];
+//        divStress[2] = fastarray[8][cell[0]][cell[1]][cell[2]];
     } else {
         //Or interpolate to position in space
         std::vector<int> indices = {0,1,2}; 
@@ -614,9 +678,9 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     }
 
     //Get uCFD - uDEM
-    for (int i=0; i<3; i++){
-        Ui_v[i] = Ui[i]-v[i];
-    }
+    Ui_v[0] = Ui[0]-v[0];
+    Ui_v[1] = Ui[1]-v[1];
+    Ui_v[2] = Ui[2]-v[2];
 
     //Get Diameter
     double D = 2.0*s;
@@ -624,24 +688,35 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     //Get drag coefficient
     double A = drag_coefficient(r, D, Ui_v);
 
-    //Calculate force
-    double volume = (4./3.)*M_PI*pow(s,3); 
-    for (int i = 0; i < 3; ++i){
-        //Just drag force here
-        f[i] = A*Ui_v[i];
-        //We split A*(vi - u_CFD) into implicit and explicit part following 
-        //Heng Xiao and Jin Sun (2011) Commun. Comput. Phys. Vol. 9, No. 2, pp. 297-323
-        //Define Avi=A*v[i] which is explicit part of the force based on molecular velocity
-        //and ForceCoeff is passed so implict A*u_CFD can be applied in SediFOAM
-        Avi[i] = A*v[i];
-        //Include pressure
-        if (use_gradP)
-            f[i] += -volume*gradP[i];
-        // and stress
-        if (use_divStress)
-            f[i] += volume*divStress[i];
-        //std::cout << "cell "  <<  cell[0] << " " << cell[1] << " " << cell[2] << std::endl;
+    //Just drag force here
+    f[0] = A*Ui_v[0];
+    f[1] = A*Ui_v[1];
+    f[2] = A*Ui_v[2];
+    //We split A*(vi - u_CFD) into implicit and explicit part following 
+    //Heng Xiao and Jin Sun (2011) Commun. Comput. Phys. Vol. 9, No. 2, pp. 297-323
+    //Define Avi=A*v[i] which is explicit part of the force based on molecular velocity
+    //and ForceCoeff is passed so implict A*u_CFD can be applied in SediFOAM
+    Avi[0] = A*v[0];
+    Avi[1] = A*v[1];
+    Avi[2] = A*v[2];
+
+    //Include pressure
+    if (use_gradP)
+    {
+        double volume = (4./3.)*M_PI*pow(s,3); 
+        f[0] += -volume*gradP[0];
+        f[1] += -volume*gradP[1];
+        f[2] += -volume*gradP[2];
     }
+    // and stress
+    if (use_divStress)
+    {
+        double volume = (4./3.)*M_PI*pow(s,3); 
+        f[0] += volume*divStress[0];
+        f[1] += volume*divStress[1];
+        f[2] += volume*divStress[2];
+    }
+    //std::cout << "cell "  <<  cell[0] << " " << cell[1] << " " << cell[2] << std::endl;
 
     // Add sum of coefficients of forces 
     // Needed if you want to split implicit/explicit terms for
@@ -649,10 +724,15 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     // Xiao H., Sun J. (2011) Algorithms in a Robust Hybrid
     // CFD-DEM Solver for Particle-Laden Flows, 
     // Commun. Comput. Phys. 9, 2, 297
-    FcoeffSums->add_to_array(r, A);
-    FSums->add_to_array(r, Avi.data());
-
-    //FSums->add_to_array(r, &f[0]);
+    if (! use_interpolate){
+        FcoeffSums->add_to_array(0, cell[0], cell[1], cell[2], A);
+        FSums->add_to_array(0, cell[0], cell[1], cell[2], Avi[0]);
+        FSums->add_to_array(1, cell[0], cell[1], cell[2], Avi[1]);
+        FSums->add_to_array(2, cell[0], cell[1], cell[2], Avi[2]);
+    } else {
+        FcoeffSums->add_to_array(r, A);
+        FSums->add_to_array(r, Avi.data());
+    }
 
 //    std::cout << "Drag Force "  
 //              << r[2] << " " << v[0] << " " << Ui[0] << " "  << v[1] << " " << Ui[1] << " " << v[2] << " " << Ui[2] << " " 

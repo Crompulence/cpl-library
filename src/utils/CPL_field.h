@@ -58,7 +58,10 @@ public:
                                double, double, double);
 
     // functions to add values to array
-    void add_to_array(int n, int i, int j, int k, double value);
+//    void add_to_array(int n, int i, int j, int k, double value);
+    inline void add_to_array(int n, int i, int j, int k, double value){
+        array(n, i, j, k) += value; 
+    }
     void add_to_array(const double r[], const double value[]);
     void add_to_array(const double r[], const double value);
     void add_to_array(const int index, const double r[], const double value);
@@ -68,7 +71,9 @@ public:
 
     // functions to get value from cell i,j,k
     std::vector<double> interpolate(double r[]);
-    double get_array_value(const int index, int i, int j, int k);
+    inline double get_array_value(const int index, int i, int j, int k){
+        return array(index, i, j, k);
+    }
     std::vector<double> get_array_value(const std::vector<int> indices, int i, int j, int k);
     std::vector<double> get_array_value(const std::vector<int> indices, const double r[]);
     double get_array_value(const int index, const double r[]);
