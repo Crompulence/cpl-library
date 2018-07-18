@@ -1,0 +1,56 @@
+#INITIALISATION
+units 	 			cgs
+atom_style 	 		sphere
+atom_modify 	 	map array
+boundary 	 		p f p
+dimension 	 		3
+newton 	 			off
+comm_modify 	 	mode single vel yes
+processors 	 		1 1 1
+
+
+variable 			lat_scale equal 0.8/10
+lattice				fcc ${lat_scale}
+
+region 				reg block 0. 2. 0. 10. 0. 2. units box
+region 				porous block 0. 2. 4.6 5.4 0. 2. units box
+create_box 			1 reg
+create_atoms 		1 region porous units box
+
+variable 			diameter equal (${lat_scale}/sqrt(2))+0.000*(${lat_scale}/sqrt(2))
+variable 			density equal 2.65
+set 				type 1 diameter ${diameter} density ${density} 
+
+neighbor 	 		5e-03 bin
+neigh_modify 		once yes exclude type 1 1 #use this when integrator is off
+# neigh_modify 		delay 0 #use this when integrator is on
+
+#PRE-FIX SETTINGS
+pair_style 	 		gran/shm/history 290000 0.2 0.0
+pair_coeff 	 		* *
+timestep 	 		2e-5 #timestep is reduced to ensure local interactions
+run_style 	 		verlet
+
+#FIX SETTINGS
+variable  			ylo equal 4.6-0.5*${diameter}
+variable  			yhi equal 5.4+0.5*${diameter}
+
+# fix 	 			1 all nve/sphere
+# fix 				2 all gravity 981. vector 0 -1 0
+fix 	 			3 all wall/gran shm/history 290000 0.2 0.0 yplane ${ylo} ${yhi}
+
+#OUTPUT SETTINGS
+thermo 				20
+thermo_style 		custom step atoms cpu 
+dump 	 			6 all dcd 20 lammps/vmd_out.dcd
+dump 				1 all custom 20 lammps/fcc*.dump id x y z vx vy vz fx fy fz diameter
+
+#COUPLER SETTINGS
+variable 			dyn_vis equal 1e-2
+variable 			K equal 435.
+variable 			eps equal 0.26
+variable 			Cd equal 3*3.14159265359*${dyn_vis}*${K}*${diameter}
+fix 				5 all cpl/init region all forcetype Drag Cd ${Cd} overlap true gradP false sendtype granfull
+
+#RUN SETTINGS
+run 	 			200
