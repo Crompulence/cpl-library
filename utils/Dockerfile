@@ -41,6 +41,7 @@ ENV PYTHONPATH="$CPL_PATH/src/bindings/python:$PYTHONPATH"
 ENV PYTHONPATH="$CPL_PATH/utils:$PYTHONPATH"
 ENV CPLPY_PATH="$CPL_PATH/src/bindings/python"
 
+ENV DISPLAY :0
 EXPOSE 22
 
 CMD ["bash"]
