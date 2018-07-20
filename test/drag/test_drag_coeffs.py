@@ -117,7 +117,7 @@ if plotstuff:
         #plt.plot(CPLdata['phi'], (Fpy+CPLdata['F0'])/Fpy, 'b-', label="Error")
 
         plt.legend(loc=3)
-        plt.title(case)
+        plt.title(case.replace("_"," "))
         plt.xlabel(r"$\phi$")
         plt.ylabel("$F$")
         plt.show()
@@ -128,7 +128,7 @@ if plotstuff:
         #plt.plot(CPLdata['D'], (Fpy+CPLdata['F0'])/Fpy, 'b-', label="Error")
 
         plt.legend(loc=3)
-        plt.title(case)
+        plt.title(case.replace("_"," "))
         plt.xlabel(r"$D$")
         plt.ylabel("$F$")
         plt.show()
