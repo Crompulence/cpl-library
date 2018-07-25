@@ -125,7 +125,7 @@ endif
 	@cp $(cppbindhdrfiles) $(includedir)
 
 # Utilities
-utilities: core $(utilsobjfiles) 
+utilities: core $(utilsobjfiles) $(utilshdrfiles)
 	@cp $(utilshdrfiles) $(includedir)
 
 # Directory rules 

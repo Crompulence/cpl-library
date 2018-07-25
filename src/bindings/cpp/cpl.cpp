@@ -166,6 +166,21 @@ void CPL::get_bnry_limits (int limits[]) {
     CPLC_get_bnry_limits(limits);
 }
 
+void CPL::get_arrays(CPL::ndArray<double>* recv_array, int recv_size, 
+                     CPL::ndArray<double>* send_array, int send_size)
+{
+    int Ncells[3]; int olap_limits[6], portion[6];
+    CPL::get_olap_limits(olap_limits);
+    CPL::my_proc_portion(olap_limits, portion);
+    CPL::get_no_cells(portion, Ncells);
+
+    int send_shape[4] = {send_size, Ncells[0], Ncells[1], Ncells[2]};
+    send_array->resize(4, send_shape);
+    int recv_shape[4] = {recv_size, Ncells[0], Ncells[1], Ncells[2]};
+    recv_array->resize(4, recv_shape);
+
+}
+
 
 bool CPL::map_cfd2md_coord (double cfd_coord[], double md_coord[]) {
     return CPLC_map_cfd2md_coord (cfd_coord, md_coord);
