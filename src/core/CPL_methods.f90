@@ -2951,6 +2951,27 @@ subroutine CPL_get_bnry_limits(limits)
 
 end subroutine CPL_get_bnry_limits
 
+subroutine CPL_get_arrays(recv_array, recv_size, &
+                          send_array, send_size)
+
+    integer :: recv_size, send_size
+    integer :: limits(6), portion(6), Ncells(3)
+    double precision, dimension(:,:,:,:), & 
+         allocatable  :: send_array, recv_array
+
+    !Get detail for grid
+    call CPL_get_olap_limits(limits)
+    call CPL_my_proc_portion(limits, portion)
+    call CPL_get_no_cells(portion, Ncells)
+
+    if (allocated(recv_array)) deallocate(recv_array)
+    if (allocated(send_array)) deallocate(send_array)
+
+    allocate(recv_array(recv_size, Ncells(1), Ncells(2), Ncells(3)))
+    allocate(send_array(send_size, Ncells(1), Ncells(2), Ncells(3)))
+
+end subroutine CPL_get_arrays
+
 !-----------------------------------------------------------------------------
 
 function CPL_is_proc_inside(region) result(res)
