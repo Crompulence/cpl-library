@@ -701,7 +701,6 @@ contains
         call F_C_BOOL(send_flag_f,send_flag)
         limits_f = limits_f - 1
     
-
     end subroutine CPLC_send
 
 
@@ -743,6 +742,72 @@ contains
         limits_f = limits_f - 1
 
     end subroutine CPLC_recv
+
+    subroutine CPLC_send_min(asend, asend_shape, send_flag) &
+        bind(C, name="CPLC_send_min")
+        use CPL, only: CPL_send!, CPL_send_4d, CPL_send_3d
+        implicit none
+
+        ! Boolean
+        logical(C_BOOL),intent(out) :: send_flag
+
+        ! Inputs
+        type(C_PTR), value :: asend
+        type(C_PTR), value :: asend_shape
+
+        ! Fortran equivalent array pointers
+        logical :: send_flag_f
+        real(kind(0.d0)), dimension(:,:,:,:), pointer :: asend_f
+        integer, dimension(:), pointer :: asend_shape_f
+
+        ! Other useful variables internal to this subroutine
+        integer :: s1, s2, s3, s4
+
+        call C_F_POINTER(asend_shape, asend_shape_f, [4])
+        s1 = asend_shape_f(1) 
+        s2 = asend_shape_f(2) 
+        s3 = asend_shape_f(3) 
+        s4 = asend_shape_f(4)
+        call C_F_POINTER(asend, asend_f, [s1, s2, s3, s4])
+        call C_F_BOOL(send_flag, send_flag_f)
+        call CPL_send(asend_f, send_flag_f)
+        call F_C_BOOL(send_flag_f,send_flag)
+    
+    end subroutine CPLC_send_min
+
+    subroutine CPLC_recv_min(arecv, arecv_shape, recv_flag) &
+        bind(C, name="CPLC_recv_min")
+        use CPL, only: CPL_recv
+        implicit none
+
+        ! Boolean
+        logical(C_BOOL),intent(out) :: recv_flag
+
+        ! Inputs
+        type(C_PTR), value :: arecv
+        type(C_PTR), value :: arecv_shape
+
+        ! Fortran equivalent array pointers
+        logical :: recv_flag_f
+        real(kind(0.d0)), dimension(:,:,:,:), pointer :: arecv_f
+        integer, dimension(:), pointer :: arecv_shape_f
+
+        ! Other useful variables internal to this subroutine
+        integer :: s1, s2, s3, s4
+
+        call C_F_POINTER(arecv_shape, arecv_shape_f, [4])
+        s1 = arecv_shape_f(1) 
+        s2 = arecv_shape_f(2) 
+        s3 = arecv_shape_f(3) 
+        s4 = arecv_shape_f(4) 
+        call C_F_POINTER(arecv, arecv_f, [s1, s2, s3, s4])
+
+        call C_F_BOOL(recv_flag, recv_flag_f)
+        call CPL_recv(arecv_f, recv_flag_f)
+        call F_C_BOOL(recv_flag_f,recv_flag)
+
+    end subroutine CPLC_recv_min
+
 
     subroutine CPLC_scatter(scatterarray, scatter_shape, limits, recvarray, &
                             recv_shape) &

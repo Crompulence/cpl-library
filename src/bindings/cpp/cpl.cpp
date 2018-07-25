@@ -39,6 +39,7 @@ Description
 
 */
 #include "cpl.h"
+
 #include <iostream>
 #include <sstream>
 
@@ -80,6 +81,26 @@ bool CPL::send (double* asend, int* asend_shape, int* limits) {
 bool CPL::recv (double* arecv,	int* arecv_shape, int* limits) {
     bool recv_flag;
     CPLC_recv(arecv, arecv_shape, limits, &recv_flag);
+    return recv_flag;
+}
+
+bool CPL::send (CPL::ndArray<double>* asend, int* limits) {
+    return CPL::send(asend->data(), asend->shapeData(), limits);
+}
+
+bool CPL::recv (CPL::ndArray<double>* arecv, int* limits) {
+   return CPL::recv(arecv->data(), arecv->shapeData(), limits);
+}
+
+bool CPL::send (CPL::ndArray<double>* asend) {
+    bool send_flag;
+    CPLC_send_min(asend->data(), asend->shapeData(), &send_flag);
+    return send_flag;
+}
+
+bool CPL::recv (CPL::ndArray<double>* arecv) {
+    bool recv_flag;
+    CPLC_recv_min(arecv->data(), arecv->shapeData(), &recv_flag);
     return recv_flag;
 }
 

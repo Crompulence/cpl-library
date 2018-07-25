@@ -61,6 +61,8 @@ extern "C" void CPLC_setup_md(int icomm_grid, double xyzL[],
 extern "C" void CPLC_set_timing(int initialstep, int nsteps, double dt);
 extern "C" void CPLC_send(double* asend, int* asend_shape, int* limits, bool *send_flag);
 extern "C" void CPLC_recv(double* arecv, int* arecv_shape, int* limits, bool *recv_flag);
+extern "C" void CPLC_send_min(double* asend, int* asend_shape, bool *send_flag);
+extern "C" void CPLC_recv_min(double* arecv, int* arecv_shape, bool *recv_flag);
 
 extern "C" void CPLC_scatter(double* scatterarray, int* scatter_shape, int* limits, 
                              double* recvarray, int* recv_shape);

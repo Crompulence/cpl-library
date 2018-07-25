@@ -877,12 +877,12 @@ subroutine CPL_send_full(asend, limits, send_flag)
 
 end subroutine CPL_send_full
 
-subroutine CPL_send_min(asend)
+subroutine CPL_send_min(asend, send_flag)
     use coupler_module, only : md_realm, cfd_realm, realm
 
     real(kind=kind(0.d0)),dimension(:,:,:,:), intent(in):: asend ! Array containing data to send
+    logical, intent(out), optional  :: send_flag !Flag set if processor has passed data   
 
-    logical  :: send_flag !Flag set if processor has passed data   
     integer, dimension(6) :: limits ! Global cell indices with minimum and maximum values to send
 
     if (realm .eq. cfd_realm) then
@@ -1167,13 +1167,13 @@ subroutine CPL_recv_full(arecv, limits, recv_flag)
 end subroutine CPL_recv_full
 
 
-subroutine CPL_recv_min(arecv)
+subroutine CPL_recv_min(arecv, recv_flag)
     use coupler_module, only : md_realm, cfd_realm, realm
 
     ! Array containing data to recv
     real(kind=kind(0.d0)),dimension(:,:,:,:), intent(out):: arecv 
+    logical, intent(out), optional  :: recv_flag !Flag set if processor has passed data   
 
-    logical  :: recv_flag !Flag set if processor has passed data   
     integer, dimension(6) :: limits ! Global cell indices with minimum and maximum values to recv
 
     if (realm .eq. cfd_realm) then

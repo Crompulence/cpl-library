@@ -50,6 +50,7 @@ Author(s)
 #include <string>
 #include <vector>
 #include "CPLC.h"
+#include "CPL_ndArray.h"
 #include <iostream>
 #include "mpi.h"
 
@@ -71,6 +72,10 @@ namespace CPL
     void set_timing(int initialstep, int nsteps, double dt);
     bool send(double* asend, int* asend_shape, int* limits);
     bool recv(double* arecv, int* arecv_shape, int* limits);
+    bool send (CPL::ndArray<double>* asend, int* limits);
+    bool recv (CPL::ndArray<double>* arecv, int* limits);
+    bool send (CPL::ndArray<double>* asend);
+    bool recv (CPL::ndArray<double>* arecv);
 
     void scatter(double* scatterarray, int* scatter_shape, int* limits, 
 				 double* recvarray, int* recv_shape);
