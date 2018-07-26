@@ -87,7 +87,7 @@ CFLAGS += -fPIC
 #                         Targets
 
 # Default: make both the fortran and the c libraries
-default: core fortran c cpp utilities link
+default: core utilities fortran c cpp link
 
 #debug: core fortran c cpp utilities link
 #	FFLAGS = -O0 -fbacktrace -Wall -fbounds-check $(FMODKEY)$(includedir) -fPIC 
@@ -120,12 +120,12 @@ $(cppbindobjfiles): core $(cbindobjfile)
 ifdef BUILDPPROCMACROS
 	$(CPP) $(CFLAGS) -D$(BUILDPPROCMACROS) -I$(cbinddir) -c $(cppbindsrcfiles) -o $(cppbindobjfiles)
 else
-	$(CPP) $(CFLAGS) -I$(cbinddir) -c $(cppbindsrcfiles) -o $(cppbindobjfiles)
+	$(CPP) $(CFLAGS) -I$(cbinddir) -I$(includedir) -c $(cppbindsrcfiles) -o $(cppbindobjfiles)
 endif
 	@cp $(cppbindhdrfiles) $(includedir)
 
 # Utilities
-utilities: core $(utilsobjfiles) 
+utilities: core $(utilsobjfiles) $(utilshdrfiles)
 	@cp $(utilshdrfiles) $(includedir)
 
 # Directory rules 

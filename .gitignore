@@ -3,6 +3,9 @@
 /obj
 *.swp
 *.pyc
+*~
+*.o
+*.so
 .travis.yml.orig
 Makefile.orig
 bin/cplf.h

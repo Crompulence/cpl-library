@@ -50,7 +50,9 @@ Author(s)
 #include <string>
 #include <vector>
 #include "CPLC.h"
+#include "CPL_ndArray.h"
 #include <iostream>
+#include "mpi.h"
 
 // CPL namespace for C++ bindings
 namespace CPL
@@ -60,22 +62,8 @@ namespace CPL
     static const int cfd_realm = 1;
     static const int md_realm = 2;
 
-
-#ifdef JSON_SUPPORT
-	/** MODULE IO **/
-	void load_param_file(const std::string fname);
-	void close_param_file();
-	void get_file_param(const std::string section, const std::string param_name, double& real_param);
-	void get_file_param(const std::string section, const std::string param_name, std::vector<double> &real_param_array);
-	void get_file_param(const std::string section, const std::string param_name, int& int_param);
-	void get_file_param(const std::string section, const std::string param_name, std::vector<int> &int_param_array);
-	void get_file_param(const std::string section, const std::string param_name, bool& boolean_param);
-	void get_file_param(const std::string section, const std::string param_name, std::vector<bool> &boolean_param_array);
-	void get_file_param(const std::string section, const std::string param_name, std::string& string_param);
-	void get_file_param(const std::string section, const std::string param_name, std::vector<std::string> &string_param_array);
-#endif 
-
-    void init ( int  calling_realm, int& returned_realm_comm); 
+//    void init ( int  calling_realm, int& returned_realm_comm);
+    void init ( int  calling_realm, MPI_Comm& returned_realm_comm); 
     void finalize(); 
 
     void setup_cfd(int icomm_grid, double xyzL[], double xyz_orig[], int ncxyz[]);
@@ -84,6 +72,10 @@ namespace CPL
     void set_timing(int initialstep, int nsteps, double dt);
     bool send(double* asend, int* asend_shape, int* limits);
     bool recv(double* arecv, int* arecv_shape, int* limits);
+    bool send (CPL::ndArray<double>* asend, int* limits);
+    bool recv (CPL::ndArray<double>* arecv, int* limits);
+    bool send (CPL::ndArray<double>* asend);
+    bool recv (CPL::ndArray<double>* arecv);
 
     void scatter(double* scatterarray, int* scatter_shape, int* limits, 
 				 double* recvarray, int* recv_shape);
@@ -103,11 +95,14 @@ namespace CPL
     void get_olap_limits(int limits[]); 
     void get_cnst_limits(int limits[]);
     void get_bnry_limits(int limits[]);
+    void get_arrays(CPL::ndArray<double>*, int, 
+                    CPL::ndArray<double>*, int);
     bool map_cfd2md_coord(double cfd_coord[],double md_coord[]);
     bool map_md2cfd_coord(double md_coord[], double cfd_coord[]);
     bool overlap(); 
 	bool is_proc_inside(int region[]);
     void set_output_mode(int mode);
+    double density_cfd();
 
     // Getters
     template<class T>
@@ -163,6 +158,22 @@ namespace CPL
 
     }
 
+
+
+#ifdef JSON_SUPPORT
+	/** MODULE IO **/
+	void load_param_file(const std::string fname);
+	void close_param_file();
+	void get_file_param(const std::string section, const std::string param_name, double& real_param);
+	void get_file_param(const std::string section, const std::string param_name, std::vector<double> &real_param_array);
+	void get_file_param(const std::string section, const std::string param_name, int& int_param);
+	void get_file_param(const std::string section, const std::string param_name, std::vector<int> &int_param_array);
+	void get_file_param(const std::string section, const std::string param_name, bool& boolean_param);
+	void get_file_param(const std::string section, const std::string param_name, std::vector<bool> &boolean_param_array);
+	void get_file_param(const std::string section, const std::string param_name, std::string& string_param);
+	void get_file_param(const std::string section, const std::string param_name, std::vector<std::string> &string_param_array);
+#endif 
+
 	/**
 	 template<class T>
 		const T& get_file_param(std::string section, std::string param_name)
@@ -200,7 +211,6 @@ namespace CPL
 			return got;
 		}
 **/
-    double density_cfd();
 
 }
 

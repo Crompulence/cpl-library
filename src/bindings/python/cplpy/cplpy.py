@@ -523,20 +523,24 @@ class CPL:
          ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'), 
          POINTER(c_bool)]
 
+    py_send_min = _cpl_lib.CPLC_send_min
+    py_send_min.argtypes = \
+        [ndpointer(np.float64, flags='aligned, f_contiguous'),
+         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
+         POINTER(c_bool)]
+
     @abortMPI
     def send(self, asend, limits=None):
-        #Attempt to guess required size
-        if limits is None:
-            if self.realm is self.CFD_REALM:
-                limits = self.my_proc_portion(self.get_cnst_limits())
-            elif self.realm is self.MD_REALM:
-                limits = self.my_proc_portion(self.get_bnry_limits())
 
         asend = self._type_check(asend)
         asend_shape = np.array(asend.shape, order='F', dtype=np.int32)
         send_flag = c_bool()
 
-        self.py_send(asend, asend_shape, limits, byref(send_flag))
+        if limits is None:
+            self.py_send_min(asend, asend_shape, byref(send_flag))
+        else:
+            self.py_send(asend, asend_shape, limits, byref(send_flag))
+
         return send_flag.value
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -548,19 +552,23 @@ class CPL:
          ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'), 
          POINTER(c_bool)]
 
+    py_recv_min = _cpl_lib.CPLC_recv_min
+    py_recv_min.argtypes = \
+        [ndpointer(np.float64, flags='aligned, f_contiguous'),
+         ndpointer(np.int32, ndim=1, flags='aligned, f_contiguous'),
+         POINTER(c_bool)]
+
+
     @abortMPI
     def recv(self, arecv, limits=None):
-        #Attempt to guess required size
-        if limits is None:
-            if self.realm is self.CFD_REALM:
-                limits = self.my_proc_portion(self.get_bnry_limits())
-            elif self.realm is self.MD_REALM:
-                limits = self.my_proc_portion(self.get_cnst_limits())
 
         arecv = self._type_check(arecv)
         arecv_shape = np.array(arecv.shape, order='F', dtype=np.int32)
         recv_flag = c_bool()
-        self.py_recv(arecv, arecv_shape, limits, byref(recv_flag))
+        if limits is None:
+            self.py_recv_min(arecv, arecv_shape, byref(recv_flag))
+        else:
+            self.py_recv(arecv, arecv_shape, limits, byref(recv_flag))
         return arecv, recv_flag.value
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

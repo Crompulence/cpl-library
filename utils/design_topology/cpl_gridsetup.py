@@ -474,8 +474,13 @@ class Coupled_Grid(wx.Frame):
         print("              ")
         print(" =============== Running case =============== ")
         cfd = sp.Popen("mpiexec -n " + str(nproc_CFD) + " python ./CFD.py", shell=True)
-        md = sp.Popen("mpiexec -n " + str(nproc_MD) + " ./fortran/md" , shell=True)
-
+        fortran_md = "./fortran/md"
+        if not os.path.isfile(fortran_md):
+            os.chdir(fortran_md.replace("/md",""))
+            sp.Popen("./build.sh", shell=True)
+            os.chdir("../")
+        print(fortran_md)
+        md = sp.Popen("mpiexec -n " + str(nproc_MD) + " " + fortran_md , shell=True)
 
         #To ensure processes killed if this script is killed
         def kill_sp(pids):
