@@ -181,14 +181,7 @@
             then MPICH can also be got from a ppa. 
             On older systems, it may be best to download the latest version of MPICH and
             build this new version with a version of gcc and gfortran later than 5. 
-            For supercomputers, you will need to load from modules compatible versions
-            of MPI and GCC (or intel), and ensure that any other packages are built with
-            these. Please see the 
-            <a href=http://www.cpl-library.org/wiki/index.php?title=Setup_of_OpenFOAM&section=3#Coupled_OpenFOAM_on_HPC> wiki <\a> 
-            for more discussion of build coupled code on supercomputers
         </em>
-
-
 
         <details>
             <summary> MPICH with gcc-5 setup </summary>
@@ -202,6 +195,8 @@
              </div>
         </details>
 
+
+
         <em>
             You should then build <mark class="CPL">CPL library</mark> and ALL the codes you 
             plan to couple with the same compiler and version of mpic++ and mpif90.
@@ -211,6 +206,11 @@
             simulation.
             The advice to to find out the version of mpi used by the code which is slowest to build
             (e.g. OpenFOAM can take up to 8 hours) and use this to build everything else.
+            For supercomputers, you will need to load from modules compatible versions
+            of MPI and GCC (or intel), and ensure that the two programs that you plan to couple
+            are built with these same packages. Please see the 
+            <a href=http://www.cpl-library.org/wiki/index.php?title=Setup_of_OpenFOAM&section=3#Coupled_OpenFOAM_on_HPC> wiki <\a> 
+            for more discussion of using installed modeul code in a coupled simulation on a supercomputer (an OpenFOAM example).
         </em>
         </P>
 
