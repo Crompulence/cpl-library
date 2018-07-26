@@ -209,7 +209,7 @@
             For supercomputers, you will need to load from modules compatible versions
             of MPI and GCC (or intel), and ensure that the two programs that you plan to couple
             are built with these same packages. Please see the 
-            <a href=http://www.cpl-library.org/wiki/index.php?title=Setup_of_OpenFOAM&section=3#Coupled_OpenFOAM_on_HPC> wiki <\a> 
+            <a href=http://www.cpl-library.org/wiki/index.php?title=Setup_of_OpenFOAM&section=3#Coupled_OpenFOAM_on_HPC> wiki </a> 
             for more discussion of using installed modeul code in a coupled simulation on a supercomputer (an OpenFOAM example).
         </em>
         </P>
