@@ -45,7 +45,7 @@
             <mark class="CPL">CPL library</mark> on your local linux computer is with the following command,
 
             <div class="code">
-                sudo docker run -it --name cplrun cpllibrary/cpl-library 
+                sudo docker run --name cplrun -it cpllibrary/cpl-library 
             </div>
 
             more details of running <mark class="CPL">CPL library</mark> with Docker can be found on the
@@ -119,7 +119,9 @@
             </div>
         <p>
             where they share a single MPI_COMM_WORLD.
+        </p>
 
+        <p>
             That's it, this example contains the basic premise of <mark class="CPL">CPL library</mark>,
             run two codes, link them together, setup a topological mapping and exchange information.
             Next step can be to adjust the input parameter in any of the dummy codes to see what happens,
@@ -135,15 +137,15 @@
             You can then look into OpenFOAM and LAMMPS coupling,
         </p>
             <div class="code">
-                sudo docker run -it --name cplopenfoamlammps cpllibrary/cpl-openfoam-lammps
+                sudo docker run --name cplopenfoamlammps -it cpllibrary/cpl-openfoam-lammps
             </div>
         <p>
             And check out the examples in cpl-library/examples/coupled, as well as test folders
             in the two coupling APPS, /CPL_APP_LAMMPS-DEV, 
             <a href=https://github.com/Crompulence/CPL_APP_LAMMPS-DEV/tree/master/test/> here </a> 
             and /OpenFOAM/CPL_APP_OPENFOAM-3.0.1
-            <a href=https://github.com/Crompulence/CPL_APP_OPENFOAM-3.0.1/tree/master/examples> here </a>  
-            (also see the github pages). The APPS use the minimal dummy scripts above like
+            <a href=https://github.com/Crompulence/CPL_APP_OPENFOAM-3.0.1/tree/master/examples> here</a>.
+            The APPS use the minimal dummy scripts above like
             <a href=https://en.wikipedia.org/wiki/Mock_object> mocks </a> to test
             coupling and develop new code. Combined with assert statements and testing
             functions, it is possible to build up a range of automated tests for coupled
@@ -151,7 +153,8 @@
         </p>   
 
         <h2 id="prerequisites">Pre-requisites</h2>
-        Before you begin, make sure you have the following installed on your
+        Before you begin installing <mark class="CPL">CPL library</mark> either locally or
+        on your supercomputer, make sure you have the following installed on your
         system:
         <ul>
             <li>A Fortran compiler that supports the F2008 standard, and</li>
@@ -162,9 +165,11 @@
         <mark class="CPL">CPL library</mark> was developed and tested using the
         <a href="https://gcc.gnu.org/">GCC compiler collection </a>
         and <a href="https://www.mpich.org">MPICH</a>,
-        which are both free and open-source. The
-        following guide assumes that you're working with a Unix-like operating
-        system like Linux or OS X. Please <a href="/contact.shtml">email us</a>
+        which are both free and open-source. The intel compiler collection
+        and associated intel mpi (derived from mpich) also work as expected.
+        The following guide assumes that you're working with a Unix-like operating
+        system like Linux or OS X. Docker may work cross-platform by has not been
+        tested so please <a href="/contact.shtml">email us</a>
         if you'd like help getting it working for a new system.
 
         <p>
@@ -190,13 +195,14 @@
         </details>
 
         <em>
-             <br>
-             You should then build <mark class="CPL">CPL library</mark> and ALL the codes you 
-             plan to couple with the same compiler and version of mpic++ and mpif90.
-             Although this sounds like a lot of work, especially if you
-             have custom versions of codes already installed, it is
-             absolutely essential to guarantee correct behaviour in a coupled 
-             simulation.
+            You should then build <mark class="CPL">CPL library</mark> and ALL the codes you 
+            plan to couple with the same compiler and version of mpic++ and mpif90.
+            Although this sounds like a lot of work, especially if you
+            have custom versions of codes already installed, it is
+            absolutely essential to guarantee correct behaviour in a coupled 
+            simulation.
+            The advice to to find out the version of mpi used by the code which is slowest to build
+            (e.g. OpenFOAM can take up to 8 hours) and use this to build everything else.
         </em>
         </P>
 
@@ -205,9 +211,9 @@
             these include,
 
             <ul>
-                <li>A  The following packages for Python2.7 python-dev, python-pip, python-tk and python-wxgtk3.0, </li>
+                <li>The following packages for Python2.7 from a package manager: python-dev, python-pip, python-tk and python-wxgtk3.0, </li>
                 <li>From pip, install matplotlib, numpy, scipy, pytest and mpi4py 
-                    (ensure this is using the same mpi and  <mark class="CPL">CPL library</mark>)</li>
+                    (ensure mpi4py is using the same MPI as <mark class="CPL">CPL library</mark> and all other coupled codes)</li>
             </ul>
         </p>
 
@@ -215,19 +221,15 @@
 
         <p>
             To keep up-to-date with bug-fixes and future developments, the
-            user is encouraged to download the library using the git version
-            control system:
+            user is encouraged to download the git version:
             <div class="code">
                 <p>
                     $  git clone https://github.com/Crompulence/cpl-library.git
                 </p>
             </div>
-
             which will download to a new folder in the current directory named
             "cpl-library". 
-            
         </p>
-
 
         <p> 
             If you don't want to use git, You can also download from github as a zip file,
@@ -235,7 +237,7 @@
                 https://github.com/Crompulence/cpl-library/archive/master.zip
             </p>
             Then unzip the file and rename
-            the folder "cpl-library": 
+            the folder to "cpl-library": 
             <div class="code"> $  unzip cpl-library-master.zip </div> 
             <div class="code"> $  mv cpl-library-master cpl-library</div> 
 
@@ -248,11 +250,10 @@
 
         <p>
             Compiling <mark class="CPL">CPL library</mark> itself, as a shared library, is
-            likely to work with Gnu make:
+            likely to work with a single Gnu make command:
 
             <div class="code"> $  cd PATH/TO/cpl-library/</div>
             <div class="code"> $  make PLATFORM=gcc </div>
-
         </p>
 
         <p>
@@ -264,11 +265,11 @@
             For more specific build requirements, the user should copy and change
             the compiler template file as outlined in cpl-library/README.            
 
-            The CPL library is not installed. 
+            Note that <mark class="CPL">CPL library</mark> is not installed. 
             Instead, a library will be created at the path,
         </p>
 
-        <div class="code"> cpl-library/lib/ </div>
+            <div class="code"> cpl-library/lib/ </div>
     
         <p>
             C++ headers and Fortran use-modules are placed in
@@ -289,9 +290,11 @@
         <div class="code"> $  source SOURCEME.sh </div>
 
         <p>
-            which is used instead of installing into the system directory 
-            so different versions of CPL library 
-            (although a make install option is provided).
+            which can be added to the user .bashrc if desired, and 
+            is preferred to installing into the system directory as
+            different versions of CPL library may be used with different 
+            version of MPI or compilers. Note, a make install option is
+            provided but has not been fully tested for all versions of linux.
         </p>
 
 
