@@ -250,7 +250,7 @@
             <div class="code"> $  mv cpl-library-master cpl-library</div> 
 
             Older release versions with Zenodo DOI links are also available on the
-            href="/download.shtml">download page</a>. 
+            <a href="/download.shtml">download page</a>. 
         </p>
 
 
@@ -258,7 +258,7 @@
 
         <p>
             Compiling <mark class="CPL">CPL library</mark> itself, as a shared library, is
-            likely to work with a single Gnu make command:
+            likely to work with a single make command:
 
             <div class="code"> $  cd PATH/TO/cpl-library/</div>
             <div class="code"> $  make PLATFORM=gcc </div>
