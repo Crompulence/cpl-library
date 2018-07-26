@@ -157,8 +157,8 @@
         on your supercomputer, make sure you have the following installed on your
         system:
         <ul>
-            <li>A Fortran compiler that supports the F2008 standard, and</li>
-            <li>A C/C++ compiler that supports the C++11 standard, </li>
+            <li>A Fortran compiler that supports the F2008 standard</li>
+            <li>A C/C++ compiler that supports the C++11 standard </li>
             <li>An MPI library - currently MPICH is supported</li>
         </ul>
 
@@ -166,21 +166,29 @@
         <a href="https://gcc.gnu.org/">GCC compiler collection </a>
         and <a href="https://www.mpich.org">MPICH</a>,
         which are both free and open-source. The intel compiler collection
-        and associated intel mpi (derived from mpich) also work as expected.
+        and associated intel mpi (derived from MPICH) also work as expected.
         The following guide assumes that you're working with a Unix-like operating
-        system like Linux or OS X. Docker may work cross-platform by has not been
+        system like Linux or OS X. Docker may work cross-platform but has not been
         tested so please <a href="/contact.shtml">email us</a>
         if you'd like help getting it working for a new system.
 
         <p>
-        <em> IMPORTANT NOTE: To minimise compatibility problems, 
-             you are advised to install gcc-5 and gfortran-5 or later
-             (from a 
-             <a href="/faq.shtml">ppa</a> or 
-             build it yourself).
-             Then download the latest version of mpich and
-             build this new version with gcc and gfortran. 
+        <em> 
+            IMPORTANT NOTE: To minimise compatibility problems, 
+            you are advised to install gcc-5 and gfortran-5 or later
+            (from a <a href="/faq.shtml">ppa</a> or build it yourself).
+            If you have a modern linux distribution (e.g. 16.04 or later)
+            then MPICH can also be got from a ppa. 
+            On older systems, it may be best to download the latest version of MPICH and
+            build this new version with a version of gcc and gfortran later than 5. 
+            For supercomputers, you will need to load from modules compatible versions
+            of MPI and GCC (or intel), and ensure that any other packages are built with
+            these. Please see the 
+            <a href=http://www.cpl-library.org/wiki/index.php?title=Setup_of_OpenFOAM&section=3#Coupled_OpenFOAM_on_HPC> wiki <\a> 
+            for more discussion of build coupled code on supercomputers
         </em>
+
+
 
         <details>
             <summary> MPICH with gcc-5 setup </summary>
