@@ -18,13 +18,14 @@
         running and analysing a coupled simulation. 
 
         Please <a href="/contact.shtml">get in touch</a> if something is
-        unclear or just plain wrong!
+        unclear.
 
         <p>
             Guide contents:
         </p>
 
         <ul>
+            <a href=#5min><li> Five Minute Quickstart</li></a>
             <a href=#prerequisites><li> Pre-requisites</li></a>
             <a href=#download ><li>Download</li></a>
             <a href=#compilation ><li>Compilation</li></a>
@@ -36,18 +37,112 @@
             <a href=#MD_CFD><li>Minimal CFD and MD code with coupling</li></a>
         </ul>
 
+
+        <h2 id="5min">Five Minute Quickstart</h2>
+
         <p>
-            These examples are all included in the /cpl-library/examples folder
-            with the <mark class="CPL">CPL library</mark> software.
+            Assuming you have <a href="https://www.docker.com/">Docker</a>, 
         </p>
 
+        <div class="code">
+            sudo docker run -it --name cplrun cpllibrary/cpl-library 
+        </div>
+
+        <p>
+            more details of running <mark class="CPL">CPL library</mark> with Docker are found on the
+            <a href=http://www.cpl-library.org/wiki/index.php/CPL_library_in_Docker> wiki</a>.
+        </p>
+
+
+        <details>
+            <summary> I don't use Docker </summary>
+            <p>
+                If you don't use Docker, or prefer not to, <mark class="CPL">CPL library</mark> should be fairly easy to 
+                install on a unix based system, add the <a href=#prerequisites><li> Pre-requisites</li></a> 
+                and then follow the install instructions in the 
+                <a href=#download ><li>download</li></a> and
+                <a href=#compilation ><li>compilation</li></a> sections. 
+                Make sure /lib/libcpl.so exists and you have called 
+                <div class="code">
+                    source SOURCEME.sh
+                </div>
+                in the cpl-library folder and then return to this section and continue.
+            </p>
+        </details>
+
+        <p>
+            In the Docker container (or installed <mark class="CPL">CPL library</mark> folder), 
+            change directory to the examples,
+            <div class="code">
+                cd ./examples/minimal_send_recv_mocks 
+            </div>
+            These examples show the minimal code needed to run a coupled simulation in the
+            three supported languages, Fortran, C++ and Python. 
+            Have a look at the code in these files, you will see the CPL_init, CPL_setup, 
+            CPL_send and CPL_recv commands, as well as boilerplate to setup MPI and
+            create a cartesian topology.
+            You can compile Fortran code using,
+            <div class="code">
+                cplf90 minimal_CFD.f90 -o ./CFD
+            </div>
+            for C++ code, you compile using,
+            <div class="code">
+                cplc++ minimal_MD.cpp -o ./MD
+            </div>
+            A coupled run is then performed using,
+            <div class="code">
+                cplexec -c 1 ./CFD -m 1 ./MD
+            </div>   
+            This will run each executable on one processes and link them together,
+            exchanging information using MPI and printing to screen the output from both codes.
+            Similarly, the other Python
+            <div class="code">
+                cplexec -c 1 ./minimal_CFD.py -m 1 ./MD
+            </div>   
+            or the other Fortran or C++ codes could be compiled and used instead.
+        </p>
+
+        </p>
+            The runner <code> cplexec </code> is simply a Python wrapper which runs both excutables as separate MPI
+            processes with their own MPI_COMM_WORLDS, which and then linked together using MPI Port. 
+            Alternatively, the two executables can be run in MPMD mode,
+            using,
+            <div class="code">
+                mpiexec -n 1 ./CFD : -n 1 ./MD
+            </div>
+            where they share a single MPI_COMM_WORLD.
+        </p>
+
+        </p>
+            Once you understand the way <mark class="CPL">CPL library</mark> links two any 
+            executables in Fortran, C++ or Python and exchanges information through CPL send 
+            and CPL recv, you can move on to the other examples. The interactive examples may
+            need display setup in Docker, see the
+            <a href=http://www.cpl-library.org/wiki/index.php/CPL_library_in_Docker> wiki</a>).
+            You can then look into OpenFOAM and LAMMPS coupling,
+        </p>
+            <div class="code">
+                sudo docker run -it --name cplopenfoamlammps cpllibrary/cpl-openfoam-lammps
+            </div>
+        </p>
+            And check out the examples in cpl-library/examples/coupled, as well as test folders
+            in the two coupling APPS, /CPL_APP_LAMMPS-DEV, 
+            <a href=https://github.com/Crompulence/CPL_APP_LAMMPS-DEV/tree/master/test/> here </a> 
+            and /OpenFOAM/CPL_APP_OPENFOAM-3.0.1
+            <a href=https://github.com/Crompulence/CPL_APP_OPENFOAM-3.0.1/tree/master/examples> here </a>  
+            (also see the github pages). The APPS use the minimal dummy scripts above like
+            <a href=https://en.wikipedia.org/wiki/Mock_object> mocks </a> to test
+            coupling and develop new code. Combined with assert statements and testing
+            functions, it is possible to build up a range of automated tests for coupled
+            codes to divide and validate a coupled simulation. 
+        </p>   
 
         <h2 id="prerequisites">Pre-requisites</h2>
         Before you begin, make sure you have the following installed on your
         system:
         <ul>
-            <li>A C/C++ compiler that supports the C++11 standard, </li>
             <li>A Fortran compiler that supports the F2008 standard, and</li>
+            <li>A C/C++ compiler that supports the C++11 standard, </li>
             <li>An MPI library - currently MPICH is supported</li>
         </ul>
 
@@ -58,7 +153,6 @@
         following guide assumes that you're working with a Unix-like operating
         system like Linux or OS X. Please <a href="/contact.shtml">email us</a>
         if you'd like help getting it working for a new system.
-
 
         <p>
         <em> IMPORTANT NOTE: To minimise compatibility problems, 
@@ -85,14 +179,24 @@
         <em>
              <br>
              You should then build <mark class="CPL">CPL library</mark> and ALL the codes you 
-             plan to couple with the same compiler and version of mpic++ 
-             and mpif90.
+             plan to couple with the same compiler and version of mpic++ and mpif90.
              Although this sounds like a lot of work, especially if you
              have custom versions of codes already installed, it is
              absolutely essential to guarantee correct behaviour in a coupled 
              simulation.
         </em>
         </P>
+
+        <p>
+            For testing and visualisation, you will optionally need a range of Python tools,
+            these include,
+
+            <ul>
+                <li>A  The following packages for Python2.7 python-dev, python-pip, python-tk and python-wxgtk3.0, </li>
+                <li>From pip, install matplotlib, numpy, scipy, pytest and mpi4py 
+                    (ensure this is using the same mpi and  <mark class="CPL">CPL library</mark>)</li>
+            </ul>
+        </p>
 
         <h2 id="download">Download</h2>
 
@@ -107,17 +211,23 @@
             </div>
 
             which will download to a new folder in the current directory named
-            "cpl-library".
+            "cpl-library". 
+            
         </p>
 
 
         <p> 
-            If you don't want to use git, a snapshot of the latest code can
-            also be downloaded in a zip file from the <a
-            href="/download.shtml">download page</a>. Unzip the file and rename
+            If you don't want to use git, You can also download from github as a zip file,
+            <p>
+                https://github.com/Crompulence/cpl-library/archive/master.zip
+            </p>
+            Then unzip the file and rename
             the folder "cpl-library": 
             <div class="code"> $  unzip cpl-library-master.zip </div> 
             <div class="code"> $  mv cpl-library-master cpl-library</div> 
+
+            Older release versions with Zenodo DOI links are also available on the
+            href="/download.shtml">download page</a>. 
         </p>
 
 
@@ -173,6 +283,13 @@
 
 
         <h2 id="MLE">Demo: a minimal linking example</h2>
+
+
+        <p>
+            All examples are all included in the /cpl-library/examples folder
+            with the <mark class="CPL">CPL library</mark> software.
+        </p>
+
 
         <p>
             This simple example shows you how to link two massively-parallel 
