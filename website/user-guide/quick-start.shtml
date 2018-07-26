@@ -41,15 +41,14 @@
         <h2 id="5min">Five Minute Quickstart</h2>
 
         <p>
-            Assuming you have <a href="https://www.docker.com/">Docker</a>, 
-        </p>
+            Assuming you have <a href="https://www.docker.com/">Docker</a>, the easiest way to try out
+            <mark class="CPL">CPL library</mark> on your local linux computer is with the following command,
 
-        <div class="code">
-            sudo docker run -it --name cplrun cpllibrary/cpl-library 
-        </div>
+            <div class="code">
+                sudo docker run -it --name cplrun cpllibrary/cpl-library 
+            </div>
 
-        <p>
-            more details of running <mark class="CPL">CPL library</mark> with Docker are found on the
+            more details of running <mark class="CPL">CPL library</mark> with Docker can be found on the
             <a href=http://www.cpl-library.org/wiki/index.php/CPL_library_in_Docker> wiki</a>.
         </p>
 
@@ -58,10 +57,10 @@
             <summary> I don't use Docker </summary>
             <p>
                 If you don't use Docker, or prefer not to, <mark class="CPL">CPL library</mark> should be fairly easy to 
-                install on a unix based system, add the <a href=#prerequisites><li> Pre-requisites</li></a> 
+                install on a unix based system, add the <a href=#prerequisites>Pre-requisites</a> 
                 and then follow the install instructions in the 
-                <a href=#download ><li>download</li></a> and
-                <a href=#compilation ><li>compilation</li></a> sections. 
+                <a href=#download>download</a> and
+                <a href=#compilation>compilation</a> sections. 
                 Make sure /lib/libcpl.so exists and you have called 
                 <div class="code">
                     source SOURCEME.sh
@@ -73,47 +72,61 @@
         <p>
             In the Docker container (or installed <mark class="CPL">CPL library</mark> folder), 
             change directory to the examples,
+        </p>
             <div class="code">
                 cd ./examples/minimal_send_recv_mocks 
             </div>
+        <p>
             These examples show the minimal code needed to run a coupled simulation in the
             three supported languages, Fortran, C++ and Python. 
             Have a look at the code in these files, you will see the CPL_init, CPL_setup, 
             CPL_send and CPL_recv commands, as well as boilerplate to setup MPI and
             create a cartesian topology.
             You can compile Fortran code using,
-            <div class="code">
-                cplf90 minimal_CFD.f90 -o ./CFD
-            </div>
+        </p>
+        <div class="code">
+            cplf90 minimal_CFD.f90 -o ./CFD
+        </div>
+        <p>
             for C++ code, you compile using,
+        </p>
             <div class="code">
                 cplc++ minimal_MD.cpp -o ./MD
             </div>
+        <p>
             A coupled run is then performed using,
+        </p>
             <div class="code">
                 cplexec -c 1 ./CFD -m 1 ./MD
             </div>   
+        <p>
             This will run each executable on one processes and link them together,
             exchanging information using MPI and printing to screen the output from both codes.
             Similarly, the other Python
+        </p>
             <div class="code">
                 cplexec -c 1 ./minimal_CFD.py -m 1 ./MD
             </div>   
+        <p>
             or the other Fortran or C++ codes could be compiled and used instead.
-        </p>
-
-        </p>
             The runner <code> cplexec </code> is simply a Python wrapper which runs both excutables as separate MPI
             processes with their own MPI_COMM_WORLDS, which and then linked together using MPI Port. 
             Alternatively, the two executables can be run in MPMD mode,
             using,
+        </p>
             <div class="code">
                 mpiexec -n 1 ./CFD : -n 1 ./MD
             </div>
+        <p>
             where they share a single MPI_COMM_WORLD.
+
+            That's it, this example contains the basic premise of <mark class="CPL">CPL library</mark>,
+            run two codes, link them together, setup a topological mapping and exchange information.
+            Next step can be to adjust the input parameter in any of the dummy codes to see what happens,
+            run with different numbers of processes by adjusting the input values.
         </p>
 
-        </p>
+        <p>
             Once you understand the way <mark class="CPL">CPL library</mark> links two any 
             executables in Fortran, C++ or Python and exchanges information through CPL send 
             and CPL recv, you can move on to the other examples. The interactive examples may
@@ -124,7 +137,7 @@
             <div class="code">
                 sudo docker run -it --name cplopenfoamlammps cpllibrary/cpl-openfoam-lammps
             </div>
-        </p>
+        <p>
             And check out the examples in cpl-library/examples/coupled, as well as test folders
             in the two coupling APPS, /CPL_APP_LAMMPS-DEV, 
             <a href=https://github.com/Crompulence/CPL_APP_LAMMPS-DEV/tree/master/test/> here </a> 
