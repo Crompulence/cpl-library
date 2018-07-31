@@ -540,7 +540,7 @@ subroutine test_realms(MPMD_mode)
         allocate(realm_list(0))
     endif
     call MPI_gather(callingrealm, 1, MPI_INTEGER, realm_list, &
-					1, MPI_INTEGER, root, MPI_COMM_WORLD, ierr)
+                    1, MPI_INTEGER, root, MPI_COMM_WORLD, ierr)
 
     !Check through array of processors on both realms
     !and return error if wrong values.
@@ -575,7 +575,7 @@ subroutine test_realms(MPMD_mode)
 
     endif
 
-	call MPI_BCAST(MPMD_mode, 1, MPI_INTEGER, root, MPI_COMM_WORLD, ierr)
+    call MPI_BCAST(MPMD_mode, 1, MPI_INTEGER, root, MPI_COMM_WORLD, ierr)
 
 end subroutine test_realms
 
@@ -594,6 +594,7 @@ subroutine create_comm(MPMD_mode)
     character(MPI_MAX_PORT_NAME) :: port
     integer :: port_connect, unitno, rsize
     logical :: portfileexists
+    character(len=128) :: hostname 
 
     if (MPMD_mode .eq. 1) then
         ! Split MPI COMM WORLD ready to establish two communicators
@@ -761,8 +762,9 @@ subroutine create_comm(MPMD_mode)
 
     endif
     if (output_mode .ne. QUIET) then
+        call hostnm(hostname)
         print*, 'Completed CPL communicator init for ', realm_name(realm), &
-                ' , CPL_WORLD_COMM ID:', myid_world
+                ' , CPL_WORLD_COMM ID:', myid_world, ', HOSTNAME: ', hostname
     endif
 
 end subroutine create_comm

@@ -12,7 +12,7 @@ template <class T >
 class Pool: public std::map<std::string, T*> {
 public:
     using std::map<std::string, T*>::map;
-    virtual ~Pool(){std::cout << "POOL DESTRUCTOR" << std::endl; clearPool();};
+    virtual ~Pool(){}//std::cout << "POOL DESTRUCTOR" << std::endl; clearPool();};
     virtual void clearPool(){
         typename std::map<std::string, T*>::iterator f;
         //TODO: Make this work properly. Fails with OpenFOAM producing a SegFault.

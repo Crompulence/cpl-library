@@ -85,9 +85,9 @@ public:
     bool isRootProcess() {return (rankRealm == 0);}
 
     //TODO: Implement this
-    bool isBcRegion(){};
-    bool isCnstRegion(){};
-    bool isOlapRegion(){};
+    bool isBcRegion(){return false;};
+    bool isCnstRegion(){return false;};
+    bool isOlapRegion(){return false;};
 
     // Clean up MPI/CPL communicators
     void finalizeComms();

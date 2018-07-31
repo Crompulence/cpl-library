@@ -74,11 +74,14 @@ std::vector<int> PortionField::getLocalCell(std::vector<int>& glob_cell, bool& v
  
 }
 
-
+// TODO: Implement this
 std::valarray<double> Field::getCoord(std::vector<int>& cell) {
+    return std::valarray<double>(3);
 }
 
+// TODO: Implement this
 std::vector<int> Field::getCell(std::valarray<double>& coord) {
+    return std::vector<int>(3);
 }
 
 
