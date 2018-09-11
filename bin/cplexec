@@ -7,12 +7,22 @@ except ImportError:
     import subprocess as sp
 import argparse
 from argparse import RawTextHelpFormatter
-import os 
+import os
+import shutil
 import atexit
 import signal
 import glob
 import time
 import sys
+import itertools
+from termcolor import colored
+from threading  import Thread
+try:
+    from queue import Queue, Empty
+except ImportError:
+    from Queue import Queue, Empty  # python 2.x
+
+ON_POSIX = 'posix' in sys.builtin_module_names
 
 def kill_sp(pids):
     """ensure processes killed if this script is killed"""
@@ -134,26 +144,97 @@ def execute(cmd, blocking=True):
         raise sp.CalledProcessError(return_code, cmd)
 
 
+def execute_two(cmd1, cmd2):
+    """
+    Outputs results as they are generated, example usage:
+
+    from __future__ import print_function
+
+    for path in execute(["locate", "a"]):
+        print(path, end="")
+
+    """
+    popen1 = sp.Popen(cmd1, stdout=sp.PIPE, stderr=sp.STDOUT, 
+                      shell=True, universal_newlines=True, 
+                      preexec_fn=os.setsid, bufsize=1)
+    popen2 = sp.Popen(cmd2, stdout=sp.PIPE, stderr=sp.STDOUT, 
+                     shell=True, universal_newlines=True, 
+                     preexec_fn=os.setsid, bufsize=1)
+
+    atexit.register(kill_sp, [os.getpgid(popen1.pid), os.getpgid(popen2.pid)])
+
+    with popen1.stdout:
+        with popen2.stdout:
+            i1 = iter(popen1.stdout.readline, b'')
+            i2 = iter(popen2.stdout.readline, b'')
+            for line in itertools.chain(itertools.izip(i1, i2)):
+                print(line)
+
+def enqueue_output(process, queue, cmdstr, proctype):
+
+    #Check for errors
+#    out = process.stderr
+#    for line in iter(out.readline, b''):
+#        print(line, "ValueError" in line)
+#        check_for_error_str(line)
+#        queue.put(line)
+#    out.close()
+
+    #Check for output
+    out = process.stdout
+    for line in iter(out.readline, b''):
+        if "CFD" in proctype:
+            queue.put(colored(line, "red"))
+        elif "MD" in proctype:
+            queue.put(colored(line, "blue"))
+        else:
+            queue.put(colored(line, "black"))
+
+    out.close()
+
+    #Check for errors
+#    if process.poll():
+#        c = process.communicate()
+#        print("Error code = ", process.poll(), c[0])
+#        for l in c[1].split("\n"):
+#            print(l)
+#        raise sp.CalledProcessError(process.poll(), ' '.join(cmdstr))
+#        sys.exit(1)
+#    else:
+#        if not args["permissive"]:
+#            check_for_error_str(process)
+
+def check_for_error_str(errstr):
+
+    #print("ERROR check = ", errstr.replace("\n",""), "ValueError", "ValueError" in errstr)
+
+    try:
+        if "NameError" in errstr:
+            raise NameError(errstr)
+            sys.exit(1)
+        elif "ValueError" in errstr:
+            raise ValueError(errstr)
+            sys.exit(1)
+        elif "Error" in errstr:
+            print(errstr)
+            sys.exit(1)
+        else:
+            print(errstr.replace("\n",""))
+    except IOError:
+        pass
+
 def check_for_error(proc):
     """
         If an Error (e.g. NameError) is raised by a Python
-        script after cpl has opened a port and merged two processes
-        do not trigger the subprocess error code (as the coupled code
-        in this case does not call MPI Abort due to a Python error)
-        So we need to catch this manually
+        script after CPL has port/merged two processes
+        it no longer trigger the subprocess error code 
+        (as the coupled code in this case does not call 
+        MPI Abort due to a Python error)
+        So therefore need to catch this manually
     """
     for line in iter(proc.stderr.readline, b''):
-        try:
-            if "NameError" in line:
-                raise NameError(line)
-                sys.exit(1)
-            elif "Error" in line:
-                print(line)
-                sys.exit(1)
-            else:
-                print(line.replace("\n",""))
-        except IOError:
-            pass
+        check_for_error_str(line)
+
 
 def get_libraries(filename=None):
     """
@@ -431,47 +512,76 @@ else:
 
     # Create a processor group using preexec_fn=os.setsid
     # so they can be killed as one.
-    p_CFD = sp.Popen(' '.join(cmdstr_CFD), stderr=sp.PIPE, 
-                     shell=True, preexec_fn=os.setsid, bufsize=1)
-    p_MD = sp.Popen(' '.join(cmdstr_MD), stderr=sp.PIPE, 
-                    shell=True, preexec_fn=os.setsid, bufsize=1)
-
-    #Register killer of subprocesses if python script killed 
-    atexit.register(kill_sp, [os.getpgid(p_MD.pid), os.getpgid(p_CFD.pid)])
+    #Setup a thread to allow output for each processes by adding to single Queue
+    q = Queue()
+    p_CFD = sp.Popen(' '.join(cmdstr_CFD), stdout=sp.PIPE, stderr=sp.STDOUT, 
+                      shell=True, universal_newlines=True, 
+                      preexec_fn=os.setsid, bufsize=1)
+    t_CFD = Thread(target=enqueue_output, args=(p_CFD, q, cmdstr_CFD, "CFD"))
+    t_CFD.daemon = True # thread dies with the program
+    t_CFD.start()
 
     # We will also need to check for and copy port file if needed here because
     # executables are in different folders...
+    time.sleep(0.1)
+    while not os.path.isfile("port"):
+        time.sleep(0.5)
+#        CFDexepath = "/".join(CFDDict["exec"].split("/")[:-2])
+#        MDexepath = "/".join(MDDict["exec"].split("/")[:-2])
+#        print(CFDexepath, MDexepath)
+#        if os.path.isfile(CFDexepath + "/port"):
+#            shutil.copyfile(CFDexepath + "/port", MDexepath + "/port")
+        print("No port in directory, waiting = ", os.listdir("./"))
+
+
+    p_MD = sp.Popen(' '.join(cmdstr_MD), stdout=sp.PIPE, stderr=sp.STDOUT, 
+                     shell=True, universal_newlines=True, 
+                     preexec_fn=os.setsid, bufsize=1)
+    t_MD = Thread(target=enqueue_output, args=(p_MD, q, cmdstr_MD, "MD"))
+    t_MD.daemon = True # thread dies with the program
+    t_MD.start()
+
+    #Register killer of subprocesses if python script killed 
+    atexit.register(kill_sp, [os.getpgid(p_CFD.pid), os.getpgid(p_MD.pid)])
 
     #Endless loop polling to see if codes have failed and checking
     #output error streams for any hint of error
     while True:
-        time.sleep(2.0)
+        # read line without blocking
+        try:  
+            line = q.get(timeout=0.1)
+        except Empty:
+            time.sleep(0.5)
+        else:
+            print(line.replace("\n",""))
+
+        #check_for_error_str(line)
+
         if args["verbose"]:
             print("POLL CFD = ", p_CFD.poll())
             print("POLL MD = ", p_MD.poll())
 
-        if p_CFD.poll():
-            c = p_CFD.communicate()
-            print("Error code = ", p_CFD.poll(), c[0])
-            for l in c[1].split("\n"):
-                print(l)
-            raise sp.CalledProcessError(p_CFD.poll(), ' '.join(cmdstr_CFD))
-            sys.exit(1)
-        else:
-            if not args["permissive"]:
-                check_for_error(p_CFD)
+#        if p_CFD.poll():
+#            c = p_CFD.communicate()
+#            print("Error code = ", p_CFD.poll(), c[0])
+#            for l in c[1].split("\n"):
+#                print(l)
+#            raise sp.CalledProcessError(p_CFD.poll(), ' '.join(cmdstr_CFD))
+#            sys.exit(1)
+#        else:
+#            if not args["permissive"]:
+#                check_for_error(p_CFD)
 
-        if p_MD.poll():
-            c = p_MD.communicate()
-            print("Error code = ", p_MD.poll(), c[0])
-            for l in c[1].split("\n"):
-                print(l)
-            raise sp.CalledProcessError(p_MD.poll(), ' '.join(cmdstr_MD))
-            sys.exit(1)
-        else:
-            if not args["permissive"]:
-                check_for_error(p_MD)
-
+#        if p_MD.poll():
+#            c = p_MD.communicate()
+#            print("Error code = ", p_MD.poll(), c[0])
+#            for l in c[1].split("\n"):
+#                print(l)
+#            raise sp.CalledProcessError(p_MD.poll(), ' '.join(cmdstr_MD))
+#            sys.exit(1)
+#        else:
+#            if not args["permissive"]:
+#                check_for_error(p_MD)
 
         if p_MD.poll() == 0 and p_CFD.poll() == 0:
             if args["verbose"]:
