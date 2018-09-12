@@ -561,7 +561,7 @@ else:
             print("POLL CFD = ", p_CFD.poll())
             print("POLL MD = ", p_MD.poll())
 
-#        if p_CFD.poll():
+#        if p_CFD.poll() != None:
 #            c = p_CFD.communicate()
 #            print("Error code = ", p_CFD.poll(), c[0])
 #            for l in c[1].split("\n"):
@@ -572,7 +572,7 @@ else:
 #            if not args["permissive"]:
 #                check_for_error(p_CFD)
 
-#        if p_MD.poll():
+#        if p_MD.poll() != None:
 #            c = p_MD.communicate()
 #            print("Error code = ", p_MD.poll(), c[0])
 #            for l in c[1].split("\n"):
@@ -584,9 +584,14 @@ else:
 #                check_for_error(p_MD)
 
         if p_MD.poll() == 0 and p_CFD.poll() == 0:
-            if args["verbose"]:
-                print("cplexec Finished successfully")
-            break
+            try:  
+                line = q.get(timeout=0.1)
+            except Empty:
+                if args["verbose"]:
+                    print("cplexec Finished successfully")
+                break
+            else:
+                print(line.replace("\n",""))
 
 #Return successful exit code
 sys.exit(0)
