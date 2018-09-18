@@ -13,7 +13,6 @@ import signal
 import glob
 import time
 import sys
-from termcolor import colored
 from threading  import Thread
 try:
     from queue import Queue, Empty
@@ -164,6 +163,7 @@ def check_for_error(proc):
 
 def enqueue_output(process, queue, cmdstr, proctype):
 
+    from termcolor import colored
     #Check for output
     out = process.stdout
     for line in iter(out.readline, b''):
