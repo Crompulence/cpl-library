@@ -452,117 +452,51 @@ else:
         print("MD Commands to run ", cmdstr_MD)
         print("CFD Commands to run ", cmdstr_CFD)
 
-    # Debug mode is another attempt to run both cases as threads
-    # which may provide more output in some cases
-    if args["Debug"]:
+    # Create a processor group using preexec_fn=os.setsid
+    # so they can be killed as one.
+    p_CFD = sp.Popen(' '.join(cmdstr_CFD), stderr=sp.PIPE, 
+                     shell=True, preexec_fn=os.setsid, bufsize=1)
+    p_MD = sp.Popen(' '.join(cmdstr_MD), stderr=sp.PIPE, 
+                    shell=True, preexec_fn=os.setsid, bufsize=1)
 
-        #Setup a thread to allow output for each processes by adding to single Queue
-        q = Queue()
-        p_CFD = sp.Popen(' '.join(cmdstr_CFD), stdout=sp.PIPE, stderr=sp.STDOUT, 
-                          shell=True, universal_newlines=True, 
-                          preexec_fn=os.setsid, bufsize=1)
-        t_CFD = Thread(target=enqueue_output, args=(p_CFD, q, cmdstr_CFD, "CFD"))
-        t_CFD.daemon = True # thread dies with the program
-        t_CFD.start()
+    #Register killer of subprocesses if python script killed 
+    atexit.register(kill_sp, [os.getpgid(p_MD.pid), os.getpgid(p_CFD.pid)])
+
+    #Endless loop polling to see if codes have failed and checking
+    #output error streams for any hint of error
+    while True:
+        time.sleep(2.0)
+        if args["verbose"]:
+            print("POLL CFD = ", p_CFD.poll())
+            print("POLL MD = ", p_MD.poll())
+
+        if p_CFD.poll():
+            c = p_CFD.communicate()
+            print("Error code = ", p_CFD.poll(), c[0])
+            for l in c[1].split("\n"):
+                print(l)
+            raise sp.CalledProcessError(p_CFD.poll(), ' '.join(cmdstr_CFD))
+            sys.exit(1)
+        else:
+            if not args["permissive"]:
+                check_for_error(p_CFD)
+
+        if p_MD.poll():
+            c = p_MD.communicate()
+            print("Error code = ", p_MD.poll(), c[0])
+            for l in c[1].split("\n"):
+                print(l)
+            raise sp.CalledProcessError(p_MD.poll(), ' '.join(cmdstr_MD))
+            sys.exit(1)
+        else:
+            if not args["permissive"]:
+                check_for_error(p_MD)
 
 
-        p_MD = sp.Popen(' '.join(cmdstr_MD), stdout=sp.PIPE, stderr=sp.STDOUT, 
-                         shell=True, universal_newlines=True, 
-                         preexec_fn=os.setsid, bufsize=1)
-        t_MD = Thread(target=enqueue_output, args=(p_MD, q, cmdstr_MD, "MD"))
-        t_MD.daemon = True # thread dies with the program
-        t_MD.start()
-
-        atexit.register(kill_sp, [os.getpgid(p_CFD.pid), os.getpgid(p_MD.pid)])
-
-        #Endless loop polling to see if codes have failed and checking
-        #output error streams for any hint of error
-        while True:
-            # read line without blocking
-            try:  
-                line = q.get(timeout=0.1)
-            except Empty:
-                time.sleep(2.0)
-            else:
-                print(line.replace("\n",""))
-
-            #Look for error codes in subprocesses
-            pollMD = p_MD.poll()
-            pollCFD = p_CFD.poll()
-
+        if p_MD.poll() == 0 and p_CFD.poll() == 0:
             if args["verbose"]:
-                print("POLL CFD = ", pollCFD)
-                print("POLL MD = ", pollMD)
-
-            if pollCFD != None:
-                if pollCFD != 0:
-                    check_for_error(p_CFD)
-                    raise sp.CalledProcessError(pollCFD, ' '.join(cmdstr_CFD))
-                    sys.exit(pollCFD)
-
-            if pollMD != None:
-                if pollMD != 0:
-                    check_for_error(p_MD)
-                    raise sp.CalledProcessError(pollMD, ' '.join(cmdstr_MD))
-                    sys.exit(pollMD)
-
-            if pollMD == 0 and pollCFD == 0:
-                try:  
-                    line = q.get(timeout=0.1)
-                except Empty:
-                    if args["verbose"]:
-                        print("cplexec Finished successfully")
-                    sys.exit(0)
-                else:
-                    print(line.replace("\n",""))
-
-
-    else:
-        # Create a processor group using preexec_fn=os.setsid
-        # so they can be killed as one.
-        p_CFD = sp.Popen(' '.join(cmdstr_CFD), stderr=sp.PIPE, 
-                         shell=True, preexec_fn=os.setsid, bufsize=1)
-        p_MD = sp.Popen(' '.join(cmdstr_MD), stderr=sp.PIPE, 
-                        shell=True, preexec_fn=os.setsid, bufsize=1)
-
-        #Register killer of subprocesses if python script killed 
-        atexit.register(kill_sp, [os.getpgid(p_MD.pid), os.getpgid(p_CFD.pid)])
-
-        #Endless loop polling to see if codes have failed and checking
-        #output error streams for any hint of error
-        while True:
-            time.sleep(2.0)
-            if args["verbose"]:
-                print("POLL CFD = ", p_CFD.poll())
-                print("POLL MD = ", p_MD.poll())
-
-            if p_CFD.poll():
-                c = p_CFD.communicate()
-                print("Error code = ", p_CFD.poll(), c[0])
-                for l in c[1].split("\n"):
-                    print(l)
-                raise sp.CalledProcessError(p_CFD.poll(), ' '.join(cmdstr_CFD))
-                sys.exit(1)
-            else:
-                if not args["permissive"]:
-                    check_for_error(p_CFD)
-
-            if p_MD.poll():
-                c = p_MD.communicate()
-                print("Error code = ", p_MD.poll(), c[0])
-                for l in c[1].split("\n"):
-                    print(l)
-                raise sp.CalledProcessError(p_MD.poll(), ' '.join(cmdstr_MD))
-                sys.exit(1)
-            else:
-                if not args["permissive"]:
-                    check_for_error(p_MD)
-
-
-            if p_MD.poll() == 0 and p_CFD.poll() == 0:
-                if args["verbose"]:
-                    print("cplexec Finished successfully")
-                break
+                print("cplexec Finished successfully")
+            break
 
 
 #Return successful exit code
