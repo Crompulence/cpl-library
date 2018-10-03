@@ -618,6 +618,9 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
                                             double m,   double s,   double e)
 {
 
+    //Define variable
+    std::vector<int> cell{3};
+    std::vector<double> Avi{3}, Ui_v{3}, fi{3}, Ui{3}, gradP{3}, divStress{3};
 
     //Get all elements of recieved field
     if (! use_interpolate){
@@ -689,9 +692,9 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     double A = drag_coefficient(r, D, Ui_v);
 
     //Just drag force here
-    f[0] = A*Ui_v[0];
-    f[1] = A*Ui_v[1];
-    f[2] = A*Ui_v[2];
+    fi[0] = A*Ui_v[0];
+    fi[1] = A*Ui_v[1];
+    fi[2] = A*Ui_v[2];
     //We split A*(vi - u_CFD) into implicit and explicit part following 
     //Heng Xiao and Jin Sun (2011) Commun. Comput. Phys. Vol. 9, No. 2, pp. 297-323
     //Define Avi=A*v[i] which is explicit part of the force based on molecular velocity
@@ -704,17 +707,17 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     if (use_gradP)
     {
         double volume = (4./3.)*M_PI*pow(s,3); 
-        f[0] += -volume*gradP[0];
-        f[1] += -volume*gradP[1];
-        f[2] += -volume*gradP[2];
+        fi[0] += -volume*gradP[0];
+        fi[1] += -volume*gradP[1];
+        fi[2] += -volume*gradP[2];
     }
     // and stress
     if (use_divStress)
     {
         double volume = (4./3.)*M_PI*pow(s,3); 
-        f[0] += volume*divStress[0];
-        f[1] += volume*divStress[1];
-        f[2] += volume*divStress[2];
+        fi[0] += volume*divStress[0];
+        fi[1] += volume*divStress[1];
+        fi[2] += volume*divStress[2];
     }
     //std::cout << "cell "  <<  cell[0] << " " << cell[1] << " " << cell[2] << std::endl;
 
@@ -734,11 +737,13 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
         FSums->add_to_array(r, Avi.data());
     }
 
-//    std::cout << "Drag Force "  
+//    std::cout << "Drag Force "  << A << " " 
 //              << r[2] << " " << v[0] << " " << Ui[0] << " "  << v[1] << " " << Ui[1] << " " << v[2] << " " << Ui[2] << " " 
-//              << divStress[2] << " " << gradP[2] << " " << f[2] << " "  << std::endl;
+//              << gradP[0]  << " " << gradP[1] << " " << gradP[2]  << " "
+//              << divStress[0] << " " << divStress[1] << " " << divStress[2] << " "
+//              << " " << fi[0] <<" " << fi[1] <<" " << fi[2] << " " << fi.size() << std::endl;
 
-    return f;
+    return fi;
 }
 
 

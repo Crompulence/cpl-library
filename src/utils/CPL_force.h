@@ -77,10 +77,6 @@ protected:
     std::shared_ptr<CPL::CPLField> cfd_array_field;
     std::vector<std::shared_ptr<CPL::CPLField>> fields;
 
-    //Define variable
-    std::vector<int> cell{3};
-    std::vector<double> Avi{3}, Ui_v{3}, f{3}, Ui{3}, gradP{3}, divStress{3};
-
 public:
 
     //Constructors
