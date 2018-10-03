@@ -619,8 +619,8 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
 {
 
     //Define variable
-    std::vector<int> cell{3};
-    std::vector<double> Avi{3}, Ui_v{3}, fi{3}, Ui{3}, gradP{3}, divStress{3};
+    std::vector<int> cell(3);
+    std::vector<double> Avi(3), Ui_v(3), fi(3), Ui(3), gradP(3), divStress(3);
 
     //Get all elements of recieved field
     if (! use_interpolate){
