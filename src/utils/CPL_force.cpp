@@ -621,6 +621,8 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     //Define variable
     std::vector<int> cell(3);
     std::vector<double> Avi(3), Ui_v(3), fi(3), Ui(3), gradP(3), divStress(3);
+    // std::vector<double> Ui_v(3), fi(3), Ui(3), gradP(3), divStress(3);
+
 
     //Get all elements of recieved field
     if (! use_interpolate){
@@ -699,7 +701,8 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     //Heng Xiao and Jin Sun (2011) Commun. Comput. Phys. Vol. 9, No. 2, pp. 297-323
     //Define Avi=A*v[i] which is explicit part of the force based on molecular velocity
     //and ForceCoeff is passed so implict A*u_CFD can be applied in SediFOAM
-    double volume = (4./3.)*M_PI*pow(s,3); 
+    double volume = (4./3.)*M_PI*pow(s,3);
+    // double Avi[] = {volume*A*v[0],  volume*A*v[1], volume*A*v[2]}; 
     Avi[0] = volume*A*v[0];
     Avi[1] = volume*A*v[1];
     Avi[2] = volume*A*v[2];
@@ -727,13 +730,14 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     // CFD-DEM Solver for Particle-Laden Flows, 
     // Commun. Comput. Phys. 9, 2, 297
     if (! use_interpolate){
-        FcoeffSums->add_to_array(0, cell[0], cell[1], cell[2], volume*A);
+        FcoeffSums->add_to_array(0, cell[0], cell[1], cell[2], A);
         FSums->add_to_array(0, cell[0], cell[1], cell[2], Avi[0]);
         FSums->add_to_array(1, cell[0], cell[1], cell[2], Avi[1]);
         FSums->add_to_array(2, cell[0], cell[1], cell[2], Avi[2]);
     } else {
-        FcoeffSums->add_to_array(r, volume*A);
+        FcoeffSums->add_to_array(r, A);
         FSums->add_to_array(r, Avi.data());
+        // FSums->add_to_array(r, Avi);
     }
 
 //    std::cout << "Drag Force "  << A << " " 
