@@ -112,4 +112,4 @@ inline bool checktrue(const std::string s)
     return false;
 }
 
-
+#endif  // CPLMiscLib_H_
