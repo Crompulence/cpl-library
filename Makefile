@@ -69,9 +69,8 @@ cppbindsrcfiles = $(addprefix $(cppbinddir)/, $(cppbindsrc))
 cppbindhdrfiles = $(addprefix $(cppbinddir)/, $(cppbindhdr))
 cppbindobjfiles = $(addprefix $(objdir)/, $(cppbindsrc:.cpp=.o))
 
-utilssrc = CPL_ndArray.cpp CPL_cartCreate.cpp CPL_vector3D.cpp CPL_force.cpp CPL_field.cpp \
-#           CPL_usherBase.cpp
-utilsextrahdr = CPL_misclib.h #CPL_usherExceptions.h
+utilssrc = CPL_ndArray.cpp CPL_cartCreate.cpp CPL_vector3D.cpp CPL_force.cpp CPL_field.cpp  TransmittingField.cpp CPLSocket.cpp #  CPL_usherBase.cpp
+utilsextrahdr = CPL_misclib.h PoolElement.h #CPL_usherExceptions.h
 utilshdr = $(utilssrc:.cpp=.h) $(utilsextrahdr)
 utilssrcfiles = $(addprefix $(utilsdir)/, $(utilssrc))
 utilshdrfiles = $(addprefix $(utilsdir)/, $(utilshdr))
@@ -87,7 +86,7 @@ CFLAGS += -fPIC
 #                         Targets
 
 # Default: make both the fortran and the c libraries
-default: core utilities fortran c cpp link
+default: core fortran copyutilities c cpp utilities link
 
 #debug: core fortran c cpp utilities link
 #	FFLAGS = -O0 -fbacktrace -Wall -fbounds-check $(FMODKEY)$(includedir) -fPIC 
@@ -128,6 +127,9 @@ endif
 utilities: core $(utilsobjfiles) $(utilshdrfiles)
 	@cp $(utilshdrfiles) $(includedir)
 
+copyutilities: core $(utilshdrfiles)
+	@cp $(utilshdrfiles) $(includedir)
+
 # Directory rules 
 $(objdir):
 	mkdir -p $(objdir)
@@ -151,7 +153,7 @@ endif
 
 # Utils compilation rules
 $(utilsobjfiles): $(objdir)/%.o : $(utilsdir)/%.cpp
-	$(CPP) $(CFLAGS) -I$(utilsdir) -c $< -o $@
+	$(CPP) $(CFLAGS) -I$(utilsdir) -I$(includedir) -c $< -o $@
 
 # Link static lib to dynamic (shared) library
 link: $(objdir) $(libobjfiles) $(utilsobjfiles)
