@@ -190,7 +190,7 @@ std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[],
     std::vector<int> indices = {0,1,2};
     std::vector<double> f = cfd_array_field->get_array_value(indices, r);
 
-//    std::cout << "CPLForceTest " << f[0] << " " << f[1] << " " << f[2] << std::endl;
+    //std::cout << "CPLForceTest " << f[0] << " " << f[1] << " " << f[2] << std::endl;
 
     return f;
 }
@@ -695,6 +695,7 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     fi[0] = A*Ui_v[0];
     fi[1] = A*Ui_v[1];
     fi[2] = A*Ui_v[2];
+
     //We split A*(vi - u_CFD) into implicit and explicit part following 
     //Heng Xiao and Jin Sun (2011) Commun. Comput. Phys. Vol. 9, No. 2, pp. 297-323
     //Define Avi=A*v[i] which is explicit part of the force based on molecular velocity

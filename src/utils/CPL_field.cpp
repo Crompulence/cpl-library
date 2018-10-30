@@ -6,8 +6,107 @@
 #include "CPL_field.h"
 #include "overlap/overlap.hpp"
 #include "interpolate/interp_ho.h"
+#include "cpl.h"
 
 using namespace CPL;
+
+
+Domain::Domain(const std::valarray<double>& domain_orig,
+               const std::valarray<double>& domain_length) : bounds(6){
+    bounds[0] = domain_orig[0];
+    bounds[1] = domain_orig[0] + domain_length[0];
+    bounds[2] = domain_orig[1];
+    bounds[3] = domain_orig[1] + domain_length[1];
+    bounds[4] = domain_orig[2];
+    bounds[5] = domain_orig[2] + domain_length[2];
+    lx = domain_length[0];
+    ly = domain_length[1];
+    lz = domain_length[2];
+    computeAV_();
+}
+
+Domain::Domain(const std::valarray<double>& domain_bounds) {
+    lx = domain_bounds[0] - domain_bounds[1];
+    ly = domain_bounds[2] - domain_bounds[3];
+    lz = domain_bounds[4] - domain_bounds[5];
+    bounds = domain_bounds;
+    computeAV_();
+}
+
+void Domain::computeAV_() {
+    Axy = lx * ly;
+    Axz = lx * lz;
+    Ayz = ly * lz;
+    V = lx * ly * lz;
+}
+
+
+std::valarray<double> Domain::length() {
+    return std::valarray<double>({lx, ly, lz});
+}
+
+std::valarray<double> Domain::area() {
+    return std::valarray<double>({Axy, Axz, Ayz});
+}
+
+
+Field::Field(const CPL::Domain& domain,
+             const std::vector<int>& field_cells):
+             Domain(domain), nCells(field_cells) {
+
+    computedAdV_();
+}
+
+//TODO: Add const to those when changing interface in cpllib
+std::vector<int> PortionField::getLocalCell(std::vector<int>& glob_cell) {
+    std::vector<int> loc_cell(3);
+    CPL::map_glob2loc_cell(cellBounds.data(), glob_cell.data(), 
+                           loc_cell.data());
+    return loc_cell;
+    
+}
+
+std::vector<int> PortionField::getLocalCell(std::vector<int>& glob_cell, bool& valid_cell) {
+    std::vector<int> loc_cell(3);
+    valid_cell = CPL::map_glob2loc_cell(cellBounds.data(), glob_cell.data(), 
+                                        loc_cell.data());
+    return loc_cell;
+ 
+}
+
+// TODO: Implement this
+std::valarray<double> Field::getCoord(std::vector<int>& cell) {
+    return std::valarray<double>(3);
+}
+
+// TODO: Implement this
+std::vector<int> Field::getCell(std::valarray<double>& coord) {
+    return std::vector<int>(3);
+}
+
+
+std::valarray<double> Field::cellLength() {
+    return std::valarray<double>({dx, dy, dz});
+}
+
+
+std::valarray<double> Field::cellArea() {
+    return std::valarray<double>({dAxy, dAxz, dAyz});
+}
+
+void Field::computedAdV_() {
+    dx = (bounds[1] - bounds[0]) / nCells[0];//data->shape(1);
+    dy = (bounds[3] - bounds[2]) / nCells[1];//data->shape(2);
+    dz = (bounds[5] - bounds[4]) / nCells[2];//data->shape(3);
+    dAxy = dx * dy;
+    dAxz = dx * dz;
+    dAyz = dy * dz;
+    dV = dx * dy * dz;
+}
+
+
+
+
 
 
 //Constructor based on specified size

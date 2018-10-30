@@ -44,6 +44,8 @@ Author(s)
 
 */
 
+#ifndef CPLMiscLib_H_
+#define CPLMiscLib_H_
 
 /////////////////////////////////////////////////////////////////////
 // A function to compare two strings in a case insenstive manner
