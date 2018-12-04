@@ -1195,9 +1195,9 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_volSumsFsum) {
         //Since introducing overlap mode, need assert near
         //ASSERT_NEAR(c.volSums(i,j,k), volume, 1e-14);
         ASSERT_DOUBLE_EQ(volbuf(0,i,j,k), volume);
-        ASSERT_DOUBLE_EQ(Fbuf(0,i,j,k), Cdv*i/double(icell));
-        ASSERT_DOUBLE_EQ(Fbuf(1,i,j,k), Cdv*j/double(jcell));
-        ASSERT_DOUBLE_EQ(Fbuf(2,i,j,k), Cdv*k/double(kcell));
+        ASSERT_DOUBLE_EQ(Fbuf(0,i,j,k), volume*Cdv*i/double(icell));
+        ASSERT_DOUBLE_EQ(Fbuf(1,i,j,k), volume*Cdv*j/double(jcell));
+        ASSERT_DOUBLE_EQ(Fbuf(2,i,j,k), volume*Cdv*k/double(kcell));
     } } }
 
 
@@ -1232,11 +1232,11 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_volSumsFsum) {
     CPL::ndArray<double> FcoeffSums = d.FcoeffSums->get_array();
     trplefor(icell,jcell,kcell){
         ASSERT_DOUBLE_EQ(volbuf(0,i,j,k), 0.);
-        ASSERT_NEAR(Fbuf(0,i,j,k), Cd*(i/double(icell)),1e-13);
+        ASSERT_NEAR(Fbuf(0,i,j,k), volume*Cd*(i/double(icell)),1e-13);
         //Because Fsums is only based on molecular velocity, independant of VCFD
         //ASSERT_NEAR(Fbuf(1,i,j,k), Cd*(VCFD-j/double(jcell)),1e-13);
-        ASSERT_NEAR(Fbuf(1,i,j,k), Cd*(j/double(jcell)),1e-13);
-        ASSERT_NEAR(Fbuf(2,i,j,k), Cd*(k/double(kcell)),1e-13);
+        ASSERT_NEAR(Fbuf(1,i,j,k), volume*Cd*(j/double(jcell)),1e-13);
+        ASSERT_NEAR(Fbuf(2,i,j,k), volume*Cd*(k/double(kcell)),1e-13);
         ASSERT_NEAR(FcoeffSums(0,i,j,k), Cd, 1e-13);
     } } }
 
