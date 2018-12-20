@@ -24,6 +24,8 @@ CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){
     cfd_array_field = std::make_shared<CPL::CPLField>(nd, icells, jcells, kcells);
     calc_preforce = false;
     calc_preforce_everytime = false;
+    calc_postforce = false;
+    calc_postforce_everytime = false;
 }
 
 
@@ -32,17 +34,19 @@ CPLForce::CPLForce(CPL::ndArray<double> arrayin) {
     cfd_array_field = std::make_shared<CPL::CPLField>(arrayin);
     calc_preforce = false;
     calc_preforce_everytime = false;
+    calc_postforce = false;
+    calc_postforce_everytime = false;
 
 }
 
-//Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
+//Pre force collection of sums (for things not possible with LAMMPS fix chunk/atom bin/3d)
 void CPLForce::pre_force(double r[], double v[], double a[], 
                          double m, double s, double e) {
 //    throw std::runtime_error("CPLForce::pre_force is not defined");
 }
 
 
-//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
+//Calculate force on a molecule
 std::vector<double> CPLForce::get_force(double r[], double v[], double a[], 
                                         double m, double s, double e){
 //    throw std::runtime_error("CPLForce::get_force is not defined");
@@ -50,7 +54,16 @@ std::vector<double> CPLForce::get_force(double r[], double v[], double a[],
     return f;
 }
 
+//Post force collection of sums  (for things not possible with LAMMPS fix chunk/atom bin/3d)
+void CPLForce::post_force(double r[], double v[], double a[], 
+                         double m, double s, double e) {
+//    throw std::runtime_error("CPLForce::post_force is not defined");
+}
+
 void CPLForce::resetsums(){
+
+    //Reset all counters
+    Npre_force=0; Nforce=0; Npost_force=0;
     //General function which loops over all field classes and resets
     for ( auto &f : fields ) { 
         f->zero_array(); 
@@ -160,6 +173,8 @@ CPLForceTest::CPLForceTest(CPL::ndArray<double> arrayin) : CPLForce(arrayin){
 void CPLForceTest::initialisesums(CPL::ndArray<double> arrayin){
     calc_preforce = false;
     calc_preforce_everytime = false;
+    calc_postforce = false;
+    calc_postforce_everytime = false;
     auto otherfield = std::make_shared<CPL::CPLField>(1, arrayin.shape(1), 
                                                          arrayin.shape(2), 
                                                          arrayin.shape(3), 
@@ -169,6 +184,8 @@ void CPLForceTest::initialisesums(CPL::ndArray<double> arrayin){
 }
 
 void CPLForceTest::resetsums(){
+    //Reset all counters
+    Npre_force=0; Nforce=0; Npost_force=0;
     //General function which loops over all field classes and resets
     for ( auto &f : fields ) { 
         f->zero_array(); 
@@ -176,14 +193,14 @@ void CPLForceTest::resetsums(){
 }
 
 
-//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
+//Pre force collection of sums 
 void CPLForceTest::pre_force(double r[], double v[], double a[], 
                              double m, double s, double e){
 //    throw std::runtime_error("CPLForceTest::pre_force is not defined");
 }
 
 
-//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
+//Calculate force on a molecule
 std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[], 
                                             double m, double s, double e){
 
@@ -195,6 +212,11 @@ std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[],
     return f;
 }
 
+//Post force collection of sums  (for things not possible with LAMMPS fix chunk/atom bin/3d)
+void CPLForceTest::post_force(double r[], double v[], double a[], 
+                         double m, double s, double e) {
+//    throw std::runtime_error("CPLForce::post_force is not defined");
+}
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
@@ -218,6 +240,8 @@ CPLForceVelocity::CPLForceVelocity(CPL::ndArray<double> arrayin)
 void CPLForceVelocity::initialisesums(CPL::ndArray<double> arrayin){
     calc_preforce = true;
     calc_preforce_everytime = true;
+    calc_postforce = false;
+    calc_postforce_everytime = false;
     int vsumsShape[4] = {arrayin.shape(0), arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     vSums.resize(4, vsumsShape); // Sum of velocity
     int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
@@ -226,6 +250,9 @@ void CPLForceVelocity::initialisesums(CPL::ndArray<double> arrayin){
 }
 
 void CPLForceVelocity::resetsums(){
+    //Reset all counters
+    Npre_force=0; Nforce=0; Npost_force=0;
+    //reset sums
     nSums = 0.0;  vSums = 0.0;
 }
 
@@ -267,7 +294,11 @@ std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a
     }
 }
 
-
+//Post force collection of sums  (for things not possible with LAMMPS fix chunk/atom bin/3d)
+void CPLForceVelocity::post_force(double r[], double v[], double a[], 
+                         double m, double s, double e) {
+//    throw std::runtime_error("CPLForce::post_force is not defined");
+}
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
@@ -290,6 +321,8 @@ CPLForceFlekkoy::CPLForceFlekkoy(CPL::ndArray<double> arrayin) : CPLForce(arrayi
 void CPLForceFlekkoy::initialisesums(CPL::ndArray<double> arrayin){
     calc_preforce = true;
     calc_preforce_everytime = true;
+    calc_postforce = false;
+    calc_postforce_everytime = false;
     int sumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
     gSums.resize(3, sumsShape); // Sum of Flekkøy g weights
     nSums.resize(3, sumsShape); // Sum of number of particles  
@@ -297,6 +330,9 @@ void CPLForceFlekkoy::initialisesums(CPL::ndArray<double> arrayin){
 }
 
 void CPLForceFlekkoy::resetsums(){
+    //Reset all counters
+    Npre_force=0; Nforce=0; Npost_force=0;
+    //Reset sums
     nSums = 0.0;  gSums = 0.0;
 }
 
@@ -376,6 +412,11 @@ std::vector<double> CPLForceFlekkoy::get_force(double r[], double v[], double a[
     return f;
 }
 
+//Post force collection of sums  (for things not possible with LAMMPS fix chunk/atom bin/3d)
+void CPLForceFlekkoy::post_force(double r[], double v[], double a[], 
+                         double m, double s, double e) {
+//    throw std::runtime_error("CPLForce::post_force is not defined");
+}
 
 ///////////////////////////////////////////////////////////////////
 //                                                               //
@@ -436,6 +477,7 @@ void CPLForceDrag::set_defaults(){
     use_gradP = true;
     use_divStress = false;
     calc_preforce_everytime = false;
+    calc_postforce_everytime = false;
 
 }
 
@@ -444,6 +486,7 @@ void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
 
     //Default values
     calc_preforce = true;
+    calc_postforce = false;
     int n = arrayin.shape(0);
     int i = arrayin.shape(1);
     int j = arrayin.shape(2);
@@ -483,7 +526,9 @@ void CPLForceDrag::build_fields_list(){
 
 //Can be inhereted from Base Class
 void CPLForceDrag::resetsums(){
-
+    //Reset all counters
+    Npre_force=0; Nforce=0; Npost_force=0;
+    //Reset sums
     for ( auto &f : fields ) { 
         f->zero_array(); 
     }
@@ -528,6 +573,8 @@ void CPLForceDrag::unpack_default_arg_map(map_strstr arg_map, bool extra_args){
             rho = std::stod(arg.second);
         } else if (string_contains(arg.first, "preforce_everytime")  != -1) {
             calc_preforce_everytime = checktrue(arg.second);
+        } else if (string_contains(arg.first, "postforce_everytime")  != -1) {
+            calc_postforce_everytime = checktrue(arg.second);
         } else if (extra_args) {
             std::cout << "key: " << arg.first << 
             " for forcetype not recognised as default" << '\n';
@@ -596,13 +643,14 @@ double CPLForceDrag::drag_coefficient(double r[], double D,
 
 //Pre force collection of sums including overlap code to assign volumes
 void CPLForceDrag::pre_force(double r[], double v[], double a[], 
-                             double m, double s, double e) {
+                             double m,   double s,   double e) {
 
+//    throw std::runtime_error("CPLForceDrag::pre_force no porosity/velocity needed so don't need to call this");
     double volume = (4./3.)*M_PI*pow(s,3); 
     double v_vol[]= {v[0]*volume, v[1]*volume, v[2]*volume};
     nSums->add_to_array(r, 1.0);
 
-    //std::cout << "Pre_force " << use_overlap << " " << r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
+    std::cout << "Pre_force " << use_overlap << " " << r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
     if (! use_overlap){
         volSums->add_to_array(r, volume);           
         vSums->add_to_array(r, v_vol);
@@ -621,15 +669,10 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     //Define variable
     std::vector<int> cell(3);
     std::vector<double> Avi(3), Ui_v(3), fi(3), Ui(3), gradP(3), divStress(3);
-    // std::vector<double> Ui_v(3), fi(3), Ui(3), gradP(3), divStress(3);
-
 
     //Get all elements of recieved field
     if (! use_interpolate){
 
-        //Check array is the right size
-        //CPL::ndArray<double>& array = cfd_array_field->get_array_pointer();
-        //assert(array.shape(0) == 9);
         //Based on cell
         cell = cfd_array_field->get_cell(r);
         Ui[0] = cfd_array_field->get_array_value(0, cell[0], cell[1], cell[2]);
@@ -642,36 +685,6 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
         divStress[1] = cfd_array_field->get_array_value(7, cell[0], cell[1], cell[2]);
         divStress[2] = cfd_array_field->get_array_value(8, cell[0], cell[1], cell[2]);
 
-
-        //Another attempt using indexing
-//        cell[0] = floor((r[0]-min[0])/dxyz[0]);
-//        cell[1] = floor((r[1]-min[1])/dxyz[1]);
-//        cell[2] = floor((r[2]-min[2])/dxyz[2]);
-//        int indx = cell[2]*shapeVector[0]*shapeVector[1]*shapeVector[2]
-//                 + cell[1]*shapeVector[0]*shapeVector[1]
-//                 + cell[0]*shapeVector[0];
-//        Ui[0] = cfd_array_field->get_array_value(indx);
-//        Ui[0] = cfd_array_field->get_array_value(indx+1);
-//        Ui[0] = cfd_array_field->get_array_value(indx+2);
-
-        //This is extremly slow, better to get cells once and inline static lookup
-//        std::vector<int> indices = {0,1,2}; 
-//        Ui = cfd_array_field->get_array_value(indices, r);
-//        for (int &n : indices) n += 3; 
-//        gradP = cfd_array_field->get_array_value(indices, r);
-//        for (int &n : indices) n += 3; 
-//        divStress = cfd_array_field->get_array_value(indices, r);
-
-          //An attempt to use static memory allocation
-//        Ui[0] = fastarray[0][cell[0]][cell[1]][cell[2]];
-//        Ui[1] = fastarray[1][cell[0]][cell[1]][cell[2]];
-//        Ui[2] = fastarray[2][cell[0]][cell[1]][cell[2]];
-//        gradP[0] = fastarray[3][cell[0]][cell[1]][cell[2]];
-//        gradP[1] = fastarray[4][cell[0]][cell[1]][cell[2]];
-//        gradP[2] = fastarray[5][cell[0]][cell[1]][cell[2]];
-//        divStress[0] = fastarray[6][cell[0]][cell[1]][cell[2]];
-//        divStress[1] = fastarray[7][cell[0]][cell[1]][cell[2]];
-//        divStress[2] = fastarray[8][cell[0]][cell[1]][cell[2]];
     } else {
         //Or interpolate to position in space
         std::vector<int> indices = {0,1,2}; 
@@ -687,26 +700,15 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     Ui_v[1] = Ui[1]-v[1];
     Ui_v[2] = Ui[2]-v[2];
 
-    //Get Diameter
+    //Get Diameter, drag coefficient and volume
     double D = 2.0*s;
-
-    //Get drag coefficient
     double A = drag_coefficient(r, D, Ui_v);
+    double volume = (4./3.)*M_PI*pow(s,3);
 
     //Just drag force here
     fi[0] = A*Ui_v[0];
     fi[1] = A*Ui_v[1];
     fi[2] = A*Ui_v[2];
-
-    //We split A*(vi - u_CFD) into implicit and explicit part following 
-    //Heng Xiao and Jin Sun (2011) Commun. Comput. Phys. Vol. 9, No. 2, pp. 297-323
-    //Define Avi=A*v[i] which is explicit part of the force based on molecular velocity
-    //and ForceCoeff is passed so implict A*u_CFD can be applied in SediFOAM
-    double volume = (4./3.)*M_PI*pow(s,3);
-    // double Avi[] = {volume*A*v[0],  volume*A*v[1], volume*A*v[2]}; 
-    Avi[0] = volume*A*v[0];
-    Avi[1] = volume*A*v[1];
-    Avi[2] = volume*A*v[2];
 
     //Include pressure
     if (use_gradP)
@@ -722,7 +724,26 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
         fi[1] += volume*divStress[1];
         fi[2] += volume*divStress[2];
     }
-    //std::cout << "cell "  <<  cell[0] << " " << cell[1] << " " << cell[2] << std::endl;
+
+    //We split A*(vi - u_CFD) into implicit and explicit part following 
+    //Heng Xiao and Jin Sun (2011) Commun. Comput. Phys. Vol. 9, No. 2, pp. 297-323
+    //Define Avi=A*v[i] which is explicit part of the force based on molecular velocity
+    //and ForceCoeff is passed so implict A*u_CFD can be applied in SediFOAM
+    Avi[0] = volume*A*v[0];
+    Avi[1] = volume*A*v[1];
+    Avi[2] = volume*A*v[2];
+
+    std::cout << "CPLForceDrag::get_force "  
+              <<  cell[0] << " " << cell[1] << " " << cell[2]
+              << " " <<  volume << " " <<  A << " " 
+              << v[1] << " " << Ui[1] << " " << fi[1] << std::endl;
+
+//    std::cout << "CPLForceDrag::get_force "  
+//              <<  cell[0] << " " << cell[1] << " " << cell[2]
+//              << " " <<  volume << " " <<  A << " " 
+//              << v[0] << " " <<  v[1] << " " <<  v[2] << " " 
+//             << Ui[0] << " " << Ui[1] << " " << Ui[2] <<  " " 
+//             << fi[0] << " " << fi[1] << " " << fi[2] << std::endl;
 
     // Add sum of coefficients of forces 
     // Needed if you want to split implicit/explicit terms for
@@ -731,12 +752,12 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     // CFD-DEM Solver for Particle-Laden Flows, 
     // Commun. Comput. Phys. 9, 2, 297
     if (! use_interpolate){
-        FcoeffSums->add_to_array(0, cell[0], cell[1], cell[2], A);
+        FcoeffSums->add_to_array(0, cell[0], cell[1], cell[2], volume*A);
         FSums->add_to_array(0, cell[0], cell[1], cell[2], Avi[0]);
         FSums->add_to_array(1, cell[0], cell[1], cell[2], Avi[1]);
         FSums->add_to_array(2, cell[0], cell[1], cell[2], Avi[2]);
     } else {
-        FcoeffSums->add_to_array(r, A);
+        FcoeffSums->add_to_array(r, volume*A);
         FSums->add_to_array(r, Avi.data());
         // FSums->add_to_array(r, Avi);
     }
@@ -751,12 +772,63 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
 }
 
 
+//Post force collection of sums including overlap code to assign volumes
+void CPLForceDrag::post_force(double r[], double v[], double a[], 
+                             double m, double s, double e) {
+
+
+    throw std::runtime_error("CPLForceDrag::post_force not needed, use value from pre force");
+    double volume = (4./3.)*M_PI*pow(s,3); 
+    double v_vol[]= {v[0]*volume, v[1]*volume, v[2]*volume};
+    nSums->add_to_array(r, 1.0);
+
+    std::cout << "Post_force " << use_overlap << " " << r[0] << " " << r[1] << " " << r[2] 
+                                              << " " << v[0] << " " << v[1] << " " << v[2] 
+                                              << " " <<volume << std::endl;
+    if (! use_overlap){
+        volSums->add_to_array(r, volume);           
+        vSums->add_to_array(r, v_vol);
+    } else {
+        volSums->add_to_array(r, s, volume);
+        vSums->add_to_array(r, s, v_vol);
+    }
+}
+
 ///////////////////////////////////////////////////////////////////
 //                                                               //
 //                    CPLForceGranular                           //
 //                                                               //
 ///////////////////////////////////////////////////////////////////
 // General Class to use for Ergun (1952), Di Felice (1994), BVK...
+
+
+void CPLForceGranular::initialisesums(CPL::ndArray<double> arrayin){
+
+    //Default values
+    calc_preforce = true;
+    calc_postforce = false;
+    CPLForceDrag::initialisesums(arrayin);
+
+}
+
+//Pre force collection of sums including overlap code to assign volumes
+void CPLForceGranular::pre_force(double r[], double v[], double a[], 
+                                 double m,   double s,   double e) {
+
+    double volume = (4./3.)*M_PI*pow(s,3); 
+    double v_vol[]= {v[0]*volume, v[1]*volume, v[2]*volume};
+    nSums->add_to_array(r, 1.0);
+
+    std::cout << "Pre_force " << use_overlap << " " << r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
+    if (! use_overlap){
+        volSums->add_to_array(r, volume);           
+        vSums->add_to_array(r, v_vol);
+    } else {
+        volSums->add_to_array(r, s, volume);
+        vSums->add_to_array(r, s, v_vol);
+    }
+}
+
 
 //Return Stokes force
 double CPLForceGranular::Stokes(double D, double mu) {

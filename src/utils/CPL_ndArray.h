@@ -161,6 +161,9 @@ namespace CPL
         // Number of elements
         int size();
 
+        // Set to zero
+        void zero();
+
         // Min/max/sum functions
         double min();
         double max();

@@ -79,6 +79,9 @@ protected:
 
 public:
 
+    //Counters for number of records in preforce, force and postfoce
+    int Npre_force=0, Nforce=0, Npost_force=0;
+
     //Constructors
     CPLForce(int, int, int, int);
     CPLForce(CPL::ndArray<double>);
@@ -100,10 +103,15 @@ public:
                            double m, double s, double e) = 0;
     virtual std::vector<double> get_force(double r[], double v[], double a[], 
                                           double m, double s, double e) = 0;
+    virtual void post_force(double r[], double v[], double a[], 
+                            double m, double s, double e) = 0;
     virtual void resetsums() = 0;
 
     bool calc_preforce;
     bool calc_preforce_everytime;
+
+    bool calc_postforce;
+    bool calc_postforce_everytime;
 //    void setup_fast_array();
 
     //Destructor
@@ -131,6 +139,8 @@ public:
                    double m, double s, double e);
     std::vector<double> get_force(double r[], double v[], double a[], 
                                   double m, double s, double e);
+    void post_force(double r[], double v[], double a[], 
+                   double m, double s, double e);
 
     void initialisesums(CPL::ndArray<double>);
     void build_fields_list();
@@ -153,6 +163,8 @@ public:
                    double m, double s, double e);
     std::vector<double> get_force(double r[], double v[], double a[], 
                                   double m, double s, double e);
+    void post_force(double r[], double v[], double a[], 
+                   double m, double s, double e);
 
     void resetsums();
 
@@ -182,6 +194,8 @@ public:
                    double m, double s, double e);
     std::vector<double> get_force(double r[], double v[], double a[], 
                                   double m, double s, double e);
+    void post_force(double r[], double v[], double a[], 
+                   double m, double s, double e);
 
     //Force specific things
     double flekkoyGWeight(double y, double ymin, double ymax);
@@ -220,6 +234,8 @@ public:
                    double m, double s, double e);
     std::vector<double> get_force(double r[], double v[], double a[], 
                                   double m, double s, double e);
+    void post_force(double r[], double v[], double a[], 
+                    double m, double s, double e);
 
     void unpack_CFD_array(CPL::ndArray<double> arrayin);
 
@@ -267,11 +283,18 @@ public:
     //Constructors
     using CPLForceDrag::CPLForceDrag;
 
+    void pre_force(double r[], double v[], double a[], 
+                   double m,   double s,   double e);
+
     //Granular functions
     double Stokes(double D, double mu);
     double Reynolds_number(double D, double U, double rho, double mu, double eps);
     double magnitude(std::vector<double> v);
     double get_eps(double r[]);
+
+protected:
+
+    void initialisesums(CPL::ndArray<double> f);
 
 };
 

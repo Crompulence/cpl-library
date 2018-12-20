@@ -142,6 +142,16 @@ template<class T> int CPL::ndArray<T>::size()
     return nElements;
 }
 
+// Zero array
+template<class T> void CPL::ndArray<T>::zero()
+{
+    for (int i=0; i<nElements; i++)
+    {
+        ndArrayData[i] = 0.0;
+    }
+}
+
+
 // Minimum value
 template<class T> double CPL::ndArray<T>::min()
 {
