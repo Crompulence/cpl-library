@@ -1237,7 +1237,7 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_volSumsFsum) {
         //ASSERT_NEAR(Fbuf(1,i,j,k), Cd*(VCFD-j/double(jcell)),1e-13);
         ASSERT_NEAR(Fbuf(1,i,j,k), volume*Cd*(j/double(jcell)),1e-13);
         ASSERT_NEAR(Fbuf(2,i,j,k), volume*Cd*(k/double(kcell)),1e-13);
-        ASSERT_NEAR(FcoeffSums(0,i,j,k), Cd, 1e-13);
+        ASSERT_NEAR(FcoeffSums(0,i,j,k), volume*Cd, 1e-13);
     } } }
 
     //Check force based on pressure gradient
