@@ -761,7 +761,7 @@ subroutine CPL_send_full(asend, limits, send_flag)
 
     !Check counter
     integer       :: source, check_send
-    integer, save :: first_counter = 4
+    integer, save :: first_counter = 4, ncalls=0
 
     !Check setup is complete
     if (CPL_setup_complete .ne. 1) then
@@ -812,6 +812,9 @@ subroutine CPL_send_full(asend, limits, send_flag)
 
     !Set sendflag to false and only change if anything is sent
     if (present(send_flag)) send_flag = .false.
+
+    !Keep track of number of sends
+    ncalls = ncalls + 1
   
     ! loop through the maps and send the corresponding sections of asend
     do nbr = 1, nneighbors
@@ -865,7 +868,7 @@ subroutine CPL_send_full(asend, limits, send_flag)
             ! ----------------- pack data for destid -----------------------------
 
             ! Send data 
-            itag = 0 !mod( ncalls, MPI_TAG_UB) !Attention ncall could go over max tag value for long runs!!
+            itag = mod(ncalls, MPI_TAG_UB) !ncall could go over max tag value for long runs
             call MPI_sSend(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
 
         endif
@@ -979,7 +982,7 @@ subroutine CPL_recv_full(arecv, limits, recv_flag)
     real(kind(0.d0)),dimension(:), allocatable ::  vbuf
 
     !Check counter
-    integer, save :: first_counter = 4, check_recv
+    integer, save :: first_counter = 4, check_recv, ncalls=0
 
     ! This local CFD domain is outside MD overlap zone 
     if (olap_mask(rank_world).eqv. .false.) return
@@ -1015,8 +1018,11 @@ subroutine CPL_recv_full(arecv, limits, recv_flag)
         ndata = npercell * ncells
         allocate(vbuf(ndata)); vbuf = 0.d0
 
-    endif
+    endif    
 
+    !Keep track of number of recvs
+    ncalls = ncalls + 1
+  
     !Get neighbours
     call MPI_Graph_neighbors_count(CPL_GRAPH_COMM,myid_graph,nneighbors,ierr)
     allocate(id_neighbors(nneighbors))
@@ -1062,7 +1068,7 @@ subroutine CPL_recv_full(arecv, limits, recv_flag)
             endif
 
             ! Receive section of data
-            itag = 0
+            itag = mod(ncalls, MPI_TAG_UB) !ncall could go over max tag value for long runs
             call MPI_irecv(vbuf(start_address), ndata, MPI_DOUBLE_PRECISION, sourceid, itag, &
                                     CPL_GRAPH_COMM, req(nbr), ierr)
 

@@ -649,8 +649,10 @@ void CPLForceDrag::pre_force(double r[], double v[], double a[],
     double volume = (4./3.)*M_PI*pow(s,3); 
     double v_vol[]= {v[0]*volume, v[1]*volume, v[2]*volume};
     nSums->add_to_array(r, 1.0);
-
-    std::cout << "Pre_force " << use_overlap << " " << r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
+#if DEBUG
+    std::cout << "Pre_force " << use_overlap << " " 
+              << r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
+#endif
     if (! use_overlap){
         volSums->add_to_array(r, volume);           
         vSums->add_to_array(r, v_vol);
@@ -733,10 +735,12 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     Avi[1] = volume*A*v[1];
     Avi[2] = volume*A*v[2];
 
+#if DEBUG
     std::cout << "CPLForceDrag::get_force "  
               <<  cell[0] << " " << cell[1] << " " << cell[2]
               << " " <<  volume << " " <<  A << " " 
               << v[1] << " " << Ui[1] << " " << fi[1] << std::endl;
+#endif
 
 //    std::cout << "CPLForceDrag::get_force "  
 //              <<  cell[0] << " " << cell[1] << " " << cell[2]
@@ -818,8 +822,10 @@ void CPLForceGranular::pre_force(double r[], double v[], double a[],
     double volume = (4./3.)*M_PI*pow(s,3); 
     double v_vol[]= {v[0]*volume, v[1]*volume, v[2]*volume};
     nSums->add_to_array(r, 1.0);
-
-    std::cout << "Pre_force " << use_overlap << " " << r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
+#if DEBUG
+    std::cout << "Pre_force " << use_overlap << " " << 
+         r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
+#endif
     if (! use_overlap){
         volSums->add_to_array(r, volume);           
         vSums->add_to_array(r, v_vol);
