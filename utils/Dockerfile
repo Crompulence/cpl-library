@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
  && rm -rf /var/lib/apt/lists/*
 
 RUN pip install \
-    matplotlib \
+    matplotlib==2.2 \
     mpi4py \
     numpy \
     pytest \
