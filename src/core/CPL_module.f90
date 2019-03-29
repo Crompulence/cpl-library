@@ -2139,9 +2139,9 @@ subroutine check_config_feasibility()
     if (rval .gt. rtoler) error = .true.
 
     if (error) then
-        print'(6(a,f10.5))', ' xL_md/dx = ',xL_md/dx, ' dx =', dx, & 
-                             ' yL_md/dy = ',yL_md/dy, ' dy =', dy, &
-                             ' zL_md/dz = ',zL_md/dz, ' dz =', dz
+        print'(9(a,f10.6))',' xL_md/dx = ',xL_md/dx,  ' xL_md = ',xL_md, ' dx =', dx, & 
+                             ' yL_md/dy = ',yL_md/dy,  ' yL_md = ',yL_md, ' dy =', dy, &
+                             ' zL_md/dz = ',zL_md/dz,  ' zL_md = ',zL_md, ' dz =', dz
         string = "CPL_create_map error - MD region lengths must be an integer number of CFD " // &
                  "cell sizes (i.e. xL_md must be an integer multiple " // &
                  "of dx, etc. ), aborting simulation."

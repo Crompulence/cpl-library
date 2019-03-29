@@ -57,11 +57,6 @@ public:
     std::vector<int> getCell(std::valarray<double>& coord);
     virtual ~Field() {};
 
-    //TODO: Ask Ed about this
-    // std::vector<double> interpolate(double r[]);    
-    // CPL::ndArray<double> celltonode(CPL::ndArray<double> cell, int n, int ic, int jc, int kc);
-    // std::vector<double> interpolate(double r[], CPL::ndArray<double> cell_array, int n, int order);
-    // std::vector<int> cell(std::valarray<double> r);
 protected:
     void computedAdV_();
 };
@@ -128,10 +123,18 @@ public:
                                double, double, double);
 
     // functions to add values to array
-//    void add_to_array(int n, int i, int j, int k, double value);
-    inline void add_to_array(int n, int i, int j, int k, double value){
-        array(n, i, j, k) += value; 
-    }
+    void add_to_array(const int n, const int i, const int j,
+                      const int k, const double value);
+//    inline void add_to_array(const int n, const int i, 
+//                             const int j, const int k, 
+//                             const double value){
+//        std::cout << "n=" << n << " value=" << value << std::endl;
+//        std::cout << "i=" << i << " value=" << value << std::endl;
+//        std::cout << "j=" << j << " value=" << value << std::endl;
+//        std::cout << "k=" << k << " value=" << value << std::endl;
+
+//        array(n, i, j, k) += value; 
+//    }
     void add_to_array(const double r[], const double value[]);
     void add_to_array(const double r[], const double value);
     void add_to_array(const int index, const double r[], const double value);

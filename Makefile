@@ -80,6 +80,10 @@ allobjfiles = $(coreobjfiles) $(fbindobjfile) $(cbindobjfile) \
               $(cppbindobjfiles) $(utilsobjfiles)
 
 # Define flags and compilers/linkers specific to this makefile
+ifdef DEBUG
+	FFLAGS = -O0 -fbacktrace -Wall -fbounds-check  -cpp
+	CFLAGS = -std=c++11 -O0 -g3 -fvar-tracking -msse2
+endif
 FFLAGS += $(FMODKEY)$(includedir) -fPIC
 CFLAGS += -fPIC
 
@@ -88,7 +92,7 @@ CFLAGS += -fPIC
 # Default: make both the fortran and the c libraries
 default: core fortran copyutilities c cpp utilities link
 
-#debug: core fortran c cpp utilities link
+#debug: core fortran copyutilities c cpp utilities link
 #	FFLAGS = -O0 -fbacktrace -Wall -fbounds-check $(FMODKEY)$(includedir) -fPIC 
 
 # Declare phony targets

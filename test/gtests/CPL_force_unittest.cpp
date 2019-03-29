@@ -688,24 +688,38 @@ TEST_F(CPL_Force_Test, test_velocity_pre_force) {
         c.pre_force(r, v, a, m, s, e);
     } } }
 
+    //Get internal fields
+    std::string nSums_name("nSums");
+    std::string vSums_name("vSums");
+    auto nSums_ptr = c.get_internal_fields(nSums_name);
+    auto vSums_ptr = c.get_internal_fields(vSums_name);
+
+    //Check pointers are allocated
+    ASSERT_NE(nSums_ptr, nullptr);
+    ASSERT_NE(vSums_ptr, nullptr);
+
     int sum = 0; double vsum[3] = {0.0,0.0,0.0};
+
     trplefor(icell,jcell,kcell){
 
         //Assert single result in each cell and sum to check cells
-        ASSERT_EQ(c.nSums(i,j,k), 1);
-        sum += c.nSums(i,j,k);
+        ASSERT_EQ(nSums_ptr->get_array_value(0,i,j,k), 1);
+        sum += nSums_ptr->get_array_value(0,i,j,k);
 
         for (int n=1; n<3 ; n++){
-            ASSERT_DOUBLE_EQ(c.vSums(n,i,j,k), (n+1)*0.1);
-            vsum[n] += c.vSums(n,i,j,k);
+            ASSERT_DOUBLE_EQ(vSums_ptr->get_array_value(n,i,j,k), (n+1)*0.1);
+            vsum[n] += vSums_ptr->get_array_value(n,i,j,k);
 
             // Check adjacent vSum in cells in x and z have same value
             if (i > 0)
-                ASSERT_DOUBLE_EQ(c.vSums(n,i-1,j,k), c.vSums(n,i,j,k));
+                ASSERT_DOUBLE_EQ(vSums_ptr->get_array_value(n,i-1,j,k), 
+                                 vSums_ptr->get_array_value(n,i,j,k));
             if (j > 0)
-                ASSERT_DOUBLE_EQ(c.vSums(n,i,j-1,k), c.vSums(n,i,j,k));
+                ASSERT_DOUBLE_EQ(vSums_ptr->get_array_value(n,i,j-1,k), 
+                                 vSums_ptr->get_array_value(n,i,j,k));
             if (k > 0)
-                ASSERT_DOUBLE_EQ(c.vSums(n,i,j,k-1), c.vSums(n,i,j,k));
+                ASSERT_DOUBLE_EQ(vSums_ptr->get_array_value(n,i,j,k-1), 
+                                 vSums_ptr->get_array_value(n,i,j,k));
         }
     } } }
     //Check that sum of results is equal to Number of cells
@@ -720,14 +734,58 @@ TEST_F(CPL_Force_Test, test_velocity_pre_force) {
     c.resetsums();   sum = 0;
     vsum[0]=0.0; vsum[1]=0.0; vsum[2]=0.0;
     trplefor(icell,jcell,kcell){
-        sum += c.nSums(i,j,k);
+        sum += nSums_ptr->get_array_value(0,i,j,k);
         for (int n=1; n<3 ; n++)
-            vsum[n] += c.vSums(n,i,j,k);
+            vsum[n] += vSums_ptr->get_array_value(n,i,j,k);
     } } }
     ASSERT_EQ(sum, 0);
     for (int n=1; n<3 ; n++){
        ASSERT_DOUBLE_EQ(vsum[n], 0.0);
     }
+
+    // Check previous timestep values which are copied
+    // into mdt values when resetsums is called
+    auto nSums_mdt_ptr = c.nSums_mdt;
+    auto vSums_mdt_ptr = c.vSums_mdt;
+
+    //Check pointers are allocated
+    ASSERT_NE(nSums_mdt_ptr, nullptr);
+    ASSERT_NE(vSums_mdt_ptr, nullptr);
+
+    trplefor(icell,jcell,kcell){
+
+//        std::cout << " " << i << " " << j  << " " << k << " "
+//                 << vSums_ptr->get_array_value(0,i,j,k) << " "
+//                 << vSums_mdt_ptr->get_array_value(0,i,j,k) << std::endl;
+
+        //Assert single result in each cell and sum to check cells
+        ASSERT_EQ(nSums_mdt_ptr->get_array_value(0,i,j,k), 1);
+        sum += nSums_mdt_ptr->get_array_value(0,i,j,k);
+
+        for (int n=1; n<3 ; n++){
+            ASSERT_DOUBLE_EQ(vSums_mdt_ptr->get_array_value(n,i,j,k), (n+1)*0.1);
+            vsum[n] += vSums_mdt_ptr->get_array_value(n,i,j,k);
+
+            // Check adjacent vSum in cells in x and z have same value
+            if (i > 0)
+                ASSERT_DOUBLE_EQ(vSums_mdt_ptr->get_array_value(n,i-1,j,k), 
+                                 vSums_mdt_ptr->get_array_value(n,i,j,k));
+            if (j > 0)
+                ASSERT_DOUBLE_EQ(vSums_mdt_ptr->get_array_value(n,i,j-1,k), 
+                                 vSums_mdt_ptr->get_array_value(n,i,j,k));
+            if (k > 0)
+                ASSERT_DOUBLE_EQ(vSums_mdt_ptr->get_array_value(n,i,j,k-1), 
+                                 vSums_mdt_ptr->get_array_value(n,i,j,k));
+        }
+    } } }
+    //Check that sum of results is equal to Number of cells
+    ASSERT_EQ(sum, icell*jcell*kcell);
+    for (int n=1; n<3 ; n++){
+       //Note these are not equal to double precision
+       ASSERT_FLOAT_EQ(vsum[n], (n+1)*0.1*icell*jcell*kcell);
+       EXPECT_LT(vsum[n]-(n+1)*0.1*icell*jcell*kcell,1e-8);
+    }
+
 }
 
 
@@ -766,6 +824,8 @@ TEST_F(CPL_Force_Test, test_velocity_get_force) {
 
     std::vector<double> f(3);
     std::vector<int> cell(3);
+    //Reset sum here as vsum minus dt used in get force 
+    fxyz.resetsums(); 
     trplefor(icell,jcell,kcell){
         r[0] = i/double(icell);
         r[1] = j/double(jcell);
@@ -776,7 +836,7 @@ TEST_F(CPL_Force_Test, test_velocity_get_force) {
         ASSERT_DOUBLE_EQ(f[2], 3.0);
     } } }
 
-    //Reset sums and check with velocity 
+    //Reset sums and check velocity 
     //already at mean value of non-zero
     fxyz.resetsums();
     trplefor(icell,jcell,kcell){
@@ -798,6 +858,72 @@ TEST_F(CPL_Force_Test, test_velocity_get_force) {
     } } }
 
 }
+
+
+
+
+//Test for CPLForceFlekkoy - get force
+TEST_F(CPL_Force_Test, test_velocity_get_force_further) {
+
+    //Call constructor using cell numbers
+    int nd = 3; int icell = 8; int jcell = 8; int kcell = 8;
+    double xi = 0.01;
+
+    //Create force array object
+    ssmap args_map{{"xi", std::to_string(xi)}};
+    CPLForceVelocity fxyz(nd, icell, jcell, kcell, args_map);
+
+    //Setup one particle per cell
+    //and as zero no change
+    double r[3] = {0.0, 0.0, 0.0};
+    double v[3] = {1.0, 2.0, 3.0};
+    double a[3] = {0.0, 0.0, 0.0};
+    double m=1.; double s=1.; double e=1.;
+
+    trplefor(icell,jcell,kcell){
+        r[0] = i/double(icell);
+        r[1] = j/double(jcell);
+        r[2] = k/double(kcell);
+        fxyz.pre_force(r, v, a, m, s, e);
+    } } }
+
+    std::vector<double> f(3);
+    std::vector<int> cell(3);
+    //Reset sum here as vsum minus dt used in get force 
+    fxyz.resetsums();
+    trplefor(icell,jcell,kcell){
+        r[0] = i/double(icell);
+        r[1] = j/double(jcell);
+        r[2] = k/double(kcell);
+        f = fxyz.get_force(r, v, a, m, s, e);
+        ASSERT_DOUBLE_EQ(f[0], -xi*1.0);
+        ASSERT_DOUBLE_EQ(f[1], -xi*2.0);
+        ASSERT_DOUBLE_EQ(f[2], -xi*3.0);
+    } } }
+
+    //Setup array to opposite of molecule velocity
+    CPL::ndArray<double> array;
+    int shape[4] = {nd, icell, jcell, kcell};
+    array.resize (4, shape);
+    trplefor(icell,jcell,kcell){
+        array(0, i, j, k) = 1.0;
+        array(1, i, j, k) = 2.0;
+        array(2, i, j, k) = 3.0;
+    } } }
+    fxyz.set_field(array);
+
+    trplefor(icell,jcell,kcell){
+        r[0] = i/double(icell);
+        r[1] = j/double(jcell);
+        r[2] = k/double(kcell);
+        f = fxyz.get_force(r, v, a, m, s, e);
+        ASSERT_DOUBLE_EQ(f[0], xi*0.0);
+        ASSERT_DOUBLE_EQ(f[1], xi*0.0);
+        ASSERT_DOUBLE_EQ(f[2], xi*0.0);
+    } } }
+
+}
+
 
 
 

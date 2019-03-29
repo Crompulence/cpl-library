@@ -205,10 +205,17 @@ void CPLField::set_dxyz(){
 void CPLField::set_array(CPL::ndArray<double> arrayin){
     array = arrayin;
     set_dxyz();
+//    for (int n = 0; n < nd; ++n){
+//    for (int i = 0; i < icell; ++i){
+//    for (int j = 0; j < jcell; ++j){
+//    for (int k = 0; k < kcell; ++k){
+//        std::cout << array(n,i,j,k) << std::endl;
+//    }}}}
 }
 
 void CPLField::zero_array(){
-    array = 0.0;
+    //array = 0.0;
+    array.zero();
 }
 
 // A function which uses particle position to determine
@@ -216,9 +223,14 @@ void CPLField::zero_array(){
 // to that cell, e.g. 1 for Nsums, velocity for vsum, etc
 
 //Add value to a particular cell (moved to header as inline)
-//void CPLField::add_to_array(int n, int i, int j, int k, double value){
-//    array(n, i, j, k) += value; 
-//}
+void CPLField::add_to_array(const int n, const int i, 
+                            const int j, const int k, const double value){
+//        std::cout << "n=" << n << " value=" << value << std::endl;
+//        std::cout << "i=" << i << " value=" << value << std::endl;
+//        std::cout << "j=" << j << " value=" << value << std::endl;
+//        std::cout << "k=" << k << " value=" << value << std::endl;
+    array(n, i, j, k) = array(n, i, j, k) + value; 
+}
 
 //Just add to cell based on where centre of particle falls
 //assuming that array of values is the same size as array
@@ -233,14 +245,12 @@ void CPLField::add_to_array(const double r[], const double value){
     std::vector<int> cell = get_cell(r);
     add_to_array(0, cell[0], cell[1], cell[2], value);
 }
-   
 
 //If just one value, then doesn't need to be a reference to array
 void CPLField::add_to_array(int index, const double r[], const double value){
     std::vector<int> cell = get_cell(r);
     add_to_array(index, cell[0], cell[1], cell[2], value);
 }
-   
 
 // If the radius of the particle is included, add a fraction
 //Add fraction of value to cell based on fraction of sphere inside
@@ -598,14 +608,24 @@ std::vector<int> CPLField::get_cell(const double r[]){
     std::vector<int> cell(3);
     for (int i = 0; i < 3; ++i){
         cell[i] = floor((r[i]-min[i])/dxyz[i]);
+//        std::cout << "cell:    " << i << " " << cell[i] << " " << r[i] << " " << min[i] << " " << max[i] << " " << dxyz[i] << std::endl;
         //Check cell is within the domain
-        if (cell[i] > floor((max[i]-min[i])/dxyz[i]))
-            cell[i] = floor((max[i]-min[i])/dxyz[i]);
+//        if (cell[i] > floor((max[i]-min[i])/dxyz[i])){
+        if (r[i] > max[i]){
+            std::cout << "cell above: " << i << " " << cell[i] << " " << r[i] 
+                      << " " << max[i] << " " << dxyz[i] << std::endl;
+            if (i == 0) cell[0] = icell-1;
+            if (i == 1) cell[1] = jcell-1;
+            if (i == 2) cell[2] = kcell-1;
+            //cell[i] = int(floor((max[i]-min[i])/dxyz[i]));
             //throw std::domain_error("get_cell Error: Input above domain");
-
-        if (cell[i] < 0)
+        }
+        if (cell[i] < 0){
+            std::cout << "cell below: " << i << " " << cell[i] << " " << r[i] 
+                      << " " << min[i] << " " << dxyz[i] << std::endl;
             cell[i] = 0;
             //throw std::domain_error("get_cell Error: Input below domain");
+        }
     }
     return cell;
 }
