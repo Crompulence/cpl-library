@@ -112,6 +112,7 @@ public:
 
     bool calc_postforce;
     bool calc_postforce_everytime;
+
 //    void setup_fast_array();
 
     //Destructor
@@ -157,6 +158,9 @@ public:
     CPLForceVelocity(CPL::ndArray<double> field);
     CPLForceVelocity(int nd, int icell, int jcell, int kcell);
 
+    CPLForceVelocity(CPL::ndArray<double>, map_strstr);
+    CPLForceVelocity(int, int, int, int, map_strstr);
+
     //Pre force collection and get force calculation
     // position, velocity, acceleration, mass, sigma, epsilon
     void pre_force(double r[], double v[], double a[], 
@@ -168,10 +172,17 @@ public:
 
     void resetsums();
 
+    //Coefficient for strength of application
+    double xi = 1.0;
+
 private:
 
-    CPL::ndArray<double> vSums;
-    CPL::ndArray<double> nSums;
+    std::shared_ptr<CPL::CPLField> nSums;
+    std::shared_ptr<CPL::CPLField> nSums_mdt;
+    std::shared_ptr<CPL::CPLField> vSums;
+    std::shared_ptr<CPL::CPLField> vSums_mdt; //Previous timestep
+
+    void unpack_arg_map(map_strstr arg_map);
 
     friend class CPL_Force_Test_test_velocity_pre_force_Test;
 

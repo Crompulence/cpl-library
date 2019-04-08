@@ -20,6 +20,7 @@
 
 //Constructors
 CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){ 
+
     //Shared as we keep reference in fields list
     cfd_array_field = std::make_shared<CPL::CPLField>(nd, icells, jcells, kcells);
     calc_preforce = false;
@@ -207,7 +208,7 @@ std::vector<double> CPLForceTest::get_force(double r[], double v[], double a[],
     std::vector<int> indices = {0,1,2};
     std::vector<double> f = cfd_array_field->get_array_value(indices, r);
 
-    //std::cout << "CPLForceTest " << f[0] << " " << f[1] << " " << f[2] << std::endl;
+    //std::cout << "CPLForceTest " << r[0] << " " << r[1] << " " << r[2] << " " << f[0] << " " << f[1] << " " << f[2] << std::endl;
 
     return f;
 }
@@ -234,26 +235,88 @@ CPLForceVelocity::CPLForceVelocity(int nd, int icells, int jcells, int kcells)
 CPLForceVelocity::CPLForceVelocity(CPL::ndArray<double> arrayin) 
     : CPLForce(arrayin){
     initialisesums(arrayin);
-
 }
+
+//Constructor with optional argument overlap, interpolate and drag_coeff
+CPLForceVelocity::CPLForceVelocity(int nd, int icells, int jcells, int kcells, 
+                           map_strstr arg_map)
+    : CPLForce(nd, icells, jcells, kcells)
+{
+    unpack_arg_map(arg_map);
+    initialisesums(cfd_array_field->get_array());
+}
+
+//Constructor of datatype
+CPLForceVelocity::CPLForceVelocity(CPL::ndArray<double> arrayin, 
+                           map_strstr arg_map) 
+    : CPLForce(arrayin)
+{
+    unpack_arg_map(arg_map);
+    initialisesums(arrayin);
+}
+
+
+void CPLForceVelocity::unpack_arg_map(map_strstr arg_map){
+
+    // Iterate over the map and print out all key/value pairs.
+    for (const auto& arg : arg_map)
+    {
+        if (string_contains(arg.first, "xi") != -1) {
+            xi = std::stod(arg.second);
+        } else {
+            std::cout << "key: " << arg.first << 
+            " for CPLForceVelocity not recognised" << '\n';
+            throw std::runtime_error("CPLForceVelocity input not recognised");
+        }
+    }
+}
+
+
 
 void CPLForceVelocity::initialisesums(CPL::ndArray<double> arrayin){
     calc_preforce = true;
     calc_preforce_everytime = true;
     calc_postforce = false;
     calc_postforce_everytime = false;
-    int vsumsShape[4] = {arrayin.shape(0), arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
-    vSums.resize(4, vsumsShape); // Sum of velocity
-    int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
-    nSums.resize(3, nsumsShape); // Sum of number of particles  
+    int n = arrayin.shape(0);
+    int i = arrayin.shape(1);
+    int j = arrayin.shape(2);
+    int k = arrayin.shape(3);
+    shapeVector[0] = n;
+    shapeVector[1] = i;
+    shapeVector[2] = j;
+    shapeVector[3] = k;
+    nSums = std::make_shared<CPL::CPLField>(1, i, j, k, "nSums");
+    nSums_mdt = std::make_shared<CPL::CPLField>(1, i, j, k, "nSums_mdt");
+    vSums = std::make_shared<CPL::CPLField>(3, i, j, k, "vSums");
+    vSums_mdt = std::make_shared<CPL::CPLField>(3, i, j, k, "vSums_mdt");
+
+    //Get pointer to recved fields
+    array = cfd_array_field->get_array_pointer();
+    fields.push_back(nSums);
+    fields.push_back(vSums);
     resetsums();
+
+//    int vsumsShape[4] = {arrayin.shape(0), arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+//    vSums.resize(4, vsumsShape); // Sum of velocity
+//    int nsumsShape[3] = {arrayin.shape(1), arrayin.shape(2), arrayin.shape(3)};
+//    nSums.resize(3, nsumsShape); // Sum of number of particles  
+//    resetsums();
+
 }
 
 void CPLForceVelocity::resetsums(){
+    //Deep copy velocity to t + dt array
+    nSums_mdt = std::make_shared<CPL::CPLField>(*(nSums.get()));
+    //nSums_mdt = nSums;
+    vSums_mdt = std::make_shared<CPL::CPLField>(*(vSums.get()));
+    //vSums_mdt = vSums;
     //Reset all counters
     Npre_force=0; Nforce=0; Npost_force=0;
-    //reset sums
-    nSums = 0.0;  vSums = 0.0;
+    //General function which loops over all field classes and resets
+    for ( auto &f : fields ) { 
+        f->zero_array(); 
+    }
 }
 
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
@@ -262,11 +325,23 @@ void CPLForceVelocity::pre_force(double r[], double v[], double a[],
 
     // Find in which cell number (local to processor) is the particle
     // and sum all the velocities for each cell.
-    std::vector<int> cell = get_cell(r);
+    //std::vector<int> cell = get_cell(r);
 
-    nSums(cell[0], cell[1], cell[2]) += 1.0; 
-    for (int i = 0; i<3; ++i)
-        vSums(i, cell[0], cell[1], cell[2]) += v[i];
+//    if (e == 555){
+//        std::cout << "CPLForceVelocity::pre_force " << m << " " << 
+//                    r[0] << " " << r[1] << " " << r[2] << " " << 
+//                    v[0] << " " << v[1] << " " << v[2] <<  std::endl;
+//    }
+
+    nSums->add_to_array(r, 1.0);
+    vSums->add_to_array(0, r, v[0]);
+    vSums->add_to_array(1, r, v[1]);
+    vSums->add_to_array(2, r, v[2]);
+
+    //nSums(cell[0], cell[1], cell[2]) = nSums(cell[0], cell[1], cell[2]) + 1.0; 
+    //for (int i = 0; i<3; ++i)
+    //    vSums->add_to_array(r, v[i]);
+        //vSums(i, cell[0], cell[1], cell[2]) = vSums(i, cell[0], cell[1], cell[2]) + v[i];
 
 }
 
@@ -275,28 +350,54 @@ void CPLForceVelocity::pre_force(double r[], double v[], double a[],
 std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a[], 
                                                 double m, double s, double e){
 
-    std::vector<double> f(3); 
+    std::vector<double> f(3), UCFD(3), vsum(3), vsum_mdt(3); 
     std::vector<int> cell = get_cell(r);
-    CPL::ndArray<double> array = cfd_array_field->get_array();
-    int N = nSums(cell[0], cell[1], cell[2]);
-    if (N < 1.0) {
-        std::cout << "Warning: 0 particles in cell (" 
-                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
-                  << std::endl;
+    //CPL::ndArray<double> array = cfd_array_field->get_array();
+
+    UCFD[0] = cfd_array_field->get_array_value(0, cell[0], cell[1], cell[2]);
+    UCFD[1] = cfd_array_field->get_array_value(1, cell[0], cell[1], cell[2]);
+    UCFD[2] = cfd_array_field->get_array_value(2, cell[0], cell[1], cell[2]);
+
+    //Take values from this timestep
+    int N = nSums->get_array_value(0, cell[0], cell[1], cell[2]);
+    vsum[0] = vSums->get_array_value(0, cell[0], cell[1], cell[2]);
+    vsum[1] = vSums->get_array_value(1, cell[0], cell[1], cell[2]);
+    vsum[2] = vSums->get_array_value(2, cell[0], cell[1], cell[2]);
+
+    //Or values from previous timestep
+    int N_mdt = nSums_mdt->get_array_value(0, cell[0], cell[1], cell[2]);
+    vsum_mdt[0] = vSums_mdt->get_array_value(0, cell[0], cell[1], cell[2]);
+    vsum_mdt[1] = vSums_mdt->get_array_value(1, cell[0], cell[1], cell[2]);
+    vsum_mdt[2] = vSums_mdt->get_array_value(2, cell[0], cell[1], cell[2]);
+
+//    //std::cout << "CPLForceVelocity::get_force " << m << " " << 
+//    //            r[0] << " " << r[1] << " " << r[2] << " " << v[0] <<  std::endl;
+
+
+//    std::cout << "UCFD[0] " << UCFD[0]  << " UCFD[1] " << UCFD[1] << " UCFD[2] " << UCFD[2] 
+//              << " vsum[0] " << vsum[0] << " vsum[1] " << vsum[1] << " vsum[2] " << vsum[2]  
+//              << " vsum_mdt[0] " << vsum_mdt[0] << " vsum_mdt[1] " 
+//              << vsum_mdt[1] << " vsum_mdt[2] " << vsum_mdt[2] << std::endl;
+
+    if (N_mdt < 1.0) {
+//        std::cout << "Warning: 0 particles in cell (" 
+//                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
+//                  << std::endl;
         f[0]=0.0; f[1]=0.0; f[2]=0.0;
-        return f;
     } else {
         for (int i=0; i<3; i++){
-            f[i] = ( array(i, cell[0], cell[1], cell[2])
-                    -vSums(i, cell[0], cell[1], cell[2])/N);
+            //f[i] = xi*(UCFD[i] - vsum[i]/N);
+            f[i] = xi*(UCFD[i] - vsum_mdt[i]/N_mdt);
         }
-        return f;
     }
+
+    //std::cout << "UCFD[0] " << UCFD[0]  << " vsum[0]/N " << vsum[0]/N << " f[0] = " << f[0] << std::endl;
+    return f;
 }
 
 //Post force collection of sums  (for things not possible with LAMMPS fix chunk/atom bin/3d)
 void CPLForceVelocity::post_force(double r[], double v[], double a[], 
-                         double m, double s, double e) {
+                                  double m, double s, double e) {
 //    throw std::runtime_error("CPLForce::post_force is not defined");
 }
 
@@ -455,7 +556,6 @@ CPLForceDrag::CPLForceDrag(CPL::ndArray<double> arrayin,
     unpack_arg_map(arg_map);
     initialisesums(arrayin);
     initialise_extrasums(arrayin);
-
 }
 
 //Constructor with optional argument overlap, interpolate and drag_coeff
@@ -467,7 +567,6 @@ CPLForceDrag::CPLForceDrag(int nd, int icells, int jcells, int kcells,
     unpack_arg_map(arg_map);
     initialisesums(cfd_array_field->get_array());
     initialise_extrasums(cfd_array_field->get_array());
-
 }
 
 void CPLForceDrag::set_defaults(){

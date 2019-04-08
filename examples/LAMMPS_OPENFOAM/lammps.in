@@ -1,0 +1,115 @@
+# sample LAMMPS input script for viscosity of 3d LJ liquid
+# use tethered shearing wall, thermostat via fix langevin
+
+#This is needed for bulk runs to allow job sizing 
+processors 1 1 1
+
+#System parameters
+variable	rho equal 0.8442
+variable    T equal 1.1
+variable	rc equal 1.122462
+variable	srate equal 1.0
+
+# Domain size and walls
+variable	x equal 10
+variable	y equal 24
+variable	z equal 10
+variable    wallwidth equal 1.0
+
+# Set outside of domain to be wall
+variable	ylo equal -${wallwidth}
+
+#Thermostatted region outer half of wall
+variable	ythemlo equal -0.5*${wallwidth}
+
+#Add a buffer of empty space to prevent molecules moving too far they leave the domain
+variable	buf equal 2.0
+variable	ylobuf equal ${ylo}-${buf}
+
+#type    fluidtype 1
+#type    lowertype 2
+#type    lowersitetype 4
+
+#Basic simulation setup
+units		    lj
+dimension	    3
+atom_style      full 
+neigh_modify	delay 0 every 1
+boundary		p f p
+
+#Add a padded buffer at top and bottom as tethering allows molecules to wander slightly
+lattice         fcc ${rho}
+region          simbox block 0 $x ${ylobuf} ${y} 0 $z 
+create_box      5 simbox bond/types 1 extra/bond/per/atom 1
+region		    latticeregion block INF INF ${ylo} ${y} INF INF
+create_atoms    1 region latticeregion
+
+#Create lj pair styles and set wall/site terms to zero
+mass            * 1.0
+pair_style      lj/cut ${rc}
+pair_coeff      * * 1.0 1.0
+pair_coeff      2 4 0.0 0.0
+pair_coeff      3 5 0.0 0.0
+
+#Set wall region
+region		    lower block INF INF ${ylo} 0.0 INF INF
+group		    lower region lower
+set		        group lower type 2
+group		    wall union lower
+
+#Set thermostatting region
+region		    lowertherm block INF INF ${ylo} ${ythemlo} INF INF
+group		    lowertherm region lowertherm
+group           nottherm subtract all lowertherm
+
+#Create a set of tethering sites (as molecules)
+create_atoms    4 region lower
+group		    lowersites type 4
+group		    sites union lowersites
+
+#Get liquid molecules to a flow group
+group		    flow subtract all wall sites
+
+#Set imaginary site particles to not interact
+bond_style       harmonic
+bond_coeff       1 150.0 0.0
+create_bonds     many lowersites lower 1 0.0 0.0001
+
+velocity        flow create $T 97287
+
+compute		    thermallower lowertherm temp/partial 1 1 1
+compute		    flow flow temp
+
+#fix             1 flow nve
+#fix             2 lowertherm nvt temp $T $T $(100.0*dt)
+
+fix             1 all nve
+fix	            2 lowertherm langevin $T $T 0.1 498094 
+
+fix_modify      2 temp thermallower
+
+fix             3 all wall/reflect yhi EDGE
+
+fix		        5 lowersites setforce 0.0 0.0 0.0
+
+dump            3 all dcd 200 vmd_out.dcd
+thermo          50
+thermo_style	custom step temp epair etotal press pxy
+
+#compute         layers all chunk/atom bin/1d y center 0.125 units reduced
+#fix		        6 all ave/chunk 1 200 200 layers density/mass vx vy vz temp file profile.wall.2d
+
+compute        Pressure all stress/atom NULL
+#variable        Ptrace equals (c_Pressure[1]+c_Pressure[2]+c_Pressure[3])/3.
+
+compute layers all chunk/atom bin/3d x lower 2.09949524 y lower 1.41715925 z lower 2.09949524 units box ids every
+fix		        6 all ave/chunk 1 200 200 layers vx vy vz temp c_Pressure[1] file ./lammps/cplchunk norm none
+
+#Equilibration
+run 10000     
+#write_data output_equil.dat
+
+#Main Coupled Run
+fix             cplfix all cpl/init region all forcetype Velocity xi 1.0 sendtype velocity bndryavg below
+run	           160000
+
