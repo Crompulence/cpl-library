@@ -125,5 +125,10 @@ A range of folders are created by the build process
  - lib - file to store the compiled library libcpl.so
  - include - header files
 
+In order to run a coupled OpenFOAM and LAMMPS case, the applications (APP) repositories are required along with each of these codes. The APP repositories are stored at:
+
+ - https://github.com/Crompulence/CPL_APP_OPENFOAM-3.0.1
+ - https://github.com/Crompulence/CPL_APP_LAMMPS-DEV
+
 
 
