@@ -92,3 +92,38 @@ Please see:
 
 CPL Library is released under the GNU GPL v3 license. Details are found in
 the file LICENSE that is included with the release.
+
+
+
+4 ) Directory Structure
+=========================
+
+The directory structure of CPL library is broadly as follows:
+
+ - src - The main source code split into:
+   - core - the core Fortran of the CPL library, in just two files CPL_module and CPL_methods
+   - bindings - C, C++ and Python bindings 
+   - utils - The array, field and force classes which provide functionality common to coupling problems, as well as numerical libraries, etc
+ - examples - A range of example applications, details here http://www.cpl-library.org/user-guide/quick-start.shtml
+ - test - tests for CPL library, including:
+   - pytest - Basic init, setup and send/recv topology tests
+   - gtest - tests used to validate most of the utils work as expected
+   - valgrind - memory leak checking of the key CPL library functionality
+   - examples, lammps, drag - various other tests of coupled cases, largly moved to APP directories
+ - website - the source code for the www.cpl-library.org website
+ - utils - General Scripts including the Dockerfile, scaling tests and a Python GUI to design coupled runs.
+ - make - a series of .inc file specifying platform specific builds (e.g. for the UK supercomputer ARCHER)
+ - bin - binary folder containing excutable files cplexec, cplf90 and cplc++
+ - 3rd-party - third party libraries which can be optionally included (e.g. JSON-Fortran)
+
+On the top level is a 
+ - Makefile - Used to build CPL library
+ - SOURCEME.sh - Used to add CPL library to your path (avoids needing to install to system directory)
+
+A range of folders are created by the build process
+
+ - lib - file to store the compiled library libcpl.so
+ - include - header files
+
+
+
