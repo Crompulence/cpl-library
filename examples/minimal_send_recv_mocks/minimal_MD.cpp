@@ -17,7 +17,7 @@ int main() {
     CPL::init(MD_realm, MD_COMM);
 
     int npxyz[3] = {1, 1, 1}; int periods[3] = {1, 1, 1}; 
-    MPI_Cart_create(MD_COMM, 3, npxyz, periods, true, &CART_COMM);
+    MPI_Cart_create(MD_COMM, 3, npxyz, periods, 1, &CART_COMM);
     double xyzL[3] = {1.0, 1.0, 1.0}; double xyz_orig[3] = {0.0, 0.0, 0.0};
     CPL::setup_md(CART_COMM, xyzL, xyz_orig);
     CPL::get_arrays(&recv_array, 1, &send_array, 4);
