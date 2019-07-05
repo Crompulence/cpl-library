@@ -58,14 +58,18 @@ void CPL::finalize() {
     CPLC_finalize();
 }
 
-void CPL::setup_cfd(int icomm_grid, double xyzL[],
+void CPL::setup_cfd(MPI_Comm& icomm_grid, double xyzL[],
                     double xyz_orig[], int ncxyz[]) {
-    CPLC_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz);
+    MPI_Fint icomm_grid_int = MPI_Comm_c2f(icomm_grid);
+    CPLC_setup_cfd(icomm_grid_int, xyzL, xyz_orig, ncxyz);
+    //icomm_grid = MPI_Comm_f2c(returned_icomm_grid_int);
 }
 
-void CPL::setup_md(int icomm_grid, double xyzL[], 
+void CPL::setup_md(MPI_Comm& icomm_grid, double xyzL[], 
                    double xyz_orig[]) {
-    CPLC_setup_md(icomm_grid, xyzL, xyz_orig);
+    MPI_Fint icomm_grid_int = MPI_Comm_c2f(icomm_grid);
+    CPLC_setup_md(icomm_grid_int, xyzL, xyz_orig);
+    //icomm_grid = MPI_Comm_f2c(returned_icomm_grid_int);
 }
 
 void CPL::set_timing(int initialstep, int nsteps, double dt) {

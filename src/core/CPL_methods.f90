@@ -868,7 +868,10 @@ subroutine CPL_send_full(asend, limits, send_flag)
             ! ----------------- pack data for destid -----------------------------
 
             ! Send data 
-            itag = mod(ncalls, MPI_TAG_UB) !ncall could go over max tag value for long runs
+            !Using MPI_TAG_UB directly causes error with OpenMPI
+            !call MPI_COMM_GET_ATTR(CPL_GRAPH_COMM, MPI_TAG_UB, MPI_TAG_UB_int, ATTR_FLAG, ierr)
+            !itag = mod(ncalls, MPI_TAG_UB_int) !ncall could go over max tag value for long runs
+            itag = ncalls !Causes error with OpenMPI
             call MPI_sSend(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
 
         endif
@@ -976,7 +979,8 @@ subroutine CPL_recv_full(arecv, limits, recv_flag)
     integer,dimension(6) :: portion, myportion
 
     ! auxiliaries 
-    integer :: itag, sourceid,start_address
+    logical :: ATTR_FLAG
+    integer :: itag, sourceid,start_address, MPI_TAG_UB_int
     integer,dimension(:),allocatable   :: req
     integer,dimension(:,:),allocatable :: status
     real(kind(0.d0)),dimension(:), allocatable ::  vbuf
@@ -1068,7 +1072,10 @@ subroutine CPL_recv_full(arecv, limits, recv_flag)
             endif
 
             ! Receive section of data
-            itag = mod(ncalls, MPI_TAG_UB) !ncall could go over max tag value for long runs
+            !Using MPI_TAG_UB directly causes error with OpenMPI
+            !call MPI_COMM_GET_ATTR(CPL_GRAPH_COMM, MPI_TAG_UB, MPI_TAG_UB_int, ATTR_FLAG, ierr)
+            !itag = mod(ncalls, MPI_TAG_UB_int) !ncall could go over max tag value for long runs
+            itag = ncalls 
             call MPI_irecv(vbuf(start_address), ndata, MPI_DOUBLE_PRECISION, sourceid, itag, &
                                     CPL_GRAPH_COMM, req(nbr), ierr)
 

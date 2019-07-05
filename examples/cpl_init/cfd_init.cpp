@@ -7,7 +7,8 @@ using namespace std;
 int main() {
    MPI_Init(NULL, NULL); 
 
-   int CFD_realm = 1, CFD_COMM;
+   int CFD_realm = 1;
+   MPI_Comm CFD_COMM;
    CPL::init(CFD_realm, CFD_COMM);
 
    int nprocs; int rank;
