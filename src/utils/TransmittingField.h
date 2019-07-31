@@ -103,7 +103,6 @@ class TransmittingFieldPool : public CPL::Pool<TransmittingField> {
         void setupAll();
         void updateAll();
         void allocateBuffer(CPL::ndArray<double>& buffer) const;
-        CPL::ndArray<double> buffer;
         CPL::PortionField portionField;
         CPL::PortionField field;
     protected:

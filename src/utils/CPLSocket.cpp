@@ -45,13 +45,14 @@ Author(s)
 #include "CPL_cartCreate.h"
 #include "cpl.h"
 #include <iostream>
+#include <chrono>
 
 void CPLSocket::initComms(bool load_param_file) {
 
     // Split MPI_COMM_WORLD into realm communicators
     CPL::init(realmType, realmComm);
     MPI_Comm_rank(realmComm, &rankRealm);
-
+    MPI_Comm_size(realmComm, &noRealmProcs);
 };
 
 void CPLSocket::loadParamFile(std::string fname) {
@@ -107,49 +108,195 @@ void CPLSocket::getTopology_() {
     
 }
 
+// void CPLSocket::setupFieldPools(const CPL::OutgoingFieldPool& field_pool_send,
+//                                const CPL::IncomingFieldPool& field_pool_recv) {
+//
+//     field_pool_send->allocateBuffer(sendBuff);
+//     sendBuffAllocated = true;
+// }
+// void CPLSocket::allocateBuffers(const CPL::OutgoingFieldPool& field_pool_send,
+//                                 const CPL::IncomingFieldPool& field_pool_recv) {
+//     allocateSendBuffer(field_pool_send);
+//     allocateRecvBuffer(field_pool_recv);
+// }
 
-void CPLSocket::allocateBuffers(const CPL::OutgoingFieldPool& field_pool_send,
-                                const CPL::IncomingFieldPool& field_pool_recv) {
-    allocateSendBuffer(field_pool_send);
-    allocateRecvBuffer(field_pool_recv);
-}
-
-void CPLSocket::allocateSendBuffer(const CPL::OutgoingFieldPool& field_pool_send) {
-    field_pool_send.allocateBuffer(sendBuff);
+void CPLSocket::setOutgoingFieldPool(CPL::OutgoingFieldPool& send_pool) {
+    field_pool_send = &send_pool;
+    field_pool_send->allocateBuffer(sendBuff);
     sendBuffAllocated = true;
+    outgoingRuntimeInfo["setup"] = 0.0;
+    outgoingRuntimeInfo["update"] = 0.0;
+    outgoingRuntimeInfo["pack"] = 0.0;
+    outgoingRuntimeInfo["send"] = 0.0;
+    outgoingRuntimeInfo["total"] = 0.0;
 }
 
-void CPLSocket::allocateRecvBuffer(const CPL::IncomingFieldPool& field_pool_recv) {
-    field_pool_recv.allocateBuffer(recvBuff);
+void CPLSocket::setIncomingFieldPool(CPL::IncomingFieldPool& recv_pool) {
+    field_pool_recv = &recv_pool;
+    field_pool_recv->allocateBuffer(recvBuff);
     recvBuffAllocated = true;
+    outgoingRuntimeInfo["setup"] = 0.0;
+    outgoingRuntimeInfo["update"] = 0.0;
+    outgoingRuntimeInfo["unpack"] = 0.0;
+    outgoingRuntimeInfo["receive"] = 0.0;
+    outgoingRuntimeInfo["total"] = 0.0;
 }
 
-void CPLSocket::communicate(CPL::OutgoingFieldPool& field_pool_send,
-                            CPL::IncomingFieldPool& field_pool_recv) {
+#define  get_delta(t1, t2) \
+    std::chrono::duration<double>(t2-t1).count()
 
+#define tic() \
+    std::chrono::high_resolution_clock::now()
+
+void CPLSocket::communicate() {
     bool send_cond = sendBuffAllocated && sendEnabled;
     bool recv_cond = recvBuffAllocated && recvEnabled;
+    RuntimeInfoT& ort = outgoingRuntimeInfo;
+    RuntimeInfoT& irt = incomingRuntimeInfo;
+    std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
     if (send_cond) {
-        field_pool_send.updateAll();
-        field_pool_send.packAll();
+        t1 = tic(); 
+        field_pool_send->updateAll();
+        t2 = tic(); 
+        ort["update"] += get_delta(t1, t2);
+        t1 = tic(); 
+        field_pool_send->packAll();
+        t2 = tic(); 
+        ort["pack"] += get_delta(t1, t2);
     }
     if (realmType == CPL::md_realm) {
         if (recv_cond) {
-            receive(field_pool_recv);
+            t1 = tic(); 
+            receive(*field_pool_recv);
+            t2 = tic(); 
+            irt["receive"] += get_delta(t1, t2);
         }
         if (send_cond) {
-            send(field_pool_send);
+            t1 = tic(); 
+            send(*field_pool_send);
+            t2 = tic(); 
+            ort["send"] += get_delta(t1, t2);
         }
     }
     else {
         if (send_cond)
-            send(field_pool_send);
+            t1 = tic();
+            send(*field_pool_send);
+            t2 = tic(); 
+            ort["send"] += get_delta(t1, t2);
         if (recv_cond)
-            receive(field_pool_recv);
+            t1 = tic();
+            receive(*field_pool_recv);
+            t2 = tic();
+            irt["receive"] += get_delta(t1, t2);
     }
     if (recv_cond) {
-        field_pool_recv.unpackAll();
-        field_pool_recv.updateAll();
+        t1 = tic();
+        field_pool_recv->unpackAll();
+        t2 = tic(); 
+        irt["unpack"] += get_delta(t1, t2);
+        t1 = tic();
+        field_pool_recv->updateAll();
+        t2 = tic();
+        irt["update"] += get_delta(t1, t2);
+    }
+    ort["total"] += ort["update"] + ort["pack"] + ort["send"];
+    irt["total"] += irt["update"] + irt["unpack"] + irt["receive"];
+}
+
+void CPLSocket::_compute_region_runtime(const std::vector<double>& procs_runtimes,
+                                        double& min, double& max, double& avg) {
+    if (isRootProcess()){
+        max = -1;
+        min = 999999;
+        avg = 0.0;
+        int olap_procs = 0;
+        for (int i=0; i < noRealmProcs; i++) {
+            double val = procs_runtimes[i];
+            if (!(val < 0)) {
+               if (val > max) max = val;
+               if (val < min) min = val;
+               avg += val;
+               olap_procs += 1;
+            }
+        }
+        avg /= olap_procs;
+    }
+}
+void CPLSocket::_collect_region_runtime(double proc_time, std::vector<double>& procs_runtimes) {
+    double time = -1;
+    if (isOlapRegion())
+        time = proc_time;
+    double* values = NULL;
+    if (isRootProcess())
+        values = procs_runtimes.data();
+    MPI_Gather(&time, 1, MPI_DOUBLE, values, 1, MPI_DOUBLE, 0, realmComm);
+}
+
+void CPLSocket::printRuntimeInfo() {
+    RuntimeInfoT& ort = outgoingRuntimeInfo;
+    RuntimeInfoT& irt = incomingRuntimeInfo;
+    double irt_avg_update, irt_min_update, irt_max_update,
+           ort_avg_update, ort_min_update, ort_max_update;
+    double irt_avg_unpack, irt_min_unpack, irt_max_unpack,
+           ort_avg_pack, ort_min_pack, ort_max_pack;
+    double irt_avg_receive, irt_min_receive, irt_max_receive,
+           ort_avg_send, ort_min_send, ort_max_send;
+    double irt_avg_total, irt_min_total, irt_max_total,
+           ort_avg_total, ort_min_total, ort_max_total;
+    std::string realm_name, outgoing_name, incoming_name = "";
+    std::vector<double> irt_procs_runtime(noRealmProcs), ort_procs_runtime(noRealmProcs);
+
+    // Collect and compute times in order: update, pack/unpack, total 
+    // Update
+    _collect_region_runtime(ort["update"], ort_procs_runtime);
+    _collect_region_runtime(irt["update"], irt_procs_runtime);
+    _compute_region_runtime(ort_procs_runtime, ort_min_update, ort_max_update, ort_avg_update);
+    _compute_region_runtime(irt_procs_runtime, irt_min_update, irt_max_update, irt_avg_update);
+    // Pack/unpack 
+    _collect_region_runtime(ort["pack"], ort_procs_runtime);
+    _collect_region_runtime(irt["unpack"], irt_procs_runtime);
+    _compute_region_runtime(ort_procs_runtime, ort_min_pack, ort_max_pack, ort_avg_pack);
+    _compute_region_runtime(irt_procs_runtime, irt_min_unpack, irt_max_unpack, irt_avg_unpack);
+    // Send/receive 
+    _collect_region_runtime(ort["send"], ort_procs_runtime);
+    _collect_region_runtime(irt["receive"], irt_procs_runtime);
+    _compute_region_runtime(ort_procs_runtime, ort_min_send, ort_max_send, ort_avg_send);
+    _compute_region_runtime(irt_procs_runtime, irt_min_receive, irt_max_receive, irt_avg_receive);
+    // Total
+    _collect_region_runtime(ort["total"], ort_procs_runtime);
+    _collect_region_runtime(irt["total"], irt_procs_runtime);
+    _compute_region_runtime(ort_procs_runtime, ort_min_total, ort_max_total, ort_avg_total);
+    _compute_region_runtime(irt_procs_runtime, irt_min_total, irt_max_total, irt_avg_total);
+
+    if (realmType == CPL::md_realm) {
+        realm_name = "MD";
+        incoming_name  = "Constrain";
+        outgoing_name = "BC";
+    }
+    else {
+        realm_name = "CFD";
+        incoming_name  = "BC";
+        outgoing_name = "Constrain";
+    }
+    if (isRootProcess()) { 
+        std::stringstream str_out;
+        str_out << std::endl;
+        str_out << "Coupled " << realm_name << " runtime info (min, max, average):" << std::endl\
+                << "   Outgoing fields(" << outgoing_name << " region):" << std::endl\
+                << "      Update: " << ort_min_update << "," << ort_max_update << "," << ort_avg_update << std::endl\
+                << "      Pack  : " << ort_min_pack << "," << ort_max_pack << "," << ort_avg_pack << std::endl\
+                << "      Send  : " << ort_min_send << "," << ort_max_send << "," << ort_avg_send << std::endl\
+                << "      Total : " << ort_min_total << "," << ort_max_total << "," << ort_avg_total << std::endl\
+                << "   Incomming fields(" << incoming_name << " region):" << std::endl\
+                << "      Update: " << irt_min_update << "," << irt_max_update << "," << irt_avg_update << std::endl\
+                << "      Unpack  : " << irt_min_unpack << "," << irt_max_unpack << "," << irt_avg_unpack << std::endl\
+                << "      Receive : " << irt_min_receive << "," << irt_max_receive << "," << irt_avg_receive << std::endl\
+                << "      Total : " << irt_min_total << "," << irt_max_total << "," << irt_avg_total << std::endl;
+        std::cout << str_out.str() << std::endl;
+    }
+    else {
+        // Gather 
     }
 }
 
@@ -194,9 +341,3 @@ void CPLSocket::send(CPL::OutgoingFieldPool& field_pool) {
 void CPLSocket::receive(CPL::IncomingFieldPool& field_pool) {
     CPL::recv(recvBuff.data(), recvBuff.shapeData(), field_pool.field.cellBounds.data());
 };
-
-
-
-
-
-

@@ -49,26 +49,37 @@ Author(s)
 #include "mpi.h"
 #include "CPL_ndArray.h"
 #include "CPL_field.h"
+#include "cpl.h"
 #include "TransmittingField.h"
+#include <map>
+#include <iostream>
+
+typedef std::map<std::string, double> RuntimeInfoT;
 
 class CPLSocket {
 
 public:
     
     // Construct from no arguments
-    CPLSocket(int realm_type) : myProcCoords(3), olapRegion(), bcRegion(),
+    CPLSocket(int realm_type) : noRealmProcs(0), myProcCoords(3), olapRegion(), bcRegion(),
                   cnstRegion(), bcPortionRegion(), cnstPortionRegion(),
                   procGrid(3), realmType(realm_type), cfdCells(3),
                   sendBuffAllocated(false), recvBuffAllocated(false),
-                  sendEnabled(true), recvEnabled(true), paramFileLoaded(false) {}
+                  sendEnabled(true), recvEnabled(true), paramFileLoaded(false),
+                  field_pool_recv(NULL), field_pool_send(NULL) {}
     CPLSocket() : CPLSocket(-1) {}
     virtual ~CPLSocket(){}
     // Total number of timesteps and timestep ratio
     int realmType;
+    int noRealmProcs;
     int nSteps;
     int timestepRatio;
     int initialStep;
     double dt;
+    CPL::IncomingFieldPool* field_pool_recv;
+    CPL::OutgoingFieldPool* field_pool_send;
+    RuntimeInfoT outgoingRuntimeInfo;
+    RuntimeInfoT incomingRuntimeInfo;
     
     // Initialisation routines 
     void initComms (bool load_param_file=false);
@@ -84,10 +95,10 @@ public:
     const MPI_Comm cartCommunicator() {return cartComm;}
     bool isRootProcess() {return (rankRealm == 0);}
 
+    bool isOlapRegion(){return CPL::overlap();};
     //TODO: Implement this
     bool isBcRegion(){return false;};
     bool isCnstRegion(){return false;};
-    bool isOlapRegion(){return false;};
 
     // Clean up MPI/CPL communicators
     void finalizeComms();
@@ -101,9 +112,7 @@ public:
     CPL::PortionField cnstPortionRegion;
 
 
-    void communicate(CPL::OutgoingFieldPool& field_pool_send,
-                     CPL::IncomingFieldPool& field_pool_recv);
-
+    void communicate();
     // Cartesian coordinates of the processor
     std::vector<int> myProcCoords;
 
@@ -134,14 +143,18 @@ public:
     bool sendBuffAllocated, recvBuffAllocated;
     bool sendEnabled, recvEnabled;
 
-    void allocateBuffers(const CPL::OutgoingFieldPool& field_pool_send, 
-                         const CPL::IncomingFieldPool& field_pool_recv);
-    void allocateSendBuffer(const CPL::OutgoingFieldPool& field_pool_send);
-    void allocateRecvBuffer(const CPL::IncomingFieldPool& field_pool_recv);
+    // void allocateBuffers(const CPL::OutgoingFieldPool& field_pool_send, 
+    //                      const CPL::IncomingFieldPool& field_pool_recv);
+    void setOutgoingFieldPool(CPL::OutgoingFieldPool& send_pool);
+    void setIncomingFieldPool(CPL::IncomingFieldPool& recv_pool);
     
     bool paramFileLoaded;
     void loadParamFile(std::string fname="config.cpl");
+    void printRuntimeInfo();
 
+private:
+    void _compute_region_runtime(const std::vector<double>& procs_runtimes, double& min, double& max, double& avg);
+    void _collect_region_runtime(double proc_time, std::vector<double>& procs_runtimes);
 
 
 
