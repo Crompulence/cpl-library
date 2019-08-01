@@ -179,16 +179,18 @@ void CPLSocket::communicate() {
         }
     }
     else {
-        if (send_cond)
+        if (send_cond) {
             t1 = tic();
             send(*field_pool_send);
             t2 = tic(); 
             ort["send"] += get_delta(t1, t2);
-        if (recv_cond)
+        }
+        if (recv_cond) {
             t1 = tic();
             receive(*field_pool_recv);
             t2 = tic();
             irt["receive"] += get_delta(t1, t2);
+        }
     }
     if (recv_cond) {
         t1 = tic();
