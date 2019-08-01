@@ -202,8 +202,8 @@ void CPLSocket::communicate() {
         t2 = tic();
         irt["update"] += get_delta(t1, t2);
     }
-    ort["total"] += ort["update"] + ort["pack"] + ort["send"];
-    irt["total"] += irt["update"] + irt["unpack"] + irt["receive"];
+    ort["total"] = ort["update"] + ort["pack"] + ort["send"];
+    irt["total"] = irt["update"] + irt["unpack"] + irt["receive"];
 }
 
 void CPLSocket::_compute_region_runtime(const std::vector<double>& procs_runtimes,
