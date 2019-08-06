@@ -143,51 +143,21 @@ class CPL:
         self.py_test_python(int_p, doub_p, bool_p, int_pptr, doub_pptr,
                             int_pptr_dims, doub_pptr_dims)
 
-    _py_init = _cpl_lib.CPLC_init
-
-    #OpenMPI comm greater than c_int
-    try:
-        if MPI._sizeof(MPI.Comm) == ctypes.sizeof(c_int): 
-            _py_init.argtypes = [c_int, POINTER(c_int)]
-        else:
-            excptstr ="Problem is in create_comm wrapper, as the OpenMPI COMM handle is not "
-            excptstr += "an integer, c_void_p should be used so C bindings needs something like **void" 
-            excptstr += "(No idea what to do in the Fortran code, maybe MPI_COMM_f2C required)"
-            raise OpenMPI_Not_Supported(excptstr)
-            _py_init.argtypes = [c_int, POINTER(c_void_p)]
-    except AttributeError:
-        _py_init.argtypes = [c_int, POINTER(c_int)]
-
+    #NOTE: Using CPLC_init_Fort and Comm.f2py() and Comm.py2f() we achieve integration
+    #      with MPICH and OpenMPI seamlessly. It is needed mpi4py >= 3.0.0 I think.
+    _py_init = _cpl_lib.CPLC_init_Fort
+    _py_init.argtypes = [c_int, POINTER(c_int)]
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
     @abortMPI
     def init(self, calling_realm):
-
         self.realm = calling_realm
-        # Build a communicator mpi4py python object from the
-        # handle returned by the CPL_init function.
-        try: 
-            if MPI._sizeof(MPI.Comm) == ctypes.sizeof(c_int):
-                MPI_Comm = c_int
-            else:
-                MPI_Comm = c_void_p
-        #Some versions of MPI4py have no _sizeof method.
-        except AttributeError:
-            MPI_Comm = c_int
+        MPI_Comm_int = c_int()
+        self._py_init(calling_realm, byref(MPI_Comm_int))
+        self.COMM = MPI.Comm.f2py(MPI_Comm_int.value)
+        return self.COMM 
 
-        # Call create comm
-        returned_realm_comm = c_int()
-        self._py_init(calling_realm, byref(returned_realm_comm))
-
-        # Use an intracomm object as the template and override value
-        newcomm = MPI.Intracomm()
-        newcomm_ptr = MPI._addressof(newcomm)
-        comm_val = MPI_Comm.from_address(newcomm_ptr)
-        comm_val.value = returned_realm_comm.value
-        self.COMM = newcomm
-
-        return newcomm
 
     if JSON_SUPPORT:
         _py_load_param_file = _cpl_lib.CPLC_load_param_file
@@ -246,7 +216,7 @@ class CPL:
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-    py_setup_cfd = _cpl_lib.CPLC_setup_cfd
+    py_setup_cfd = _cpl_lib.CPLC_setup_cfd_Fort
 
     py_setup_cfd.argtypes = \
         [c_int,
@@ -282,13 +252,13 @@ class CPL:
             (not ncxyz.flags["F_CONTIGUOUS"])):
             ncxyz = np.array(ncxyz, order='F', dtype=np.int32)
 
-        self.py_setup_cfd(MPI._handleof(icomm_grid), xyzL,
+        self.py_setup_cfd(icomm_grid.py2f(), xyzL,
                           xyz_orig, ncxyz)
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
-    py_setup_md = _cpl_lib.CPLC_setup_md
+    py_setup_md = _cpl_lib.CPLC_setup_md_Fort
 
     py_setup_md.argtypes = \
         [c_int,
@@ -317,7 +287,7 @@ class CPL:
             (not xyz_orig.flags["F_CONTIGUOUS"])):
             xyz_orig = np.array(xyz_orig, order='F', dtype=np.float64)
 
-        self.py_setup_md(MPI._handleof(icomm_grid), xyzL, xyz_orig)
+        self.py_setup_md(icomm_grid.py2f(), xyzL, xyz_orig)
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -858,6 +828,9 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
         if os.path.exists(md_fname) and os.path.exists(cfd_fname):
 
             if "port" in mpirun:
+                # For OpenMPI >= 3.0.0
+                # cmd = " ".join(["mpiexec --oversubscribe", "-n", str(mdprocs), md_exec, md_args, 
+                #                 "& PID=$!;", "mpiexec --oversubscribe", "-n", str(cfdprocs), 
                 cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_args, 
                                 "& PID=$!;", "mpiexec", "-n", str(cfdprocs), 
                                 cfd_exec, cfd_args, "; wait $PID"])
@@ -865,7 +838,9 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
 #                                "-m ", str(mdprocs), " ' ", md_exec, md_args, " ' "
 #                                "-c ", str(cfdprocs), " ' ", cfd_exec, cfd_args, " ' "])
             elif "split" in mpirun:
-                cmd = " ".join(["mpiexec", "-n", str(mdprocs), md_exec, md_args,
+                # For OpenMPI >= 3.0.0
+                # cmd = " ".join(["mpiexec --oversubscribe", "-n", str(mdprocs), md_exec, md_args,
+                cmd = " ".join(["mpiexec","-n", str(mdprocs), md_exec, md_args,
                             ":", "-n", str(cfdprocs), cfd_exec, cfd_args])
             else:
                 raise ValueError("MPIrun type unknown", mpirun)

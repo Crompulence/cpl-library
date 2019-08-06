@@ -38,7 +38,8 @@ def runcmd(cmd):
 
 perms = []
 dirs = ["fortran", "cpp", "python"]
-for cplt in ["port", "split"]:
+# for cplt in ["port", "split"]:
+for cplt in ["split"]:
     for mdd in dirs:
         for cfdd in dirs:
             perms.append([cplt, mdd, cfdd, 8])
@@ -54,6 +55,8 @@ def test_example_sendrecv_scripts(cpltype, mddir, cfddir, count):
 
         if cpltype is "split":
             cmd = "mpiexec -n 16 "
+            # For OpenMPI >= 3.0.0
+            # cmd = "mpiexec --oversubscribe -n 16 "
         elif cpltype is "port":
             cmd = "cplexec -m 16 "
 

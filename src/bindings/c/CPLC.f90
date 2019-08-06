@@ -388,7 +388,7 @@ contains
 
 
     subroutine CPLC_init(calling_realm, returned_realm_comm) &
-        bind (C, name="CPLC_init")
+        bind (C, name="CPLC_init_Fort")
         use CPL, only: CPL_init
         implicit none
         
@@ -413,7 +413,7 @@ contains
     end subroutine CPLC_finalize
 
     subroutine CPLC_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz) &
-        bind (C, name="CPLC_setup_cfd")
+        bind (C, name="CPLC_setup_cfd_Fort")
         use CPL, only: CPL_setup_cfd
         implicit none
 
@@ -583,7 +583,7 @@ contains
 
 
     subroutine CPLC_setup_md(icomm_grid, xyzL, xyz_orig) &
-        bind(C, name="CPLC_setup_md")
+        bind(C, name="CPLC_setup_md_Fort")
         use CPL, only: CPL_setup_md
         implicit none
 

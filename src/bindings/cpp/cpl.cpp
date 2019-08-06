@@ -43,16 +43,9 @@ Description
 #include <iostream>
 #include <sstream>
 
-//void CPL::init(int calling_realm, int& returned_realm_comm) {
-//    CPLC_init(calling_realm, &returned_realm_comm);
-//}
-
 void CPL::init(int calling_realm, MPI_Comm& returned_realm_comm) {
-    int returned_realm_comm_int;
-    CPLC_init(calling_realm, &returned_realm_comm_int);
-    returned_realm_comm = MPI_Comm_f2c(returned_realm_comm_int);
+    CPLC_init(calling_realm, &returned_realm_comm);
 }
-
 
 void CPL::finalize() {
     CPLC_finalize();
@@ -60,16 +53,12 @@ void CPL::finalize() {
 
 void CPL::setup_cfd(MPI_Comm& icomm_grid, double xyzL[],
                     double xyz_orig[], int ncxyz[]) {
-    MPI_Fint icomm_grid_int = MPI_Comm_c2f(icomm_grid);
-    CPLC_setup_cfd(icomm_grid_int, xyzL, xyz_orig, ncxyz);
-    //icomm_grid = MPI_Comm_f2c(returned_icomm_grid_int);
+    CPLC_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz);
 }
 
 void CPL::setup_md(MPI_Comm& icomm_grid, double xyzL[], 
                    double xyz_orig[]) {
-    MPI_Fint icomm_grid_int = MPI_Comm_c2f(icomm_grid);
-    CPLC_setup_md(icomm_grid_int, xyzL, xyz_orig);
-    //icomm_grid = MPI_Comm_f2c(returned_icomm_grid_int);
+    CPLC_setup_md(icomm_grid, xyzL, xyz_orig);
 }
 
 void CPL::set_timing(int initialstep, int nsteps, double dt) {

@@ -1,8 +1,8 @@
 
 # Fortran/C++ compilers and linker
-F90 = /home/es205/installed/openmpi-2.0.1_gcc/bin/mpifort
-CPP = /home/es205/installed/openmpi-2.0.1_gcc/bin/mpic++
-LINK = /home/es205/installed/openmpi-2.0.1_gcc/bin/mpic++
+F90 = mpifort
+CPP = mpic++
+LINK = mpic++
 
 # Base flags for Fortran/C++/Linker
 FFLAGS = -fno-underscoring
