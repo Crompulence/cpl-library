@@ -8,7 +8,7 @@ INTELDIR = /opt/intel/composer_xe_2013_sp1.2.144/compiler/lib/intel64/ # Place t
 
 # Base flags for Fortran/C++/Linker
 FFLAGS = #-cxxlib
-CFLAGS = -std=c++14
+CFLAGS = -std=c++11
 LFLAGS = -L$(INTELDIR) -lifport -lifcore -limf -lsvml -lintlc
 
 # Compiler's flag for specifying where to place compiled Fortran modules
