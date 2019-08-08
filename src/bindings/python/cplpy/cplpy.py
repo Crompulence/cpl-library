@@ -556,7 +556,7 @@ class CPL:
         return A
 
     @abortMPI
-    def dump_region(self, region, array, fname, comm, components={}, coords="mine"):
+    def dump_region(self, region, array, fname, comm, components={}, dec_figures=5, coords="mine"):
             lines = ""
             portion = self.my_proc_portion(region)
             cell_coords = np.array(3)
@@ -594,9 +594,9 @@ class CPL:
                             lines += str(cell_coords[0] + dx/2.0) + " "\
                                    + str(cell_coords[1] + dy/2.0) + " "\
                                    + str(cell_coords[2] + dz/2.0)
-                                   
+                            format_str =  "{:." + str(dec_figures) + "e}"
                             for k, f in components_dic.items():
-                                lines += " " + str(f(array[k, i_loc, j_loc, k_loc]))
+                                lines += " " + format_str.format(f(array[k, i_loc, j_loc, k_loc]))
                             lines += "\n"
 
             # Gather all the forces from every processor and dump them to a file at the root

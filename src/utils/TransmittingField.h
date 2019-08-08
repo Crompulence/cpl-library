@@ -48,7 +48,7 @@ protected:
     virtual void iterateFunc_(const std::vector<int>& glob_cell,
                               const std::vector<int>& loc_cell, 
                               const std::valarray<double>& coord)=0;
-    virtual void iterateFuncCustom_()=0;
+    virtual bool iterateFuncCustom_()=0;
  
 };
 
@@ -62,11 +62,11 @@ protected:
                       const std::vector<int>& loc_cell, 
                       const std::valarray<double>& coord) 
                       {unpack_(glob_cell, loc_cell, coord);}
-    void iterateFuncCustom_() {unpackCustom_();}
+    bool iterateFuncCustom_() {return unpackCustom_();}
     virtual void unpack_(const std::vector<int>& glob_cell, 
                         const std::vector<int>& loc_cell,
                         const std::valarray<double>& coord) {}
-    virtual void unpackCustom_() {}
+    virtual bool unpackCustom_() {return false;}
 };
 
 class OutgoingField: public CPL::TransmittingField {
@@ -79,11 +79,11 @@ protected:
                       const std::vector<int>& loc_cell, 
                       const std::valarray<double>& coord) 
                       {pack_(glob_cell, loc_cell, coord);}
-    void iterateFuncCustom_() {packCustom_();}
+    bool iterateFuncCustom_() {return packCustom_();}
     virtual void pack_(const std::vector<int>& glob_cell, 
                        const std::vector<int>& loc_cell,
                        const std::valarray<double>& coord) {}
-    virtual void packCustom_() {}
+    virtual bool packCustom_() {return false;}
  
 };
 
