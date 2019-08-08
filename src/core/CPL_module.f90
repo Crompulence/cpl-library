@@ -2690,16 +2690,18 @@ subroutine prepare_overlap_comms()
     call MPI_Barrier(CPL_REALM_COMM, ierr)
 
     ! Split world Comm into a set of comms for overlapping processors
-    call MPI_comm_split(CPL_WORLD_COMM,group(rank_world),realm, &
-                        CPL_OLAP_COMM,ierr)
+    if (olap_mask(rank_world).eqv..true.) then
+        call MPI_comm_split(CPL_WORLD_COMM,group(rank_world),realm, &
+                            CPL_OLAP_COMM,ierr)
+    else
+        !OpenMPI doesn't allow negative colour so set to zero
+        call MPI_comm_split(CPL_WORLD_COMM,0,realm, &
+                            CPL_OLAP_COMM,ierr)
+    endif
 
     !Setup Overlap comm sizes and id
     if (realm.eq.cfd_realm) CFDid_olap = myid_olap
     call MPI_bcast(CFDid_olap,1,MPI_INTEGER,CFDid_olap,CPL_OLAP_COMM,ierr)
-
-    ! USED ONLY FOR OUTPUT/TESTING??
-    !if (myid_olap .eq. CFDid_olap) testval = group(rank_world)
-    !call MPI_bcast(testval,1,MPI_INTEGER,CFDid_olap,CPL_OLAP_COMM,ierr)
 
     ! Set all non-overlapping processors to MPI_COMM_NULL
     if (olap_mask(rank_world).eqv..false.) then

@@ -9,14 +9,18 @@ using namespace std;
 int main() {
 
     bool flag;
-    int CFD_realm = 1, CFD_COMM;
+    int CFD_realm = 1;
+    MPI_Comm CFD_COMM, CART_COMM;
     CPL::ndArray<double> send_array, recv_array;
 
     MPI_Init(NULL, NULL); 
     CPL::init(CFD_realm, CFD_COMM);
 
-    int npxyz[3] = {1, 1, 1}; int periods[3] = {1, 1, 1}; int CART_COMM;
-    MPI_Cart_create(CFD_COMM, 3, npxyz, periods, true, &CART_COMM);
+    int npxyz[3] = {1, 1, 1}; int periods[3] = {1, 1, 1};
+    MPI_Cart_create(CFD_COMM, 3, npxyz, periods, 1, &CART_COMM);
+
+    //MPI_Cart_get(icomm_grid, 3, npxyz_cfd, cart_periods, cart_coords);
+
     double xyzL[3] = {1.0, 1.0, 1.0}; double xyz_orig[3] = {0.0, 0.0, 0.0};
     int ncxyz[3] = {32, 32, 32};
     CPL::setup_cfd(CART_COMM, xyzL, xyz_orig, ncxyz);

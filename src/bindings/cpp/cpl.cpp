@@ -43,27 +43,20 @@ Description
 #include <iostream>
 #include <sstream>
 
-//void CPL::init(int calling_realm, int& returned_realm_comm) {
-//    CPLC_init(calling_realm, &returned_realm_comm);
-//}
-
 void CPL::init(int calling_realm, MPI_Comm& returned_realm_comm) {
-    int returned_realm_comm_int;
-    CPLC_init(calling_realm, &returned_realm_comm_int);
-    returned_realm_comm = MPI_Comm_f2c(returned_realm_comm_int);
+    CPLC_init(calling_realm, &returned_realm_comm);
 }
-
 
 void CPL::finalize() {
     CPLC_finalize();
 }
 
-void CPL::setup_cfd(int icomm_grid, double xyzL[],
+void CPL::setup_cfd(MPI_Comm& icomm_grid, double xyzL[],
                     double xyz_orig[], int ncxyz[]) {
     CPLC_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz);
 }
 
-void CPL::setup_md(int icomm_grid, double xyzL[], 
+void CPL::setup_md(MPI_Comm& icomm_grid, double xyzL[], 
                    double xyz_orig[]) {
     CPLC_setup_md(icomm_grid, xyzL, xyz_orig);
 }

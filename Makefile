@@ -60,8 +60,10 @@ fbindsrcfile = $(addprefix $(fbinddir)/, $(fbindsrc))
 fbindobjfile = $(addprefix $(objdir)/, $(fbindsrc:.f90=.o))
 
 cbindhdrfile = $(cbinddir)/CPLC.h
-cbindsrcfile = $(cbinddir)/CPLC.f90
-cbindobjfile = $(objdir)/CPLC.o
+cbindsrcFfile = $(cbinddir)/CPLC.f90  
+cbindobjFfile = $(objdir)/CPLF.o
+cbindsrcCfile = $(cbinddir)/CPLC.c
+cbindobjCfile = $(objdir)/CPLC.o
 
 cppbindsrc = cpl.cpp
 cppbindhdr = $(cppbindsrc:.cpp=.h)
@@ -76,7 +78,7 @@ utilssrcfiles = $(addprefix $(utilsdir)/, $(utilssrc))
 utilshdrfiles = $(addprefix $(utilsdir)/, $(utilshdr))
 utilsobjfiles = $(addprefix $(objdir)/, $(utilssrc:.cpp=.o))
 
-allobjfiles = $(coreobjfiles) $(fbindobjfile) $(cbindobjfile) \
+allobjfiles = $(coreobjfiles) $(fbindobjfile) $(cbindobjFfile) $(cbindobjCfile) \
               $(cppbindobjfiles) $(utilsobjfiles)
 
 # Define flags and compilers/linkers specific to this makefile
@@ -98,8 +100,8 @@ default: core fortran copyutilities c cpp utilities link
 # Declare phony targets
 .phony.: fortran c cpp utilities
 fortran: core $(fbindobjfile) 
-c: core $(fbindobjfile) $(cbindobjfile)
-cpp: core $(fbindobjfile) $(cbindobjfile) $(cppbindobjfiles) $(utilsobjfiles)
+c: core $(fbindobjfile) $(cbindobjFfile) $(cbindobjCfile)
+cpp: core $(fbindobjfile) $(cbindobjFfile) $(cbindobjCfile) $(cppbindobjfiles) $(utilsobjfiles)
 
 # Fortran bindings
 $(fbindobjfile): core $(fbindsrcfile)
@@ -110,16 +112,26 @@ else
 endif
 
 # C bindings: create the lib objects first, overwrite lib including CPLC
-$(cbindobjfile): core $(cbindsrcfile)
+$(cbindobjFfile): core $(cbindsrcFfile)
 ifdef BUILDPPROCMACROS
-	$(F90) $(FFLAGS) -D$(BUILDPPROCMACROS) -c $(cbindsrcfile) -o $(cbindobjfile)
+	$(F90) $(FFLAGS) -D$(BUILDPPROCMACROS) -c $(cbindsrcFfile) -o $(cbindobjFfile)
 else
-	$(F90) $(FFLAGS) -c $(cbindsrcfile) -o $(cbindobjfile)
+	$(F90) $(FFLAGS) -c $(cbindsrcFfile) -o $(cbindobjFfile)
 endif
 	@cp $(cbindhdrfile) $(includedir)
 
+$(cbindobjCfile): core $(cbindsrcCfile)
+ifdef BUILDPPROCMACROS
+	$(CPP) $(CFLAGS) -D$(BUILDPPROCMACROS) -c $(cbindsrcCfile) -o $(cbindobjCfile)
+else
+	$(CPP) $(CFLAGS) -c $(cbindsrcCfile) -o $(cbindobjCfile)
+endif
+	@cp $(cbindhdrfile) $(includedir)
+
+
+
 # C++ bindings: create lib and c bindings first, overwrite lib including CPLCPP
-$(cppbindobjfiles): core $(cbindobjfile) 
+$(cppbindobjfiles): core $(cbindobjFfile) $(cbindobjCfile) 
 ifdef BUILDPPROCMACROS
 	$(CPP) $(CFLAGS) -D$(BUILDPPROCMACROS) -I$(cbinddir) -c $(cppbindsrcfiles) -o $(cppbindobjfiles)
 else
@@ -182,13 +194,13 @@ test-pytest:
 	py.test -v $(testdir)/pytests
 	
 test-pytest-mapping:
-	py.test -v $(testdir)/pytests/mapping
+	py.test -v --fulltrace $(testdir)/pytests/mapping
 
 test-pytest-initialisation:
 	py.test -v $(testdir)/pytests/initialisation
 
 test-examples:
-	py.test -v $(testdir)/examples
+	py.test -v --fulltrace $(testdir)/examples
 #	./examples/sendrecv_globcell/test_all.sh
 #	./examples/sendrecv_globcell/test_all_port.sh
 

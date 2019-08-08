@@ -9,7 +9,8 @@ using namespace std;
 int main() {
    MPI_Init(NULL, NULL); 
 
-   int CFD_realm = 1, CFD_COMM;
+   int CFD_realm = 1;
+   MPI_Comm CFD_COMM;
    CPL::init(CFD_realm, CFD_COMM);
 
    // Parameters of the cpu topology (cartesian grid)
@@ -31,8 +32,8 @@ int main() {
    int rank;
    MPI_Comm_rank(CFD_COMM, &rank);
    int periods[3] = {1, 1, 1};
-   int CART_COMM;
-   MPI_Cart_create(CFD_COMM, 3, npxyz, periods, true, &CART_COMM);
+   MPI_Comm CART_COMM;
+   MPI_Cart_create(CFD_COMM, 3, npxyz, periods, 1, &CART_COMM);
 
    // Coupler setup
    CPL::setup_cfd(CART_COMM, xyzL, xyz_orig, ncxyz);
@@ -70,8 +71,8 @@ int main() {
 
    // Release all coupler comms 
    CPL::finalize();
-    MPI_Comm_free(&CFD_COMM);
-    MPI_Comm_free(&CART_COMM);
+   MPI_Comm_free(&CFD_COMM);
+   MPI_Comm_free(&CART_COMM);
    MPI_Finalize();
    
 }

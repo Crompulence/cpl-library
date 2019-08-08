@@ -1,3 +1,5 @@
+#ifndef CPLC_H
+#define CPLC_H
 /*
 
     ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________
@@ -46,17 +48,23 @@ Author(s)
 
 #include "mpi.h"
 
-extern "C" void CPLC_init(int  calling_realm, int* returned_realm_comm);
-extern "C" void CPLC_finalize();
-extern "C" void CPLC_setup_cfd(int icomm_grid, double xyzL[], 
-                               double xyz_orig[], int ncxyz[]);
 
+extern "C" void CPLC_init_Fort(int  calling_realm, int* returned_realm_comm);
+extern "C" void CPLC_init(int  calling_realm, MPI_Comm* returned_realm_comm);
+
+extern "C" void CPLC_setup_cfd_Fort(int icomm_grid, double xyzL[], 
+                                    double xyz_orig[], int ncxyz[]);
+extern "C" void CPLC_setup_cfd(MPI_Comm icomm_grid, double xyzL[], 
+                               double xyz_orig[], int ncxyz[]);
+extern "C" void CPLC_setup_md_Fort(int icomm_grid, double xyzL[], 
+                                   double xyz_orig[]);
+extern "C" void CPLC_setup_md(MPI_Comm icomm_grid, double xyzL[], 
+                              double xyz_orig[]);
+
+extern "C" void CPLC_finalize();
 extern "C" void CPLC_test_python(int int_p, double doub_p, bool bool_p, 
                                  int* int_pptr, double* doub_pptr, 
                                  int* int_pptr_dims, int* doub_pptr_dims);
-
-extern "C" void CPLC_setup_md(int icomm_grid, double xyzL[], 
-                              double xyz_orig[]);
 
 extern "C" void CPLC_set_timing(int initialstep, int nsteps, double dt);
 extern "C" void CPLC_send(double* asend, int* asend_shape, int* limits, bool *send_flag);
@@ -166,4 +174,5 @@ extern "C" void CPLC_get_boolean_param(const char* section, const char* param_na
 extern "C" void CPLC_get_boolean_array_param(const char* section, const char* param_name, bool** boolean_param_array, int* array_len);
 extern "C" void CPLC_get_string_param(const char* section, const char* param_name, char** string_param);
 extern "C" void CPLC_get_string_array_param(const char* section, const char* param_name, char** string_param_array, int* array_len);
-#endif 
+#endif // JSON_SUPPORT
+#endif // CPLC_H
