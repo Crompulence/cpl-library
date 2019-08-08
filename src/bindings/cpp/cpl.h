@@ -63,11 +63,11 @@ namespace CPL
     static const int md_realm = 2;
 
 //    void init ( int  calling_realm, int& returned_realm_comm);
-    void init ( int  calling_realm, MPI_Comm& returned_realm_comm); 
+    void init (int calling_realm, MPI_Comm& returned_realm_comm); 
     void finalize(); 
 
-    void setup_cfd(int icomm_grid, double xyzL[], double xyz_orig[], int ncxyz[]);
-    void setup_md(int icomm_grid, double xyzL[], double xyz_orig[]);
+    void setup_cfd(MPI_Comm& icomm_grid, double xyzL[], double xyz_orig[], int ncxyz[]);
+    void setup_md(MPI_Comm& icomm_grid, double xyzL[], double xyz_orig[]);
 
     void set_timing(int initialstep, int nsteps, double dt);
     bool send(double* asend, int* asend_shape, int* limits);

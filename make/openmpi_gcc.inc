@@ -1,18 +1,16 @@
 
 # Fortran/C++ compilers and linker
-F90 = mpif90
+F90 = mpifort
 CPP = mpic++
 LINK = mpic++
 
-INTELDIR = /opt/intel/composer_xe_2013_sp1.2.144/compiler/lib/intel64/ # Place the path to the Intel  
-
 # Base flags for Fortran/C++/Linker
-FFLAGS = #-cxxlib
+FFLAGS = -fno-underscoring
 CFLAGS = -std=c++11
-LFLAGS = -L$(INTELDIR) -lifport -lifcore -limf -lsvml -lintlc
+LFLAGS = -lgfortran -lstdc++ -lmpi_mpifh
 
 # Compiler's flag for specifying where to place compiled Fortran modules
-FMODKEY = -module 
+FMODKEY = -J
 
 # Linker's flag indicating that objects are to be linked into a shared lib
 LSHAREDLIB = -shared
@@ -22,9 +20,9 @@ ifndef BUILD
    BUILD = opt
 endif
 ifeq ($(strip $(BUILD)),debug)
-    FFLAGS += -O0 -g -ggdb -Wall
+    FFLAGS += -O0 -g -ggdb -Wall -cpp
     CFLAGS += -O0 -g -ggdb -Wall
 else
-    FFLAGS += -O3
+    FFLAGS += -O3 -cpp
     CFLAGS += -O3
 endif

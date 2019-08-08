@@ -169,18 +169,18 @@ void CPLSocket::init() {
     }
     setCartCommInfo();
     int periods[3] = {0, 0, 0};
-    CPL::Cart_create (realmComm, 3, procGrid.data(), periods, 
-                      myProcCoords.data(), &cartComm);
-    MPI_Comm_rank (cartComm, &rankCart);
+    CPL::Cart_create(realmComm, 3, procGrid.data(), periods, 
+                     myProcCoords.data(), &cartComm);
+    MPI_Comm_rank(cartComm, &rankCart);
     setRealmDomainInfo();
     //TODO: Maybe not a good idea to force origin to (0,0,0)
     double orig[3] = {0.0 , 0.0, 0.0};
     if (realmType == CPL::md_realm) 
-        CPL::setup_md (cartComm, &(realmDomain.length()[0]), orig);
+        CPL::setup_md(cartComm, &(realmDomain.length()[0]), orig);
     else
         //TODO: The grid should be specified in the configuration file and decouple
         //from the setup_cfd.
-        CPL::setup_cfd (cartComm, &(realmDomain.length()[0]), orig, cfdCells.data());
+        CPL::setup_cfd(cartComm, &(realmDomain.length()[0]), orig, cfdCells.data());
     getTiming_();
     getTopology_();
 }

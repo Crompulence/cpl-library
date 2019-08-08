@@ -11,7 +11,8 @@ using namespace std;
 int main() {
    MPI_Init(NULL, NULL); 
 
-   int MD_realm = 2, MD_COMM;
+   int MD_realm = 2;
+   MPI_Comm MD_COMM;
    CPL::init(MD_realm, MD_COMM);
 
    // Parameters of the cpu topology (cartesian grid)
@@ -32,7 +33,7 @@ int main() {
    int rank;
    MPI_Comm_rank(MD_COMM, &rank);
    int periods[3] = {1, 1, 1};
-   int CART_COMM;
+   MPI_Comm CART_COMM;
    MPI_Cart_create(MD_COMM, 3, npxyz, periods, true, &CART_COMM);
 
    // Coupler setup
