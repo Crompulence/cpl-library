@@ -1,6 +1,8 @@
 from __future__ import print_function, division
 from ctypes import c_char_p, c_char, c_int, c_double, c_bool, c_void_p, byref, POINTER, util, pointer, cdll
 import ctypes
+import mpi4py
+from distutils.version import StrictVersion
 from mpi4py import MPI
 import numpy as np
 from numpy.ctypeslib import ndpointer, load_library
@@ -16,11 +18,15 @@ import errno
 __all__ = ["CPL", "cart_create", "run_test", "prepare_config", "parametrize_file"]
 
 
-class OpenMPI_Not_Supported(Exception):
-    pass
+#class OpenMPI_Not_Supported(Exception):
+#    pass
 
 class CPLLibraryNotFound(Exception):
     pass
+
+class mpi4py_version_error(Exception):
+    pass
+
 
 # TODO: Raise exception of library not loaded
 _loaded = False
@@ -144,7 +150,10 @@ class CPL:
                             int_pptr_dims, doub_pptr_dims)
 
     #NOTE: Using CPLC_init_Fort and Comm.f2py() and Comm.py2f() we achieve integration
-    #      with MPICH and OpenMPI seamlessly. It is needed mpi4py >= 3.0.0 I think.
+    #      with MPICH and OpenMPI seamlessly. mpi4py >= 2.0.0 is needed.
+    if StrictVersion(mpi4py.__version__) < StrictVersion('2.0.0'):
+        raise mpi4py_version_error("Comm.f2py() and Comm.py2f()" + 
+                                   " require mpi4py >= 2.0.0")
     _py_init = _cpl_lib.CPLC_init_Fort
     _py_init.argtypes = [c_int, POINTER(c_int)]
 

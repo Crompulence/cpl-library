@@ -746,7 +746,8 @@ subroutine CPL_send_full(asend, limits, send_flag)
    
     !Neighbours
     integer                             :: nneighbors   
-    integer,dimension(:),allocatable    :: id_neighbors
+    integer,dimension(:),allocatable    :: id_neighbors, req
+    integer,dimension(:,:),allocatable :: status
 
     ! local indices 
     integer :: icell,jcell,kcell
@@ -815,7 +816,12 @@ subroutine CPL_send_full(asend, limits, send_flag)
 
     !Keep track of number of sends
     ncalls = ncalls + 1
-  
+
+
+
+    ! Send to all attached processors
+    allocate(req(nneighbors)); req = MPI_REQUEST_NULL
+    allocate(status(MPI_STATUS_SIZE, nneighbors));   
     ! loop through the maps and send the corresponding sections of asend
     do nbr = 1, nneighbors
 
@@ -872,11 +878,14 @@ subroutine CPL_send_full(asend, limits, send_flag)
             !call MPI_COMM_GET_ATTR(CPL_GRAPH_COMM, MPI_TAG_UB, MPI_TAG_UB_int, ATTR_FLAG, ierr)
             !itag = mod(ncalls, MPI_TAG_UB_int) !ncall could go over max tag value for long runs
             itag = ncalls !Causes error with OpenMPI
-            call MPI_sSend(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
+            !call MPI_sSend(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
+            call MPI_iSend(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, req(nbr), ierr)
 
         endif
 
     enddo
+
+    call MPI_waitall(nneighbors, req, status, ierr)
 
     !Barrier for CPL_isend version
     !call MPI_barrier(CPL_GRAPH_COMM, ierr)
