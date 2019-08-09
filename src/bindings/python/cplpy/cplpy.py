@@ -556,7 +556,7 @@ class CPL:
         return A
 
     @abortMPI
-    def dump_region(self, region, array, fname, comm, components={}, dec_figures=5, coords="mine"):
+    def dump_region(self, region, array, fname, comm, components={}, dec_figures=10, coords="mine"):
             lines = ""
             portion = self.my_proc_portion(region)
             cell_coords = np.array(3)

@@ -735,7 +735,8 @@ subroutine CPL_send(asend, limits, send_flag)
    
     !Neighbours
     integer                             :: nneighbors   
-    integer,dimension(:),allocatable    :: id_neighbors
+    integer,dimension(:),allocatable    :: id_neighbors, req
+    integer,dimension(:,:),allocatable :: status
 
     ! local indices 
     integer :: icell,jcell,kcell
@@ -783,7 +784,10 @@ subroutine CPL_send(asend, limits, send_flag)
 
     !Set sendflag to false and only change if anything is sent
     if (present(send_flag)) send_flag = .false.
-  
+    ! NOTE: Changed for isend
+    allocate(req(nneighbors)); req = MPI_REQUEST_NULL
+    allocate(status(MPI_STATUS_SIZE, nneighbors));
+    ! NOTE: Changed for isend end
     ! loop through the maps and send the corresponding sections of asend
     do nbr = 1, nneighbors
 
@@ -837,12 +841,14 @@ subroutine CPL_send(asend, limits, send_flag)
 
             ! Send data 
             itag = 0 !mod( ncalls, MPI_TAG_UB) !Attention ncall could go over max tag value for long runs!!
-            call MPI_sSend(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
+            ! call MPI_sSend(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, ierr)
+            call MPI_iSend(vbuf, ndata, MPI_DOUBLE_PRECISION, destid, itag, CPL_GRAPH_COMM, req(nbr), ierr)
 
         endif
 
     enddo
-
+    ! NOTE: Changed for isend
+    call MPI_waitall(nneighbors, req, status, ierr)
     !Barrier for CPL_isend version
     !call MPI_barrier(CPL_GRAPH_COMM, ierr)
 
