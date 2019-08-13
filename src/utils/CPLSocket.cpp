@@ -165,32 +165,33 @@ void CPLSocket::communicate() {
         ort["pack"] += get_delta(t1, t2);
     }
     if (realmType == CPL::md_realm) {
+        if (send_cond) {
+            t1 = tic(); 
+            send(*field_pool_send);
+            t2 = tic(); 
+            ort["send"] += get_delta(t1, t2);
+        }
         if (recv_cond) {
             t1 = tic(); 
             receive(*field_pool_recv);
             t2 = tic(); 
             irt["receive"] += get_delta(t1, t2);
         }
-        if (send_cond) {
-            t1 = tic(); 
-            send(*field_pool_send);
-            t2 = tic(); 
-            ort["send"] += get_delta(t1, t2);
-        }
     }
     else {
-        if (send_cond) {
-            t1 = tic();
-            send(*field_pool_send);
-            t2 = tic(); 
-            ort["send"] += get_delta(t1, t2);
-        }
         if (recv_cond) {
             t1 = tic();
             receive(*field_pool_recv);
             t2 = tic();
             irt["receive"] += get_delta(t1, t2);
         }
+        if (send_cond) {
+            t1 = tic();
+            send(*field_pool_send);
+            t2 = tic(); 
+            ort["send"] += get_delta(t1, t2);
+        }
+
     }
     if (recv_cond) {
         t1 = tic();
