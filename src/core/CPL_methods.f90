@@ -734,7 +734,7 @@ subroutine CPL_send(asend, limits, send_flag)
     real(kind=kind(0.d0)),dimension(:,:,:,:), intent(in):: asend ! Array containing data to send
    
     !Neighbours
-    integer                             :: nneighbors   
+    integer                             :: nneighbors
     integer,dimension(:),allocatable    :: id_neighbors, req
     integer,dimension(:,:),allocatable :: status
 
@@ -744,10 +744,11 @@ subroutine CPL_send(asend, limits, send_flag)
     integer :: npercell
 
     ! auxiliaries 
-    integer                             :: nbr, ndata, itag, destid, Ncells
+    integer                             :: nbr, ndata, itag, destid, Ncells, err_len
     integer,dimension(3)                :: pcoords, Ncell
     integer,dimension(6)                :: portion, myportion, portion_CFD
     real(kind=kind(0.d0)), allocatable  :: vbuf(:)
+    character(MPI_MAX_ERROR_STRING)     :: err_str 
 
     !Check setup is complete
     if (CPL_setup_complete .ne. 1) then
@@ -849,6 +850,12 @@ subroutine CPL_send(asend, limits, send_flag)
     enddo
     ! NOTE: Changed for isend
     call MPI_waitall(nneighbors, req, status, ierr)
+    if (ierr .eq. MPI_ERR_IN_STATUS) then
+        do n=1,nneighbors
+            call MPI_Error_string(status(MPI_ERROR,n), err_str, err_len, ierr)
+            call error_abort("Error in CPL_send: "//err_str)
+        end do
+    end if
     !Barrier for CPL_isend version
     !call MPI_barrier(CPL_GRAPH_COMM, ierr)
 
@@ -926,7 +933,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     integer,dimension(:),allocatable    :: id_neighbors
                                                          
     ! local indices 
-    integer :: n,nbr,icell,jcell,kcell
+    integer :: n,nbr,icell,jcell,kcell,err_len
     integer :: pos,iclmin,iclmax,jclmin,jclmax,kclmin,kclmax
     integer :: pcoords(3),npercell,ndata,ncells
     integer,dimension(6) :: portion, myportion, portion_CFD
@@ -936,6 +943,7 @@ subroutine CPL_recv(arecv, limits, recv_flag)
     integer,dimension(:),allocatable   :: req
     integer,dimension(:,:),allocatable :: status
     real(kind(0.d0)),dimension(:), allocatable ::  vbuf
+    character(MPI_MAX_ERROR_STRING)     :: err_str 
 
     !Check setup is complete
     if (CPL_setup_complete .ne. 1) then
@@ -1020,6 +1028,13 @@ subroutine CPL_recv(arecv, limits, recv_flag)
 
     enddo
     call MPI_waitall(nneighbors, req, status, ierr)
+    if (ierr .eq. MPI_ERR_IN_STATUS) then
+        do n=1,nneighbors
+            call MPI_Error_string(status(MPI_ERROR,n), err_str, err_len, ierr)
+            call error_abort("Error in CPL_recv: "//err_str)
+        end do
+    end if
+
 
     !free all requests
 !    do nbr = 1, nneighbors
