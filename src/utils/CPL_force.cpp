@@ -954,7 +954,7 @@ double CPLForceGranular::magnitude(std::vector<double> v){
 
 double CPLForceGranular::get_eps(double r[]){
     //Porosity e is cell volume - sum in volume
-    double eps = 1.0 - volSums->get_array_value(r)/volSums->get_dV();
+    double eps = 1.0 - (volSums->get_array_value(r)/Npre_force)/volSums->get_dV();
 //    std::cout << "get eps " << volSums->get_array_value(r) << " " << 
 //                       volSums->get_dV() << " " << eps << std::endl;
         
@@ -962,7 +962,8 @@ double CPLForceGranular::get_eps(double r[]){
         std::vector<int> cell = get_cell(r);
         std::cout << "Warning: 0 particles in cell (" 
                   << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
-                  << std::endl;
+                  << " eps = " << eps << " volSums = " << volSums->get_array_value(r)
+                  << " dV " << volSums->get_dV() << " Npreforce = " << Npre_force << std::endl;
         return 0.0;
     } else {
         return eps;
