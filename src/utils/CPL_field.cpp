@@ -279,7 +279,7 @@ void CPLField::add_to_array(const double r[], double s, const double value[]){
     // We can check to see if particle is smaller than box
     // If it is then we can get add volume directly or use
     // spherical cap. If not then we need full overlap check
-    if ((nxps == 1) & (nxps == 1) & (nzps == 1) & quickcalc){
+    if ((nxps == 1) & (nyps == 1) & (nzps == 1) & quickcalc){
         // Check if far enough inside that no overlap is possible
         box[0] = (i  )*dx; box[3] = (i+1)*dx;
         box[1] = (j  )*dy; box[4] = (j+1)*dy;
@@ -353,6 +353,17 @@ void CPLField::add_to_array(const double r[], double s, const double value[]){
                     }
                 }
             }
+
+//            std::cout << "h/s " << h/s << " " << std::endl;
+
+            // If only just out, skip this as it causes a 
+            // problem when particles on box edges
+            if (h/s < 1e-9) {
+                for (int n=0; n < array.shape(0); n++)
+                    add_to_array(n, i, j, k, value[n]);
+                return;
+            }
+
 
             double Vcap = (1./3.)*M_PI*pow(h,2)*(3.*s - h);
             double Vremain = volume - Vcap;
