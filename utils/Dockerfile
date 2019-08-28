@@ -20,7 +20,7 @@ RUN pip install \
     matplotlib==2.2 \
     mpi4py \
     numpy==1.16 \
-    pytest \
+    pytest==4.4.1 \
     scipy
 
 #Clone code from github
