@@ -1,0 +1,80 @@
+# VARIABLES
+variable        xlo equal 0.0
+variable        xhi equal 0.1
+variable        ylo equal 0.0
+variable        yhi equal 10.0
+variable        zlo equal 0.0
+variable        zhi equal 0.1
+variable        lattice_scale equal 0.1
+variable        diameter equal 0.1
+variable        density equal 2.65
+variable        skindist equal 0.00001
+variable        kn equal 1e5
+variable        kt equal 0
+variable        gamma_n equal 1e5
+variable        gamma_t equal 0
+variable        frictionCoeff equal 0.25
+variable        timestep equal 5.0e-6
+variable        gravity equal 981.0
+variable        dragModel string DiFelice
+variable        dynamic_viscosity equal 1.0e-2
+variable        fluid_density equal 1.00
+variable        fluid_velocity equal 0.1
+variable        movementType string moving  
+variable        Nt_output equal 1
+variable        Nt_run equal 40000
+
+# INITIALISATION
+units           cgs
+boundary        f f f
+atom_style      sphere
+atom_modify     map array
+dimension       3
+newton          off
+comm_modify     mode single vel yes
+processors      * * *
+
+lattice         sc ${lattice_scale} origin 0.5 0.5 0.5
+region          reg block ${xlo} ${xhi} ${ylo} ${yhi} ${zlo} ${zhi} units box
+create_box      1 reg
+create_atoms    1 region reg units box
+set             type 1 diameter ${diameter} density ${density} 
+
+neighbor        ${skindist} bin
+neigh_modify    delay 0
+
+# MATERIAL SETTINGS
+pair_style      gran/hooke/history ${kn} ${kt} ${gamma_n} ${gamma_t} ${frictionCoeff} 0
+pair_coeff      * *
+
+# SIMULATION SETTINGS
+timestep        ${timestep}
+run_style       verlet
+fix             0 all gravity ${gravity} vector 0 -1 0
+if "${movementType} == moving" then &
+    "fix            1 all nve/sphere" &
+    "fix            2 all momentum 1 linear 1 0 1" & 
+    "fix            3  all wall/gran hooke/history ${kn} ${kt} ${gamma_n} ${gamma_t} ${frictionCoeff} 0 yplane ${ylo} ${yhi}"
+
+# OUTPUT SETTINGS
+thermo          ${Nt_output}
+thermo_style    custom step atoms ke
+
+variable        time equal time
+variable        atoms equal atoms
+variable        xy equal y[${atoms}]
+variable        vy equal vy[${atoms}]
+variable        fy equal fy[${atoms}]
+fix             4 all print ${Nt_output} "${time} ${xy} ${vy} ${fy}" file lammps/print_column.txt screen no
+
+# COUPLER SETTINGS
+if "${dragModel} == Drag" then &
+    "variable       Cd equal 3*PI*${dynamic_viscosity}*${diameter}" & 
+    "fix            5 all cpl/init region all forcetype Drag Cd ${Cd} gradP true divstress true overlap false interpolation false sendtype granfull" &
+elif "${dragModel} == Stokes" &
+    "fix            5 all cpl/init region all forcetype Stokes mu ${dynamic_viscosity} rho ${fluid_density} gradP true divstress true overlap false interpolation false sendtype granfull" &
+elif "${dragModel} == DiFelice" &
+    "fix            5 all cpl/init region all forcetype Di_Felice mu ${dynamic_viscosity} rho ${fluid_density} gradP true divstress true overlap false interpolation false sendtype granfull"
+
+#6# Run simulations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+run                 ${Nt_run}
