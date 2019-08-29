@@ -207,6 +207,12 @@ test-examples:
 test-valgrind:
 	py.test -v  $(testdir)/valgrind
 
+test-granular:
+	cd ${testdir}/granular/
+	cd suzuki/
+	pytest -v test_column.py
+
+
 test-gtests: CPL_force_unittest
 	cd $(testdir)/gtests/ && ./CPL_force_unittest
 
