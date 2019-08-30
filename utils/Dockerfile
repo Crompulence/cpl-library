@@ -21,7 +21,7 @@ RUN pip install \
     mpi4py \
     numpy==1.16 \
     pytest==4.4.1 \
-    scipy
+    scipy==1.2.1
 
 #Clone code from github
 RUN git clone https://github.com/Crompulence/cpl-library.git /cpl-library
