@@ -953,10 +953,16 @@ double CPLForceGranular::magnitude(std::vector<double> v){
 } 
 
 double CPLForceGranular::get_eps(double r[]){
-    //Porosity e is cell volume - sum in volume
-    double eps = 1.0 - (volSums->get_array_value(r)/Npre_force)/volSums->get_dV();
-//    std::cout << "get eps " << volSums->get_array_value(r) << " " << 
-//                       volSums->get_dV() << " " << eps << std::endl;
+
+    double eps;
+    if (Npre_force > 0){
+        //Porosity e is cell volume - sum in volume
+        eps = 1.0 - (volSums->get_array_value(r)/Npre_force)/volSums->get_dV();
+    } else {
+        eps = 1.0 - volSums->get_array_value(r)/volSums->get_dV();
+    }
+    //std::cout << "get eps " << volSums->get_array_value(r) << " " << Npre_force << " " <<
+    //                   volSums->get_dV() << " " << eps << std::endl;
         
     if (eps < 1e-5) {
         std::vector<int> cell = get_cell(r);
