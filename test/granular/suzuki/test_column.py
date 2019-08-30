@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess as sp
 import numpy as np
-import matplotlib.pyplot as plt
+import pytest
 
 # Import postproclib
 sys.path.insert(0, "./pyDataView/")
@@ -117,48 +117,75 @@ def get_velocity_pressure_porosity_profile(CFD_folder='./openfoam/',
 
     return h, U, p, n
 
-def test_displacement(tol=0.01):
+def compare_displacement(xySol_upward, xy, tol):
     # Test final displacement matches analytical solution.
     err = abs((xySol_upward -xy[-1])/xySol_upward <= tol)
-    assert err, ('Final displacement of {:.6f} does not match analytical solution of {:.6f} within {:.2f}% relative error.'.format(xy[-1], xySol_upward, tol*100))
+    assert err, ('Final displacement of {:.6f} does not match analytical'.format(xy[-1])
+                 +' solution of {:.6f} within {:.2f}% relative error.'.format(xySol_upward, tol*100))
 
-def test_pressure(tol=0.01):
+def compare_pressure(pSol, p, h, ylo, yhi, tol=0.01):
     # Test pressure profile at the end of simulation.
     pSolProfile = np.interp(h, [ylo,yhi], [pSol,0.])
     for i in range(len(pSolProfile)):
         err = abs((pSolProfile[i] - p[i])/pSolProfile[i] <= tol)
-        assert err, ('For h = {:.2f}, the obtained pressure of {:.6f} does not match analytical solution {:.6f} within {:.2f}% relative error'.format(h[i], p[i], pSolProfile[i], tol*100))
+        assert err, ('For h = {:.2f}, the obtained pressure of {:.6f} does not match analytical'.format(h[i], p[i])
+                     +' solution {:.6f} within {:.2f}% relative error'.format(pSolProfile[i], tol*100))
 
-# ----- Main ----- #
-# Run coupled simulation
-run_coupled()
 
-# Load print data
-t, xy = read_print_data('lammps/print_column.txt')
+@pytest.fixture(scope="module")
+def setup():
 
-# Extract input parameters from lammps input script
-Uf, epsf, pSol, ylo, yhi, xySol_settle, xySol_upward = analytical_solution_from_input_parameter('lammps/column.in')
+    # Run coupled simulation
+    run_coupled()
 
-# Extract velocity, pressure and eps profile (at end of simulation only)
-h, U, p, n = get_velocity_pressure_porosity_profile()
+    # Load print data
+    t, xy = read_print_data('lammps/print_column.txt')
 
-# Plot Displacement Profile
-plt.plot(t, xy, 'r-')
-plt.plot(t, np.ones_like(t)*xySol_upward, 'k--')
-# plt.plot(t, np.ones_like(t)*xySol_settle, 'k:')
-plt.xlabel('Time (s)')
-plt.ylabel('Position of Top Particle (cm)')
-plt.legend(('Numerical', 'Analytical (Upward Flow)'))
-plt.tight_layout()
-plt.savefig('fig_displacement.png')
-plt.close()
+    # Extract input parameters from lammps input script
+    Uf, epsf, pSol, ylo, yhi, xySol_settle, xySol_upward = analytical_solution_from_input_parameter('lammps/column.in')
 
-# Plot Pressure Profile
-plt.plot(h, p, 'r-')
-plt.plot([ylo,yhi], [pSol,0.], 'k--')
-plt.xlabel('Height (cm)')
-plt.ylabel('Pressure (0.1Pa)')
-plt.legend(('Numerical', 'Analytical'))
-plt.tight_layout()
-plt.savefig('fig_pressure.png')
-plt.close()
+    # Extract velocity, pressure and eps profile (at end of simulation only)
+    h, U, p, n = get_velocity_pressure_porosity_profile()
+
+    return t, xy, Uf, epsf, pSol, ylo, yhi, xySol_settle, xySol_upward, h, U, p, n
+
+
+tols = [1.0, 0.1, 0.01, 0.001, 0.0002]
+@pytest.mark.parametrize("tols", tols)
+def test_pressure(setup, tols):
+    t, xy, Uf, epsf, pSol, ylo, yhi, xySol_settle, xySol_upward, h, U, p, n = setup
+    compare_pressure(pSol, p, h, ylo, yhi, tols)
+
+tols = [1.0, 0.1, 0.01, 0.001, 0.0001, 9e-5]
+@pytest.mark.parametrize("tols", tols)
+def test_displacement(setup, tols):
+    t, xy, Uf, epsf, pSol, ylo, yhi, xySol_settle, xySol_upward, h, U, p, n = setup
+    compare_displacement(xySol_upward, xy, tols)
+
+
+if __name__ == "__main__":
+
+    t, xy, Uf, epsf, pSol, ylo, yhi, xySol_settle, xySol_upward, h, U, p, n = setup()
+
+    import matplotlib.pyplot as plt
+
+    # Plot Displacement Profile
+    plt.plot(t, xy, 'r-')
+    plt.plot(t, np.ones_like(t)*xySol_upward, 'k--')
+    # plt.plot(t, np.ones_like(t)*xySol_settle, 'k:')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Position of Top Particle (cm)')
+    plt.legend(('Numerical', 'Analytical (Upward Flow)'))
+    plt.tight_layout()
+    plt.savefig('fig_displacement.png')
+    plt.close()
+
+    # Plot Pressure Profile
+    plt.plot(h, p, 'r-')
+    plt.plot([ylo,yhi], [pSol,0.], 'k--')
+    plt.xlabel('Height (cm)')
+    plt.ylabel('Pressure (0.1Pa)')
+    plt.legend(('Numerical', 'Analytical'))
+    plt.tight_layout()
+    plt.savefig('fig_pressure.png')
+    plt.close()
