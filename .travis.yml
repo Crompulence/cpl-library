@@ -76,7 +76,7 @@ script:
     - make test-pytest-mapping
     - make test-gtests
     - make test_Dragmodels
-    - make test-granular
+#    - make test-granular
 #    - make webdocs-all
 
 
