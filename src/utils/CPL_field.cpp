@@ -354,11 +354,19 @@ void CPLField::add_to_array(const double r[], double s, const double value[]){
                 }
             }
 
-//            std::cout << "h/s " << h/s << " " << std::endl;
+
 
             // If only just out, skip this as it causes a 
             // problem when particles on box edges
             if (h/s < 1e-9) {
+                std::cout << "particle on cell edge " << " x= " <<
+                            box[0]<< " < " <<r[0]-s << " to " <<
+                            r[0]+s<< " < " <<box[3] << " y= " <<
+                            box[1]<< " < " <<r[1]-s << " to " << 
+                            r[1]+s<< " < " <<box[4] << " z= " <<
+                            box[2]<< " < " <<r[2]-s << " to " << 
+                            r[2]+s<< " < " <<box[5] << " " << h << " "
+                            << s << " " <<  h/s << std::endl;
                 for (int n=0; n < array.shape(0); n++)
                     add_to_array(n, i, j, k, value[n]);
                 return;
