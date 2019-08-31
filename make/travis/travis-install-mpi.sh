@@ -22,6 +22,8 @@ else
     fi
     mkdir -p $BUILD_DIR
     case $1 in
+      mpich) set -x;
+        sudo apt-get install -q mpich libmpich-dev libmpich12;;
       mpich3) set -x;
         cd $BUILD_DIR
         wget -q --no-check-certificate http://www.mpich.org/static/downloads/3.2.1/mpich-3.2.1.tar.gz
@@ -40,6 +42,8 @@ else
         sudo apt-get install -q mpich-shmem-bin libmpich-shmem1.0-dev;;
       mpich2) set -x;
         sudo apt-get install -q mpich2 libmpich2-3 libmpich2-dev;;
+      openmpi) set -x;
+        sudo apt-get install -q openmpi-bin openmpi-common libopenmpi-dev libopenmpi1.10;;
       openmpi3) set -x;
         cd $BUILD_DIR
         wget -q --no-check-certificate https://www.open-mpi.org/software/ompi/v3.0/downloads/openmpi-3.0.1.tar.gz

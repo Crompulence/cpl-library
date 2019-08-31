@@ -26,6 +26,7 @@ matrix:
         - C_COMPILER=gcc-6
         - F_COMPILER=gfortran-6
         - MPI=mpich3
+        - platform=gcc
 
     #Build for 16.04
     - dist: xenial
@@ -42,15 +43,34 @@ matrix:
         - C_COMPILER=gcc-7
         - F_COMPILER=gfortran-7
         - MPI=mpich3
+        - platform=gcc
 
+    #Build for 16.04 with openMPI
+    - dist: xenial
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7 gcc-7 libstdc++-7-dev gfortran-7
+      env:
+        - GCC_VERSION=7
+        - CXX_COMPILER=g++-7
+        - C_COMPILER=gcc-7
+        - F_COMPILER=gfortran-7
+        - MPI=openmpi
+        - platform=openmpi_gcc
 
 branches:
   only:
     - master
 
+ 
 cache:
   directories:
     - mpi
+
 
 before_install:
     - test -n $CC  && unset CC
@@ -62,7 +82,7 @@ before_install:
 
 install:
     - export PATH=$MPI_DIR/bin:$PATH
-    - make PLATFORM=gcc BUILD=debug
+    - make PLATFORM=$platform BUILD=debug
 
 before_script:
     - export PATH=$MPI_DIR/bin:$PATH
@@ -70,7 +90,6 @@ before_script:
     - source $CPL_PATH/SOURCEME.sh
     - sudo apt-get -qq update
     - sudo apt-get install -qq valgrind
-
 
 script:
     - make test-pytest-initialisation

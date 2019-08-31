@@ -1,6 +1,6 @@
 
 # Fortran/C++ compilers and linker
-F90 = mpifort
+F90 = mpif90
 CPP = mpic++
 LINK = mpic++
 
