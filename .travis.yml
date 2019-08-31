@@ -1,3 +1,4 @@
+
 # http://travis-ci.org/Crompulence/cpl-library
 os: linux
 sudo: required
@@ -8,21 +9,6 @@ python:
 # set up build matrix
 matrix:
   include:
-    #Build for 12.04
-    - dist: precise
-      compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5 gcc-5 libstdc++-5-dev gfortran-5
-      env:
-        - GCC_VERSION=5
-        - CXX_COMPILER=g++-5
-        - C_COMPILER=gcc-5
-        - F_COMPILER=gfortran-5
-        - MPI=mpich3
 
     #Build for 14.04
     - dist: trusty
@@ -40,6 +26,23 @@ matrix:
         - C_COMPILER=gcc-6
         - F_COMPILER=gfortran-6
         - MPI=mpich3
+
+    #Build for 16.04
+    - dist: xenial
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7 gcc-7 libstdc++-7-dev gfortran-7
+      env:
+        - GCC_VERSION=7
+        - CXX_COMPILER=g++-7
+        - C_COMPILER=gcc-7
+        - F_COMPILER=gfortran-7
+        - MPI=mpich3
+
 
 branches:
   only:
