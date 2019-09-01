@@ -11,6 +11,10 @@ case $1 in
     sudo apt-get install gfortran-4.9 -y;;
   gfortran-5) set -x;
     sudo apt-get install gfortran-5 -y;;
+  gfortran-6) set -x;
+    sudo apt-get install gfortran-6 -y;;
+  gfortran-7) set -x;
+    sudo apt-get install gfortran-7 -y;;
   ifort) set -x;
     echo "Intel is not a supported fortran compiler for tests:" $1; exit 1;;
   *)

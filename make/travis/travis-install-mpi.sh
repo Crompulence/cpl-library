@@ -43,7 +43,7 @@ else
       mpich2) set -x;
         sudo apt-get install -q mpich2 libmpich2-3 libmpich2-dev;;
       openmpi) set -x;
-        sudo apt-get install -q openmpi-bin openmpi-common libopenmpi-dev libopenmpi1.10;;
+        sudo apt-get install --install-suggests -q openmpi-bin openmpi-common libopenmpi-dev libopenmpi1.10;;
       openmpi3) set -x;
         cd $BUILD_DIR
         wget -q --no-check-certificate https://www.open-mpi.org/software/ompi/v3.0/downloads/openmpi-3.0.1.tar.gz
@@ -51,7 +51,7 @@ else
         cd openmpi-3.0.1
         mkdir build && cd build
         ../configure --prefix=$INSTALL_DIR \
-                    FC=gfortran --enable-mpi-fortran=all 
+                    FC=gfortran-$GCC_VERSION --enable-mpi-fortran=all 
         make -j4
         make install;;
       openmpi2) set -x;
@@ -61,7 +61,7 @@ else
         cd openmpi-2.0.1
         mkdir build && cd build
         ../configure --prefix=$INSTALL_DIR \
-                    FC=gfortran --enable-mpi-fortran=all 
+                    FC=gfortran-$GCC_VERSION --enable-mpi-fortran=all 
         make -j4
         make install;;
       openmpi1) set -x;
