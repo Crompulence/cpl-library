@@ -71,6 +71,11 @@ void CPLForce::resetsums(){
     }
 }
 
+//Reset any fields which are only kept for
+//a single timestep
+void CPLForce::reset_instant(){
+}
+
 //Set minimum and maximum values of field application
 void CPLForce::set_minmax(double min_in[], double max_in[]){
     cfd_array_field->set_minmax(min_in, max_in);
@@ -191,6 +196,11 @@ void CPLForceTest::resetsums(){
     for ( auto &f : fields ) { 
         f->zero_array(); 
     }
+}
+
+//Reset any fields which are only kept for
+//a single timestep
+void CPLForceTest::reset_instant(){
 }
 
 
@@ -319,6 +329,12 @@ void CPLForceVelocity::resetsums(){
     }
 }
 
+//Reset any fields which are only kept for
+//a single timestep
+void CPLForceVelocity::reset_instant(){
+}
+
+
 //Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
 void CPLForceVelocity::pre_force(double r[], double v[], double a[], 
                                  double m, double s, double e) {
@@ -435,6 +451,11 @@ void CPLForceFlekkoy::resetsums(){
     Npre_force=0; Nforce=0; Npost_force=0;
     //Reset sums
     nSums = 0.0;  gSums = 0.0;
+}
+
+//Reset any fields which are only kept for
+//a single timestep
+void CPLForceFlekkoy::reset_instant(){
 }
 
 // See Flekkøy, Wagner & Feder, 2000 Europhys. Lett. 52 271, footnote p274
@@ -834,15 +855,12 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
 
     //Get Diameter, drag coefficient and volume
     double D = 2.0*s;
-    double eps = CPLForceDrag::get_eps(r);
-    double A = eps*drag_coefficient(r, D, Ui_v);
     double volume = (4./3.)*M_PI*pow(s,3);
 
-    std::cout << "A= " << A << " eps= " << eps << " "  << std::endl;
-
-
-    // eps = eps(t)
+    // As eps = eps(t) we need to collect/pass product as
     // <eps(t)>*<A(t)*vi(t) > not equal to <eps(t)*A(t)*vi(t)>
+    double eps = CPLForceDrag::get_eps(r);
+    double A = eps*drag_coefficient(r, D, Ui_v);
 
     //Just drag force here
     fi[0] = A*Ui_v[0];

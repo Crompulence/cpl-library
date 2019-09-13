@@ -106,6 +106,7 @@ public:
     virtual void post_force(double r[], double v[], double a[], 
                             double m, double s, double e) = 0;
     virtual void resetsums() = 0;
+    virtual void reset_instant() = 0;
 
     bool calc_preforce;
     bool calc_preforce_everytime;
@@ -146,6 +147,7 @@ public:
     void initialisesums(CPL::ndArray<double>);
     void build_fields_list();
     void resetsums();
+    void reset_instant();
 
 };
 
@@ -171,6 +173,7 @@ public:
                    double m, double s, double e);
 
     void resetsums();
+    void reset_instant();
 
     //Coefficient for strength of application
     double xi = 1.0;
@@ -215,6 +218,7 @@ public:
     CPL::ndArray<double> nSums;
 
     void resetsums();
+    void reset_instant();
 
 private:
 
