@@ -9,6 +9,7 @@ from numpy.ctypeslib import ndpointer, load_library
 from functools import wraps
 import os
 import time
+import subprocess as sp
 from subprocess import STDOUT, check_output, CalledProcessError
 import shutil
 import cPickle
@@ -154,6 +155,21 @@ class CPL:
     if StrictVersion(mpi4py.__version__) < StrictVersion('2.0.0'):
         raise mpi4py_version_error("Comm.f2py() and Comm.py2f()" + 
                                    " require mpi4py >= 2.0.0")
+
+    #Detect if OpenMPI or MPICH
+    mpicc=str(mpi4py.get_config()['mpicc'])
+    if ("open" in mpicc):
+        MPI_version = "OPENMPI"
+        ompi_info = sp.check_output("ompi_info").split("\n")
+        for m in ompi_info:
+            if ("Open MPI:" in m):
+                ompi_major_version_no = int(m.split(":")[-1].split(".")[0])            
+    elif ("mpich" in mpicc):
+        MPI_version = "MPICH"      
+    else:
+        print("UNKNOWN MPI VERSION FROM ", mpicc)
+        MPI_version = "UNKNOWN"
+
     _py_init = _cpl_lib.CPLC_init_Fort
     _py_init.argtypes = [c_int, POINTER(c_int)]
 
@@ -854,6 +870,13 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
             else:
                 raise ValueError("MPIrun type unknown", mpirun)
 
+            #Check for OpenMPI version greater than 3 and add oversubscribe option
+            if (CPL.MPI_version == "OPENMPI"):
+                if (CPL.ompi_major_version_no >= 3):
+                    cmd.replace("mpiexec","mpiexec --oversubscribe")
+
+            cmd.replace("mpiexec","mpiexec --oversubscribe")
+
             if debug:
                 print ("\nMPI run: " + cmd)
             out = check_output(cmd, stderr=STDOUT, shell=True)
@@ -868,6 +891,7 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
     except CalledProcessError as exc:
         print (exc.output)
         if err_msg != "":
+            print("ERROR = ", err_msg)
             assert err_msg in exc.output
         else:
             assert exc.output == ""

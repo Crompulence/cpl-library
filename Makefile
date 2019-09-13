@@ -191,21 +191,21 @@ test-all: test-pytest-mapping test-pytest-initialisation test-examples test-valg
 	echo "Running all test"
 	
 test-pytest:
-	py.test -v $(testdir)/pytests
+	pytest -v $(testdir)/pytests
 	
 test-pytest-mapping:
-	py.test -v --fulltrace $(testdir)/pytests/mapping
+	pytest -v --fulltrace $(testdir)/pytests/mapping
 
 test-pytest-initialisation:
-	py.test -v $(testdir)/pytests/initialisation
+	pytest -v $(testdir)/pytests/initialisation
 
 test-examples:
-	py.test -v --fulltrace $(testdir)/examples
+	pytest -v --fulltrace $(testdir)/examples
 #	./examples/sendrecv_globcell/test_all.sh
 #	./examples/sendrecv_globcell/test_all_port.sh
 
 test-valgrind:
-	py.test -v  $(testdir)/valgrind
+	pytest -v  $(testdir)/valgrind
 
 test-granular:
 	cd ${testdir}/granular/suzuki/ && pytest -v test_column.py
@@ -218,11 +218,11 @@ CPL_force_unittest:
 	make -C $(testdir)/gtests
 
 test_Dragmodels:
-	cd $(testdir)/drag && py.test -v ./
-	#py.test -v $(testdir)/drag
+	cd $(testdir)/drag && pytest -v ./
+	#pytest -v $(testdir)/drag
 
 examples-coupled:
-	py.test -v ./examples/coupled
+	pytest -v ./examples/coupled
 
 webdocs-api:
 	bash ./utils/update-webdocs-api.sh

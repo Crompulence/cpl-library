@@ -1,4 +1,5 @@
 import pytest
+import cplpy
 from cplpy import run_test, prepare_config
 import subprocess as sp
 import os
@@ -35,11 +36,13 @@ def runcmd(cmd):
 
     return run
 
-
+if (cplpy.CPL.MPI_version == "OPENMPI"):
+    cases=["split"]
+else:
+    cases=["port", "split"]
 perms = []
 dirs = ["fortran", "cpp", "python"]
-# for cplt in ["port", "split"]:
-for cplt in ["split"]:
+for cplt in cases:
     for mdd in dirs:
         for cfdd in dirs:
             perms.append([cplt, mdd, cfdd, 8])
@@ -53,10 +56,11 @@ def test_example_sendrecv_scripts(cpltype, mddir, cfddir, count):
 
     with cd(EXAMPLES_DIR):
 
-        if cpltype is "split":
-            cmd = "mpiexec -n 16 "
-            # For OpenMPI >= 3.0.0
-            # cmd = "mpiexec --oversubscribe -n 16 "
+        if (cpltype is "split"):
+            if (cplpy.CPL.MPI_version == "OPENMPI"):
+                cmd = "mpiexec --oversubscribe -n 16 "
+            else:
+                cmd = "mpiexec -n 16 "
         elif cpltype is "port":
             cmd = "cplexec -m 16 "
 
