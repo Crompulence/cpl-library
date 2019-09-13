@@ -258,6 +258,7 @@ public:
     bool use_divStress;
 
     virtual double drag_coefficient(double r[], double D, std::vector<double> Ui_v);
+    double get_eps(double r[]);
     double Cd = 0.0000001;
     double mu = 0.001;
     double rho = 1e3;
@@ -269,10 +270,12 @@ public:
     std::shared_ptr<CPL::CPLField> nSums;
     std::shared_ptr<CPL::CPLField> vSums;
     std::shared_ptr<CPL::CPLField> volSums;
+    std::shared_ptr<CPL::CPLField> instant_volSums;
     std::shared_ptr<CPL::CPLField> FSums;
     std::shared_ptr<CPL::CPLField> FcoeffSums;
 
     void resetsums();
+    void reset_instant();
 
 protected:
 
@@ -294,14 +297,13 @@ public:
     //Constructors
     using CPLForceDrag::CPLForceDrag;
 
-    void pre_force(double r[], double v[], double a[], 
-                   double m,   double s,   double e);
+//    void pre_force(double r[], double v[], double a[], 
+//                   double m,   double s,   double e);
 
     //Granular functions
     double Stokes(double D, double mu);
     double Reynolds_number(double D, double U, double rho, double mu, double eps);
     double magnitude(std::vector<double> v);
-    double get_eps(double r[]);
 
 protected:
 

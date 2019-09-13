@@ -597,6 +597,7 @@ void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
     nSums = std::make_shared<CPL::CPLField>(1, i, j, k, "nSums");
     vSums = std::make_shared<CPL::CPLField>(3, i, j, k, "vSums");
     volSums = std::make_shared<CPL::CPLField>(1, i, j, k, "volSums");
+    instant_volSums = std::make_shared<CPL::CPLField>(1, i, j, k, "instant_volSums");
     FSums = std::make_shared<CPL::CPLField>(3, i, j, k, "FSums");
     FcoeffSums = std::make_shared<CPL::CPLField>(1, i, j, k, "FcoeffSums");
 
@@ -619,6 +620,7 @@ void CPLForceDrag::build_fields_list(){
     fields.push_back(nSums);
     fields.push_back(vSums);
     fields.push_back(volSums);
+    fields.push_back(instant_volSums);
     fields.push_back(FSums);
     fields.push_back(FcoeffSums);
 }
@@ -631,6 +633,12 @@ void CPLForceDrag::resetsums(){
     for ( auto &f : fields ) { 
         f->zero_array(); 
     }
+}
+
+//Reset any fields which are only kept for
+//a single timestep
+void CPLForceDrag::reset_instant(){
+    instant_volSums->zero_array();  
 }
 
 // Split into protected functions for a default set of inputs
@@ -740,6 +748,27 @@ double CPLForceDrag::drag_coefficient(double r[], double D,
     return Cd; //Use default Drag value
 }
 
+double CPLForceDrag::get_eps(double r[]){
+
+    double eps;
+    eps = 1.0 - instant_volSums->get_array_value(r)/volSums->get_dV();
+
+//    std::cout << "get eps " << volSums->get_array_value(r) << " "
+//                     << instant_volSums->get_array_value(r) << " " << Npre_force << " " <<
+//                       volSums->get_dV() << " " << eps << std::endl;
+        
+    if (eps < 1e-5) {
+        std::vector<int> cell = get_cell(r);
+        std::cout << "Warning: 0 particles in cell (" 
+                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
+                  << " eps = " << eps << " volSums = " << volSums->get_array_value(r)
+                  << " dV " << volSums->get_dV() << " Npreforce = " << Npre_force << std::endl;
+        return 0.0;
+    } else {
+        return eps;
+    }
+}
+
 //Pre force collection of sums including overlap code to assign volumes
 void CPLForceDrag::pre_force(double r[], double v[], double a[], 
                              double m,   double s,   double e) {
@@ -753,9 +782,11 @@ void CPLForceDrag::pre_force(double r[], double v[], double a[],
               << r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
 #endif
     if (! use_overlap){
-        volSums->add_to_array(r, volume);           
+        instant_volSums->add_to_array(r, volume);
+        volSums->add_to_array(r, volume);   
         vSums->add_to_array(r, v_vol);
     } else {
+        instant_volSums->add_to_array(r, s, volume);
         volSums->add_to_array(r, s, volume);
         vSums->add_to_array(r, s, v_vol);
     }
@@ -803,8 +834,15 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
 
     //Get Diameter, drag coefficient and volume
     double D = 2.0*s;
-    double A = drag_coefficient(r, D, Ui_v);
+    double eps = CPLForceDrag::get_eps(r);
+    double A = eps*drag_coefficient(r, D, Ui_v);
     double volume = (4./3.)*M_PI*pow(s,3);
+
+    std::cout << "A= " << A << " eps= " << eps << " "  << std::endl;
+
+
+    // eps = eps(t)
+    // <eps(t)>*<A(t)*vi(t) > not equal to <eps(t)*A(t)*vi(t)>
 
     //Just drag force here
     fi[0] = A*Ui_v[0];
@@ -881,20 +919,20 @@ void CPLForceDrag::post_force(double r[], double v[], double a[],
 
 
     throw std::runtime_error("CPLForceDrag::post_force not needed, use value from pre force");
-    double volume = (4./3.)*M_PI*pow(s,3); 
-    double v_vol[]= {v[0]*volume, v[1]*volume, v[2]*volume};
-    nSums->add_to_array(r, 1.0);
+//    double volume = (4./3.)*M_PI*pow(s,3); 
+//    double v_vol[]= {v[0]*volume, v[1]*volume, v[2]*volume};
+//    nSums->add_to_array(r, 1.0);
 
-    std::cout << "Post_force " << use_overlap << " " << r[0] << " " << r[1] << " " << r[2] 
-                                              << " " << v[0] << " " << v[1] << " " << v[2] 
-                                              << " " <<volume << std::endl;
-    if (! use_overlap){
-        volSums->add_to_array(r, volume);           
-        vSums->add_to_array(r, v_vol);
-    } else {
-        volSums->add_to_array(r, s, volume);
-        vSums->add_to_array(r, s, v_vol);
-    }
+//    std::cout << "Post_force " << use_overlap << " " << r[0] << " " << r[1] << " " << r[2] 
+//                                              << " " << v[0] << " " << v[1] << " " << v[2] 
+//                                              << " " <<volume << std::endl;
+//    if (! use_overlap){
+//        volSums->add_to_array(r, volume);           
+//        vSums->add_to_array(r, v_vol);
+//    } else {
+//        volSums->add_to_array(r, s, volume);
+//        vSums->add_to_array(r, s, v_vol);
+//    }
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -915,24 +953,26 @@ void CPLForceGranular::initialisesums(CPL::ndArray<double> arrayin){
 }
 
 //Pre force collection of sums including overlap code to assign volumes
-void CPLForceGranular::pre_force(double r[], double v[], double a[], 
-                                 double m,   double s,   double e) {
+//void CPLForceGranular::pre_force(double r[], double v[], double a[], 
+//                                 double m,   double s,   double e) {
 
-    double volume = (4./3.)*M_PI*pow(s,3); 
-    double v_vol[]= {v[0]*volume, v[1]*volume, v[2]*volume};
-    nSums->add_to_array(r, 1.0);
-#if DEBUG
-    std::cout << "Pre_force " << use_overlap << " " << 
-         r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
-#endif
-    if (! use_overlap){
-        volSums->add_to_array(r, volume);           
-        vSums->add_to_array(r, v_vol);
-    } else {
-        volSums->add_to_array(r, s, volume);
-        vSums->add_to_array(r, s, v_vol);
-    }
-}
+//    double volume = (4./3.)*M_PI*pow(s,3); 
+//    double v_vol[]= {v[0]*volume, v[1]*volume, v[2]*volume};
+//    nSums->add_to_array(r, 1.0);
+//#if DEBUG
+//    std::cout << "Pre_force " << use_overlap << " " << 
+//         r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
+//#endif
+//    if (! use_overlap){
+//        instant_volSums->add_to_array(r, volume);
+//        volSums->add_to_array(r, volume);           
+//        vSums->add_to_array(r, v_vol);
+//    } else {
+//        instant_volSums->add_to_array(r, s, volume);
+//        volSums->add_to_array(r, s, volume);
+//        vSums->add_to_array(r, s, v_vol);
+//    }
+//}
 
 
 //Return Stokes force
@@ -952,29 +992,6 @@ double CPLForceGranular::magnitude(std::vector<double> v){
     return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 } 
 
-double CPLForceGranular::get_eps(double r[]){
-
-    double eps;
-    if (Npre_force > 0){
-        //Porosity e is cell volume - sum in volume
-        eps = 1.0 - (volSums->get_array_value(r)/Npre_force)/volSums->get_dV();
-    } else {
-        eps = 1.0 - volSums->get_array_value(r)/volSums->get_dV();
-    }
-    //std::cout << "get eps " << volSums->get_array_value(r) << " " << Npre_force << " " <<
-    //                   volSums->get_dV() << " " << eps << std::endl;
-        
-    if (eps < 1e-5) {
-        std::vector<int> cell = get_cell(r);
-        std::cout << "Warning: 0 particles in cell (" 
-                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
-                  << " eps = " << eps << " volSums = " << volSums->get_array_value(r)
-                  << " dV " << volSums->get_dV() << " Npreforce = " << Npre_force << std::endl;
-        return 0.0;
-    } else {
-        return eps;
-    }
-}
 
 
 ///////////////////////////////////////////////////////////////////
@@ -1008,7 +1025,7 @@ double CPLForceDi_Felice::drag_coefficient(double r[], double D,
         return 0;
     }
 
-    eps = CPLForceGranular::get_eps(r);
+    eps = CPLForceDrag::get_eps(r);
     if (eps == 0.0) {
         return 0.0;
     } else {
@@ -1049,7 +1066,7 @@ double CPLForceTang::drag_coefficient(double r[], double D,
         return 0;
     }
 
-    double eps = CPLForceGranular::get_eps(r);
+    double eps = CPLForceDrag::get_eps(r);
     if (eps == 0.0) {
         return 0.0;
     } else {
@@ -1072,7 +1089,7 @@ double CPLForceTang::drag_coefficient(double r[], double D,
 
 double CPLForceErgun::drag_coefficient(double r[], double D, 
                                        std::vector<double> Ui_v) {
-    double eps = CPLForceGranular::get_eps(r);
+    double eps = CPLForceDrag::get_eps(r);
     double phi = 1 - eps;
     double U = CPLForceGranular::magnitude(Ui_v);
     if (eps == 0.0) {
@@ -1119,7 +1136,7 @@ double CPLForceBVK::drag_coefficient(double r[], double D,
         return 0;
     }
 
-    double eps = CPLForceGranular::get_eps(r);
+    double eps = CPLForceDrag::get_eps(r);
     if (eps == 0.0) {
         return 0.0;
     } else {
@@ -1219,7 +1236,7 @@ double CPLForceBVK::drag_coefficient(double r[], double D,
 //        return 0;
 //    }
 
-//    double eps = CPLForceGranular::get_eps(r);
+//    double eps = CPLForceDrag::get_eps(r);
 //    if (eps == 0.0) {
 //        return 0.0;
 //    } else {

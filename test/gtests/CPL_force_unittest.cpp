@@ -1288,6 +1288,7 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_volSumsFsum) {
     std::vector<double> F;
     double radius = 0.001;
     double volume = (4./3.)*M_PI*pow(radius,3);
+    double Vcell = c.get_dV();
     double m=1.; double s=radius; double e=1.;
 
     //Test with PCM (volume assigned to cell based on centre)
@@ -1310,22 +1311,29 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_volSumsFsum) {
         v[1] = j/double(jcell);
         v[2] = k/double(kcell);
         F = c.get_force(r, v, a, m, s, e);
+        double eps = c.get_eps(r);
+        ASSERT_DOUBLE_EQ(eps, 1.0-volume/Vcell);
     } } }
 
     //Check values of volSum & Fsum
     std::vector<double> vv = {v[0], v[1], v[2]};
-    double Cdv = c.drag_coefficient(r, s*2., vv);
     CPL::ndArray<double> volbuf = c.volSums->get_array();
     CPL::ndArray<double> Fbuf = c.FSums->get_array();
 
     trplefor(icell,jcell,kcell){
         //Since introducing overlap mode, need assert near
 
+        r[0] = i/double(icell);
+        r[1] = j/double(jcell);
+        r[2] = k/double(kcell);
+        double Cdv = c.drag_coefficient(r, s*2., vv);
+        double eps = c.get_eps(r);
+
         //ASSERT_NEAR(c.volSums(i,j,k), volume, 1e-14);
         ASSERT_DOUBLE_EQ(volbuf(0,i,j,k), volume);
-        ASSERT_DOUBLE_EQ(Fbuf(0,i,j,k), Cdv*i/double(icell));
-        ASSERT_DOUBLE_EQ(Fbuf(1,i,j,k), Cdv*j/double(jcell));
-        ASSERT_DOUBLE_EQ(Fbuf(2,i,j,k), Cdv*k/double(kcell));
+        ASSERT_DOUBLE_EQ(Fbuf(0,i,j,k), eps*Cdv*i/double(icell));
+        ASSERT_DOUBLE_EQ(Fbuf(1,i,j,k), eps*Cdv*j/double(jcell));
+        ASSERT_DOUBLE_EQ(Fbuf(2,i,j,k), eps*Cdv*k/double(kcell));
     } } }
 
 

@@ -31,7 +31,7 @@ def get_subprocess_error(e):
     print(error['code'], error['message'])
 
 #Generate drag results from CPL_force
-print("Rebuilding and running c++ code")
+print(" Rebuilding and running c++ code")
 with cd("../../"):
 
     try:
@@ -93,9 +93,10 @@ def get_data(case):
 ])
 def test_answer(case,out):
     data, Fpy = get_data(case)
-    print(case + " max Error = ", np.max(np.abs((Fpy+data['F0'])/Fpy)))
-    assert(np.max(np.abs((Fpy+data['F0'])/Fpy) < 1e-5) == out)
-
+    #Difference in convention between seepage and superficial velocities
+    eps = (1-data['phi'])
+    print(case + " max Error = ", np.max(np.abs((Fpy+data['F0']/eps)/Fpy)))
+    assert((np.max(np.abs((Fpy+data['F0']/eps)/Fpy)) < 1e-5) == out)
 
 cases = ["Di_Felice", "Stokes", "Ergun", "BVK", "Tang"]
 
