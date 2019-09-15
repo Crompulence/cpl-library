@@ -1326,8 +1326,8 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_volSumsFsum) {
         r[0] = i/double(icell);
         r[1] = j/double(jcell);
         r[2] = k/double(kcell);
-        double Cdv = c.drag_coefficient(r, s*2., vv);
         double eps = c.get_eps(r);
+        double Cdv = c.drag_coefficient(s*2., vv, eps);
 
         //ASSERT_NEAR(c.volSums(i,j,k), volume, 1e-14);
         ASSERT_DOUBLE_EQ(volbuf(0,i,j,k), volume);
@@ -1362,7 +1362,8 @@ TEST_F(CPL_Force_Test, test_CPLForce_Drag_check_volSumsFsum) {
     //Check values of volSum & Fsum
     //For test force, drag coefficient is a constant for all input
     std::vector<double> Ur = {0.,0.,0.};
-    double Cd = c.drag_coefficient(r, s*2., Ur);
+    double eps = c.get_eps(r);
+    double Cd = c.drag_coefficient(s*2., Ur, eps);
     volbuf = d.volSums->get_array();
     Fbuf = d.FSums->get_array();
     CPL::ndArray<double> FcoeffSums = d.FcoeffSums->get_array();

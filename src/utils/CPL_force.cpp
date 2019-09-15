@@ -763,8 +763,7 @@ bool CPLForceDrag::unpack_extra_arg_map(map_strstr arg_map){
 //}
 
 //Arbitary constant in this case so r and D are irrelevant
-double CPLForceDrag::drag_coefficient(double r[], double D, 
-                                      std::vector<double> Ui_v) {
+double CPLForceDrag::drag_coefficient(double D, std::vector<double> Ui_v, double eps) {
     //std::cout << "DRAG Cd: " << Cd << std::endl;
     return Cd; //Use default Drag value
 }
@@ -779,11 +778,13 @@ double CPLForceDrag::get_eps(double r[]){
 //                       volSums->get_dV() << " " << eps << std::endl;
         
     if (eps < 1e-5) {
-        std::vector<int> cell = get_cell(r);
-        std::cout << "Warning: 0 particles in cell (" 
-                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
-                  << " eps = " << eps << " volSums = " << volSums->get_array_value(r)
-                  << " dV " << volSums->get_dV() << " Npreforce = " << Npre_force << std::endl;
+        #if DEBUG
+            std::vector<int> cell = get_cell(r);
+            std::cout << "Warning: 0 particles in cell (" 
+                      << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
+                      << " eps = " << eps << " volSums = " << volSums->get_array_value(r)
+                      << " dV " << volSums->get_dV() << " Npreforce = " << Npre_force << std::endl;
+        #endif
         return 0.0;
     } else {
         return eps;
@@ -857,15 +858,15 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     double D = 2.0*s;
     double volume = (4./3.)*M_PI*pow(s,3);
 
-    // As eps = eps(t) we need to collect/pass product as
-    // <eps(t)>*<A(t)*vi(t) > not equal to <eps(t)*A(t)*vi(t)>
+    // Get drag coefficients from various drag models. These are function of
+    // the instantaneous porosity.
     double eps = CPLForceDrag::get_eps(r);
-    double A = eps*drag_coefficient(r, D, Ui_v);
+    double A = drag_coefficient(D, Ui_v, eps);
 
-    //Just drag force here
-    fi[0] = A*Ui_v[0];
-    fi[1] = A*Ui_v[1];
-    fi[2] = A*Ui_v[2];
+    //Just drag force here.
+    fi[0] = eps*A*Ui_v[0];
+    fi[1] = eps*A*Ui_v[1];
+    fi[2] = eps*A*Ui_v[2];
 
     //Include pressure
     if (use_gradP)
@@ -882,13 +883,6 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
         fi[2] += volume*divStress[2];
     }
 
-    //We split A*(vi - u_CFD) into implicit and explicit part following 
-    //Heng Xiao and Jin Sun (2011) Commun. Comput. Phys. Vol. 9, No. 2, pp. 297-323
-    //Define Avi=A*v[i] which is explicit part of the force based on molecular velocity
-    //and ForceCoeff is passed so implict A*u_CFD can be applied in SediFOAM
-    Avi[0] = A*v[0];
-    Avi[1] = A*v[1];
-    Avi[2] = A*v[2];
 
 #if DEBUG
     std::cout << "CPLForceDrag::get_force "  
@@ -896,20 +890,19 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
               << " " <<  volume << " " <<  A << " " 
               << v[1] << " " << Ui[1] << " " << fi[1] << std::endl;
 #endif
-
-//    std::cout << "CPLForceDrag::get_force "  
-//              <<  cell[0] << " " << cell[1] << " " << cell[2]
-//              << " " <<  volume << " " <<  A << " " 
-//              << v[0] << " " <<  v[1] << " " <<  v[2] << " " 
-//             << Ui[0] << " " << Ui[1] << " " << Ui[2] <<  " " 
-//             << fi[0] << " " << fi[1] << " " << fi[2] << std::endl;
-
-    // Add sum of coefficients of forces 
-    // Needed if you want to split implicit/explicit terms for
-    // improved numerical stability according to 
-    // Xiao H., Sun J. (2011) Algorithms in a Robust Hybrid
-    // CFD-DEM Solver for Particle-Laden Flows, 
-    // Commun. Comput. Phys. 9, 2, 297
+    
+    //We split A*(vi - u_CFD) into implicit and explicit part following  Heng
+    //Xiao and Jin Sun (2011) Commun. Comput. Phys. Vol. 9, No. 2, pp. 297-323
+    //Define Avi=A*v[i] which is explicit part of the force based on molecular
+    //velocity and ForceCoeff is passed so implict A*u_CFD can be applied in
+    //SediFOAM. These have a eps multiplier incorporated as this is the
+    //instantaneous porosity, and we need to collect/pass the produce as
+    //<eps(t)>*<A(t)*vi(t) > not equal to <eps(t)*A(t)*vi(t)>. In
+    //CPLSocketFOAM, this is divided through by the time averages porosity.
+    Avi[0] = eps*A*v[0];
+    Avi[1] = eps*A*v[1];
+    Avi[2] = eps*A*v[2];
+    A = eps*A;
     if (! use_interpolate){
         FcoeffSums->add_to_array(0, cell[0], cell[1], cell[2], A);
         FSums->add_to_array(0, cell[0], cell[1], cell[2], Avi[0]);
@@ -1015,65 +1008,39 @@ double CPLForceGranular::magnitude(std::vector<double> v){
 ///////////////////////////////////////////////////////////////////
 //                      Stokes                                  //
 ///////////////////////////////////////////////////////////////////
-
-
-double CPLForceStokes::drag_coefficient(double r[], double D, 
-                                        std::vector<double> Ui_v) 
+double CPLForceStokes::drag_coefficient(double D, std::vector<double> Ui_v, double eps) 
 {
-    return CPLForceGranular::Stokes(D, mu);
-
+    double Bi = 3. * M_PI * mu * D * eps; 
+    return Bi;
 }
 
 ///////////////////////////////////////////////////////////////////
 //                      Di_Felice                                //
 ///////////////////////////////////////////////////////////////////
-
-
-//This combined all the above
-double CPLForceDi_Felice::drag_coefficient(double r[], double D, 
-                                          std::vector<double> Ui_v) 
+double CPLForceDi_Felice::drag_coefficient(double D, std::vector<double> Ui_v, double eps) 
 {
 
-    double Re, U, eps;
-
-    U = CPLForceGranular::magnitude(Ui_v);
-    if (U > 1e-8) {
-        Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, 1.0);
-    } else {
-        return 0;
-    }
-
-    eps = CPLForceDrag::get_eps(r);
-    if (eps == 0.0) {
+    double MIN_REL_VELOCITY = 1e-8;
+    double U = CPLForceGranular::magnitude(Ui_v);
+    if ((U < MIN_REL_VELOCITY) || (eps == 0.0))
+    {
         return 0.0;
-    } else {
-        double phi = 1. - eps;
-        // Log is base 10 according to Kafui et al 2002 but unclear in
-        // original paper by Di Felice (1994) "The voidage function
-        // for fluid particle interaction systems" Int. J. Multiphase
-        // Flow, 20 (1994), p. 153,  where it's log not ln BUT
-        // inside an exp funcion...
+    } 
+    else 
+    {
+        double Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, eps);
         double xi = 3.7 - 0.65 * exp(-0.5*pow((1.5-log10(Re)),2));
-        //double xi = 3.7 - 0.65 * exp(-0.5*pow((1.5-log(Re)),2));
-        double A = pow((0.63 + 4.8*pow(Re,-0.5)),2);
-        double volume = 0.5235987755982988 * pow(D,3); 
-        double DiFelice = 0.75 * A * rho * pow(U,2) * pow((1.-phi),-xi) * volume / D;
-//        std::cout  << "Di_Felice: " << phi << " " << Re << " " 
-//                   << A << " " << xi << " " << volume << " " << 
-//                    pow((1.-phi),-xi) << " " << D << " " 
-//                   << phi << " " <<  DiFelice <<  std::endl;
-        return DiFelice/U;
-        //return 0.125*A*rho*M_PI*pow(D,2)*pow(eps,2)*U*pow(eps,xi-1.0);
+        double Cdi = pow((0.63 + 4.8*pow(Re,-0.5)),2);
+        double Bi = 0.125 * Cdi * rho * M_PI * pow(D,2) * pow(eps,2.-xi) * abs(U);
+        return Bi;
     }
-
 }
 
 ///////////////////////////////////////////////////////////////////
 //                          Tang                                 //
 ///////////////////////////////////////////////////////////////////
 
-double CPLForceTang::drag_coefficient(double r[], double D, 
-                                     std::vector<double> Ui_v) 
+double CPLForceTang::drag_coefficient(double D, std::vector<double> Ui_v, double eps) 
 {
 
     double Re;
@@ -1084,7 +1051,6 @@ double CPLForceTang::drag_coefficient(double r[], double D,
         return 0;
     }
 
-    double eps = CPLForceDrag::get_eps(r);
     if (eps == 0.0) {
         return 0.0;
     } else {
@@ -1105,34 +1071,48 @@ double CPLForceTang::drag_coefficient(double r[], double D,
 //                          Ergun                                //
 ///////////////////////////////////////////////////////////////////
 
-double CPLForceErgun::drag_coefficient(double r[], double D, 
-                                       std::vector<double> Ui_v) {
-    double eps = CPLForceDrag::get_eps(r);
-    double phi = 1 - eps;
+double CPLForceErgun::drag_coefficient(double D, std::vector<double> Ui_v, double eps) 
+{
+//     double phi = 1 - eps;
+//     double U = CPLForceGranular::magnitude(Ui_v);
+//     if (eps == 0.0) {
+//         return 0.0;
+//     } else {
+//         double Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, eps);
+//         double Ergun = 0.0555555555555555 * (  150. * (phi / pow(eps,1))
+//                                              + 1.75 * ( Re / pow(eps,0)));
+
+// //        std::cout << "Ergun: " << phi << " " << D  << " " 
+// //                  << U << " " << Re << " "
+// //                  <<  150. * (phi / pow(eps,2)) << " " 
+// //                  << 1.75 * ( Re / pow(eps,2)) << " "
+// //                  << Ergun << " "
+// //                  <<  CPLForceGranular::Stokes(D, mu) << " "
+// //                  << Ergun * CPLForceGranular::Stokes(D, mu) << std::endl;
+
+//         //Form matching Chris Knights code (and Gupta 2015 thesis, normalised by stokes)
+//         return Ergun * CPLForceGranular::Stokes(D, mu);
+
+//         //OpenFOAM Form
+//         //return 150.0*    mu/(pow(phi*D, 2.0)) + 1.75*rho*Ur/(phi*D);
+
+//         //Form from paper by ...
+//         //return 150.0*eps*mu/(pow(eps*D, 2.0)) + 1.75*rho/(eps*D);
+
+
+//     }
+
+    double MIN_REL_VELOCITY = 1e-8;
     double U = CPLForceGranular::magnitude(Ui_v);
-    if (eps == 0.0) {
+    if ((U < MIN_REL_VELOCITY) || (eps == 0.0))
+    {
         return 0.0;
-    } else {
-        double Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, 1.0);
-        double Ergun = 0.0555555555555555 * (  150. * (phi / pow(eps,2))
-                                             + 1.75 * ( Re / pow(eps,2)));
-
-//        std::cout << "Ergun: " << phi << " " << D  << " " 
-//                  << U << " " << Re << " "
-//                  <<  150. * (phi / pow(eps,2)) << " " 
-//                  << 1.75 * ( Re / pow(eps,2)) << " "
-//                  << Ergun << " "
-//                  <<  CPLForceGranular::Stokes(D, mu) << " "
-//                  << Ergun * CPLForceGranular::Stokes(D, mu) << std::endl;
-
-        //Form matching Chris Knights code (and Gupta 2015 thesis, normalised by stokes)
-        return Ergun * CPLForceGranular::Stokes(D, mu);
-
-        //OpenFOAM Form
-        //return 150.0*    mu/(pow(phi*D, 2.0)) + 1.75*rho*Ur/(phi*D);
-
-        //Form from paper by ...
-        //return 150.0*eps*mu/(pow(eps*D, 2.0)) + 1.75*rho/(eps*D);
+    } 
+    else 
+    {
+        double Bi = (150. * M_PI * mu * D / 6.) * ((1. - eps) / eps) +
+                    (1.75 * M_PI * rho * pow(D,2) / 6.) * abs(U);
+        return Bi;
     }
 }
 
@@ -1142,8 +1122,7 @@ double CPLForceErgun::drag_coefficient(double r[], double D,
 ///////////////////////////////////////////////////////////////////
 
 //Calculate BVK drag force per particle
-double CPLForceBVK::drag_coefficient(double r[], double D, 
-                                     std::vector<double> Ui_v) 
+double CPLForceBVK::drag_coefficient(double D, std::vector<double> Ui_v, double eps) 
 {
 
     double Re;
@@ -1154,7 +1133,6 @@ double CPLForceBVK::drag_coefficient(double r[], double D,
         return 0;
     }
 
-    double eps = CPLForceDrag::get_eps(r);
     if (eps == 0.0) {
         return 0.0;
     } else {

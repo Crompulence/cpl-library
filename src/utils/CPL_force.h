@@ -261,7 +261,7 @@ public:
     bool use_gradP;
     bool use_divStress;
 
-    virtual double drag_coefficient(double r[], double D, std::vector<double> Ui_v);
+    virtual double drag_coefficient(double D, std::vector<double> Ui_v, double eps);
     double get_eps(double r[]);
     double Cd = 0.0000001;
     double mu = 0.001;
@@ -323,7 +323,7 @@ public:
     using CPLForceGranular::CPLForceGranular;
 
     //Stokes specific functions
-    double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
+    double drag_coefficient(double D, std::vector<double> Ui_v, double eps) override;
 
 };
 
@@ -335,7 +335,7 @@ public:
     using CPLForceGranular::CPLForceGranular;
 
     //Di_Felice specific functions
-    double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
+    double drag_coefficient(double D, std::vector<double> Ui_v, double eps) override;
 
 //private:
 
@@ -349,7 +349,7 @@ public:
     using CPLForceGranular::CPLForceGranular;
 
     //BVK specific functions
-    double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
+    double drag_coefficient(double D, std::vector<double> Ui_v, double eps) override;
 
 //private:
 
@@ -364,7 +364,7 @@ public:
     using CPLForceGranular::CPLForceGranular;
 
     //Ergun specific functions
-    double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
+    double drag_coefficient(double D, std::vector<double> Ui_v, double eps) override;
 
 //private:
 
@@ -379,7 +379,7 @@ public:
     using CPLForceGranular::CPLForceGranular;
 
     //BVK specific functions
-    double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;
+    double drag_coefficient(double D, std::vector<double> Ui_v, double eps) override;
 
 //private:
 

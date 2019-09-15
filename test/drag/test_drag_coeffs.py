@@ -80,7 +80,10 @@ def get_data(case):
 
     #Get force type from Chris' library
     Forcefn = getattr(c, case.replace("_",""))
-    Fpy = Forcefn(data['phi'], data['D'], data['v0'], rho=rho, mu=mu, norm=False)
+    if case == 'Stokes' or case == 'Di_Felice' or case == 'Ergun':
+        Fpy = Forcefn(data['phi'], data['D'], data['v0']*(np.ones_like(data['phi']) - data['phi']), rho=rho, mu=mu, norm=False)
+    else:
+        Fpy = Forcefn(data['phi'], data['D'], data['v0'], rho=rho, mu=mu, norm=False)
 
     return data, Fpy
 
