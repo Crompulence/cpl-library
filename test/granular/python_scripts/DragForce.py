@@ -10,7 +10,8 @@ class DragForce(object):
 	"""
 
 	def __init__(self, B=None):
-		self.B = B 
+		self.B = B
+		self.MIN_REL_VELOCITY = 1.e-6 
 
 	def calculate_drag_force(self, Uf, Vp):
 		"""
@@ -23,10 +24,10 @@ class DragForce(object):
 		if self.B == None: 
 			raise('The drag coefficient, B, must be set to calculate the drag force.')
 
-		self.F = self.B*(Uf - Vp)
-		return self.F
+		F = self.B*(Uf - Vp)
+		return F
 
-	def calculate_pressure_gradient(self, epsf, Uf, Vp, dp):
+	def calculate_pressure_gradient(self, Uf, Vp):
 		"""
 
 		The pressure gradient is calculated as a function of the porosity or void
@@ -35,9 +36,10 @@ class DragForce(object):
 
 		"""
 
-		self.F = self.B*(Uf - Vp)
-		self.dP = ((1. - epsf)/epsf)*(self.F/(np.pi*dp**3/6))
-		return self.dP
+		F = self.B*(Uf - Vp)
+		volume = (np.pi/6.)*(self.dp**3)
+		dP = (1. - self.epsf)*(F/volume)
+		return dP
 
 class Stokes(DragForce):
 	""" 
@@ -46,9 +48,12 @@ class Stokes(DragForce):
 
 	"""
 
-	def __init__(self, muf=1.e-3, dp=0.001):
+	def __init__(self, muf, epsf, dp):
 		super(Stokes, self).__init__()
-		self.B = 3*np.pi*muf*dp
+		self.muf = muf
+		self.dp = dp
+		self.epsf = epsf
+		self.B = 3*np.pi*muf*dp*epsf
 
 class DiFelice(DragForce):
 	"""
@@ -57,12 +62,42 @@ class DiFelice(DragForce):
 
 	"""
 
-	def __init__(self, muf=1.e-3, rhof=1000., Uf=0.01, dp=0.001, Vp=0., epsf=0.36):
+	def __init__(self, muf, rhof, epsf, dp, Uf, Vp):
 		super(DiFelice, self).__init__()
-		if abs(Vp - Uf) == 0.:
+		self.muf = muf
+		self.rhof = rhof
+		self.dp = dp
+		self.epsf = epsf
+
+		if abs(Vp - Uf) < self.MIN_REL_VELOCITY:
 			self.B = 0.
 		else:
-			Re = rhof*dp*abs(Uf - Vp)/muf
-			chi = -(3.7 - 0.65*np.exp(-0.5*((1.5 - np.log10(Re))**2)))
+			Re = rhof*dp*epsf*abs(Uf - Vp)/muf
+			chi = 3.7 - 0.65*np.exp(-0.5*((1.5 - np.log10(Re))**2))
 			Cd = (0.63 + 4.8/np.sqrt(Re))**2
-			self.B = 0.5*Cd*rhof*(np.pi/4)*(dp**2)*(epsf**chi)*abs(Uf - Vp)
+			self.B = 0.5*Cd*rhof*(np.pi/4)*(dp**2)*(epsf**(2-chi))*abs(Uf - Vp)
+
+	def update_drag_coefficient(self, Uf, Vp):
+		self.__init__(self.muf, self.rhof, self.epsf, self.dp, Uf, Vp)
+
+class Ergun(DragForce):
+	""" 
+
+	Derived class for Ergun drag force model
+
+	"""
+
+	def __init__(self, muf, rhof, epsf, dp, Uf, Vp):
+		super(Ergun, self).__init__()
+		self.muf = muf
+		self.rhof = rhof
+		self.dp = dp
+		self.epsf = epsf
+
+		if abs(Vp - Uf) < self.MIN_REL_VELOCITY:
+			self.B = 0.
+		else:
+			self.B = (150.*np.pi*muf*dp/6)*((1-epsf)/epsf) + (1.758*np.pi*rhof*(dp**2)/6)*abs(Vp - Uf)
+
+	def update_drag_coefficient(self, Uf, Vp):
+		self.__init__(self.muf, self.rhof, self.epsf, self.dp, Uf, Vp)
