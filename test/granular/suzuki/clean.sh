@@ -12,7 +12,7 @@ cd ../
 
 #Clean MD
 cd lammps/
-rm -f ../log.lammps print_column.txt
+rm -f ../log.lammps print_*.txt
 cd ../
 
 # Clean results

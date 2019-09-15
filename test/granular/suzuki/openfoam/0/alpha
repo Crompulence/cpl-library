@@ -28,7 +28,7 @@ boundaryField
     outlet
     {
         type            fixedValue;
-        value           uniform 0.5236;
+        value           uniform 0.523598775598;
     }
     
 }

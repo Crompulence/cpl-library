@@ -19,9 +19,7 @@ variable        gravity equal 981.0
 variable        dragModel string DiFelice
 variable        dynamic_viscosity equal 1.0e-2
 variable        fluid_density equal 1.00
-variable        fluid_velocity equal 0.1
-variable        movementType string moving  
-variable        Nt_output equal 1
+variable        Nt_output equal 100
 variable        Nt_run equal 40000
 
 # INITIALISATION
@@ -51,10 +49,9 @@ pair_coeff      * *
 timestep        ${timestep}
 run_style       verlet
 fix             0 all gravity ${gravity} vector 0 -1 0
-if "${movementType} == moving" then &
-    "fix            1 all nve/sphere" &
-    "fix            2 all momentum 1 linear 1 0 1" & 
-    "fix            3  all wall/gran hooke/history ${kn} ${kt} ${gamma_n} ${gamma_t} ${frictionCoeff} 0 yplane ${ylo} ${yhi}"
+fix             1 all nve/sphere
+fix             2 all momentum 1 linear 1 0 1
+fix             3  all wall/gran hooke/history ${kn} ${kt} ${gamma_n} ${gamma_t} ${frictionCoeff} 0 yplane ${ylo} ${yhi}
 
 # OUTPUT SETTINGS
 thermo          ${Nt_output}
@@ -65,16 +62,13 @@ variable        atoms equal atoms
 variable        xy equal y[${atoms}]
 variable        vy equal vy[${atoms}]
 variable        fy equal fy[${atoms}]
-fix             4 all print ${Nt_output} "${time} ${xy} ${vy} ${fy}" file lammps/print_column.txt screen no
+fix             4 all print ${Nt_output} "${time} ${xy} ${vy} ${fy}" file lammps/print_suzuki.txt screen no
 
 # COUPLER SETTINGS
-if "${dragModel} == Drag" then &
-    "variable       Cd equal 3*PI*${dynamic_viscosity}*${diameter}" & 
-    "fix            5 all cpl/init region all forcetype Drag Cd ${Cd} gradP true divstress true overlap false interpolation false sendtype granfull" &
-elif "${dragModel} == Stokes" &
-    "fix            5 all cpl/init region all forcetype Stokes mu ${dynamic_viscosity} rho ${fluid_density} gradP true divstress true overlap false interpolation false sendtype granfull" &
-elif "${dragModel} == DiFelice" &
-    "fix            5 all cpl/init region all forcetype Di_Felice mu ${dynamic_viscosity} rho ${fluid_density} gradP true divstress true overlap false interpolation false sendtype granfull"
+if "${dragModel} == DiFelice" then &
+    "fix            5 all cpl/init region all forcetype Di_Felice mu ${dynamic_viscosity} rho ${fluid_density} gradP true divstress true overlap false interpolation false sendtype granfull" & 
+elif "${dragModel} == Ergun" &
+    "fix            5 all cpl/init region all forcetype Ergun mu ${dynamic_viscosity} rho ${fluid_density} gradP true divstress true overlap false interpolation false sendtype granfull"
 
 #6# Run simulations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 run                 ${Nt_run}
