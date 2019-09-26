@@ -158,13 +158,14 @@ class CPL:
 
     #Detect if OpenMPI or MPICH
     mpicc=str(mpi4py.get_config()['mpicc'])
-    if ("open" in mpicc):
+    mpishow=sp.check_output(["mpicc","-show"])
+    if ("open" in mpicc or "open" in mpishow):
         MPI_version = "OPENMPI"
         ompi_info = sp.check_output("ompi_info").split("\n")
         for m in ompi_info:
             if ("Open MPI:" in m):
                 ompi_major_version_no = int(m.split(":")[-1].split(".")[0])            
-    elif ("mpich" in mpicc):
+    elif ("mpich" in mpicc or "open" in mpishow):
         MPI_version = "MPICH"      
     else:
         print("UNKNOWN MPI VERSION FROM ", mpicc)
