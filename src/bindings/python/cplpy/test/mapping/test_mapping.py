@@ -31,9 +31,9 @@ maxprocperdir = 6
 maxprocs = 16
 tests = ["cell_test", "coord_test"]
 if (cplpy.CPL.MPI_version == "OPENMPI"):
-    cases=["split"]
+... cpltypes=["split"]
 else:
-    cases=["port", "split"]
+... cpltypes=["port", "split"]
 cases = list(itertools.combinations_with_replacement(range(1,maxprocperdir), 3))
 perms = []; n=0
 for cpltype in cpltypes:
