@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 import pytest
+import cplpy
 from cplpy import run_test, prepare_config, get_test_dir
 import os
 import itertools
@@ -29,7 +30,10 @@ ncx = 24; ncy = 24; ncz = 24
 maxprocperdir = 6
 maxprocs = 16
 tests = ["cell_test", "coord_test"]
-cpltypes = ["split", "port"]
+if (cplpy.CPL.MPI_version == "OPENMPI"):
+    cases=["split"]
+else:
+    cases=["port", "split"]
 cases = list(itertools.combinations_with_replacement(range(1,maxprocperdir), 3))
 perms = []; n=0
 for cpltype in cpltypes:
