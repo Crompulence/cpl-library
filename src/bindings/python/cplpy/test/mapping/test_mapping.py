@@ -32,6 +32,8 @@ maxprocs = 16
 tests = ["cell_test", "coord_test"]
 if (cplpy.CPL.MPI_version == "OPENMPI"):
     cpltypes=["split"]
+    #Travis CI often stalls using too many OpenMPI processes
+    maxprocs = 8
 else:
     cpltypes=["port", "split"]
 cases = list(itertools.combinations_with_replacement(range(1,maxprocperdir), 3))
