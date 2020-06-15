@@ -1046,7 +1046,7 @@ double CPLForceTang::drag_coefficient(double D, std::vector<double> Ui_v, double
     double Re;
     double U = CPLForceGranular::magnitude(Ui_v);
     if (U > 1e-8) {
-        Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, 1.0);
+        Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, eps);
     } else {
         return 0;
     }
@@ -1128,7 +1128,7 @@ double CPLForceBVK::drag_coefficient(double D, std::vector<double> Ui_v, double 
     double Re;
     double U = CPLForceGranular::magnitude(Ui_v);
     if (U > 1e-8) {
-        Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, 1.0);
+        Re = CPLForceGranular::Reynolds_number(D, U, rho, mu,eps);
     } else {
         return 0;
     }
@@ -1268,7 +1268,7 @@ double CPLForceTenneti::drag_coefficient(double D, std::vector<double> Ui_v, dou
     double Re;
     double U = CPLForceGranular::magnitude(Ui_v);
     if (U > 1e-8) {
-        Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, 1.0);
+        Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, eps);
     } else {
         return 0;
     }
