@@ -864,9 +864,9 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
     double A = drag_coefficient(D, Ui_v, eps);
 
     //Just drag force here.
-    fi[0] = eps*A*Ui_v[0];
-    fi[1] = eps*A*Ui_v[1];
-    fi[2] = eps*A*Ui_v[2];
+    fi[0] = A*Ui_v[0];
+    fi[1] = A*Ui_v[1];
+    fi[2] = A*Ui_v[2];
 
     //Include pressure
     if (use_gradP)
@@ -987,8 +987,8 @@ void CPLForceGranular::initialisesums(CPL::ndArray<double> arrayin){
 
 
 //Return Stokes force
-double CPLForceGranular::Stokes(double D, double mu) {
-    return 9.42477796076938 * mu * D;
+double CPLForceGranular::Stokes(double D, double mu, double eps) {
+    return 9.42477796076938 * mu * D * eps;
 }
 
 // Reynolds Number
@@ -1046,7 +1046,7 @@ double CPLForceTang::drag_coefficient(double D, std::vector<double> Ui_v, double
     double Re;
     double U = CPLForceGranular::magnitude(Ui_v);
     if (U > 1e-8) {
-        Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, 1.0);
+        Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, eps);
     } else {
         return 0;
     }
@@ -1061,7 +1061,7 @@ double CPLForceTang::drag_coefficient(double D, std::vector<double> Ui_v, double
                               - 0.00456 / pow(eps,4) 
                               + (0.169 * eps + 0.0644/ pow(eps,4))
                               * pow(Re,-0.343));
-        return CPLForceGranular::Stokes(D, mu) * Tang;
+        return CPLForceGranular::Stokes(D, mu, eps) * Tang;
     }
 
 }
@@ -1128,7 +1128,7 @@ double CPLForceBVK::drag_coefficient(double D, std::vector<double> Ui_v, double 
     double Re;
     double U = CPLForceGranular::magnitude(Ui_v);
     if (U > 1e-8) {
-        Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, 1.0);
+        Re = CPLForceGranular::Reynolds_number(D, U, rho, mu,eps);
     } else {
         return 0;
     }
@@ -1143,7 +1143,7 @@ double CPLForceBVK::drag_coefficient(double D, std::vector<double> Ui_v, double 
               * (((1./eps) + 3 * phi * eps + 8.4 * pow(Re,-0.343)) 
                  /(1 + pow(10,(3*phi)) * pow(Re,-0.5) *(1+4*phi)));
     //    std::cout  << "BVK: " << Stokes(D, U, mu) * BVK << std::endl;
-        return CPLForceGranular::Stokes(D, mu) * BVK;
+        return CPLForceGranular::Stokes(D, mu, eps) * BVK;
     }
 
 }
@@ -1257,4 +1257,32 @@ double CPLForceBVK::drag_coefficient(double D, std::vector<double> Ui_v, double 
 //                << nSums(icell, jcell, kcell) << " " 
 //                << min[1] << " " <<  max[1] << " " << r[1]<< std::endl;
 
+///////////////////////////////////////////////////////////////////
+//                          Tenneti                              //
+///////////////////////////////////////////////////////////////////
+
+//Calculate Tenneti drag force per particle
+double CPLForceTenneti::drag_coefficient(double D, std::vector<double> Ui_v, double eps) 
+{
+
+    double Re;
+    double U = CPLForceGranular::magnitude(Ui_v);
+    if (U > 1e-8) {
+        Re = CPLForceGranular::Reynolds_number(D, U, rho, mu, eps);
+    } else {
+        return 0;
+    }
+
+    if (eps == 0.0) {
+        return 0.0;
+    } else {
+        double phi = 1 - eps;
+       
+        double Tenneti = (1+0.15*pow(Re,0.687))/pow(eps,2)+5.81*phi/pow(eps,2)+0.48*pow(phi,1.0/3.0)/pow(eps,3)
+                        +eps*pow(phi,3)*Re*(0.95+0.61*pow(phi,3)/pow(eps,2));
+    
+        return CPLForceGranular::Stokes(D, mu, eps) * Tenneti;
+    }
+
+}
 
