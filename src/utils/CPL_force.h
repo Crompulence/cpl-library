@@ -305,7 +305,7 @@ public:
 //                   double m,   double s,   double e);
 
     //Granular functions
-    double Stokes(double D, double mu);
+    double Stokes(double D, double mu, double eps);
     double Reynolds_number(double D, double U, double rho, double mu, double eps);
     double magnitude(std::vector<double> v);
 
@@ -406,5 +406,18 @@ public:
 
 //};
 
+class CPLForceTenneti : public CPLForceGranular {
+
+public:
+
+    //Constructors
+    using CPLForceGranular::CPLForceGranular;
+
+    //Tenneti specific functions
+    double drag_coefficient(double D, std::vector<double> Ui_v, double eps) override;
+
+//private:
+
+};
 
 #endif  // CPLForce_H_
