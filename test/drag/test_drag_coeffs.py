@@ -80,10 +80,11 @@ def get_data(case):
 
     #Get force type from Chris' library
     Forcefn = getattr(c, case.replace("_",""))
-    if case == 'Stokes' or case == 'Di_Felice' or case == 'Ergun':
-        Fpy = Forcefn(data['phi'], data['D'], data['v0']*(np.ones_like(data['phi']) - data['phi']), rho=rho, mu=mu, norm=False)
-    else:
-        Fpy = Forcefn(data['phi'], data['D'], data['v0'], rho=rho, mu=mu, norm=False)
+    #if case == 'Stokes' or case == 'Di_Felice' or case == 'Ergun':
+    eps = np.ones_like(data['phi']) - data['phi']
+    Fpy = Forcefn(data['phi'], data['D'], data['v0']*eps, rho=rho, mu=mu, norm=False)
+    #else:
+    #    Fpy = Forcefn(data['phi'], data['D'], data['v0'], rho=rho, mu=mu, norm=False)
 
     return data, Fpy
 
@@ -98,8 +99,8 @@ def test_answer(case,out):
     data, Fpy = get_data(case)
     #Difference in convention between seepage and superficial velocities
     eps = (1-data['phi'])
-    print(case + " max Error = ", np.max(np.abs((Fpy+data['F0']/eps)/Fpy)))
-    assert((np.max(np.abs((Fpy+data['F0']/eps)/Fpy)) < 1e-5) == out)
+    print(case + " max Error = ", np.max(np.abs((Fpy+data['F0'])/Fpy)))
+    assert((np.max(np.abs((Fpy+data['F0'])/Fpy)) < 1e-5) == out)
 
 cases = ["Di_Felice", "Stokes", "Ergun", "BVK", "Tang"]
 
