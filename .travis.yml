@@ -95,7 +95,7 @@ script:
     - make test-pytest-initialisation
     - make test-examples
     - make test-valgrind
-    - make test-pytest-mapping
+    - travis_wait 30 make test-pytest-mapping
     - make test-gtests
     - make test_Dragmodels
 #    - make test-granular
