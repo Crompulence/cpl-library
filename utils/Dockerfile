@@ -16,8 +16,9 @@ RUN apt-get update && apt-get install -y \
     python-wxgtk3.0 \
  && rm -rf /var/lib/apt/lists/*
 
-RUN pip install \
-    matplotlib \
+RUN python -m pip install --upgrade pip \
+&&  pip install \
+    matplotlib==2.2.5 \
     mpi4py \
     numpy \
     pytest==4.4.1 \
