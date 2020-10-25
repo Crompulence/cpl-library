@@ -22,7 +22,7 @@
 CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){ 
 
     //Shared as we keep reference in fields list
-    cfd_array_field = std::make_shared<CPL::CPLField>(nd, icells, jcells, kcells);
+    cfd_array_field = std::make_shared<CPL::CPLFieldMap>(nd, icells, jcells, kcells);
     calc_preforce = false;
     calc_preforce_everytime = false;
     calc_postforce = false;
@@ -32,7 +32,7 @@ CPLForce::CPLForce(int nd, int icells, int jcells, int kcells){
 
 CPLForce::CPLForce(CPL::ndArray<double> arrayin) {
     //Shared as we keep reference in fields list
-    cfd_array_field = std::make_shared<CPL::CPLField>(arrayin);
+    cfd_array_field = std::make_shared<CPL::CPLFieldMap>(arrayin);
     calc_preforce = false;
     calc_preforce_everytime = false;
     calc_postforce = false;
@@ -121,7 +121,7 @@ CPL::ndArray<double> CPLForce::get_field(){
     return cfd_array_field->get_array();
 };
 
-std::shared_ptr<CPL::CPLField> CPLForce::get_internal_fields(const std::string& name){
+std::shared_ptr<CPL::CPLFieldMap> CPLForce::get_internal_fields(const std::string& name){
     //std::cout << "Looking for internal_fields: " << name << " in list of size " << fields.size() << std::endl;
     for ( auto &f : fields ) {
         //std::cout << "getting_internal_fields " << name << " " << f->field_name() << std::endl;
@@ -129,7 +129,7 @@ std::shared_ptr<CPL::CPLField> CPLForce::get_internal_fields(const std::string& 
             return f;
         }
     }
-    //std::shared_ptr<CPL::CPLField> nullpointer();
+    //std::shared_ptr<CPL::CPLFieldMap> nullpointer();
     return nullptr;
 }
 
@@ -181,7 +181,7 @@ void CPLForceTest::initialisesums(CPL::ndArray<double> arrayin){
     calc_preforce_everytime = false;
     calc_postforce = false;
     calc_postforce_everytime = false;
-    auto otherfield = std::make_shared<CPL::CPLField>(1, arrayin.shape(1), 
+    auto otherfield = std::make_shared<CPL::CPLFieldMap>(1, arrayin.shape(1), 
                                                          arrayin.shape(2), 
                                                          arrayin.shape(3), 
                                                          "otherfield");
@@ -296,10 +296,10 @@ void CPLForceVelocity::initialisesums(CPL::ndArray<double> arrayin){
     shapeVector[1] = i;
     shapeVector[2] = j;
     shapeVector[3] = k;
-    nSums = std::make_shared<CPL::CPLField>(1, i, j, k, "nSums");
-    nSums_mdt = std::make_shared<CPL::CPLField>(1, i, j, k, "nSums_mdt");
-    vSums = std::make_shared<CPL::CPLField>(3, i, j, k, "vSums");
-    vSums_mdt = std::make_shared<CPL::CPLField>(3, i, j, k, "vSums_mdt");
+    nSums = std::make_shared<CPL::CPLFieldMap>(1, i, j, k, "nSums");
+    nSums_mdt = std::make_shared<CPL::CPLFieldMap>(1, i, j, k, "nSums_mdt");
+    vSums = std::make_shared<CPL::CPLFieldMap>(3, i, j, k, "vSums");
+    vSums_mdt = std::make_shared<CPL::CPLFieldMap>(3, i, j, k, "vSums_mdt");
 
     //Get pointer to recved fields
     array = cfd_array_field->get_array_pointer();
@@ -317,9 +317,9 @@ void CPLForceVelocity::initialisesums(CPL::ndArray<double> arrayin){
 
 void CPLForceVelocity::resetsums(){
     //Deep copy velocity to t + dt array
-    nSums_mdt = std::make_shared<CPL::CPLField>(*(nSums.get()));
+    nSums_mdt = std::make_shared<CPL::CPLFieldMap>(*(nSums.get()));
     //nSums_mdt = nSums;
-    vSums_mdt = std::make_shared<CPL::CPLField>(*(vSums.get()));
+    vSums_mdt = std::make_shared<CPL::CPLFieldMap>(*(vSums.get()));
     //vSums_mdt = vSums;
     //Reset all counters
     Npre_force=0; Nforce=0; Npost_force=0;
@@ -599,6 +599,10 @@ void CPLForceDrag::set_defaults(){
     calc_preforce_everytime = false;
     calc_postforce_everytime = false;
 
+    usevoro = false;
+    mapfieldD2C = false;
+    mapfieldC2D = false;
+
 }
 
 
@@ -615,12 +619,14 @@ void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
     shapeVector[1] = i;
     shapeVector[2] = j;
     shapeVector[3] = k;
-    nSums = std::make_shared<CPL::CPLField>(1, i, j, k, "nSums");
-    vSums = std::make_shared<CPL::CPLField>(3, i, j, k, "vSums");
-    volSums = std::make_shared<CPL::CPLField>(1, i, j, k, "volSums");
-    instant_volSums = std::make_shared<CPL::CPLField>(1, i, j, k, "instant_volSums");
-    FSums = std::make_shared<CPL::CPLField>(3, i, j, k, "FSums");
-    FcoeffSums = std::make_shared<CPL::CPLField>(1, i, j, k, "FcoeffSums");
+    nSums = std::make_shared<CPL::CPLFieldMap>(1, i, j, k, "nSums");
+    vSums = std::make_shared<CPL::CPLFieldMap>(3, i, j, k, "vSums");
+    volSums = std::make_shared<CPL::CPLFieldMap>(1, i, j, k, "volSums");
+    instant_volSums = std::make_shared<CPL::CPLFieldMap>(1, i, j, k, "instant_volSums");
+    FSums = std::make_shared<CPL::CPLFieldMap>(3, i, j, k, "FSums");
+    FcoeffSums = std::make_shared<CPL::CPLFieldMap>(1, i, j, k, "FcoeffSums");
+
+    reset_Voro_data();
 
     //Get pointer to recved fields
     array = cfd_array_field->get_array_pointer();
@@ -630,7 +636,7 @@ void CPLForceDrag::initialisesums(CPL::ndArray<double> arrayin){
 
 void CPLForceDrag::initialise_extrasums(CPL::ndArray<double> arrayin){
     //Default empty, inherit and use form:
-    // 1) Define new std::make_shared<CPL::CPLField> objects
+    // 1) Define new std::make_shared<CPL::CPLFieldMap> objects
     // 2) Set them to zero (or whatever initial value you want)
     // 3) Add them to fields array with fields.push_back
 }
@@ -757,9 +763,9 @@ bool CPLForceDrag::unpack_extra_arg_map(map_strstr arg_map){
 //        CFDarrayp(n,i,j,k) = arrayin(n+3,i,j,k);
 //        CFDarrays(n,i,j,k) = arrayin(n+6,i,j,k);
 //    }}}}
-//    UCFD = std::make_shared<CPL::CPLField>(CFDarrayu, "UCFD");
-//    gradPCFD = std::make_shared<CPL::CPLField>(CFDarrayp, "gradPCFD");
-//    gradStressCFD = std::make_shared<CPL::CPLField>(CFDarrays, "gradStressCFD");
+//    UCFD = std::make_shared<CPL::CPLFieldMap>(CFDarrayu, "UCFD");
+//    gradPCFD = std::make_shared<CPL::CPLFieldMap>(CFDarrayp, "gradPCFD");
+//    gradStressCFD = std::make_shared<CPL::CPLFieldMap>(CFDarrays, "gradStressCFD");
 //}
 
 //Arbitary constant in this case so r and D are irrelevant
@@ -790,7 +796,10 @@ double CPLForceDrag::get_eps(double r[]){
         return eps;
     }
 }
-
+double CPLForceDrag::get_eps(double eps){
+    eps_voro = eps;
+    return eps;
+}
 //Pre force collection of sums including overlap code to assign volumes
 void CPLForceDrag::pre_force(double r[], double v[], double a[], 
                              double m,   double s,   double e) {
@@ -814,6 +823,28 @@ void CPLForceDrag::pre_force(double r[], double v[], double a[],
     }
 }
 
+//Pre force collection of sums including overlap code to assign volumes
+void CPLForceDrag::pre_force_map_field(double r[], double v[], double a[], 
+                             double m,   double s,   double e) {
+
+//    throw std::runtime_error("CPLForceDrag::pre_force no porosity/velocity needed so don't need to call this");
+    double volume = (4./3.)*M_PI*pow(s,3); 
+    double v_vol[]= {v[0]*volume, v[1]*volume, v[2]*volume};
+    nSums->add_to_array_map_field(r, 1.0);
+#if DEBUG
+    std::cout << "Pre_force_map_field " << use_overlap << " " 
+              << r[0] << " " << r[1] << " " << r[2] << " " <<volume << std::endl;
+#endif
+    if (! use_overlap){
+        instant_volSums->add_to_array_map_field(r, volume);
+        volSums->add_to_array_map_field(r, volume);   
+        vSums->add_to_array_map_field(r, v_vol);
+    } else {
+        instant_volSums->add_to_array(r, s, volume);
+        volSums->add_to_array(r, s, volume);
+        vSums->add_to_array(r, s, v_vol);
+    }
+}
 
 //Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
 std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[], 
@@ -860,7 +891,11 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
 
     // Get drag coefficients from various drag models. These are function of
     // the instantaneous porosity.
-    double eps = CPLForceDrag::get_eps(r);
+    double eps;
+    if(usevoro)
+       eps = eps_voro;
+    else
+       eps = CPLForceDrag::get_eps(r);
     double A = drag_coefficient(D, Ui_v, eps);
 
     //Just drag force here.
@@ -919,10 +954,153 @@ std::vector<double> CPLForceDrag::get_force(double r[], double v[], double a[],
 //              << gradP[0]  << " " << gradP[1] << " " << gradP[2]  << " "
 //              << divStress[0] << " " << divStress[1] << " " << divStress[2] << " "
 //              << " " << fi[0] <<" " << fi[1] <<" " << fi[2] << " " << fi.size() << std::endl;
-
+    dragParameters[0] = Ui[0];
+    dragParameters[1] = Ui[1];
+    dragParameters[2] = Ui[2];
+    dragParameters[3] = gradP[0];
+    dragParameters[4] = gradP[1];
+    dragParameters[5] = gradP[2];
+    dragParameters[6] = divStress[0];
+    dragParameters[7] = divStress[1];
+    dragParameters[8] = divStress[2];
+    dragParameters[9] = CPLForceDrag::get_eps(r);
     return fi;
 }
 
+void CPLForceDrag::reset_Voro_data(){
+  
+    nSums->set_Voro_data(cuntsvector,sum_sample,total_sample);
+    vSums->set_Voro_data(cuntsvector,sum_sample,total_sample);
+    volSums->set_Voro_data(cuntsvector,sum_sample,total_sample);
+    instant_volSums->set_Voro_data(cuntsvector,sum_sample,total_sample);
+    FSums->set_Voro_data(cuntsvector,sum_sample,total_sample);
+    FcoeffSums->set_Voro_data(cuntsvector,sum_sample,total_sample);
+    FcoeffSums->set_Voro_data(cuntsvector,sum_sample,total_sample);
+
+    cfd_array_field->set_Voro_data(cuntsvector,sum_sample,total_sample);
+}
+//Pre force collection of sums (can this come from LAMMPS fix chunk/atom bin/3d)
+std::vector<double> CPLForceDrag::get_force_map_field(double r[], double v[], double a[], 
+                                            double m,   double s,   double e)
+{
+
+    //Define variable
+    std::vector<int> cell(3);
+    std::vector<double> Avi(3), Ui_v(3), fi(3), Ui(3), gradP(3), divStress(3);
+     //Get all elements of recieved field
+    if (! use_interpolate){
+
+        //Based on cell
+        cell = cfd_array_field->get_cell(r);
+        Ui[0] = cfd_array_field->get_array_value_map_field(0, cell[0], cell[1], cell[2]);
+        Ui[1] = cfd_array_field->get_array_value_map_field(1, cell[0], cell[1], cell[2]);
+        Ui[2] = cfd_array_field->get_array_value_map_field(2, cell[0], cell[1], cell[2]);
+        gradP[0] = cfd_array_field->get_array_value_map_field(3, cell[0], cell[1], cell[2]);
+        gradP[1] = cfd_array_field->get_array_value_map_field(4, cell[0], cell[1], cell[2]);
+        gradP[2] = cfd_array_field->get_array_value_map_field(5, cell[0], cell[1], cell[2]);
+        divStress[0] = cfd_array_field->get_array_value_map_field(6, cell[0], cell[1], cell[2]);
+        divStress[1] = cfd_array_field->get_array_value_map_field(7, cell[0], cell[1], cell[2]);
+        divStress[2] = cfd_array_field->get_array_value_map_field(8, cell[0], cell[1], cell[2]);
+
+    } else {
+        //Or interpolate to position in space
+        std::vector<int> indices = {0,1,2}; 
+        Ui = cfd_array_field->get_array_value_interp(indices, r);
+        for (int &n : indices) n += 3; 
+        gradP = cfd_array_field->get_array_value_interp(indices, r);
+        for (int &n : indices) n += 3; 
+        divStress = cfd_array_field->get_array_value_interp(indices, r);
+    }
+
+    //Get uCFD - uDEM
+    Ui_v[0] = Ui[0]-v[0];
+    Ui_v[1] = Ui[1]-v[1];
+    Ui_v[2] = Ui[2]-v[2];
+
+    //Get Diameter, drag coefficient and volume
+    double D = 2.0*s;
+    double volume = (4./3.)*M_PI*pow(s,3);
+
+    // Get drag coefficients from various drag models. These are function of
+    // the instantaneous porosity.
+    double eps;
+    if(usevoro)
+       eps = eps_voro;   //chq
+    else
+       eps = CPLForceDrag::get_eps(r);   //chq
+    double A = drag_coefficient(D, Ui_v, eps);
+
+    //Just drag force here.
+
+    fi[0] = A*Ui_v[0];
+    fi[1] = A*Ui_v[1];
+    fi[2] = A*Ui_v[2];
+
+    //Include pressure
+    if (use_gradP)
+    {
+        fi[0] += -volume*gradP[0];
+        fi[1] += -volume*gradP[1];
+        fi[2] += -volume*gradP[2];
+    }
+    // and stress
+    if (use_divStress)
+    {
+        fi[0] += volume*divStress[0];
+        fi[1] += volume*divStress[1];
+        fi[2] += volume*divStress[2];
+    }
+
+
+#if DEBUG
+    std::cout << "CPLForceDrag::get_force "  
+              <<  cell[0] << " " << cell[1] << " " << cell[2]
+              << " " <<  volume << " " <<  A << " " 
+              << v[1] << " " << Ui[1] << " " << fi[1] << std::endl;
+#endif
+    
+    //We split A*(vi - u_CFD) into implicit and explicit part following  Heng
+    //Xiao and Jin Sun (2011) Commun. Comput. Phys. Vol. 9, No. 2, pp. 297-323
+    //Define Avi=A*v[i] which is explicit part of the force based on molecular
+    //velocity and ForceCoeff is passed so implict A*u_CFD can be applied in
+    //SediFOAM. These have a eps multiplier incorporated as this is the
+    //instantaneous porosity, and we need to collect/pass the produce as
+    //<eps(t)>*<A(t)*vi(t) > not equal to <eps(t)*A(t)*vi(t)>. In
+    //CPLSocketFOAM, this is divided through by the time averages porosity.
+
+    Avi[0] = eps*A*v[0];
+    Avi[1] = eps*A*v[1];
+    Avi[2] = eps*A*v[2];
+    A = eps*A;
+
+    if (! use_interpolate){
+        FcoeffSums->add_to_array_map_field(0, cell[0], cell[1], cell[2], A);
+        FSums->add_to_array_map_field(0, cell[0], cell[1], cell[2], Avi[0]);
+        FSums->add_to_array_map_field(1, cell[0], cell[1], cell[2], Avi[1]);
+        FSums->add_to_array_map_field(2, cell[0], cell[1], cell[2], Avi[2]);
+    } else {
+        FcoeffSums->add_to_array(r, A);
+        FSums->add_to_array(r, Avi.data());
+        // FSums->add_to_array(r, Avi);
+    }
+
+//    std::cout << "Drag Force "  << A << " " 
+//              << r[2] << " " << v[0] << " " << Ui[0] << " "  << v[1] << " " << Ui[1] << " " << v[2] << " " << Ui[2] << " " 
+//              << gradP[0]  << " " << gradP[1] << " " << gradP[2]  << " "
+//              << divStress[0] << " " << divStress[1] << " " << divStress[2] << " "
+//              << " " << fi[0] <<" " << fi[1] <<" " << fi[2] << " " << fi.size() << std::endl;
+    dragParameters[0] = Ui[0];
+    dragParameters[1] = Ui[1];
+    dragParameters[2] = Ui[2];
+    dragParameters[3] = gradP[0];
+    dragParameters[4] = gradP[1];
+    dragParameters[5] = gradP[2];
+    dragParameters[6] = divStress[0];
+    dragParameters[7] = divStress[1];
+    dragParameters[8] = divStress[2];
+    dragParameters[9] = CPLForceDrag::get_eps(r);;
+    return fi;
+}
 
 //Post force collection of sums including overlap code to assign volumes
 void CPLForceDrag::post_force(double r[], double v[], double a[], 
@@ -1165,7 +1343,7 @@ double CPLForceBVK::drag_coefficient(double D, std::vector<double> Ui_v, double 
 //    double Dmin = 0.0;
 //    double Dmax = 10.0;
 //    double binwidth = (Dmax - Dmin)/float(histbins);
-//    Dhist = std::make_shared<CPL::CPLField>(histbins, i, j, k, "Dhist");
+//    Dhist = std::make_shared<CPL::CPLFieldMap>(histbins, i, j, k, "Dhist");
 //    Dhist->zero_array();
 //    fields.push_back(Dhist);
 
@@ -1286,3 +1464,31 @@ double CPLForceTenneti::drag_coefficient(double D, std::vector<double> Ui_v, dou
 
 }
 
+///////////////////////////////////////////////////////////////////
+//                          Gidaspow                             //
+///////////////////////////////////////////////////////////////////
+
+double CPLForceGidaspow::drag_coefficient(double D, std::vector<double> Ui_v, double eps) 
+{
+    double MIN_REL_VELOCITY = 1e-8;
+    double U = CPLForceGranular::magnitude(Ui_v);
+    double Bi;
+    if ((U < MIN_REL_VELOCITY) || (eps == 0.0))
+    {
+        return 0.0;
+    } 
+    else if(eps<0.8)
+    {
+        Bi = (150. * M_PI * mu * D / 6.) * ((1. - eps) / eps) +
+                    (1.75 * M_PI * rho * pow(D,2) / 6.) * abs(U);
+        return Bi;
+    }
+    else
+    {
+        double Rep = D*eps*abs(U)*rho/mu;
+        Cd = 24.0*mu/(D*eps*rho)*(1.0+0.15*pow(Rep, 0.687));
+        Bi =  0.75*(rho*eps*Cd/(D*pow(eps,2.65)))* pow(D,3)*M_PI/6.0;
+        return Bi;
+    }
+    
+}

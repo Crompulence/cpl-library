@@ -59,11 +59,11 @@ Author(s)
 
 #include "CPL_ndArray.h"
 #include "CPL_field.h"
-
+#include "CPL_field_map.h"
 typedef std::map <std::string, std::string> map_strstr;
 
-//typedef std::unique_ptr<CPL::CPLField> CPLuFieldPtr;
-//typedef std::shared_ptr<CPL::CPLField> CPLsFieldPtr;
+//typedef std::unique_ptr<CPL::CPLFieldMap> CPLuFieldPtr;
+//typedef std::shared_ptr<CPL::CPLFieldMap> CPLsFieldPtr;
 
 class CPLForce{
 
@@ -72,10 +72,10 @@ protected:
     int shapeVector[4];
     double min[3], max[3], dxyz[3], dA[3], dV;
 
-    //CPL::CPLField* cfd_array_field;
+    //CPL::CPLFieldMap* cfd_array_field;
     CPL::ndArray<double> array;
-    std::shared_ptr<CPL::CPLField> cfd_array_field;
-    std::vector<std::shared_ptr<CPL::CPLField>> fields;
+    std::shared_ptr<CPL::CPLFieldMap> cfd_array_field;
+    std::vector<std::shared_ptr<CPL::CPLFieldMap>> fields;
 
 public:
 
@@ -90,7 +90,7 @@ public:
     void set_field(CPL::ndArray<double>);
     void set_minmax(double min_in[], double max_in[]);
     CPL::ndArray<double> get_field();
-    std::shared_ptr<CPL::CPLField> get_internal_fields(const std::string&);
+    std::shared_ptr<CPL::CPLFieldMap> get_internal_fields(const std::string&);
 
     //Get cell values
     std::vector<int> get_cell(double r[]);    
@@ -180,10 +180,10 @@ public:
 
 private:
 
-    std::shared_ptr<CPL::CPLField> nSums;
-    std::shared_ptr<CPL::CPLField> nSums_mdt;
-    std::shared_ptr<CPL::CPLField> vSums;
-    std::shared_ptr<CPL::CPLField> vSums_mdt; //Previous timestep
+    std::shared_ptr<CPL::CPLFieldMap> nSums;
+    std::shared_ptr<CPL::CPLFieldMap> nSums_mdt;
+    std::shared_ptr<CPL::CPLFieldMap> vSums;
+    std::shared_ptr<CPL::CPLFieldMap> vSums_mdt; //Previous timestep
 
     void unpack_arg_map(map_strstr arg_map);
 
@@ -247,6 +247,10 @@ public:
     // position, velocity, acceleration, mass, radius, interaction
     void pre_force(double r[], double v[], double a[], 
                    double m, double s, double e);
+    void pre_force_map_field(double r[], double v[], double a[], 
+                   double m, double s, double e);
+    std::vector<double> get_force_map_field(double r[], double v[], double a[], 
+                                  double m, double s, double e);
     std::vector<double> get_force(double r[], double v[], double a[], 
                                   double m, double s, double e);
     void post_force(double r[], double v[], double a[], 
@@ -263,6 +267,7 @@ public:
 
     virtual double drag_coefficient(double D, std::vector<double> Ui_v, double eps);
     double get_eps(double r[]);
+    double get_eps(double eps);
     double Cd = 0.0000001;
     double mu = 0.001;
     double rho = 1e3;
@@ -271,15 +276,25 @@ public:
     void build_fields_list();
 
     //Shared pointer instead of unique as we also keep in fields list
-    std::shared_ptr<CPL::CPLField> nSums;
-    std::shared_ptr<CPL::CPLField> vSums;
-    std::shared_ptr<CPL::CPLField> volSums;
-    std::shared_ptr<CPL::CPLField> instant_volSums;
-    std::shared_ptr<CPL::CPLField> FSums;
-    std::shared_ptr<CPL::CPLField> FcoeffSums;
+    std::shared_ptr<CPL::CPLFieldMap> nSums;
+    std::shared_ptr<CPL::CPLFieldMap> vSums;
+    std::shared_ptr<CPL::CPLFieldMap> volSums;
+    std::shared_ptr<CPL::CPLFieldMap> instant_volSums;
+    std::shared_ptr<CPL::CPLFieldMap> FSums;
+    std::shared_ptr<CPL::CPLFieldMap> FcoeffSums;
 
     void resetsums();
     void reset_instant();
+
+    bool usevoro;
+    bool mapfieldD2C;
+    bool mapfieldC2D;
+    double eps_voro = 0.0;
+    std::vector<double> dragParameters{0,0,0,0,0,0,0,0,0,0};
+    std::vector<int> cuntsvector;
+    int sum_sample = 1;
+    int total_sample = 1;
+    void reset_Voro_data();
 
 protected:
 
@@ -370,6 +385,20 @@ public:
 
 };
 
+class CPLForceGidaspow : public CPLForceGranular {
+
+public:
+
+    //Constructors
+    using CPLForceGranular::CPLForceGranular;
+
+    //Ergun specific functions
+    double drag_coefficient(double D, std::vector<double> Ui_v, double eps) override;
+
+//private:
+
+};
+
 
 class CPLForceBVK : public CPLForceGranular {
 
@@ -396,8 +425,8 @@ public:
 //    void initialise_extrasums(CPL::ndArray<double> arrayin) override;
 
 //    //Shared pointer instead of unique as we also keep in fields list
-//    std::shared_ptr<CPL::CPLField> DSums;
-//    std::shared_ptr<CPL::CPLField> FcoeffSums_prev;
+//    std::shared_ptr<CPL::CPLFieldMap> DSums;
+//    std::shared_ptr<CPL::CPLFieldMap> FcoeffSums_prev;
 
 //    //BVK specific functions
 //    double drag_coefficient(double r[], double D, std::vector<double> Ui_v) override;

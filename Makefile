@@ -71,7 +71,7 @@ cppbindsrcfiles = $(addprefix $(cppbinddir)/, $(cppbindsrc))
 cppbindhdrfiles = $(addprefix $(cppbinddir)/, $(cppbindhdr))
 cppbindobjfiles = $(addprefix $(objdir)/, $(cppbindsrc:.cpp=.o))
 
-utilssrc = CPL_ndArray.cpp CPL_cartCreate.cpp CPL_vector3D.cpp CPL_force.cpp CPL_field.cpp  TransmittingField.cpp CPLSocket.cpp #  CPL_usherBase.cpp
+utilssrc = CPL_ndArray.cpp CPL_cartCreate.cpp CPL_vector3D.cpp CPL_force.cpp CPL_field.cpp  CPL_field_map.cpp TransmittingField.cpp CPLSocket.cpp #  CPL_usherBase.cpp
 utilsextrahdr = CPL_misclib.h PoolElement.h #CPL_usherExceptions.h
 utilshdr = $(utilssrc:.cpp=.h) $(utilsextrahdr)
 utilssrcfiles = $(addprefix $(utilsdir)/, $(utilssrc))

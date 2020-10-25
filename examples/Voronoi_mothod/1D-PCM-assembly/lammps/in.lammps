@@ -1,0 +1,64 @@
+# Initialisation ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+units		si # This means m, kg, s for base units.
+boundary	f p p
+atom_style	sphere
+dimension	3
+newton		off
+comm_modify	mode single vel yes
+
+# VARIABLES
+
+variable        kn equal 1e5
+variable        kt equal 0
+variable        gamma_n equal 1e5
+variable        gamma_t equal 0
+variable        frictionCoeff equal 0.25
+variable        timestep equal 5.0e-8
+variable        gravity equal 0.0
+variable        dragModel string Stokes
+variable        dynamic_viscosity equal 1.0e-3
+variable        fluid_density equal 998.00
+variable        Nt_output equal 100
+variable        Nt_run equal 1.0e5
+
+# Create particles ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+atom_modify 	map array
+read_data	currentInputData.txt
+set		type 1 density 1e30
+
+# Pre-fix settings ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+neighbor	0.000052 bin # ~10% of the diameter of the largest particle
+neigh_modify	delay 0 every 1
+
+# Parameters are shear modulus(Pa), Poisson's ratio, friction coefficient, RMS_roughness(nm), Hardness(Pa)
+pair_style      gran/hooke/history 2000.0 NULL 56000 NULL 0.1 0
+pair_coeff	* *
+timestep	${timestep} 
+run_style	verlet
+
+fix		3 all nve/sphere
+fix             4 all viscous 0.1
+
+# Rigid boundaries are used for z direction. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+fix  9 all wall/gran hooke 2000.0 NULL 56000 NULL 0.1 0 xplane .012848 NULL
+fix  10 all wall/gran hooke 2000.0 NULL 56000 NULL 0.1 0 xplane NULL .01927217 
+
+# Set up cpl-coupling
+fix            50 all cpl/init region all forcetype Ergun mu ${dynamic_viscosity} rho ${fluid_density} gradP true divstress true overlap false interpolation false calcperatom sendtype granfull Nevery 100 Nrepeat 1
+
+
+# Set variables for dump ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+variable        fdx  atom f_cplforcefix[1]
+variable        fdy atom f_cplforcefix[2]
+variable        fdz atom f_cplforcefix[3]
+
+# Set dump ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+dump       dmpdata all custom 10000 lammps/assembly_*.csv id type x y z ix iy iz vx vy vz fx fy fz omegax omegay omegaz radius  procp1 
+
+# fix		grav all gravity ${gravity} vector 0.0 0.0 -1
+# Run the simulation ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+run		${Nt_run}
+
+# Collect output files from cx1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+

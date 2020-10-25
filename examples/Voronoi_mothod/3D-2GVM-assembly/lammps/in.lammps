@@ -1,0 +1,78 @@
+# Initialisation ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+units		si # This means m, kg, s for base units.
+boundary	f p p
+atom_style	sphere
+dimension	3
+newton		off
+comm_modify	mode single vel yes
+
+# VARIABLES
+
+variable        kn equal 1e5
+variable        kt equal 0
+variable        gamma_n equal 1e5
+variable        gamma_t equal 0
+variable        frictionCoeff equal 0.25
+variable        timestep equal 5.0e-8
+variable        gravity equal 0.0
+variable        dragModel string Stokes
+variable        dynamic_viscosity equal 1.0e-3
+variable        fluid_density equal 1000.00
+variable        Nt_output equal 100
+variable        Nt_run equal 6.0e4
+
+
+# Create particles ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+atom_modify 	map array
+read_data	currentInputData.txt
+
+# Pre-fix settings ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+neighbor	0.000052 bin # ~10% of the diameter of the largest particle
+neigh_modify	delay 0 every 1
+
+pair_style      gran/hooke/history 2000.0 NULL 56000 NULL 0.1 0
+pair_coeff	* *
+timestep	${timestep} 
+run_style	verlet
+
+# Set up multistress ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+fix		3 all nve/sphere
+fix             4 all momentum 1 linear 1 1 1 angular
+set		type 1 density 1e24
+# Rigid boundaries are used for z direction. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+fix  9 all wall/gran hooke 2000.0 NULL 56000 NULL 0.1 0 xplane .001835 NULL
+fix  10 all wall/gran hooke 2000.0 NULL 56000 NULL 0.1 0 xplane NULL .00825917 
+ 
+# Set up cpl-coupling
+
+fix             50 all cpl/init region all forcetype Ergun mu ${dynamic_viscosity} rho ${fluid_density} gradP true divstress true overlap false interpolation false calcperatom calcvoro bound .001835 .00825917 0.0 0.006425477 0.0 0.00643618 podicbdXYZ 1 1 1 mapfield true true mappoints 100 savePOV 10000  sendtype granfull  Nevery 100 Nrepeat 1
+
+# Set variables for dump ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+variable        fdx  atom f_cplforcefix[1]
+variable        fdy atom f_cplforcefix[2]
+variable        fdz atom f_cplforcefix[3]
+variable        volumeCell atom f_cplforcefix[4]
+variable        epslonOrigin atom f_cplforcefix[16]
+variable        epslonVoroVolume atom f_cplforcefix[5]
+variable        epslonVoroFace atom f_cplforcefix[6]
+variable        Uix atom f_cplforcefix[7]
+variable        Uiy atom f_cplforcefix[8]
+variable        Uiz atom f_cplforcefix[9]
+variable        gradPx atom f_cplforcefix[10]
+variable        gradPy atom f_cplforcefix[11]
+variable        gradPz atom f_cplforcefix[12]
+variable        divStressx atom f_cplforcefix[13]
+variable        divStressy atom f_cplforcefix[14]
+variable        divStressz atom f_cplforcefix[15]
+
+# Set dump ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+dump       dmpdata all custom 10000 lammps/assembly_*.csv id type x y z ix iy iz vx vy vz fx fy fz omegax omegay omegaz radius  procp1 v_fdx v_fdy v_fdz  v_volumeCell v_epslonOrigin v_epslonVoroVolume v_epslonVoroFace v_Uix v_Uiy v_Uiz v_gradPx v_gradPy v_gradPz v_divStressx v_divStressy v_divStressz
+
+# fix		grav all gravity ${gravity} vector 0.0 0.0 -1
+# Run the simulation ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+run		${Nt_run}
+
+# Collect output files from cx1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
