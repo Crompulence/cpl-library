@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href=grid.css>
+    <link rel="shortcut icon" href="./cpl_logo.ico">
+    <meta name="google-site-verification"
+content="BV_Uf5aV2ISIzgUEWohrYUf28F4TmPYr8NfMuh2K6so" />
+</head>
+
+<body>
+    <div class="center">
+
+        <!--#include virtual="nav.html"-->
+
+        <h2>Accessibility on CPL Library</h2>
+
+        <p>
+        This statement applies to content published on http://www.cpl-library.org. It does not apply to content on any linked sites.
+        We want as many people as possible to be able to use this website. For example, that means you should be able to:
+        </p>
+         <ul>
+          <li>Responsive design (meaning the display of all content is optimised for all screen sizes)</li>
+          <li>Skip to main content links </li>
+          <li>Text resizing</li>
+          <li>Colour contrasts for important content (some aesthetic content like the coloured grid is not included) </li>
+          <li>Video captions, transcriptions and audio descriptions on any essential content</li>
+        </ul> 
+        <p>
+         AbilityNet has advice on making your device easier to use if you have a disability.
+        Parts of this website are not fully accessible. For example:
+        </p>
+ 
+         <ul>
+          <li>some pages and document attachments are not clearly written </li>
+          <li>some tables do not have row headers </li>
+          <li>some pages have poor colour contrast</li>
+          <li>some images and videos do not have good alternative text </li>
+        </ul> 
+        <p>
+            We work to achieve and maintain WCAG 2.1 AA standards, but it is not always possible for all our content to be accessible. Where content is not accessible, we will state a reason, warn users and offer alternatives.
+            Technical information about this website’s accessibility
+
+            This website is partially compliant with the Web Content Accessibility Guidelines version 2.1 AA standard, due to the known issues listed below.
+        </p>
+
+        <h3>   Non accessible content</h3>
+        <p>
+            Some documents and content are exempt from the regulations (such as live video content and PDFs or other documents published before 23 September 2018 if they’re not essential to providing our services), so we do not currently have any plans to make them accessible. But if you need to access information in one of these document types, you can <a href="contact.shtml">contact us</a> and ask for an alternative format.
+
+            An assessment has taken place in accordance with Imperial’s accessibility guidance that assesses that making a particular part of the website accessible is a disproportionate burden, as this is a website maintained in spare time by a single academic will many other full time commitments.
+            However, if there is anything that is not accessible, please <a href="contact.shtml">get in touch</a> and I will endeavour to help.
+        </p>
+ 
+        <h3>   Reporting accessibility issues </h3>
+        <p>
+            If you need information on this website in a different format like accessible PDF, large print, easy read, audio recording or braille or if you find any accessibility issues not listed on this page then please contact edwardsmith@brunel.ac.uk.
+            We’ll consider your request and get back to you within one month.
+        </p>
+
+        <h3>   Enforcement procedure </h3>
+        <p>
+            The Equality and Human Rights Commission (EHRC) is responsible for enforcing the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018 (the ‘accessibility regulations’). If you’re not happy with how we respond to your complaint, contact the Equality Advisory and Support Service (EASS).
+        </p>
+
+        <h3> How we test this website </h3>
+        <p>
+            This website was tested manually by observing the html code in editor Brackets as well as viewing the website both on a local linux PC, a Windows laptop and an Android phone to test for accessibility compliance on 08/02/21, and these tests have been carried out by Edward Smith.
+        </p>
+
+        <h3> How we test this website </h3>
+        <p>
+            This statement was prepared on 08/02/21. It was last updated on 08/02/21.
+        </p>
+    </div>
+
+</body>
+</html>            

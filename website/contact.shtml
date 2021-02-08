@@ -18,8 +18,8 @@
         <h2>General enquiries</h2>
         <p>
             <mark class="CPL">CPL library</mark> is developed and maintained by 
-	   	    <a href="http://www.imperial.ac.uk/people/edward.smith05">Edward Smith</a>, 
-            who is based at Imperial College London. 
+	   	    <a href="http://www.edwardsmith.co.uk">Edward Smith</a>, 
+            who is a Lecturer at Brunel University and visiting academic at Imperial College London. 
             General comments and questions are best by email: send your message to 
             <a href="mailto:info@cpl-library.org">info@cpl-library.org</a>.
             If you would like to develop new coupled examples, new features or just help 
@@ -42,7 +42,7 @@
 
         <div class="developerDiv">
             <div id="developerImage">
-                <a href="mailto:es205@imperial.ac.uk">
+                <a href="mailto:edward.smith@brunel.ac.uk">
                     <img src="images/Ed.jpeg" style="filter: brightness(120%)" 
                          width=200px/>
                 </a>
@@ -50,37 +50,59 @@
                     Edward Smith
                 </div>
             </div>
-
+    
             <div id="developerImage">
-                <a href="mailto:eduardo.ramos-fernandez14@imperial.ac.uk">
-                    <img src="images/Edu.png" style="filter: brightness(120%)" 
+                <a href="mailto:a.sufian@uq.edu.au">
+                    <img src="images/adnansufian.jpg" style="filter: brightness(120%)" 
                          width=200px/>
                 </a>
                 <div class="developerImageText">
-                    Eduardo Ramos-Fernandez
+                    Adnan Sufian
+                </div>
+            </div>
+            
+            <div id="developerImage">
+                <a href="mailto:h.che@imperial.ac.uk">
+                    <img src="images/Hanqiao_Che_BW.jpeg" style="filter: brightness(120%)" 
+                         width=200px/>
+                </a>
+                <div class="developerImageText">
+                    Hanqiao Che
                 </div>
             </div>
         </div>
 
 
         <h2>Previous developers</h2>
+        
+            <div class="developerDiv">
 
-        <div class="developerDiv">
-            <div id="developerImage">
-                <img src="images/Dave.jpg" style="filter: brightness(105%) contrast(105%)" width=300px/>
-                <div class="developerImageText"> 
-                    David Trevelyan
+                <div id="developerImage">
+                    <a href="mailto:eduardo.ramos-fernandez14@imperial.ac.uk">
+                        <img src="images/Edu.png" style="filter: brightness(120%)" 
+                             width=200px/>
+                    </a>
+                    <div class="developerImageText">
+                        Eduardo Ramos-Fernandez
+                    </div>
                 </div>
-            </div>
 
-            <div id="developerImage">
-                <img src="images/Lucian.png" height=100%/>
-                <div class="developerImageText"> 
-                    Lucian Anton
+                <div id="developerImage">
+                    <img src="images/Dave.jpg" style="filter: brightness(105%) contrast(105%)" width=300px/>
+                    <div class="developerImageText"> 
+                        David Trevelyan
+                    </div>
+                </div>
+
+        
+                <div id="developerImage">
+                    <img src="images/Lucian.png" height=100%/>
+                    <div class="developerImageText"> 
+                        Lucian Anton
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
 
 </body>
