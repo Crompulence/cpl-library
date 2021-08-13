@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<p>The force class have a pre-determined interface, set by an abstract 
+base class, to allow them to always be called from fix_cpl_force in the 
+same way.
+Think of an interface like a contract, you guarentee that you will 
+always take the same arguments in and return the same things.
+In this case, we have an interface which takes in position, velocity, 
+acceleration, mass, radius (sigma) and interaction strength (epsilon) 
+and works out summed up arrays needed for the particular force type (in 
+the pre_force function) and returns the actual force (in the get_force 
+function).
+As each type of coupling force you could want to apply always has the 
+same form:
+</p><p>0) Constructor&nbsp;: Create the force class with all required 
+argments stored in a std::map.
+1) pre_force&nbsp;: Get some stuff from the particle system (e.g. add up
+ current void fraction, get latest velocity from CFD solver) 
+2) get_force&nbsp;: Use the pre_force information, with the CFD solver 
+information, to get the force on each particle. 
+</p><p>These means we can make use of c++ polymorphism, where we choose 
+which type of force we want based on the forcetype input argument.
+The required force type object is instantiated using a "factory" which 
+takes the user input and returns fxyz, a pointer to the appropriate 
+object: 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>//Force factory
+if (fxyzType.compare("Flekkoy") == 0) {
+    fxyz.reset(new CPLForceFlekkoy(9, cfdBuf-&gt;shape(1), 
+                                      cfdBuf-&gt;shape(2), 
+                                      cfdBuf-&gt;shape(3)));
+} else if (fxyzType.compare("test") == 0) {
+    fxyz.reset(new CPLForceTest(3, cfdBuf-&gt;shape(1), 
+                                   cfdBuf-&gt;shape(2), 
+                                   cfdBuf-&gt;shape(3)));
+} else if (fxyzType.compare("Velocity") == 0) {
+    fxyz.reset(new CPLForceVelocity(3, cfdBuf-&gt;shape(1), 
+                                       cfdBuf-&gt;shape(2), 
+                                       cfdBuf-&gt;shape(3)));
+} else if (fxyzType.compare("Drag") == 0) {
+    fxyz.reset(new CPLForceDrag(9, cfdBuf-&gt;shape(1), 
+                                   cfdBuf-&gt;shape(2), 
+                                   cfdBuf-&gt;shape(3),
+                                   arg_map)); 
+
+} else if (fxyzType.compare("Di_Felice") == 0) {
+    fxyz.reset(new CPLForceGranular(9, cfdBuf-&gt;shape(1), 
+                                       cfdBuf-&gt;shape(2), 
+                                       cfdBuf-&gt;shape(3),
+                                       arg_map)); 
+
+} else {
+    std::string cmd("CPLForce type ");
+    cmd += fxyzType + " not defined";
+    throw std::runtime_error(cmd);
+}</pre></div>
+<p>The arg_map is a std::map, basically a set of paired {keywords and values}.
+These are obtained directly from the user input taking alternating keywords and values following 
+forcetype. For example, if you had specified an input of the form:
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>fix 5 all cpl/init region all forcetype Di_Felice Cd 0.0005 overlap false me 1e-4 rho 1e3 sendtype velocity</pre></div>
+<p>then arg_map would be built up by parsing the commands after "Di_Felice" as
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre> Key           value
+"Cd"            "0.0005"
+"overlap"        "false"
+"mu"            "1e-4"
+"rho"           "1e3"</pre></div>
+<p>and this would be passed to the Di_Felice force type, instantiating a CPLForceGranular force object 
+and setting the pointer fxyz to this. 
+Once we have this fxyz pointer, it can then be used by looping over all particles in LAMMPS (nlocal here)
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>    //Pre-force calculation, get quantities from discrete system needed to apply force
+	for (int i = 0; i &lt; nlocal; ++i)
+	{
+   		if (mask[i] &amp; groupbit)
+    	{
+	        //Get local molecule data
+	        mi = rmass[i];
+	        radi = radius[i];
+	        for (int n=0; n&lt;3; n++){
+	            xi[n]=x[i][n]; 
+	            vi[n]=v[i][n]; 
+	            ai[n]=f[i][n];
+	        }
+
+	        // Sum all the weights for each cell.
+	        fxyz-&gt;pre_force(xi, vi, ai, mi, radi, pot);
+
+    	}
+    }
+
+
+//This pre-force has added all the needed  things for the force you want, so we can simply get the force now:
+
+   // Calculate force and apply
+    for (int i = 0; i &lt; nlocal; ++i)
+    {
+        if (mask[i] &amp; groupbit)
+        {
+
+            //Get local molecule data
+            mi = rmass[i];
+            radi = radius[i];
+            for (int n=0; n&lt;3; n++){
+                xi[n]=x[i][n]; 
+                vi[n]=v[i][n]; 
+                ai[n]=f[i][n];
+            }
+
+            //Get force from object
+            fi = fxyz-&gt;get_force(xi, vi, ai, mi, radi, pot);
+
+        }
+    }</pre></div>
+
+
+</body></html>

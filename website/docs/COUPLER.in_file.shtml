@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+
+<p>The input system is a free form keyword lookup. 
+</p><p>The following keywords are supported
+</p>
+<pre>- 'FULL_OVERLAP' -- Specifies if overlap extents is all CFD cells []
+- 'OVERLAP_EXTENTS' -- If FULL_OVERLAP is false, specify how much overlap
+- 'CONSTRAINT_INFO' -- specify which part of the overlap is for sending constraint (CFD -&gt; MD)
+- 'BOUNDARY_EXTENTS' -- specify which part of overlap is for sending boundary (MD -&gt; CFD)
+- 'DENSITY_CFD' -- Density for use in coupling, often not specified explicitly by non-dimensional CFD
+- 'TIMESTEP_RATIO' -- ratio of timesteps in both MD/CFD codes
+- 'MATCH_CELLSIZE' -- Force cellsize to match in CFD and MD code
+- 'CPL_CFD_BC_XYZ' -- Specifies which boundary condition to switch on or off in CFD
+- 'CPL_CFD_BC_SLICE' -- Specifies if single value or cell by cell values taken in CFD
+- 'CPL_MD_BC_SLICE' -- Specifies if single value or cell by cell values taken in MD
+- 'SENDTYPE_MD_TO_CFD' -- Specify values to send from MD to CFD
+- 'SENDTYPE_CFD_TO_MD' --Specify values to send from CFD to MD
+</pre>
+<p><br>
+These variables set internal values which can be retrieved with CPL_get( ... ).
+Which values are useful depend on the implementation of the coupled APPS and will often not need to be set by the user. 
+</p><p>An example input file is included below
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>###############################################################################
+#                                                                             #
+#           8888888 888b    888 8888888b.  888     888 88888888888            #
+#             888   8888b   888 888   Y88b 888     888     888                #
+#             888   88888b  888 888    888 888     888     888                #
+#             888   888Y88b 888 888   d88P 888     888     888                #
+#             888   888 Y88b888 8888888P"  888     888     888                #
+#             888   888  Y88888 888        888     888     888                #
+#             888   888   Y8888 888        Y88b. .d88P     888                #
+#           8888888 888    Y888 888         "Y88888P"      888                #
+#                                                                             #
+###############################################################################
+
+###############################################################################
+#
+#   density_cfd (float)
+#     - specifies the density for both continuum fluid
+#
+# -----------------------------------------------------------------------------
+DENSITY_CFD
+0.5
+
+
+###############################################################################
+#
+#   overlap_extents (6 * integers)
+#     - define the global cell boundaries of the overlap region
+#
+#     1. icmin_olap
+#     2. icmax_olap
+#     3. jcmin_olap
+#     4. jcmax_olap
+#     5. kcmin_olap
+#     6. kcmax_olap
+#
+# -----------------------------------------------------------------------------
+OVERLAP_EXTENTS
+1
+64
+1
+4
+1
+64
+
+##############################################################################
+##
+##   Specify constraint information
+##
+##      1. constraint_algo 0-off, 1-OCT, 2-NCER, 3-Flekkoy, etc
+##      2. constraint_CVflag -- Use CV form of constraint 0-Off 1-On
+##      3. icmin_cnst
+##      4. icmax_cnst
+##      5. jcmin_cnst
+##      6. jcmax_cnst
+##      7. kcmin_cnst
+##      8. kcmax_cnst
+##
+## -----------------------------------------------------------------------------
+CONSTRAINT_INFO
+3
+0
+1
+6
+1
+2
+1
+1
+
+###############################################################################
+#
+#   timestep ratio (integer) 
+#     - number of molecular time steps per continuum time step 
+#
+# -----------------------------------------------------------------------------
+TIMESTEP_RATIO
+50
+
+
+###############################################################################
+#
+#   match cellsize (integer, flag)
+#     - if on, force number of molecular cells (from the force-interaction 
+#       cell-list optimisation) to be an integer multiple of the number of 
+#       continuum cells 
+#
+#          0 = "off"
+#          1 = "on"
+#
+# -----------------------------------------------------------------------------
+MATCH_CELLSIZE
+1
+
+###############################################################################
+#
+#   Specify which components of velocity in CFD boundary condition are
+#   obtained from the MD (3*integer: x,y,z)
+#
+#          0 = "off"
+#          1 = "on"
+#
+# -----------------------------------------------------------------------------
+CPL_CFD_BC_XYZ
+1
+1
+1
+
+###############################################################################
+#
+#   Logical flag for averaging MD velocity in spanwise direction for the
+#   CFD boundary condition in the cfd socket. 
+#
+#          0 = cell-by-cell coupling
+#          1 = cell velocities averaged in a spanwise plane
+#
+# -----------------------------------------------------------------------------
+CPL_CFD_BC_SLICE
+1
+
+###############################################################################
+#
+#   Logical flag for averaging MD quantities in the constraint region
+#
+#          0 = averaging on a cell-by-cell basis
+#          1 = extra averaging across a slice in the spanwise direction 
+#
+# -----------------------------------------------------------------------------
+CPL_MD_BC_SLICE
+0</pre></div>
+<p><br>
+New options can be added to CPL_module as follows, to create "NEWKEY" add the following to read_coupler_input():
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>call locate(infileid, 'NEWKEY', found)
+if (found) then
+    read(infileid, *) newkeyvalue
+else
+    newkeyvalue = 0
+endif</pre></div>
+<p>where the type of newkeyvalue must be defined in the module at the top.
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>    integer :: newkeyvalue</pre></div>
+<p>This can then be used internally or added to CPL_get as follows,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &amp; 
+                             ...   &amp;
+                   newkeyvalue)
+    use coupler_module, only :  icmax_olap_=&gt;icmax_olap,         &amp;
+                             ...  &amp;
+                   newkeyvalue_ =&gt; newkeyvalue
+
+                             ...
+    integer, optional, intent(out) :: newkeyvalue
+                             ...
+
+    if (present(newkeyvalue)) newkeyvalue = newkeyvalue_
+
+end subroutine CPL_get</pre></div>
+<p>The wrappers for C, C++ and Python would also need to be added depending on which language the input needs to be available for.
+</p><p>This is a fairly cumbersome as changes like this are not expected
+ to be common for most users. 
+However, a JSON input system which allows arbitrary inputs is also 
+provided, this can be build using JSON_SUPPORT flag but requires cmake.
+</p>
+
+</body>
+
+
+</html>

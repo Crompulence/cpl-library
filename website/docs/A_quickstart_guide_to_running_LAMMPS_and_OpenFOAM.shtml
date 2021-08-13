@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<p>To run an example, let us go to cpl-library directory (available from <a rel="nofollow" class="external text" href="https://github.com/Crompulence/cpl-library">github</a>) and navigate to the examples/coupled folder.
+We are going to run a granular example with an FCC lattice, located here:
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre> cpl-library/examples/coupled/fcc/fcc_fixedParticle</pre></div>
+<p>This guide uses singularity as this works on old version of linux 
+(tested here on Ubuntu 12.04) and can be deployed without root 
+privileges so should be an increasingly popular option for supercomputer
+ deployment. 
+To install singularity, check out <a rel="nofollow" class="external text" href="http://singularity.lbl.gov/install-linux">the website</a> but it should look something like this,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>VERSION=2.5.2
+wget https://github.com/singularityware/singularity/releases/download/$VERSION/singularity-$VERSION.tar.gz
+tar xvf singularity-$VERSION.tar.gz
+cd singularity-$VERSION
+./configure --prefix=/usr/local
+make
+sudo make install</pre></div>
+<p>Once this is installed, to get the Docker container which has all OpenFOAM and LAMMPS executables, simply use,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>singularity pull docker://cpllibrary/cpl-openfoam-lammps</pre></div>
+<p>which will create an image file in the current directory called <code> cpl-openfoam-lammps.simg </code>.
+To run this code, we first have to setup the OpenFOAM mesh and decompose for parallel runs.
+This is done by using,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>cd openfoam
+singularity exec cpl-openfoam-lammps.simg blockMesh
+singularity exec cpl-openfoam-lammps.simg decomposePar
+cd ../</pre></div>
+<p>which will create a whole set of input files in the openfoam/processor0 folder.
+These can now be run as follows, 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>mpirun -np 1 singularity exec cpl-openfoam-lammps.simg CPLSediFOAM -case ./openfoam/ -parallel</pre></div>
+<p>and in another terminal in the same directory, run a version of LAMMPS to couple with this,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>mpirun -np 1 singularity exec cpl-openfoam-lammps.simg lmp_cpl &lt; lammps/fcc.in</pre></div>
+<p>The expected output of OpenFOAM should be similar to the following:
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  3.0.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : 3.0.1-d8a290b55d28
+Exec   : CPLSediFOAM -case ./openfoam/ -parallel
+Date   : Jul 31 2018
+Time   : 16:18:58
+Host   : "me-flowdns05"
+PID    : 15780
+Case   : ./openfoam
+nProcs : 1
+Slaves : 0()
+Pstream initialized with:
+    floatTransfer      : 0
+    nProcsSimpleSum    : 0
+    commsType          : nonBlocking
+    polling iterations : 0
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Overriding DebugSwitches according to controlDict
+    dimensionSet    0;
+
+Create mesh for time = 0
+
+
+Reading environmentalProperties
+*** coupled set to true by default
+Reading field alpha
+
+Reading field p
+
+Reading field Ub
+
+Setting up place-holder for Ua
+
+Reading field F
+
+Reading transportProperties
+
+*** Max possible alpha set to 0.99 by default
+Calculating face flux field phia
+
+Calculating face flux field phib
+
+CPLSocketFOAM::initComms 
+MPI_Initialized(&amp;flag) 1
+ Only CFD realm present in MPI_COMM_WORLD
+ opened port: tag#0$description#$port#$ifname#127.0.1.1$ Attempting to write to file:./port
+ Portname written to file ./port                                                          
+ accepted connection on port to root of            1  procs.
+ Rank on realm            1  is            1  of            1   and rank on intercomm is            0  of            2
+ Completed CPL communicator init for CFD , CPL_WORLD_COMM ID:           0
+                                                                  
+   ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________        
+    _____/\\\////////__\/\\\/////////\\\_\/\\\_____________       
+     ___/\\\/___________\/\\\_______\/\\\_\/\\\_____________      
+      __/\\\_____________\/\\\\\\\\\\\\\/__\/\\\_____________     
+       _\/\\\_____________\/\\\/////////____\/\\\_____________    
+        _\//\\\____________\/\\\_____________\/\\\_____________   
+         __\///\\\__________\/\\\_____________\/\\\_____________  
+          ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_ 
+           _______\/////////__\///______________\///////////////__
+                                                                  
+                      C P L  -  L I B R A R Y                     
+                                                                  
+CPLSocketFOAM: Analysing processor and mesh topology
+CPLSocketFOAM: Defining new MPI Cartesian communicator
+
+Creating block mesh topology
+OpenFOAM CPL topology initialisation complete
+
+Starting time loop
+
+Time = 0.0004
+Courant Number mean: 8.0108e-05 max: 0.000100858
+Max Ur Courant Number = 0.00036847
+Dispersed phase volume fraction = 0.0622004  Min(alpha) = 0  Max(alpha) = 0.819445
+ExecutionTime = 24.81 s  ClockTime = 25 s
+Time = 0.0008
+Courant Number mean: 8.00859e-05 max: 0.000101061
+Max Ur Courant Number = 0.000378359
+Dispersed phase volume fraction = 0.0622004  Min(alpha) = 0  Max(alpha) = 0.819445
+ExecutionTime = 25.27 s  ClockTime = 26 s
+Time = 0.0012
+Courant Number mean: 8.00858e-05 max: 0.000101148
+Max Ur Courant Number = 0.00038019
+Dispersed phase volume fraction = 0.0622004  Min(alpha) = 0  Max(alpha) = 0.819445
+ExecutionTime = 25.6 s  ClockTime = 26 s
+Time = 0.0016
+Courant Number mean: 8.00858e-05 max: 0.000101185
+Max Ur Courant Number = 0.000380607
+Dispersed phase volume fraction = 0.0622004  Min(alpha) = 0  Max(alpha) = 0.819445
+ExecutionTime = 25.94 s  ClockTime = 26 s
+Time = 0.002
+Courant Number mean: 8.00861e-05 max: 0.000101208
+Max Ur Courant Number = 0.000380742
+Dispersed phase volume fraction = 0.0622004  Min(alpha) = 0  Max(alpha) = 0.819445
+ExecutionTime = 26.28 s  ClockTime = 27 s
+Time = 0.0024
+Courant Number mean: 8.00864e-05 max: 0.000101225
+Max Ur Courant Number = 0.000380801
+Dispersed phase volume fraction = 0.0622004  Min(alpha) = 0  Max(alpha) = 0.819445
+ExecutionTime = 26.62 s  ClockTime = 27 s
+Time = 0.0028
+Courant Number mean: 8.00985e-05 max: 0.000101251
+Max Ur Courant Number = 0.000380884
+Dispersed phase volume fraction = 0.0622004  Min(alpha) = 0  Max(alpha) = 0.819445
+ExecutionTime = 26.96 s  ClockTime = 27 s
+Time = 0.0032
+Courant Number mean: 8.00851e-05 max: 0.00010125
+Max Ur Courant Number = 0.00038087
+Dispersed phase volume fraction = 0.0622004  Min(alpha) = 0  Max(alpha) = 0.819445
+ExecutionTime = 27.3 s  ClockTime = 28 s
+Time = 0.0036
+Courant Number mean: 8.00918e-05 max: 0.00010126
+Max Ur Courant Number = 0.000380891
+Dispersed phase volume fraction = 0.0622004  Min(alpha) = 0  Max(alpha) = 0.819445
+ExecutionTime = 27.63 s  ClockTime = 28 s
+Time = 0.004
+Courant Number mean: 8.01003e-05 max: 0.000101273
+Max Ur Courant Number = 0.000380953
+Dispersed phase volume fraction = 0.0622004  Min(alpha) = 0  Max(alpha) = 0.819445
+ExecutionTime = 27.98 s  ClockTime = 28 s
+Time = 0.0044
+Courant Number mean: 8.00888e-05 max: 0.00010126
+Max Ur Courant Number = 0.000380897
+Dispersed phase volume fraction = 0.0622004  Min(alpha) = 0  Max(alpha) = 0.819445
+ExecutionTime = 28.31 s  ClockTime = 29 s
+End
+
+Finalising parallel run</pre></div>
+<p><br>
+Whereas the LAMMPS output will look something like,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre> Only MD realm present in MPI_COMM_WORLD
+ connection accepted to root of            1  procs.
+ Rank on realm            2  is            1  of            1   and rank on intercomm is            1  of            2
+ Completed CPL communicator init for MD  , CPL_WORLD_COMM ID:           1
+LAMMPS (16 Jul 2018)
+Lattice spacing in x,y,z = 0.08 0.08 0.08
+Created orthogonal box = (0 0 0) to (2 10 2)
+  1 by 1 by 1 MPI processor grid
+Created 26250 atoms
+  Time spent = 0.00943184 secs
+Setting atom values ...
+  26250 settings made for diameter
+  26250 settings made for density
+ CPL_init has been called more than once. Returning same COMM
+Lammps cpl/init input arg 0 is 5
+Lammps cpl/init input arg 1 is all
+Lammps cpl/init input arg 2 is cpl/init
+Lammps cpl/init input arg 3 is region
+Lammps cpl/init input arg 4 is all
+Lammps cpl/init input arg 5 is forcetype
+Lammps forcetype: Drag with args Cd
+Lammps forcetype: Drag with args 2.31918489371882
+Lammps forcetype: Drag with args overlap
+Lammps forcetype: Drag with args true
+Lammps forcetype: Drag with args gradP
+Lammps forcetype: Drag with args false
+Lammps cpl/init input arg 6 is Drag
+Lammps cpl/init input arg 7 is Cd
+Lammps cpl/init input arg 8 is 2.31918489371882
+Lammps cpl/init input arg 9 is overlap
+Lammps cpl/init input arg 10 is true
+Lammps cpl/init input arg 11 is gradP
+Lammps cpl/init input arg 12 is false
+Lammps cpl/init input arg 13 is sendtype
+Lammps cpl/init input arg 14 is granfull
+MODE ABOVE
+dynamic group cplforcegroup defined
+Lammps FixCPLForce forcetype: Drag with args Cd
+Lammps FixCPLForce forcetype: Drag with args 2.31918489371882
+Lammps FixCPLForce forcetype: Drag with args overlap
+Lammps FixCPLForce forcetype: Drag with args true
+Lammps FixCPLForce forcetype: Drag with args gradP
+Lammps FixCPLForce forcetype: Drag with args false
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0.0615685
+  ghost atom cutoff = 0.0615685
+  binsize = 0.0307843, bins = 65 325 65
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair gran/hertz/history, perpetual
+      attributes: half, newton off, size, history
+      pair build: half/size/bin/newtoff
+      stencil: half/bin/3d/newtoff
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : cgs
+  Current step  : 0
+  Time step     : 2e-05
+Per MPI rank memory allocation (min/avg/max) = 29.42 | 29.42 | 29.42 Mbytes
+Step Atoms CPU 
+       0    26250            0 
+      20    26250   0.34270096 
+      40    26250   0.68225789 
+      60    26250    1.0215797 
+      80    26250    1.3615072 
+     100    26250    1.7024806 
+     120    26250    2.0426209 
+     140    26250    2.3821836 
+     160    26250    2.7220778 
+     180    26250    3.0617683 
+     200    26250     3.401315 
+Loop time of 3.40133 on 1 procs for 200 steps with 26250 atoms
+
+98.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.021202   | 0.021202   | 0.021202   |   0.0 |  0.62
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0141     | 0.0141     | 0.0141     |   0.0 |  0.41
+Output  | 0.74021    | 0.74021    | 0.74021    |   0.0 | 21.76
+Modify  | 2.6149     | 2.6149     | 2.6149     |   0.0 | 76.88
+Other   |            | 0.01087    |            |       |  0.32
+
+Nlocal:    26250 ave 26250 max 26250 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    3244 ave 3244 max 3244 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:03</pre></div>
+
+</body></html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<h2><span class="mw-headline" id="Overview_of_the_CPL_library_LAMMPS_interface">Overview of the CPL library LAMMPS interface</span></h2>
+<p>LAMMPS works through a series of user defined fixes. 
+These are objects the user can define by inheretiting from a base class 
+called fix with a pre-definied structure.
+These are automatically registered with LAMMPS and instantiated (created
+ when LAMMPS runs).
+The use can then defined a range of "hook"* functions with names like 
+post_setup or pre_force, which can be used to inject code where you want
+ (after the setup or before the force calcultation respectivly) in the 
+overall LAMMPS solver. 
+The addition code is included in LAMMPS by writing user add on packages 
+which can be included when LAMMPS is complied. 
+Provided LAMMPS has been built with the extra package, they can then be 
+used, often by keywords to switch these on from the user input. 
+</p><p>For CPL library, the package is USER_CPL and the code inside 
+includes fix_cpl_init, fix_cpl_force and CPLSocketLAMMPS.
+The socket is the bulk of the code which handles getting information 
+from LAMMPS, fix_cpl_force applies the constraint force and fix_cpl_init
+ is the top level function to handle communication and call the 
+CPLSocketLAMMPS/fix_cpl_force routines.
+</p><p><br>
+</p>
+<ul><li> The concept of a hook here is a programming term for a 
+pre-defined place in a software package when you can stick in your own 
+code. LAMMPS is designed to be almost entirly built up of various user 
+packages so provides hooks to get at almost every possible point in the 
+solver.</li></ul>
+
+
+</body></html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<p>The process of designing an appropriate drag force is given as an example here.
+Much of the code is indentical to existing constraints so would not actually 
+be needed, it is included for completeness.
+Some things may have changed and also some boilerplate code is cut in the example
+so this may not work exactly in the form below.
+The user should refer to the examples in CPL_force.cpp and build up using this. 
+</p><p>We will outline the process of designing the Ergun drag force,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>F = 150.0*e*nu*rho/(pow(e*D, 2.0)) + 1.75*rho()*Ur/(e*D)</pre></div>
+<p>where we need to work out both porosity e and the fluid velocity Ur = U_MD-U_CFD 
+from the particle simulation. We use an existing class as a basis, 
+choose the one that is closest to your current case: 
+</p><p>1) Let's choose a CPL_force type to inheret, the CPLForceDrag in this case.
+To define an inhereitance from, CPLForceGranular class, we use 
+class CPLForceErgun&nbsp;: public CPLForceDrag 
+and start by defining the class definintion in the header file CPL_force.h
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>class CPLForceErgun : public CPLForceDrag {
+
+
+public:
+
+    //Constructors
+    CPLForceErgun(CPL::ndArray&lt;double&gt;, map_strstr);
+    CPLForceErgun(int, int, int, int, map_strstr);
+
+    //Pre force collection and get force calculation
+    // position, velocity, acceleration, mass, radius, interaction
+    void pre_force(double r[], double v[], double a[], 
+                   double m, double s, double e);
+    std::vector&lt;double&gt; get_force(double r[], double v[], double a[], 
+                                  double m, double s, double e);
+
+    //Flags for various input options (N.B. specify default values here)
+    bool calc_preforce = true;
+    bool use_overlap = false;
+    bool use_interpolate = false;
+    bool use_gradP = true;
+    bool use_divStress = false;
+    double mu = 0.0008900;
+    double rho = 1e3;
+
+    //All internal fields
+    std::shared_ptr&lt;CPL::CPLField&gt; nSums;
+    std::shared_ptr&lt;CPL::CPLField&gt; vSums;
+    std::shared_ptr&lt;CPL::CPLField&gt; eSums;
+    std::shared_ptr&lt;CPL::CPLField&gt; FSums;
+    std::shared_ptr&lt;CPL::CPLField&gt; FcoeffSums;
+
+private:
+
+    double drag_coefficient();
+    void initialisesums(CPL::ndArray&lt;double&gt; f);
+    void resetsums();
+
+};</pre></div>
+<p>2) Now we have specified the header, we then need to override any routines which are unique to CPLForceErgun in 
+the CPL_force.cpp file.
+But first, we need to define the constructors of our new class, these take in either the size of the
+grid array (local to a processes) or an existing array.
+These functions essentially creates the buffer which is used to store data from the CFD (in the parent).
+This is referred internally in functions of CPLForceErgun as "fieldptr" and the array data can be obtained.
+The child automatically calls the parent constructor and then we explicitly call initialisesums to setup 
+various fields which will be populated pre_force.
+The logic here is the CPL array expected from the CFD code can be used and all other fields created 
+with a consistent size.
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>//Constructor using cells
+CPLForceErgun::CPLForceErgun(int nd, int icells, 
+                             int jcells, int kcells, 
+                             map_strstr arg_map) 
+        : CPLForceDrag(nd, icells, jcells, kcells, map_strstr arg_map)
+{
+//    unpack_arg_map(arg_map);
+//    initialisesums(fieldptr-&gt;get_array());
+}
+
+//Constructor of datatype
+CPLForceErgun::CPLForceErgun(CPL::ndArray&lt;double&gt; arrayin, 
+                             map_strstr arg_map) 
+        : CPLForceDrag(arrayin, map_strstr arg_map){
+//    unpack_arg_map(arg_map);
+//    initialisesums(arrayin);
+}</pre></div>
+<p>Notice the input argmap with type map_strstr which is a map using strings
+defined in CPL_force.h. 
+</p><p>typedef std::map &lt;std::string, std::string&gt; map_strstr
+</p><p>This is used to store all user keywords from the input line of LAMMPS (see above).
+We need to write the function to unpack these arguments so as to the important 
+input values for your new CPL_force.
+Recall in the header we had a number of parameters:
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>    //Flags for various input options (N.B. specify default values here)
+    bool use_overlap = false;
+    bool use_interpolate = false;
+    bool use_gradP = true;
+    bool use_divStress = false;
+    double mu = 0.0008900;
+    double rho = 1e3;</pre></div>
+<p>We want to write unpack_arg_map to parse arg_map and over-ride default values with
+anything the user has specified. To do this, we can use a number of helper functions.
+We loop over arg_map using "for (const auto&amp; arg&nbsp;: arg_map)" and can get
+keywords from arg.first and values from arg.second. We can then use 
+string_contains(arg.first, keyword) to check if any part of the user
+input contains a keyword, for example "overlap", before setting the bool
+value in out CPL_force based on the value following the overlap keyword.
+We can use checktrue(arg.second) which handles 0/1 or case insensitive true/false
+returning the boolean value. This semi-manual method of setting insures the
+inputs specified are as required for the Force class we design.
+For numerical constants, we need to convert from string to double which is done
+using std::stod.
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>    // Iterate over the map and print out all key/value pairs.
+    for (const auto&amp; arg : arg_map)
+    {
+        if (string_contains(arg.first, "overlap") != -1) {
+            use_overlap = checktrue(arg.second);
+        } else if (string_contains(arg.first, "interpolate") != -1) {
+            use_interpolate = checktrue(arg.second);
+        } else if (string_contains(arg.first, "gradP")  != -1) {
+            use_gradP = checktrue(arg.second);
+        } else if (string_contains(arg.first, "divStress")  != -1) {
+            use_divStress = checktrue(arg.second);
+        } else if (string_contains(arg.first, "mu")  != -1) {
+            mu = std::stod(arg.second);
+        } else if (string_contains(arg.first, "rho")  != -1) {
+            rho = std::stod(arg.second);
+        } else {
+            std::cout &lt;&lt; "key: " &lt;&lt; arg.first &lt;&lt; 
+            " for forcetype not recognised " &lt;&lt; '\n';
+            throw std::runtime_error("CPLForceDrag input not recognised");
+        }
+
+    }</pre></div>
+<p>Note that calc_preforce is not set here. This determines if pre_force is called
+and this is not something the user should be able to change (it is essential to get
+eSum for the get_force calcultion and turning it off would cause problems). 
+The initialisesums also needs to be developed, this can follow 
+exactly from CPLForceDrag so we could simply inherit this, however it is here for 
+completeness
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>void CPLForceDrag::initialisesums(CPL::ndArray&lt;double&gt; arrayin){
+    
+    int i = arrayin.shape(1);
+    int j = arrayin.shape(2);
+    int k = arrayin.shape(3);
+    nSums = std::make_shared&lt;CPL::CPLField&gt;(1, i, j, k, "nSums");
+    vSums = std::make_shared&lt;CPL::CPLField&gt;(3, i, j, k, "vSums");
+    eSums = std::make_shared&lt;CPL::CPLField&gt;(1, i, j, k, "eSums");
+    FSums = std::make_shared&lt;CPL::CPLField&gt;(3, i, j, k, "FSums");
+    FcoeffSums = std::make_shared&lt;CPL::CPLField&gt;(1, i, j, k, "FcoeffSums");
+
+    build_fields_list();
+    resetsums();
+}
+
+void CPLForceDrag::build_fields_list(){
+
+    fields.push_back(nSums);
+    fields.push_back(vSums);
+    fields.push_back(eSums);
+    fields.push_back(FSums);
+    fields.push_back(FcoeffSums);
+}</pre></div>
+<p>3) Next, we need to develop pre force and get_force for the Ergun equation.
+As Ergun needs porosity, this must be collected pre-force.
+The field classes provide an elegant way to get these (currently not used in most of cpl_force as this is new).
+We simply add to an array based on molecular position r, the value we want to, here a count for 
+no. of molecules for nSums (1), the sphere volume for eSums and velocity vSums either weighted by
+overlap fraction in a cell or not.
+Again, nothing is needed here if the code below is sufficient, for Ergun this is the case.
+</p><p><br>
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>//Pre force collection of sums (should this come from LAMMPS fix chunk/atom bin/3d)
+void CPLForceErgun::pre_force(double r[], double v[], double a[], 
+                              double m, double s, double e) 
+{
+    nSums.add_to_array(r, 1.0);
+    double vol = (4./3.)*M_PI*pow(s,3);
+    if (! use_overlap){
+        eSums-&gt;add_to_array(r, volume);
+        vSums-&gt;add_to_array(r, v);
+    } else {
+        eSums-&gt;add_to_array(r, s, volume);
+        vSums-&gt;add_to_array(r, s, v);
+    }
+}</pre></div>
+<p>If you wanted to use partial overlap calculation (fraction of sphere in box) then simply add the
+</p>
+<pre>radius of the shere in as a second argument,
+   eSums.add_to_array(r, s, vol);
+</pre>
+<p>the choice between these is set by use_overlap from user input.
+</p><p>4) We now need to work out the value of force defined as a 3 vector.
+In principle, the only thing we need to change from CPLdrag is the drag coefficient
+routine here,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>double CPLForceErgun::drag_coefficient(double r[], double D) {
+    //Porosity e is cell volume - sum in volume
+    double e = 1.0 - eSums-&gt;get_array_value(r)/eSums.dV;
+    if (e &lt; 1e-5) {
+        std::cout &lt;&lt; "Warning: 0 particles in cell (" 
+                  &lt;&lt; cell[0] &lt;&lt; ", " &lt;&lt; cell[1] &lt;&lt; ", " &lt;&lt; cell[2] &lt;&lt; ")"
+                  &lt;&lt; std::endl;
+        return 0.0;
+    }
+    return 150.0*e*nu*rho/(pow(e*D, 2.0)) + 1.75*rho/(e*D);
+}</pre></div>
+<p>Which is used as follows,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>//Get force using sums collected in pre force
+std::vector&lt;double&gt; CPLForceErgun::get_force(double r[], double v[], double a[], 
+                                             double m, double s, double e) 
+{
+    //Check array is the right size
+    CPL::ndArray&lt;double&gt;&amp; array = cfd_array_field-&gt;get_array_pointer();
+    assert(array.shape(0) == 9);
+
+    //Get all elements of recieved field
+    if (! use_interpolate){
+        //Based on cell
+        std::vector&lt;int&gt; indices = {0,1,2}; 
+        Ui = cfd_array_field-&gt;get_array_value(indices, r);
+        for (int &amp;n : indices) n += 3; 
+        gradP = cfd_array_field-&gt;get_array_value(indices, r);
+        for (int &amp;n : indices) n += 3; 
+        divStress = cfd_array_field-&gt;get_array_value(indices, r);
+    } else {
+        //Or interpolate to position in space
+        std::vector&lt;int&gt; indices = {0,1,2}; 
+        Ui = cfd_array_field-&gt;get_array_value_interp(indices, r);
+        for (int &amp;n : indices) n += 3; 
+        gradP = cfd_array_field-&gt;get_array_value_interp(indices, r);
+        for (int &amp;n : indices) n += 3; 
+        divStress = cfd_array_field-&gt;get_array_value_interp(indices, r);
+    }
+
+
+    //Get Diameter
+    double D = 2.0*s;
+    //Get drag coefficient
+    double Cd = drag_coefficient(r, D);
+
+    //Calculate force
+    CPL::ndArray&lt;int&gt; indices = {0,1,2};
+    Ui = fieldptr-&gt;get_array_value(indices, r);
+    for (int i=0; i&lt;3; i++){
+        f[i] = Cd*(Ui[i]-v[i]);
+        //Include pressure
+        if (use_gradP)
+            f[i] += -volume*gradP[i];
+        // and stress
+        if (use_divStress)
+            f[i] += volume*divStress[i];
+    }
+
+    // Add sum of coefficients of forces 
+    // Needed if you want to split implicit/explicit terms for
+    // improved numerical stability according to 
+    // Xiao H., Sun J. (2011) Algorithms in a Robust Hybrid
+    // CFD-DEM Solver for Particle-Laden Flows, 
+    // Commun. Comput. Phys. 9, 2, 297
+    FcoeffSums-&gt;add_to_array(r, Cd);
+    FSums-&gt;add_to_array(r, &amp;f[0]);
+
+    return f;
+
+}</pre></div>
+<p>5) Finally, we need to add out new force type into the fix_cpl_force
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>//Force factory
+if (fxyzType.compare("Flekkoy") == 0) {
+    fxyz.reset(new CPLForceFlekkoy(9, cfdBuf-&gt;shape(1), 
+                                      cfdBuf-&gt;shape(2), 
+                                      cfdBuf-&gt;shape(3)));
+...
+...
+...
+} else if (fxyzType.compare("Ergun") == 0) {
+    fxyz.reset(new CPLForceErgun(9, cfdBuf-&gt;shape(1), 
+                                   cfdBuf-&gt;shape(2), 
+                                   cfdBuf-&gt;shape(3),
+                                   arg_map));</pre></div>
+<p>and we can turn on by adding Ergun to the input line, something like this,
+</p>
+<pre>   fix ID group-ID cpl/init region all forcetype Ergun overlap false interpolate true mu 0.0009 rho 1000 gradP true sendtype Granfull
+</pre>
+
+</body></html>

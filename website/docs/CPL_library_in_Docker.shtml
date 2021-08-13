@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Install_Docker"><span class="tocnumber">1</span> <span class="toctext">Install Docker</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Getting_CPL_library_Docker_Image_and_Starting"><span class="tocnumber">2</span> <span class="toctext">Getting CPL library Docker Image and Starting</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Graphical_User_Interface"><span class="tocnumber">2.1</span> <span class="toctext">Graphical User Interface</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-4"><a href="#Running_CPL_library_with_Docker"><span class="tocnumber">3</span> <span class="toctext">Running CPL library with Docker</span></a>
+<ul>
+<li class="toclevel-2 tocsection-5"><a href="#A_Minimal_Example"><span class="tocnumber">3.1</span> <span class="toctext">A Minimal Example</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-6"><a href="#Mounting_Docker_Volumes"><span class="tocnumber">4</span> <span class="toctext">Mounting Docker Volumes</span></a></li>
+</ul>
+</div>
+
+<h1><span class="mw-headline" id="Install_Docker">Install Docker</span></h1>
+<p>First you need to get Docker, see <a rel="nofollow" class="external text" href="https://docs.docker.com/">here</a>. 
+For Ubuntu 16.04, this proceeds as follows:
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre> sudo apt-get update
+ sudo apt-get install \
+     apt-transport-https \
+     ca-certificates \
+     curl \
+     software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo apt-key fingerprint 0EBFCD88
+sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+sudo apt-get update
+sudo apt-get install docker-ce</pre></div>
+<h1><span class="mw-headline" id="Getting_CPL_library_Docker_Image_and_Starting">Getting CPL library Docker Image and Starting</span></h1>
+<p>Then we get the CPL library docker image:
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>sudo docker pull cpllibrary/cpl-library</pre></div>
+<p>the dockerhub can be found <a rel="nofollow" class="external text" href="https://hub.docker.com/r/cpllibrary/cpl-library/">here</a>
+along with the dockerfile showing what is installed.
+</p><p>If we don't want to use GUI or store anything from a docker run, we can simply
+start Docker as follows,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>sudo docker run -it --name cplrun cpllibrary/cpl-library</pre></div>
+<h3><span class="mw-headline" id="Graphical_User_Interface">Graphical User Interface</span></h3>
+<p>However, some of the examples use matplotlib and interactive Graphical User Interface (GUI). 
+In addition, there are grid design tools which can be used to setup a coupled run.
+Getting Docker to work with the host display can be a little tricky.
+The following solution from <a rel="nofollow" class="external text" href="https://stackoverflow.com/a/25280523">stackoverflow</a> has been the most successful
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>XSOCK=/tmp/.X11-unix
+XAUTH=/tmp/.docker.xauth
+xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f $XAUTH nmerge -
+sudo docker run -ti -e DISPLAY=$DISPLAY -v $XSOCK:$XSOCK -v $XAUTH:$XAUTH -e XAUTHORITY=$XAUTH cpllibrary/cpl-library</pre></div>
+<p>A script to run this is includes in the utils folder of coupler library.
+</p>
+<h1><span class="mw-headline" id="Running_CPL_library_with_Docker">Running CPL library with Docker</span></h1>
+<p>The cases which are available are found under examples,
+these are detailed on the cpl library <a rel="nofollow" class="external autonumber" href="http://www.cpl-library.org/user-guide/quick-start.shtml">[1]</a>
+and include <a rel="nofollow" class="external text" href="http://www.cpl-library.org/user-guide/quick-start.shtml#linking">1) linking</a> 
+example in Fortran, C++ and Python, as well as 
+<a rel="nofollow" class="external text" href="http://www.cpl-library.org/user-guide/quick-start.shtml#mock">2) minimal code to couple</a> in Python
+an example of <a rel="nofollow" class="external text" href="http://www.cpl-library.org/user-guide/quick-start.shtml#analysing">3) visualising a coupled simulation </a> a case where an <a rel="nofollow" class="external text" href="http://www.cpl-library.org/user-guide/quick-start.shtml#interactive">4) interactive slider interface</a>
+is attached to a Fortran code and finally a fully functional <a rel="nofollow" class="external text" href="http://www.cpl-library.org/user-guide/quick-start.shtml#MD_CFD">5) 2D CFD and MD example</a> in Python.
+</p><p>The examples can be found by issuing the commands 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>cd examples
+ls</pre></div>
+<p>with the examples discussed above (and on the quickstart guide) are in,
+</p>
+<ol><li> sendrecv_globcell</li>
+<li> minimal_send_recv_mocks</li>
+<li> topology_plot_example </li>
+<li> interactive_plot_example</li>
+<li> MD_CFD </li></ol>
+<p>the easiest way to run these is to cd to each directory and run 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>./test_all.sh</pre></div>
+<p>which is just a bash script to run the various cases. Have a look in 
+these files to see what is done, which is often just a case of running 
+both coupled codes using mpiexec.
+</p><p>In addition, the range of different units tests can be run from the top level /cpl-library directory.
+These are less visual but include a range of different communication and consistency checks,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>test-pytest-mapping 
+test-pytest-initialisation 
+test-examples 
+test-gtests</pre></div>
+<p><br>
+</p>
+<h2><span class="mw-headline" id="A_Minimal_Example">A Minimal Example</span></h2>
+<p>In order to understand a minimal coupled examples, check out
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>cd /cpl-library/examples/minimal_send_recv_mocks</pre></div>
+<p>Have a look at the file, they give an example of a minimal coupled case,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>#!/usr/bin/env python
+from mpi4py import MPI
+from cplpy import CPL
+
+comm = MPI.COMM_WORLD
+CPL = CPL()
+CFD_COMM = CPL.init(CPL.CFD_REALM)
+CPL.setup_cfd(CFD_COMM.Create_cart([1, 1, 1]), xyzL=[1.0, 1.0, 1.0], 
+              xyz_orig=[0.0, 0.0, 0.0], ncxyz=[32, 32, 32])
+recv_array, send_array = CPL.get_arrays(recv_size=4, send_size=1)
+
+for time in range(5):
+
+    recv_array, ierr = CPL.recv(recv_array)
+    print("CFD", time, recv_array[0,0,0,0])
+    send_array[0,:,:,:] = 2.*time
+    CPL.send(send_array)
+
+CPL.finalize()
+MPI.Finalize()</pre></div>
+<p>This initialises CPL library, creates a topology with 32 cells in each direction with one processes
+and loops five times sending and receiving data each time.
+</p><p>The MD file is very similar, but instead has 8 processes.
+This coupled example can be run as follows:
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>cplexec -c 1 minimal_CFD.py -m 8 minimal_MD.py</pre></div>
+<p>which creates two MPI runs, writes a PORT file and merges the two MPI_COMM_WORLD s
+</p><p>Or, this can be run in the MPMD mode, using,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>mpiexec -n 1 python minimal_CFD.py : -n 8 python minimal_MD.py</pre></div>
+<p>which runs both codes in a single MPI_COMM_WORLD instance.
+Be aware that this becomes important if either coupled code uses MPI_COMM_WORLD
+in any of its MPI communications (which almost every code does).
+</p>
+<h1><span class="mw-headline" id="Mounting_Docker_Volumes">Mounting Docker Volumes</span></h1>
+<p>If you want to run a coupled case and keep the output, you need to use docker volumes, which can be done as follows:
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>sudo docker run -it --name cplrun --mount source=cpl-vol,target=/cplruns cpllibrary/cpl-library</pre></div>
+<p>The example codes should then be copied to /cplruns and run in this as above
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>rsync -avP /cpl-library/examples/minimal_send_recv_mocks/ /runs/</pre></div>
+<p>The output from the run will then be saved between runs 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>cd /runs/
+cplexec -c 1 minimal_CFD.py -m 8 minimal_MD.py</pre></div>
+<p>The only output in this run will be save in the /runs/cpl folder in the form of various header files.
+</p><p>On the host operating system this can be access using the command,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>sudo docker volume inspect cpl-vol</pre></div>
+<p>Getting the path, which in ubuntu defaults to 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>/var/lib/docker/volumes/cpl-vol/_data</pre></div>
+
+
+</body></html>

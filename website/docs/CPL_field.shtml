@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<p><br>
+</p>
+<h2><span class="mw-headline" id="Section_on_CPL_force">Section on CPL_force</span></h2>
+<p>CPL_force combines multiple field classes, including the retrieved 
+values from CFD via a coupled MPI exchange and together with accumulated
+ MD/DEM results, it calculates the required force. Heavy use is made of 
+inheritance here, with a common interface of pre_force and a get_force 
+functions. The different types of coupling force are then created using a
+ factory method and extension of this is as simple as inhereting from 
+the most relevant force class and adapting to your needs.
+A rough schematic of the inheretence diagram is included below (note 
+names have been shortened): 
+</p><p><br>
+</p>
+<pre>                         CPL_vel
+Abstract Base Class     / 
+   |          _________/__CPL_test
+   |         /         \ 
+   |        /           CPL_flekkoy
+   v       /
+CPL_force /                       __CPL_Di_Felice
+          \__ CPL_drag__ CPL_gran/
+                      \          \__CPL_Tang_______CPL_with_BVK_correction
+                       \            
+                        CPL_dragtest
+</pre>
+
+</body></html>

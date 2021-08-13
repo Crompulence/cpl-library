@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<p>There are two ways to test coupled code, as we cannot invoke an 
+mpiexec version of pytest from inside the run, it must be run from 
+outside as part of a coupled MPI instance.
+</p>
+<pre>1) Run a unit testing framework as one part of a coupled MPI run with the code to be tested as process two, allowing us to directly test all received information.
+</pre>
+<pre>2) Use a unit testing framework to subprocess mpiexec instances for a range of parameters and test the output written to a file
+</pre>
+<p>We will cover both methods here.
+</p>
+<h2><span class="mw-headline" id="Directly_Coupled">Directly Coupled</span></h2>
+<p>We start with directly coupling a unit testing framework, here <a rel="nofollow" class="external text" href="https://docs.pytest.org/">pytest</a>, which loops over a range of cases, sending information and checking the exchanged information is as expected.
+The example here is for SediFOAM but the changes for IcoFOAM are minimal (in terms of exchange of information).
+The files and OpenFOAM inputs for this example are located under the test folder,
+</p>
+<pre>CPL_APP_OPENFOAM-3.0.1/test/pytest_example/granular
+</pre>
+<p>The code is run with OpenFOAM and pytest as two parts of an MPMD run, invoked with a command line of the form,
+</p>
+<pre>mpiexec -n 1 CPLSediFOAM -case ./openfoam -parallel&nbsp;: -n 1 py.test -v ./python_dummy/test_vs_couette_analytical_aspytest.py
+</pre>
+<p>Here the pytest setup calls MPI_init and sets up CPL library, as well as create an analytical solution to compare this to.
+The tear down (after yield) finalises both MPI and CPL.
+</p><p>The test is parameterised to simply run for each timestep of the 
+coupled simulation and assert that the error vs. the analytical solution
+ is between expected bounds. Note that the bounds are a bit of a black 
+art, given the finite nature of numerical errors, so need to be tweaked 
+for each case based on the expected output of the coupled run.
+The pytest code is as follows,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>#!/usr/bin/env python
+import numpy as np
+import pytest
+
+from CouetteAnalytical import CouetteAnalytical as CA
+
+@pytest.fixture(scope="module")
+def setup():
+
+    #Import CPL library
+    from cplpy import CPL
+
+    #initialise MPI
+    from mpi4py import MPI
+    comm = MPI.COMM_WORLD
+
+    # Parameters of the cpu topology (cartesian grid)
+    npxyz = np.array([1, 1, 1], order='F', dtype=np.int32)
+    xyzL = np.array([1., 1., 1.], order='F', dtype=np.float64)
+    xyz_orig = np.array([0.0, 0.0, 0.0], order='F', dtype=np.float64)
+
+    #initialise CPL
+    CPL = CPL()
+    MD_COMM = CPL.init(CPL.MD_REALM)
+    CPL.setup_md(MD_COMM.Create_cart([npxyz[0], npxyz[1], npxyz[2]]), xyzL, xyz_orig)
+    recvbuf, sendbuf = CPL.get_arrays(recv_size=9, send_size=8)
+
+    #Analytical solution
+    dt = 0.05
+    U = 1.0
+    nu = 1.004e-2
+    Re = xyzL[1]/nu   #Note Reynolds in independent of velocity in analytical fn
+    ncx = CPL.get("ncx")
+    ncy = CPL.get("ncy")
+    ncz = CPL.get("ncz")
+    CAObj = CA(Re=Re, U=U, Lmin=0., Lmax=xyzL[1], npoints=2*ncy+1, nmodes=100*ncy)
+
+    #Yield statement delineates end of setup and start of teardown
+    yield [CPL, MD_COMM, recvbuf, sendbuf, CAObj, dt, U, nu]
+    CPL.finalize()
+    MPI.Finalize()
+
+
+#Main time loop
+time = range(1000)
+@pytest.mark.parametrize("time", time)
+def test_loop(setup, time):
+
+    #Get run paramenters from setup
+    CPL, MD_COMM, recvbuf, sendbuf, CAObj, dt, U, nu = setup
+
+    # Recv data: 
+    # [Ux, Uy, Uz, gradPx, gradPy, gradPz, divTaux, divTauy, divTauz]
+    recvbuf, ierr = CPL.recv(recvbuf)
+
+    # Zero send buffer and set porosity to one
+    # [Ux, Uy, Uz, Fx, Fy, Fz, Cd, e]
+    sendbuf[...] = 0.
+    CPL.send(sendbuf)
+
+    #Get analytical solution
+    y_anal, u_anal = CAObj.get_vprofile(time*dt)
+
+    #Assert error bounds for L2 norm
+    ur = np.mean(recvbuf[0,:,:,:],(0,2))
+    error = np.sum(np.abs(100*(u_anal[1:-1:2] - ur)/U))
+    print(time, "Error = ", error)
+    if time &lt; 10:
+        assert error &lt; 20., "Error in inital 10 steps greater than 20%"
+    elif time &lt; 30:
+        assert error &lt; 10., "Error between 10 and 30 steps greater than 10%"
+    elif time &lt; 50:
+        assert error &lt; 5., "Error between 30 and 50 steps greater than 5%"
+    elif time &lt; 300:
+        assert error &lt; 3., "Error between 50 and 300 steps greater than 3%"
+    elif time &lt; 500:
+        assert error &lt; 2., "Error between 300 and 500 steps greater than 2%"
+    else:
+        assert error &lt; 1., "Error after 500 steps greater than 1%"</pre></div>
+<p>The output is essentially 1000 tests making sure the information exchanged is as expected,
+</p>
+<pre> python_dummy/test_vs_couette_analytical_aspytest.py::test_loop[1] PASSED
+ python_dummy/test_vs_couette_analytical_aspytest.py::test_loop[2] PASSED
+ ...
+ python_dummy/test_vs_couette_analytical_aspytest.py::test_loop[946] PASSED
+ python_dummy/test_vs_couette_analytical_aspytest.py::test_loop[947] PASSED
+ ...
+</pre>
+<p>If an error is detected, it will print something like the following:
+</p>
+<pre>assert error &lt; 2., "Error between 300 and 500 steps greater than 2%"
+</pre>
+<p>This test is automated on Travis CI to ensure changes to OpenFOAM do not break this essential functionality.
+</p><p>This forms a template for writing a coupled validation, where the
+ error bounds and the information sent can be adapted as needed.
+For example, the parametrisation could be the value to send and the recv
+ value tested to ensure the expected change is observed in the coupled 
+code.
+</p><p><br>
+</p>
+<h2><span class="mw-headline" id="Subprocess_mpiexec">Subprocess mpiexec</span></h2>
+<p>The other example uses python <a rel="nofollow" class="external text" href="https://docs.python.org/2/library/subprocess.html">subprocess</a>
+ to create a range of mpi jobs for various test scenarios.
+In order to make changes to the input system of both OpenFOAM and the 
+mock scripts, run multiple test simultaneously and create the required 
+directory structures, we use <a rel="nofollow" class="external text" href="https://github.com/edwardsmith999/SimWrapPy">simwraplib</a>.
+</p><p>New folders are created for each run and the OpenFOAM input files and python script are copied and edited for each case.
+In this example, the boundary condition for both are changed and the error compared and printed.
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>import pytest
+import os
+import sys
+import numpy as np
+import subprocess as sp
+
+class cd:
+    """Context manager for changing the current working directory"""
+    def __init__(self, newPath):
+        self.newPath = os.path.expanduser(newPath)
+
+    def __enter__(self):
+        self.savedPath = os.getcwd()
+        os.chdir(self.newPath)
+
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.savedPath)
+
+# Import symwraplib
+sys.path.insert(0, "./SimWrapPy/")
+try:
+    import simwraplib as swl
+except ImportError:
+    cmd = "git clone https://github.com/edwardsmith999/SimWrapPy.git ./SimWrapPy"
+    downloadout = sp.check_output(cmd, shell=True)
+    print(downloadout)
+    sys.path.insert(0, "./SimWrapPy")
+    import simwraplib as swl
+
+#Define test directory based on script file
+TEST_DIR = os.path.dirname(os.path.realpath(__file__))
+
+#Parameterise range of cases
+params = [0.2, 0.5, 1.0, 2.0]
+@pytest.mark.parametrize("wallvel", params)
+def test_newtest(wallvel):
+
+    # Inputs that are the same for every thread
+    basedir = TEST_DIR
+    srcdir = None
+    executable = "/CPLSediFOAM"
+    inputfile = "/openfoam"
+    rundir = TEST_DIR + "/run" + str(wallvel)
+
+    #Clean previous result, generate grid and decompose for parallel run
+    with cd (TEST_DIR+"/"+inputfile):
+        sp.check_output("python clean.py -f", shell=True)
+        sp.check_output("blockMesh", shell=True)
+        sp.check_output("decomposePar", shell=True)
+
+    #Setup Changes
+    keyvals = {"boundaryField":{"top":{"type":"fixedValue", "value":[[wallvel,0,0]]}, 
+                                "bottom":{"type":"keep", "value":"keep"},
+                                "streamwiseIn":{"type":"keep", "neighbourPatch":"keep"},
+                                "streamwiseOut":{"type":"keep", "neighbourPatch":"keep"},
+                                "front":{"type":"keep", "neighbourPatch":"keep"},
+                                "back":{"type":"keep", "neighbourPatch":"keep"}}}
+    changes = {"Ub":keyvals}
+
+    with cd(TEST_DIR):
+
+        #Setup a LAMMPS run object
+        of = swl.OpenFOAMRun(None, basedir, rundir,
+                             executable, inputfile,
+                             inputchanges=changes)
+
+        #Setup a mock script
+        mockscript = "./python_dummy/test_vs_couette_analytical.py"
+        mock = swl.ScriptRun(rundir, mockscript, inputchanges={"U = ": wallvel})
+
+        #Setup a coupled run
+        run = swl.CPLRun(None, basedir, rundir, [mock, of],
+                         inputfile="/cpl/COUPLER.in")
+
+        #Run the case
+        run.setup()
+        run.execute(blocking=True, print_output=True)</pre></div>
+
+
+</body></html>

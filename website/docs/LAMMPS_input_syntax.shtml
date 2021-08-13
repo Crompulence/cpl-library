@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<h2><span class="mw-headline" id="Section_on_fix_cpl_init">Section on fix_cpl_init</span></h2>
+<p>For CPL library, the fix we use is fix_cpl_init, which handles setup 
+of the CPL library, using code in the "setup" hook to set up a coupled 
+topology, extracting all required parameters from LAMMPS and sending 
+these via MPI (to coupled code).
+The required averages are performed in the post_force hook, then 
+information is exchanged between the codes and the constraint forces 
+applied.
+</p><p>The coupling fix, fix_cpl_init, is turned by by adding a command of this form to LAMMPS input:
+</p><p><code>  fix ID group-ID cpl/init region all forcetype X sendtype Y </code> 
+</p><p>The first two arguments are standard LAMMPS:
+ID = user-assigned name for the fix
+group-ID = ID of the group of atoms to apply the fix to
+The next part, cpl/init, is the "style", i.e. the fixes' name. 
+"region all" specifies that the fix is applied to the entire box in 
+space. 
+Note that in the granular case, this is clearly consistent (as CFD 
+overlaps the whole domain).
+For domain decompositional coupling, region should still be all, as we 
+specify the extents of coupling through the COUPLER.in file. 
+The remaining words are the args which are currently as follows:
+</p><p><br>
+</p>
+<h3><span class="mw-headline" id="Section_on_forcetype">Section on forcetype</span></h3>
+<p>The syntax of forcetypes is as follows:
+</p>
+<pre>forcetype X args
+</pre>
+<p>This allows you to specify which constraint force to use and set a range of args. The options for X include:
+</p>
+<pre>1) forcetype test -- A simple test for debugging (sends cell indices)
+2) forcetype Flekkoy -- stress based coupling using the form of <a rel="nofollow" class="external text" href="http://stacks.iop.org/0295-5075/52/i=3/a=271">Flekkoy et al (2000)</a>
+3) forcetype Velocity -- applies (U_particle - U_CFD) which is the important part of the <a rel="nofollow" class="external text" href="https://doi.org/10.1017/S0022112003007225">Nie, Chen, E and Robbins (2004)</a> constraint.
+4) forcetype Drag -- base drag class for drag type forces
+5) forcetype Stokes -- inherits from base drag and includes stokes and other granular type forces
+6) forcetype Ergun -- an example granular drag class which applies the Ergun drag correlation (untested!!)
+7) forcetype Di_Felice -- an example granular drag class which applies the Di Felice drag correlation (untested!!)
+8) forcetype Tang -- an example granular drag class which applies the Tang drag correlation (untested!!)
+9) forcetype BVK -- an example granular drag class which applies the BVK drag correlation (untested!!)
+10+) This has been design so the user can add anything they want here easily. 
+</pre>
+<p>For the args, the forcetype 1) test, there are no arguments, it 
+simply applies the received values as a force, similarly for 2) Flekkoy 
+and 3) velocity. Forces 4) to 8) are all granular forces and have the 
+same set of options. These can be set to on or off by the next keyword 
+with true or false (case insensitive, 0 or 1 also work), e.g.
+</p>
+<pre>forcetype Drag overlap false 
+</pre>
+<p>The args are as follows, available options are shown in square brackets and the default value is denoted by bold:
+</p>
+<pre>a) gradP [<b>true</b>/false] -- Apply the gradient of pressure as a force.
+b) divStress [true/<b>false</b>] -- Apply the divergence of stress as a force.
+c) overlap [<b>true</b>/false] -- Use fraction of sphere in volume to get porosity (instead of add whole sphere based on centre location)
+d) interpolate [true/<b>false</b>] -- Use interpolation of CFD fields to centre of particle when calculating forces 
+e) preforce_everytime [true/<b>false</b>] -- Work out pre_force fields such as porosity every timestep or only every time information is received from coupled codes
+f) Cd [<b>0.0000001</b>] -- Drag coefficient, used for Drag only
+g) mu [<b>0.001</b>] -- viscosity used in granular force calculations (Tang, Ergun, Di Felice and BVK)
+h) rho [<b>1000</b>] -- density used in granular force calculations (Tang, Ergun, Di Felice and BVK)
+</pre>
+<h3><span class="mw-headline" id="Section_on_sendtypes">Section on sendtypes</span></h3>
+<p>sendtype Y -- Specifiy which data is sent to the CFD solver. 
+This Y can be any combination of space-separated inputs (note they are additive)
+</p>
+<pre>1) Pick 'n' mix send types
+ a) VEL
+ b) NBIN 
+ c) STRESS
+ d) FORCE
+ e) FORCECOEFF
+ f) VOIDRATIO
+</pre>
+<pre>2) Pre-defined collections
+ a) velocity --4 values including 3 velocity sums VEL and number of particles NBIN
+ b) gran -- which sends voidratio VOIDRATIO and force FORCE 
+ c) granfull - is designed for SediFOAM and sends velocity VEL, force FORCE, sum of drag coefficients FORCECOEFF and VOIDRATIO.
+</pre>
+<p>So, for example, you could use gran and append an extra VEL to send VOIDRATIO, FORCE and VEL.
+</p><p>Optional: bndryavg Z -- the location of the bottom cell in 
+domain-decompositional coupling, Z can be either below, above or 
+midplane.
+</p>
+
+</body></html>

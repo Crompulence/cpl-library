@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<p>This page shows the minimial example of a mock script for use in developing coupled simulations. 
+</p><p>The recommended strategy for coupled development is to adapt this
+ script tp match the send and receive arrays in the MD code.
+This can then be used to plot outputs, inject dummy values and develop 
+tests to ensure the coupled application behaves as expected. 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>from mpi4py import MPI
+from cplpy import CPL
+
+comm = MPI.COMM_WORLD
+CPL = CPL()
+CFD_COMM = CPL.init(CPL.CFD_REALM)
+CPL.setup_cfd(CFD_COMM.Create_cart([1, 1, 1]), xyzL=[1.0, 1.0, 1.0], 
+              xyz_orig=[0.0, 0.0, 0.0], ncxyz=[32, 32, 32])
+recv_array, send_array = CPL.get_arrays(recv_size=3, send_size=3)
+
+for time in range(101):
+
+    CPL.send(send_array)
+    recv_array, ierr = CPL.recv(recv_array)
+
+
+CPL.finalize()
+MPI.Finalize()</pre></div>
+
+
+</body></html>

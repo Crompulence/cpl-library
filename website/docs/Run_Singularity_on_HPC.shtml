@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<p>In order to use the Docker containers on HPC, you can pull the Docker container using singularity,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre> singularity pull docker://cpllibrary/cpl-openfoam-lammps</pre></div>
+<p>Then we can run two example applications in two separate containers which link and exchange informations,
+you will need to run this in a directory which contains the ./cpl/COUPLER.in input files. As an example,
+you can get just this file as follows,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>mkdir cpl
+cd ./cpl
+wget https://raw.githubusercontent.com/Crompulence/cpl-library/master/examples/minimal_send_recv_mocks/cpl/COUPLER.in
+cd ../</pre></div>
+<p>The command to run these examples uses the path inside the singularity container to the files,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>mpirun -np 1 singularity exec cpl-openfoam-lammps.simg /cpl-library/examples/minimal_send_recv_mocks/minimal_CFD.py : \
+       -np 1 singularity exec cpl-openfoam-lammps.simg /cpl-library/examples/minimal_send_recv_mocks/minimal_MD.py</pre></div>
+<p>This should run and output,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre> MPMD mode, CFD and MD both share MPI_COMM_WORLD
+ Completed CPL communicator init for MD  , CPL_WORLD_COMM ID:           1
+ Completed CPL communicator init for CFD , CPL_WORLD_COMM ID:           0
+                                                                  
+   ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________        
+    _____/\\\////////__\/\\\/////////\\\_\/\\\_____________       
+     ___/\\\/___________\/\\\_______\/\\\_\/\\\_____________      
+      __/\\\_____________\/\\\\\\\\\\\\\/__\/\\\_____________     
+       _\/\\\_____________\/\\\/////////____\/\\\_____________    
+        _\//\\\____________\/\\\_____________\/\\\_____________   
+         __\///\\\__________\/\\\_____________\/\\\_____________  
+          ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_ 
+           _______\/////////__\///______________\///////////////__
+                                                                  
+                      C P L  -  L I B R A R Y                     
+                                                                  
+('CFD', 0, 0.0)
+('MD', 0, 0.0)
+('CFD', 1, 5.0)
+('MD', 1, 2.0)
+('CFD', 2, 10.0)
+('MD', 2, 4.0)
+('CFD', 3, 15.0)
+('MD', 3, 6.0)
+('CFD', 4, 20.0)
+('MD', 4, 8.0)</pre></div>
+<p>Notice that we are running mpi outside the container, as recommended on the <a rel="nofollow" class="external text" href="http://singularity.lbl.gov/faq#why-do-we-call-mpirun-from-outside-the-container-rather-than-inside">singularity website</a>. This replies on <a rel="nofollow" class="external text" href="http://www.mpich.org/abi/">ABI compatibility</a> of the version of MPI you have on your system and the version installed in the docker container (MPICH3.2 at time of writing).
+</p><p>You can run using the MPI Port system by using two terminal, each
+ with an mpiexec call, or simply put the first processes into the 
+background using &amp;,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>mpirun -np 1 singularity exec cpl-openfoam-lammps.simg /cpl-library/examples/minimal_send_recv_mocks/minimal_CFD.py &amp; \
+mpirun -np 1 singularity exec cpl-openfoam-lammps.simg /cpl-library/examples/minimal_send_recv_mocks/minimal_MD.py</pre></div>
+<p>which runs as before with the 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre> Only CFD realm present in MPI_COMM_WORLD
+ opened port: tag#0$description#meflow$port#44444$ifname#127.0.0.1$ Attempting to write to file:./port
+ Portname written to file ./port                                                          
+ Only MD realm present in MPI_COMM_WORLD
+ accepted connection on port to root of            1  procs.
+ connection accepted to root of            1  procs.
+ Rank on realm            2  is            1  of            1   and rank on intercomm is            0  of            2
+ Completed CPL communicator init for MD  , CPL_WORLD_COMM ID:           0
+ Rank on realm            1  is            1  of            1   and rank on intercomm is            1  of            2
+ Completed CPL communicator init for CFD , CPL_WORLD_COMM ID:           1
+                                                                  
+   ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________        
+    _____/\\\////////__\/\\\/////////\\\_\/\\\_____________       
+     ___/\\\/___________\/\\\_______\/\\\_\/\\\_____________      
+      __/\\\_____________\/\\\\\\\\\\\\\/__\/\\\_____________     
+       _\/\\\_____________\/\\\/////////____\/\\\_____________    
+        _\//\\\____________\/\\\_____________\/\\\_____________   
+         __\///\\\__________\/\\\_____________\/\\\_____________  
+          ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_ 
+           _______\/////////__\///______________\///////////////__
+                                                                  
+                      C P L  -  L I B R A R Y                     
+                                                                  
+('CFD', 0, 0.0)
+('MD', 0, 0.0)
+('CFD', 1, 5.0)
+('MD', 1, 2.0)
+('CFD', 2, 10.0)
+('MD', 2, 4.0)
+('CFD', 3, 15.0)
+('MD', 3, 6.0)
+('CFD', 4, 20.0)
+('MD', 4, 8.0)</pre></div>
+<p><br>
+Because of the way Singularity works, running MPI outside the container 
+means it is not possible to run inside a single container using cplexec 
+to create multiple MPI jobs,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>mpirun -n 1 singularity exec cpl-openfoam-lammps.simg \
+       cplexec -c 1 /cpl-library/examples/minimal_send_recv_mocks/minimal_CFD.py \
+               -m 1 /cpl-library/examples/minimal_send_recv_mocks/minimal_MD.py</pre></div>
+<p>The problem is mpirun creates as many containers as specified with 
+the -n flag, here one, so a container running on a single process tried 
+to run two MPI processes inside. We no longer have the ability to 
+specify how many processes are allocated to each of the coupled 
+applications. 
+</p><p>If you really want to use cplexec, then it is best to get a 
+version of the cplexec file, which is just a python script, by git 
+cloning cpl-library or even just getting the cplexec file and making it 
+executable,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>wget https://raw.githubusercontent.com/Crompulence/cpl-library/master/bin/cplexec
+chmod +x ./cplexec
+./cplexec -c 1 "singularity exec cpl-openfoam-lammps.simg /cpl-library/examples/minimal_send_recv_mocks/minimal_CFD.py"  -m 1 "singularity exec cpl-openfoam-lammps.simg /cpl-library/examples/minimal_send_recv_mocks/minimal_MD.py"</pre></div>
+<p>This then runs the two singularity containers each as an MPI process.
+ As much of cplexec is dedicated to checking the libraries are all 
+consistent and MPI is setup as expected, which is redundant for a 
+containerised application, it is recommended to simply run with mpirun 
+(or mpiexec) as above.
+</p>
+
+
+</body></html>

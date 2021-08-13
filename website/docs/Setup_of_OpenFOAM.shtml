@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<p>This guide outlines how to setup OpenFOAM 3.0.1, which is the version supported by the testing. <b>REMEMBER TO BUILD ALL CODES WITH THE SAME VERSION OF MPI TO ENSURE COUPLING IS POSSIBLE</b>.
+</p><p>CPL library has been developed against mpich <a rel="nofollow" class="external autonumber" href="http://www.mpich.org/">[1]</a>.
+As a result, we have not had success using the repository version typically built using OpenMPI <a rel="nofollow" class="external autonumber" href="https://www.open-mpi.org/">[2]</a> (and this certainly will be different to versions on large scale computing platforms).
+</p><p><br>
+</p>
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Container_version_in_Docker"><span class="tocnumber">1</span> <span class="toctext">Container version in Docker</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Building_from_Source_on_linux"><span class="tocnumber">2</span> <span class="toctext">Building from Source on linux</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Coupled_OpenFOAM_on_HPC"><span class="tocnumber">3</span> <span class="toctext">Coupled OpenFOAM on HPC</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Conda_Deployment"><span class="tocnumber">4</span> <span class="toctext">Conda Deployment</span></a></li>
+</ul>
+</div>
+
+<h1><span class="mw-headline" id="Container_version_in_Docker">Container version in Docker</span></h1>
+<p>An MPI aware container that is designed to allow testing of OpenFOAM, available <a rel="nofollow" class="external text" href="https://hub.docker.com/r/cpllibrary/cplopenfoam/">here</a>.
+</p><p><code>
+docker pull cpllibrary/cplopenfoam
+</code>
+</p><p>To work on supercomputers, <a rel="nofollow" class="external text" href="https://singularity.lbl.gov/">singularity</a> could be used with the ABI compatibility of MPI exploited.
+</p>
+<h1><span class="mw-headline" id="Building_from_Source_on_linux">Building from Source on linux</span></h1>
+<p>Typically OpenFOAM is the most tricky bit of the installation process, in part because it takes so long to build.
+It is recommend that it be built from the 3.0.1 source,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>mkdir ./OpenFOAM
+cd ./OpenFOAM
+wget http://downloads.sourceforge.net/foam/OpenFOAM-$FOAM_VERSION.tgz
+tar -xvf OpenFOAM-$FOAM_VERSION.tgz
+wget http://downloads.sourceforge.net/foam/ThirdParty-$FOAM_VERSION.tgz
+tar -xvf ThirdParty-$FOAM_VERSION.tgz</pre></div>
+<p>Setting up OpenFOAM then proceeds following the normal installation process <a rel="nofollow" class="external autonumber" href="https://openfoam.org/download/3-0-1-source/">[3]</a>
+ but with a number of tweaks due to issues in the build. First get the 
+prerequisites, this is for ubuntu 16.04 so may need a tweak for 
+different version of Debian based Linux (and use of yum or similar in 
+others).
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>apt-get update &amp;&amp; apt-get install -y \
+    bison \
+    flex-old \
+    libboost-system-dev \
+    libboost-thread-dev \
+    libncurses-dev  \
+    libreadline-dev\
+    libxt-dev \
+    libz-dev \</pre></div>
+<p>Note that flex has to be an old version (before 2.6) to prevent a 
+known issue. Once OpenFOAM has been downloaded along with the latest 
+version of the CPL APP (obtained as follows): 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>git clone https://github.com/Crompulence/CPL_APP_OPENFOAM-3.0.1.git CPL_APP_OPENFOAM-3.0.1</pre></div>
+<p>The steps to build it are roughly as follows:
+</p><p>1) Go to the OpenFOAM folder.
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>cd ./OpenFOAM/OpenFOAM-3.0.1</pre></div>
+<p>2) cd to CPL_APP_OPENFOAM-3.0.1/config <a rel="nofollow" class="external autonumber" href="https://github.com/Crompulence/CPL_APP_OPENFOAM-3.0.1">[4]</a> and <b>check the prefs.sh file is correct for your MPI installation</b>.
+ Note this requires the correct MPI_ROOT variable to be set correctly. 
+Once you are happy, copy "prefs.sh" to the etc directory in OpenFOAM 
+using 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>cp CPL_APP_OPENFOAM-3.0.1/config/prefs.sh OpenFOAM-3.0.1/etc</pre></div>
+<p>If you have the default system version from apt-get (MPICH not OpenMPI) you can use, 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>cp CPL_APP_OPENFOAM-3.0.1/config/prefs_system_mpich.sh OpenFOAM-3.0.1/etc</pre></div>
+<p>which attempts to use mpicc -show to obtain the base directory of your MPI installation. 
+</p><p>3) Go back to the socket's root directory, <code> CPL_APP_OPENFOAM-3.0.1 </code>, and <code> source SOURCEME.sh </code> from this directory.
+</p><p>4) Go to the ThirdParty folder and <code> ./Allwmake </code>. If you have the dependencies satisfied, it should compile. Now <code> cd .. </code>. Don't worry about CGAL and paraview unless you specifically want these features.
+</p><p>5) Apply cpl-socket/config/ptscotchDecomp.patch by doing 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>patch $FOAM_INST_DIR/src/parallel/decompose/ptscotchDecomp/ptscotchDecomp.C $APP_DIR/config/ptscotchDecomp.patch</pre></div>
+<p>This fix a redefinition of MPI_Init while compiling OpenFOAM. This error happens for some version of mpich3.2.
+</p><p>6) Compile OpenFOAM by going inside OpenFOAM-3.0.1 and running 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>./Allwmake</pre></div>
+<p>Note: For faster compilation, users can take advantage of 
+multi-processor machines to build the code in parallel by setting the 
+environment variable WM_NCOMPPROCS, e.g. export WM_NCOMPPROCS=8
+</p><p>A few extra issues sometimes occur here, where the build will 
+complain that directories are missing during a touch command. This can 
+be fixed by simply creating these directories,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>mkdir -p platforms/linux64GccDPInt32OptSYSTEMMPI/src/Pstream/mpi
+mkdir -p platforms/linux64GccDPInt32OptSYSTEMMPI/src/parallel/decompose/ptscotchDecomp</pre></div>
+<p>7) Advice: Go and watch a long film like Lord of the Rings trilogy or The Godfather, or go to sleep.
+</p><p>8) If everything went well, now compile the socket. In the top 
+level of OpenFOAM-3.0.1, save the location of the directory to the 
+CODE_INST_DIR file in the CPL_APP, e.g. 
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>pwd &gt; ../CPL_APP_OPENFOAM-3.0.1/CODE_INST_DIR</pre></div>
+<p>Next, change directory to CPL_APP_OPENFOAM-3.0.1 and call "make" in the socket's root directory.
+</p><p>9) The coupled run has to build a custom version of Pstream which
+ is linked into the compiled solvers, as required in order couple as 
+part of an MPMD simulation when MPI_COMM_WORLD includes more than just 
+OpenFOAM.
+</p><p>The full script for deployment on a fresh ubuntu 16.04 LTS is as 
+follows, WARNING this will remove your system OpenMPI and replace with 
+MPICH,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>#Prerequists
+sudo apt-get purge -y --auto-remove openmpi-bin
+sudo apt-get install -y mpich flex-old libz-dev libboost-system-dev libboost-thread-dev bison libreadline-dev libncurses-dev libxt-dev
+
+#Set some aliases
+FOAM_VERSION=3.0.1
+FOAM_SRC_DIR=$INSTALL_DIR/OpenFOAM-$FOAM_VERSION
+APP_DIR=$INSTALL_DIR/CPL_APP_OPENFOAM-$FOAM_VERSION
+
+#We copy this pref file to build OpenFOAM with system MPICH instead of OpenMPI
+cp $APP_DIR/config/prefs_system_mpich.sh $FOAM_SRC_DIR/etc/pref.sh
+
+#Build from CPL APP file
+cd $INSTALL_DIR/CPL_APP_OPENFOAM-3.0.1
+echo $FOAM_SRC_DIR &gt; $APP_DIR/CODE_INST_DIR
+source SOURCEME.sh  # Calls source $FOAM_SRC_DIR/etc/bashrc
+
+# Build on multiple processes
+export WM_NCOMPPROCS=8
+
+#Build Third Party code
+cd $INSTALL_DIR/ThirdParty-$FOAM_VERSION
+./Allwmake
+
+# -- COMPILE -- 
+cd $FOAM_SRC_DIR
+./Allwmake -j</pre></div>
+<p>Which can be adjusted as described above.
+</p>
+<h1><span class="mw-headline" id="Coupled_OpenFOAM_on_HPC">Coupled OpenFOAM on HPC</span></h1>
+<p>As OpenFOAM is very slow to build (order 8 hours), this deployment 
+can instead be achieved by using an existing version where possible. 
+For example, on ARCHER <a rel="nofollow" class="external autonumber" href="http://www.archer.ac.uk/">[5]</a> the UK supercomputer, this is achieved by copying key files:
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>###################################################
+#       Build CPL library
+###################################################
+
+#Get CPL library
+git clone https://github.com/Crompulence/cpl-library.git 
+cd cpl-library
+make PLATFORM=ARCHER
+#Next we need to build a newer version of mpi4py than available
+cd ./3rd-party
+python ./build_mpi4py_archer.py
+cd ../
+#Source all files
+source SOURCEME.sh
+cd ../
+
+###################################################
+#       Install/Copy system OpenFOAM
+###################################################
+
+#Get OpenFOAM by copying installed version
+mkdir OpenFOAM
+cd OpenFOAM 
+#We need to copy key third party files here, basically scotch for decomposition of parallel domain
+rsync -avP /work/y07/y07/cse/OpenFOAM/ThirdParty-3.0.1/scotch_6.0.3 ./ThirdParty-3.0.1
+rsync -avP /work/y07/y07/cse/OpenFOAM/ThirdParty-3.0.1/platforms ./ThirdParty-3.0.1
+
+#Next we copy OpenFOAM itself so it can be patched
+#rsync -avP /work/y07/y07/cse/OpenFOAM/OpenFOAM-3.0.1 ./
+#Try minimal set of required files:
+mkdir -p ./OpenFOAM-3.0.1/platforms/linux64GccDPOpt
+rsync -avP /work/y07/y07/cse/OpenFOAM/OpenFOAM-3.0.1/platforms/linux64GccDPOpt ./OpenFOAM-3.0.1/platforms
+rsync -avP /work/y07/y07/cse/OpenFOAM/OpenFOAM-3.0.1/etc ./OpenFOAM-3.0.1
+rsync -avP /work/y07/y07/cse/OpenFOAM/OpenFOAM-3.0.1/wmake ./OpenFOAM-3.0.1
+rsync -avP /work/y07/y07/cse/OpenFOAM/OpenFOAM-3.0.1/src ./OpenFOAM-3.0.1
+
+#Download CPL APP for OpenFOAM and apply patch
+OpenFOAM_APP_DIR=./CPL_APP_OPENFOAM-3.0.1
+git clone https://github.com/Crompulence/CPL_APP_OPENFOAM-3.0.1.git $OpenFOAM_APP_DIR
+pwd &gt; $OpenFOAM_APP_DIR/CODE_INST_DIR
+sed -i -e 's/export WM_COMPILER=Gcc/export WM_COMPILER=CC/g' ./config/prefs.sh
+cd $OpenFOAM_APP_DIR
+source SOURCEME.sh
+make sedifoam</pre></div>
+<p>where the deployment of CPL library includes a <a href="https://www.cpl-library.org/docs/Custom_install_of_mpi4py.shtml" title="Custom install of mpi4py">custom install of mpi4py</a> to allow testing and the python bindings to work as expected
+</p><p><br>
+</p>
+<h1><span class="mw-headline" id="Conda_Deployment">Conda Deployment</span></h1>
+<p>In principle, this could be as simple as running,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>    wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+
+    INSTALL_DIR=${PWD} #Change as you want
+    bash miniconda.sh -b -p $INSTALL_DIR/miniconda
+    export PATH="$INSTALL_DIR/miniconda/bin:$PATH"
+
+    conda create -n cplrun python=2.7
+    source activate cplrun
+
+    #We need to explicitly get latest gcc/gfortran
+    conda install -y gxx_linux-64
+    conda install -y gfortran_linux-64
+
+    #Here we install MPI version mpich
+    conda install -c edu159 -y mpich
+
+    #Now here OpenFOAM can be installed
+    conda install -c edu159 -y openfoam
+    source $CONDA_PREFIX/opt/OpenFOAM-3.0.1/etc/bashrc</pre></div>
+<p>To see an example of this, see <a rel="nofollow" class="external autonumber" href="https://github.com/Crompulence/CPL_APP_OPENFOAM-3.0.1/blob/master/.travis.yml">[6]</a> where the Travis CI testing suite  <a rel="nofollow" class="external autonumber" href="https://travis-ci.org/Crompulence/CPL_APP_OPENFOAM-3.0.1/">[7]</a>
+ uses this approach to deploy OpenFOAM on Ubuntu 14.04 and then builds 
+the rest of the coupling infrastructure around this (using gcc from 
+conda and mpich build within conda).
+This has a known problem on Ubuntu 16.04 as the version of libc &lt; 2.5
+ so building from source may be essential.
+</p>
+
+</body></html>

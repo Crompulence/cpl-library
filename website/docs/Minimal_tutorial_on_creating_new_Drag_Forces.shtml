@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<p>The process of designing an appropriate drag force is given as an example here.
+We will outline the process of designing the Ergun drag force,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>F = 150.0*e*nu*rho/(pow(e*D, 2.0)) + 1.75*rho()*Ur/(e*D)</pre></div>
+<p>where we need to work out both porosity e and the fluid velocity Ur = U_MD-U_CFD.
+A far more detailed version is given in the next section. 
+The minimal changes are given here, add the following to the
+CPL_force.h header file,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>class CPLForceErgun : public CPLForceGranular {
+
+public:
+
+    //Constructors
+    using CPLForceGranular::CPLForceGranular;
+
+    //Force specific things
+    double drag_coefficient(double r[], double D, std::vector&lt;double&gt; Ui_v);
+
+};</pre></div>
+<p>and the following code to CPL_force.cpp which changes the drag coefficient
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>double CPLForceErgun::drag_coefficient(double r[], double D, std::vector&lt;double&gt; Ui_v) {
+    double eps = CPLForceGranular::get_eps(r);
+    if (eps == 0.0) {
+        return 0.0;
+    } else {
+        return 150.0*eps*(mu/rho)*rho/(pow(eps*D, 2.0)) + 1.75*rho/(eps*D);
+    }
+}</pre></div>
+<p>That's it, provided the force can be defined in terms of position, D and relative velocity
+Ur with all fields from pre-force eSum and vSums.
+</p>
+
+
+</body></html>

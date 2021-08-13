@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#The_OpenFOAM_Solver"><span class="tocnumber">1</span> <span class="toctext">The OpenFOAM Solver</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#The_Coupled_IcoFOAM_Solver"><span class="tocnumber">2</span> <span class="toctext">The Coupled IcoFOAM Solver</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#The_SediFOAM_Solver"><span class="tocnumber">3</span> <span class="toctext">The SediFOAM Solver</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#References"><span class="tocnumber">4</span> <span class="toctext">References</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="The_OpenFOAM_Solver">The OpenFOAM Solver</span></h2>
+<p>OpenFOAM is a collection of numerical libraries, which can be used to
+ write a top level solver to do whatever you want.
+The coupling of OpenFOAM through CPL library maintains this philosophy, 
+by simply including a CPL::send and CPL::recv command in a custom solver
+ which is designed for the type of coupling you want.
+The only code needed to coupled in the simplest case is,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>    CPL.pack(U, p, nu, mesh, CPL.STRESS);
+    CPL.send();
+    CPL.recvVelocity();
+    CPL.unpackVelocity(U, mesh);</pre></div>
+<p>The pack command accepts a range of arguments as bitflags, for 
+example to pack up stress and velocity, we could use "CPL.stress | 
+CPL.vel".
+All possible values which can be obtained from velocity U and pressure p
+ can be packed (see the source code in CPLSocketFOAM).
+The user is encouraged to simply start from one of the example solvers 
+in this section (or the OpenFOAM tutorials), manipulate as needed to 
+solve whatever you want and send/receive. 
+If the default pack and unpack command to the socket code are not 
+sufficient, it should be straight forward to add new ones as needed.
+Note the main restriction that we assume a uniform grid for all 
+exchanged information.
+</p><p><br>
+</p>
+<h2><span class="mw-headline" id="The_Coupled_IcoFOAM_Solver">The Coupled IcoFOAM Solver</span></h2>
+<p>The simplest solver takes icoFOAM and adds in a CPL_send and CPL_recv
+ operation. 
+Some work is still required in the CPLSocket to pack stress of velocity 
+at the correct location and to unpack the required values into the 
+boundary cells.
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>\*---------------------------------------------------------------------------*/
+
+#include "fvCFD.H"
+#include "pisoControl.H"
+#include "CPLSocketFOAM.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+int main(int argc, char *argv[])
+{
+
+    CPLSocketFOAM CPL;
+    CPL.initComms(argc, argv);
+
+    #include "setRootCase.H"
+    #include "createTime.H"
+    #include "createMesh.H"
+    pisoControl piso(mesh);
+
+    #include "createFields.H"
+    #include "initContinuityErrs.H"
+
+    // MPI_Init is called somewhere in the PStream library
+    CPL.initCFD(runTime, mesh);
+
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+	
+
+	// Initial communication to initialize domains
+    CPL.pack(U, p, nu, mesh, CPL.STRESS);
+    CPL.send();
+    CPL.recvVelocity();
+    CPL.unpackVelocity(U, mesh);
+
+    Info&lt;&lt; "\nStarting time loop\n" &lt;&lt; endl;
+    while (runTime.loop())
+    {
+
+        //Pack and send to MD
+        if (CPL.Stresscoupling) 
+        {
+            CPL.pack(U, p, nu, mesh, CPL.VEL);
+        } elseif (CPL.velocitycoupling) 
+        {
+            CPL.pack(U, p, nu, mesh, CPL.STRESS);
+        }
+        CPL.send();
+
+        //Receive and unpack from MD
+        CPL.recvVelocity();
+        CPL.unpackVelocity(U, mesh);
+
+        #include "CourantNo.H"
+
+        // Momentum predictor
+        fvVectorMatrix UEqn
+        (
+            fvm::ddt(U)
+          + fvm::div(phi, U)
+          - fvm::laplacian(nu, U)
+        );
+
+        if (piso.momentumPredictor())
+            solve(UEqn == -fvc::grad(p));
+
+        // --- PISO loop
+        while (piso.correct())
+        {
+            volScalarField rAU(1.0/UEqn.A());
+
+            volVectorField HbyA("HbyA", U);
+            HbyA = rAU*UEqn.H();
+            surfaceScalarField phiHbyA
+            (
+                "phiHbyA",
+                (fvc::interpolate(HbyA) &amp; mesh.Sf())
+              + fvc::interpolate(rAU)*fvc::ddtCorr(U, phi)
+            );
+
+            adjustPhi(phiHbyA, U, p);
+
+            // Non-orthogonal pressure corrector loop
+            while (piso.correctNonOrthogonal())
+            {
+                // Pressure corrector
+                fvScalarMatrix pEqn
+                (
+                    fvm::laplacian(rAU, p) == fvc::div(phiHbyA)
+                );
+
+                pEqn.setReference(pRefCell, pRefValue);
+                pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
+
+                if (piso.finalNonOrthogonalIter())
+                    phi = phiHbyA - pEqn.flux();
+
+            }
+
+            #include "continuityErrs.H"
+
+            U = HbyA - rAU*fvc::grad(p);
+            U.correctBoundaryConditions();
+        }
+
+        runTime.write();
+
+        Info&lt;&lt; "ExecutionTime = " &lt;&lt; runTime.elapsedCpuTime() &lt;&lt; " s"
+            &lt;&lt; "  ClockTime = " &lt;&lt; runTime.elapsedClockTime() &lt;&lt; " s"
+            &lt;&lt; nl &lt;&lt; endl;
+    }
+    Info&lt;&lt; "End\n" &lt;&lt; endl;
+	CPL::finalize();
+
+    return 0;
+}</pre></div>
+<p>Otherwise the solver proceeds much as if coupling is not applied.
+</p>
+<h2><span class="mw-headline" id="The_SediFOAM_Solver">The SediFOAM Solver</span></h2>
+<p>Based on lammpsFoam from the SediFOAM project <a rel="nofollow" class="external autonumber" href="https://github.com/xiaoh/sediFoam">[1]</a>.
+ 
+The system solved is the incompressible fluid phase and a second phase 
+which is the particles in the liquid modeled with DEM (LAMMPS).
+</p><p>The actual coupling all occures through a CPL_Send and CPL_recv interface.
+</p><p>The SediFOAM code is based on bubbleFoam/twoPhaseEulerFoam, described in a forum exchange <sup id="cite_ref-1" class="reference"><a href="#cite_note-1">[1]</a></sup> using the phase intensive formulation of the momentum equation <sup id="cite_ref-2" class="reference"><a href="#cite_note-2">[2]</a></sup>. The details of the implementation in OpenFOAM(r) are described in an internal report of OpenCFD <sup id="cite_ref-3" class="reference"><a href="#cite_note-3">[3]</a></sup> but are apparently summed up in Henrik Rusche PhD thesis <a rel="nofollow" class="external autonumber" href="https://spiral.imperial.ac.uk:8443/handle/10044/1/8110">[2]</a>.
+</p><p>The idea behind the solution algorithm is the following
+</p>
+<pre>- momentum predictor without pressure gradient, solve one Jacobi iteration to get a guess of velocity.
+- move gravity and part of the drag term to the pressure solver (known as semi-implicit coupling).
+- solve the poisson equation to get the velocity correction which gives the required pressure but do not correct the velocity field directly, instead correct the combined flux for both phases of the system.
+- obtain the velocity correction from a reconstruction of the flux correction.
+</pre>
+<p>The last two steps are the key point, if you want to have a stable 
+solution when sharp interfaces with large density gradients are present.
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>\*---------------------------------------------------------------------------*/
+
+#include "fvCFD.H"
+#include "CPLSocketFOAM.H"
+
+int main(int argc, char *argv[])
+{
+
+    //This Command turns off solver output 
+    solverPerformance::debug=0;
+
+    // Create a CPL object (not used if uncoupled)
+    // and intialise MPI
+    CPLSocketFOAM CPL;
+    MPI_Init(&amp;argc, &amp;argv);
+
+    #include "setRootCase.H"
+    #include "createTime.H"
+    #include "createMesh.H"
+    #include "readEnvironmentalProperties.H"
+    #include "createFields.H"
+    #include "readPISO.H"
+    #include "initContinuityErrs.H"
+
+    if (coupled)
+        CPL.initComms(argc, argv);
+
+    // Also update/create MD-related fields.
+    beta = scalar(1) - alpha;
+    volScalarField dragCoef = alpha*dimensionedScalar("dum", dimensionSet(1, -3, -1, 0, 0), 0.0);
+
+	// MPI_Init is called somewhere in the PStream library
+    if (coupled)
+        CPL.initCFD(runTime, mesh);
+
+    Info&lt;&lt; "\nStarting time loop\n" &lt;&lt; endl;
+
+    while (runTime.run())
+    {
+        runTime++;
+        
+        if (runTime.outputTime())
+            Info&lt;&lt; "Time = " &lt;&lt; runTime.timeName() &lt;&lt; endl;
+
+        if (coupled){
+            //Packup and send velocity, gradident of pressure and divergence of stress
+            CPL.pack(Ub, p, nub, mesh, CPL.VEL | CPL.GRADPRESSURE | CPL.DIVSTRESS);
+            CPL.send();
+
+            //Recieve and unpack particle velocity, force, 
+            //sum of force weightings and porosity
+            CPL.recv();
+            CPL.unpackPorousVelForceCoeff(Ua, F, dragCoef, beta, maxPossibleAlpha, mesh);
+            alpha = scalar(1) - beta;
+        }
+
+        fvVectorMatrix UbEqn(Ub, Ub.dimensions()*dimVol/dimTime);
+        betaf = fvc::interpolate(beta);
+        betaPhib = betaf*phib;
+
+        // See H. Xiao and J. Sun / Commun. Comput. Phys., 9 (2011), pp. 297-323 
+        // For explaination of various terms omega and A from Cloud
+        // \sum DragCoef*U_b where U_b is fluid velocity 
+        UbEqn =
+        (
+            fvm::ddt(beta, Ub)
+          + fvm::div(betaPhib, Ub, "div(phib,Ub)")
+          - fvm::Sp(fvc::ddt(beta) + fvc::div(betaPhib), Ub)
+          // This term is different in Anderson &amp; Jackson or Kafui et al: e*du VS. d(e*u)
+          - fvm::laplacian(nub*beta, Ub)
+         ==
+          - beta*fvm::Sp(dragCoef/rhob, Ub)   // Implicit drag transfered to p-equation
+        );
+
+
+        // E.S. A full solve seems to be needed here in place of relax to give correct answer
+        // for plain Couette flow solver
+        solve(UbEqn == -fvc::grad(p));
+
+        // Only a Jacobi iteration is done to find a guess of the velocity 
+        // before solving for the pressure equation based on the mixture
+        //UbEqn.relax();
+
+        // --- PISO loop
+        volScalarField rUbA = 1.0/UbEqn.A()*beta;
+
+        // Iterate over number of nCorr specified by PISO input
+        for (int corr = 0; corr &lt; nCorr; corr++)
+        {
+            surfaceScalarField alphaf = fvc::interpolate(alpha);
+            surfaceScalarField betaf = scalar(1) - alphaf;
+            surfaceScalarField rUbAf = fvc::interpolate(rUbA);
+            Ub = rUbA*UbEqn.H()/beta;
+
+            // The gravity and explicit part of drag are moved to the
+            // pressure equation (this is known as semi-implicit coupling)
+            surfaceScalarField phiDragb = fvc::interpolate(rUbA/rhob) 
+                                         *(fvc::interpolate(F) &amp; mesh.Sf())
+                                         + rUbAf*(g &amp; mesh.Sf());  
+            forAll(p.boundaryField(), patchi)
+            {
+                if (isA&lt;zeroGradientFvPatchScalarField&gt;(p.boundaryField()[patchi]))
+                    phiDragb.boundaryField()[patchi] = 0.0;
+            }
+            Ua.correctBoundaryConditions();
+
+            // Solve the pressure equation to enforce mass conservation for the mixture
+            phia = (fvc::interpolate(Ua) &amp; mesh.Sf());
+            phib = (fvc::interpolate(Ub) &amp; mesh.Sf())
+                  + rUbAf*fvc::ddtCorr(Ub, phib)
+                  + phiDragb;
+            phi = alphaf*phia + betaf*phib;
+            surfaceScalarField Dp("(rhob*(1|A(U)))", betaf*rUbAf/rhob);
+            fvScalarMatrix pEqn(fvm::laplacian(Dp, p) == fvc::div(phi));
+            pEqn.setReference(pRefCell, pRefValue);
+            pEqn.solve();
+
+            // Do not correct the velocity field directly, instead correct the flux
+            surfaceScalarField SfGradp = pEqn.flux()/Dp;
+            phib -= rUbAf*SfGradp/rhob;
+            phi = alphaf*phia + betaf*phib;
+            p.relax();
+            SfGradp = pEqn.flux()/Dp;
+            Ub += (fvc::reconstruct(phiDragb - rUbAf*SfGradp/rhob));
+            Ub.correctBoundaryConditions();
+            U = alpha*Ua + beta*Ub;
+    
+        }
+        Ub.correctBoundaryConditions();
+
+        #include "write.H"
+
+    }
+
+    Info&lt;&lt; "End\n" &lt;&lt; endl;
+
+    if (! Pstream::parRun())  MPI_Finalize();
+    return(0);
+}</pre></div>
+<p><br>
+</p>
+<h2><span class="mw-headline" id="References">References</span></h2>
+<li id="cite_note-1"><span class="mw-cite-backlink"><a href="#cite_ref-1">↑</a></span> <span class="reference-text"> <a rel="nofollow" class="external free" href="https://www.cfd-online.com/Forums/openfoam-solving/58178-twophaseeulerfoam-documentation-2.html">https://www.cfd-online.com/Forums/openfoam-solving/58178-twophaseeulerfoam-documentation-2.html</a> </span>
+</li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><a href="#cite_ref-2">↑</a></span> <span class="reference-text">
+ P. J. Oliveira, R. I. Issa, Numerical aspects of an algorithm for the 
+Eulerian simulation, of two-phase flows, International Journal of 
+Numerical Methods in Fluids, 2003; 43:1177–1198 (DOI: 10.1002/fld.508) </span>
+</li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><a href="#cite_ref-3">↑</a></span> <span class="reference-text"> NOT AVAILABLE ANYWHERE </span>
+</li>
+</ol>
+
+
+</body></html>

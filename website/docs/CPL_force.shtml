@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<h2><span class="mw-headline" id="Section_on_CPL_field">Section on CPL_field</span></h2>
+<p>CPL_field extends the ndarray to build up a physical field. This is 
+an encapsulated relationship, the field object contains an array of 
+field data, extending it to include domain extents, functions to 
+interpolate or average values in space. So far, there is no inheritance 
+used with field as we can get the required flexitbility from dynamic 
+dispatch (e.g. add_to_array can include a radius, in which case the 
+fraction inside a cell will be calculated).
+</p>
+
+</body></html>

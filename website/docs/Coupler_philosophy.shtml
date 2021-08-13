@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<p>We need to setup a coupled case. As a minimum we need four pieces of information to do this:
+</p>
+<pre>   1) The CFD and MD domain size
+   2) The size of the overlap between both domains
+   3) Processor topology in both domains
+   4) Grid or cell information
+</pre>
+<p>This is required to create the map between processors in both 
+domains.
+The CFD, MD and overlap sizes is sufficient to determine processes which
+ will communicate.
+However, in order to send cell or grid based information, the physical 
+cell locations are also needed to identify which part of a processor is 
+send to another processor. 
+There is only a single grid here -- specified from the CFD <b>CPL_setup</b> routine.
+</p><p>In CPL library, the current setup assumes a uniform grid.
+This is because this is the simplest approach to match regions in space 
+between the CFD code and the MD regions used to bin data.
+Even with a non-uniform grid this approach makes sense as the overlap 
+region could still be uniform or interpolated to exchange data.
+</p><p><br>
+The philosophy was that CFD processors would be much bigger than the MD 
+so would never be a problem (most of the computer/processes are 
+allocated to MD so more than one proc in y for the CFD was unlikely, let
+ alone in the overlap). 
+Similarly, the coupled cases assume there are multiple MD processes per 
+CFD, and doesn't allow multiple CFD per MD.
+</p><p>If the constraint region is on one processor and the bottom of the 
+overlap on another. Or alternatively the constraint region is split over 
+two processor, it becomes more complex to send the data and manage the 
+applied constraint.
+</p><p>If this is something that presents a problem then we can look into fixing (shouldn't be too difficult). 
+It is mainly just lack of development for more complex cases (in the coupler mapping) which is designed to be extensible.
+</p>
+
+</body></html>

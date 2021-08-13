@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<p>Before this case, take a look at the <a href="https://www.cpl-library.org/docs/CPL_library_in_Docker.shtml" title="CPL library in Docker">CPL library in Docker</a>
+ to see an introduction to running the MPI processes inside a single 
+Docker container.
+However, a far more interesting application is to create two containers 
+and then link the processes running in them with MPI sending information
+ between them.
+First we need to get the CPL library docker image:
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>sudo docker pull cpllibrary/cpl-library</pre></div>
+<p>Next, we want to start a coupled case with a persistent shared volume
+The shared volume:
+</p>
+<ol><li> Will contain all the output of the run </li>
+<li> Can allow coupling between two docker containers</li></ol>
+<p>To starts an interactive bash session called cplrun with volume cpl-vol mounted under folder /cplruns
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>sudo docker run -it --name cplrun1 --mount source=cpl-vol,target=/cplruns cpllibrary/cpl-library</pre></div>
+<p>In the first docker container, copy an example to cplruns
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>rsync -avP /cpl-library/examples/minimal_send_recv_mocks/ /cplruns/</pre></div>
+<p>Change directory to cplruns and run the CFD example
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>cd /cplruns/
+mpiexec -n 1 python ./minimal_CFD.py</pre></div>
+<p>This will create a PORT file in /cplruns/ which will be used to link to another executable running in a second container.
+To understand how this work, check out the discussion in <a href="https://www.cpl-library.org/docs/Run_CPL_library.shtml" title="Run CPL library">Run CPL library</a>
+ which outlines the use of MPI PORT as a way to avoid patching the two 
+coupled codes. 
+As a result, we need to open A NEW TERMINAL and create a second docker 
+container running in this but with access to the same file system
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>sudo docker run -it --name cplrun2 --mount source=cpl-vol,target=/cplruns cpllibrary/cpl-library</pre></div>
+<p>In this container, we change to the cplruns directory and simply start the corresponding MD run we want to couple,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>cd /cplruns/
+mpiexec -n 8 python ./minimal_MD.py</pre></div>
+<p>The output from the coupled codes should appear in both terminals as they exchange information.
+This has only been tested on a single machine, ssh keys and a shared file system would need to be established between computers.
+</p><p>To see the location of the volume on the host system
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>sudo docker volume inspect cpl-vol</pre></div>
+<p><br>
+</p>
+<h2><span class="mw-headline" id="Coupling_OpenFOAM_and_LAMMPS">Coupling OpenFOAM and LAMMPS</span></h2>
+<p>We can use this approach to couple OpenFOAM and LAMMPS. In this case,
+ both Docker containers are built FROM the same cpllibrary/cpl-library 
+so have identical MPI and CPL library. As before, open two separate 
+terminals as we'll be creating a Docker container for each program. 
+</p><p>Starting with the OpenFOAM docker container in terminal 1,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>sudo docker run -it --name cplopenfoam --mount source=cpl-vol,target=/cplruns cpllibrary/cplopenfoam</pre></div>
+<p>Now, we need to copy as example to the directory shared between 
+containers, we'll take the granular example which uses an fcc lattice 
+with fixed particles,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>rsync -avP /cpl-library/examples/fcc_fixedParticles /cplruns/
+cd /cplruns/fcc_fixedParticles</pre></div>
+<p>To setup OpenFOAM, check out the contents of <code> run.sh </code> which does the setup on the mesh in parallel and runs the case.
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>cd openfoam
+blockMesh
+decomposePar
+cd ../
+mpiexec -n 1 CPLSediFOAM -case openfoam/</pre></div>
+<p>This will wait after writing a portfile which allows connection when 
+read by the corresponding LAMMPS instance that want to be coupled,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>Only CFD realm present in MPI_COMM_WORLD
+opened port: tag#0$description#9b5483f241c$port#41258$ifname#172.21.0.2$ Attempting to write to file:./port
+Portname written to file ./port</pre></div>
+<p>Next, in the other terminal start a LAMMPS Docker container,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>sudo docker run -it --name cpllammps --mount source=cpl-vol,target=/cplruns cpllibrary/cpllammps</pre></div>
+<p>In the container, we need to change to the run directory cplruns and run,
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>cd /cplruns
+mpiexec -n 1 lmp_cpl &lt; lammps/fcc.in</pre></div>
+<p>the LAMMPS instance runs, links to OpenFOAM in a different Docker 
+container with communication through the MPI port system and runs a 
+case.
+</p>
+
+</body></html>

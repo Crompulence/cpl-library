@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<title>About CPL Library</title>
+
+<head>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="shortcut icon" href="../cpl_logo.ico">
+</head>
+
+
+<body>
+
+    <div class="center">
+
+        <!-- Navigation toolbar -->
+<div id="nav">
+
+    <table>
+    <tr>
+        <td style="text-align: left;"> 
+            <homebutton><a style="text-decoration: none;" href='/index.shtml'>cpl library</a></homebutton>
+        </td>
+        <td style="text-align: right;">
+        <ul>
+            <li><a style="text-decoration: none;" class="links" href='/about.shtml'>about </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/download.shtml'>download </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/documentation.shtml'>documentation </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/faq.shtml'>faq </a></li>
+            <li><a style="text-decoration: none;" class="links" href='/contact.shtml'>contact </a></li>
+        </ul>
+        </td>
+    </tr>
+    </table>
+
+    <hr>
+
+</div> 
+
+<p>Provided below is a minimal script to deploy LAMMPS on a linux like 
+operating system by checking out from github, copying a makefile to 
+include c++ std-11 and cpl library, patching the top level to allow MPMD
+ mode (this can be skipped if you can <a href="https://www.cpl-library.org/docs/Run_CPL_library.shtml" title="Run CPL library">Run CPL library</a> with MPI_port) and building LAMMPS.
+</p><p><b>REMEMBER TO BUILD ALL CODES WITH THE SAME VERSION OF MPI TO ENSURE COUPLING IS POSSIBLE</b>.
+</p>
+<div class="mw-highlight mw-content-ltr" dir="ltr"><pre>#Get LAMMPS first as this requires password
+mkdir LAMMPS
+cd ./LAMMPS
+git clone https://github.com/lammps/lammps.git gitlammps
+
+#Download CPL APP for LAMMPS and add package USER-CPL
+LAMMPS_APP_DIR=./CPL_APP_LAMMPS-DEV
+git clone https://github.com/Crompulence/CPL_APP_LAMMPS-DEV.git $LAMMPS_APP_DIR
+cd gitlammps
+pwd &gt; ../$LAMMPS_APP_DIR/CODE_INST_DIR
+cd ../$LAMMPS_APP_DIR
+sed -i -e 's/mpicxx/CC/g' ./config/Makefile.cpl
+
+# We need to patch main.cpp to allow MPMD mode as ARCHER mpich does not
+# support using MPI_ports
+make patch-lammps-Oct17
+make -j 16
+cd ../</pre></div>
+
+</body></html>
