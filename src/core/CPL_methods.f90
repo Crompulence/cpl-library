@@ -799,7 +799,7 @@ subroutine CPL_send_full(asend, limits, send_flag)
         call MPI_AllReduce(npercell, check_send, 1, MPI_INTEGER, & 
                            MPI_SUM, CPL_REALM_INTERSECTION_COMM, ierr)
         call MPI_comm_size(CPL_REALM_INTERSECTION_COMM, n, ierr)
-        print*, "Send npercell=", npercell, check_send, n
+        !print*, "Send npercell=", npercell, check_send, n
         if (check_send/n .ne. npercell) then
             print*, "Error in CPL send in ", realm_name(realm), & 
                     " realm, expected send size: ", npercell, " but recv is expecting ", check_send/n
@@ -1012,7 +1012,7 @@ subroutine CPL_recv_full(arecv, limits, recv_flag)
                         MPI_SUM, CPL_REALM_INTERSECTION_COMM, ierr)
         call MPI_comm_size(CPL_REALM_INTERSECTION_COMM, n, ierr)
 
-        print*, "Recv npercell=", npercell, check_recv, n
+        !print*, "Recv npercell=", npercell, check_recv, n
         if (check_recv/n .ne. npercell) then
             print*, "Error in CPL recv in ", realm_name(realm), & 
                     " realm, expected recv size: ", npercell, " but got ", check_recv/n
