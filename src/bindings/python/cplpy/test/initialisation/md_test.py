@@ -1,9 +1,9 @@
 #!/usr/bin/env python2
-from __future__ import print_function, division
+
 from mpi4py import MPI
 from cplpy import CPL
 import numpy as np
-import cPickle
+import pickle
 import sys
 
 comm_world = MPI.COMM_WORLD
@@ -15,7 +15,7 @@ CPL.set("output_mode", 0)
 dt = 0.1
 
 # Load parameters for the run
-params = cPickle.load(open("md_params.dic", "rb"))
+params = pickle.load(open("md_params.dic", "rb"))
 
 # Parameters of the cpu topology (cartesian grid)
 try:

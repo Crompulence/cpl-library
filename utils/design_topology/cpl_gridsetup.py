@@ -304,7 +304,7 @@ class Coupled_Grid(wx.Frame):
         maxny = self.cntrp.CPLpanel.py.GetValue()
         maxnz = self.cntrp.CPLpanel.pz.GetValue()
 
-        print("CPL", minnx, minny, minnz, maxnx, maxny, maxnz)          
+        print(("CPL", minnx, minny, minnz, maxnx, maxny, maxnz))          
         
         #MD
         px_MD = self.cntrp.MDpanel.px.GetValue()
@@ -317,7 +317,7 @@ class Coupled_Grid(wx.Frame):
         ymax_MD = self.cntrp.MDpanel.ymax.GetValue()
         zmax_MD = self.cntrp.MDpanel.zmax.GetValue()
 
-        print("MD",1,1,1,xmin_MD,ymin_MD,zmin_MD,xmax_MD,ymax_MD,zmax_MD)          
+        print(("MD",1,1,1,xmin_MD,ymin_MD,zmin_MD,xmax_MD,ymax_MD,zmax_MD))          
         draw_grid(self.pyplotp.ax,1,1,1,
                   px=px_MD,py=py_MD,pz=pz_MD,
                   xmin=xmin_MD,ymin=ymin_MD,zmin=zmin_MD,
@@ -345,7 +345,7 @@ class Coupled_Grid(wx.Frame):
         ymin_CPL = ymax_MD - maxny*dy
         ymax_CPL = ymin_CPL + ny_CFD*dy
 
-        print("CFD",nx_CFD,ny_CFD,nz_CFD,xmin_CFD,ymin_CFD,zmin_CFD,xmax_CFD,ymax_CFD,zmax_CFD,dx,dy,dz)          
+        print(("CFD",nx_CFD,ny_CFD,nz_CFD,xmin_CFD,ymin_CFD,zmin_CFD,xmax_CFD,ymax_CFD,zmax_CFD,dx,dy,dz))          
         draw_grid(self.pyplotp.ax,nx_CFD,ny_CFD,nz_CFD,
                   px=px_CFD,py=py_CFD,pz=pz_CFD,
                   xmin=xmin_CFD,ymin=ymin_CPL,zmin=zmin_CFD,
@@ -379,7 +379,7 @@ class Coupled_Grid(wx.Frame):
 
         if defaultFile == 'fig.png':
             try:
-                print('Saving figure as ' + fpath)
+                print(('Saving figure as ' + fpath))
                 self.pyplotp.savefigure(fpath)
                 print('Saved.')
             except ValueError:

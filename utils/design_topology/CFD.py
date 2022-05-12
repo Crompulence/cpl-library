@@ -25,8 +25,8 @@ class CFD():
         self.ncxyz = np.array(ncxyz, order='F', dtype=np.int32)
 
         if (self.nprocs_realm != self.NProcs):
-            print("Non-coherent number of processes in CFD ", self.nprocs_realm,
-                    " no equal to ",  self.npxyz[0], " X ", self.npxyz[1], " X ", self.npxyz[2])
+            print(("Non-coherent number of processes in CFD ", self.nprocs_realm,
+                    " no equal to ",  self.npxyz[0], " X ", self.npxyz[1], " X ", self.npxyz[2]))
             MPI.Abort(errorcode=1)
 
         #Setup coupled simulation
@@ -102,7 +102,7 @@ class CFD():
             for j in range(self.joverlap):
                 ax.plot(x, 0.5*self.dy*(self.recv_array[0,:,j,0]+1.+2*j), 's-')
         except ValueError:
-            print("Arrays not equal:", x.shape, z.shape, self.recv_array.shape)
+            print(("Arrays not equal:", x.shape, z.shape, self.recv_array.shape))
 
     def finalise(self):
 

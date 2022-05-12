@@ -40,7 +40,7 @@ except IndexError:
 if arg1 == "-f": 
     answer = 'y'
 else:
-    answer = raw_input('Proceed? [y]/n: ')
+    answer = input('Proceed? [y]/n: ')
 
 if (answer == 'y' or answer == 'Y'):
     for f in deletelist:

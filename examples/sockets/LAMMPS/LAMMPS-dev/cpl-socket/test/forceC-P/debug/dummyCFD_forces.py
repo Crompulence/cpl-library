@@ -1,6 +1,6 @@
-from __future__ import print_function, division
+
 import sys
-import cPickle
+import pickle
 
 try:
     from mpi4py import MPI
@@ -17,7 +17,7 @@ cpllib.set("output_mode", 1)
 
 try:
     # Load parameters for the run
-    params = cPickle.load(open("cfd_params.dic", "rb"))
+    params = pickle.load(open("cfd_params.dic", "rb"))
 
     # Parameters of the cpu topology (cartesian grid)
     NPx = params["npx"]

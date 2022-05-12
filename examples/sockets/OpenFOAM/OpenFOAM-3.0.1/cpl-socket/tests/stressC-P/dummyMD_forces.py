@@ -1,6 +1,6 @@
-from __future__ import print_function, division
+
 import sys
-import cPickle
+import pickle
 
 try:
     from mpi4py import MPI
@@ -17,7 +17,7 @@ cpllib.set("output_mode", 1)
 
 try:
     # Load parameters for the run
-    params = cPickle.load(open("md_params.dic", "rb"))
+    params = pickle.load(open("md_params.dic", "rb"))
 
     # Parameters of the cpu topology (cartesian grid)
     NPx = params["npx"]
@@ -78,7 +78,7 @@ if NPx % 2 != 0 and my_coords[0] == 0:
     send_array = np.zeros((4,velBCncx, velBCncy, velBCncz), order='F', dtype=np.float64)
 
 nsteps = cpllib.get("nsteps_coupled")
-for i in xrange(nsteps):
+for i in range(nsteps):
     cpllib.recv(recv_array, cnstFRegion)
     cpllib.send(send_array, velBCRegion)
 

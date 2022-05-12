@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 import re
 try:
@@ -181,12 +181,12 @@ def get_libraries(filename=None):
      Get List of Librairies in Dictionary
     """
     run = runcmd('ldd '+ filename)
-    lddOut = run.stdout.read()
+    lddOut = run.stdout.read().decode("utf-8")
     if "not" in lddOut and "dynamic" in lddOut:
         print(filename + " is " + lddOut)
         return "N/A"
     libraries = {}
-    for line in lddOut.splitlines():
+    for line in lddOut.split("\n"):
         match = re.match(r'\t(.*) => (.*) \(0x', line)
         if match:
             libraries[match.group(1)] = match.group(2)
@@ -337,11 +337,20 @@ for k in Dicts:
             #libs = mpilibpath + "libmpi.so" #glob.glob(mpilibpath + "*mpi*")
             if not os.path.isfile(mpilibpath):
                 msg = "libmpi.so not found under " + mpilibpath
-                raise IOError(msg)
+                output = sp.check_output(mpibinpath + " -show", shell=True).decode("utf-8") 
+                mpilibpath = output[output.find("-L")+2:].split()[0]
+                if (mpilibpath == ""):
+                    raise IOError(msg)
+                else:
+                    d["libs"] = {"libmpi.so":mpilibpath}
             else:
                 d["libs"] = {"libmpi.so":mpilibpath}
         except ImportError:
             print("mpi4py import error, please check this is installed correctly")
+        except IOError:
+            d["libs"] = {"libmpi.so":"UNKNOWN"}
+            pass
+            #print("mpi libraries cannot be found")
 
 
     else:
@@ -363,6 +372,7 @@ if Dicts["MD"]["cpl_path"] != Dicts["CFD"]["cpl_path"]:
         sys.exit(1)
 else:
     cpllib = get_libraries(Dicts["MD"]["cpl_path"])
+
 
 #Check for MPI libraries for both cpl and executables are the same
 for lib, lpath in cpllib.items():
@@ -388,10 +398,11 @@ for lib, lpath in Dicts["MD"]["libs"].items():
 
 if (Dicts["MD"]["MPI"] != Dicts["CFD"]["MPI"]) or (CPL_mpi != Dicts["CFD"]["MPI"]):
     print("Warning -- different MPI linked into executables")
+    print("MD MPI = ", Dicts["MD"]["MPI"], "CFD MPI=", Dicts["CFD"]["MPI"])
     if not args["permissive"]:
         sys.exit(1)
-else:
-    mpilibs = get_libraries(CPL_mpi)
+
+mpilibs = get_libraries(CPL_mpi)
 
 # Check fortran and c++ compilers are consistent 
 # for mpi, cpl and executables
@@ -420,7 +431,7 @@ if args["verbose"]:
 for k in Dicts:
     d = Dicts[k]
     if d["ispython"]:
-        d["exec"] = "python " + d["exec"]
+        d["exec"] = "python3 " + d["exec"]
 
 
 #Remove previous port file
@@ -473,7 +484,7 @@ else:
         if p_CFD.poll():
             c = p_CFD.communicate()
             print("Error code = ", p_CFD.poll(), c[0])
-            for l in c[1].split("\n"):
+            for l in c[1].decode("utf-8").split("\n"):
                 print(l)
             raise sp.CalledProcessError(p_CFD.poll(), ' '.join(cmdstr_CFD))
             sys.exit(1)
@@ -484,7 +495,7 @@ else:
         if p_MD.poll():
             c = p_MD.communicate()
             print("Error code = ", p_MD.poll(), c[0])
-            for l in c[1].split("\n"):
+            for l in c[1].decode("utf-8").split("\n"):
                 print(l)
             raise sp.CalledProcessError(p_MD.poll(), ' '.join(cmdstr_MD))
             sys.exit(1)

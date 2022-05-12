@@ -28,7 +28,7 @@ def get_subprocess_error(e):
     print("subprocess ERROR")
     import json
     error = json.loads(e[7:])
-    print(error['code'], error['message'])
+    print((error['code'], error['message']))
 
 #Generate drag results from CPL_force
 print(" Rebuilding and running c++ code")
@@ -99,7 +99,7 @@ def test_answer(case,out):
     data, Fpy = get_data(case)
     #Difference in convention between seepage and superficial velocities
     eps = (1-data['phi'])
-    print(case + " max Error = ", np.max(np.abs((Fpy+data['F0'])/Fpy)))
+    print((case + " max Error = ", np.max(np.abs((Fpy+data['F0'])/Fpy))))
     assert((np.max(np.abs((Fpy+data['F0'])/Fpy)) < 1e-5) == out)
 
 cases = ["Di_Felice", "Stokes", "Ergun", "BVK", "Tang"]
@@ -138,7 +138,7 @@ if plotstuff:
         plt.ylabel("$F$")
         plt.show()
 
-        print(case + " max Error = ", np.max(np.abs((Fpy+CPLdata['F0'])/Fpy)))
+        print((case + " max Error = ", np.max(np.abs((Fpy+CPLdata['F0'])/Fpy))))
         assert(np.max(np.abs((Fpy+CPLdata['F0'])/Fpy) < 1e-5) == True)
         #plt.savefig(case + "D.pdf", bbox_inches="tight")
 

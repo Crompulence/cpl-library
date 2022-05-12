@@ -1,9 +1,9 @@
 #!/usr/bin/env python2
-from __future__ import print_function, division
+
 from mpi4py import MPI
 from cplpy import CPL
 import numpy as np
-import cPickle
+import pickle
 import sys
 
 comm_world = MPI.COMM_WORLD
@@ -13,7 +13,7 @@ CPL = CPL()
 CPL.set("output_mode", 0)
 
 # Load parameters for the run
-params = cPickle.load(open("cfd_params.dic", "rb"))
+params = pickle.load(open("cfd_params.dic", "rb"))
 
 
 # Test selector flag
@@ -80,9 +80,9 @@ if CPL.overlap():
     portion = CPL.my_proc_portion(olap_region)
     [ncxl, ncyl, nczl] = CPL.get_no_cells(portion)
     send_array = np.zeros((3, ncxl, ncyl, nczl), order='F', dtype=np.float64)
-    for iglob in xrange(portion[0], portion[1] + 1):
-        for jglob in xrange(portion[2], portion[3] + 1):
-            for kglob in xrange(portion[4], portion[5] + 1):
+    for iglob in range(portion[0], portion[1] + 1):
+        for jglob in range(portion[2], portion[3] + 1):
+            for kglob in range(portion[4], portion[5] + 1):
                 iloc, jloc, kloc = CPL.map_glob2loc_cell(portion,
                                                          [iglob, jglob, kglob])
                 if which_test == "cell_test":
@@ -103,9 +103,9 @@ if CPL.overlap():
     send_array = np.zeros((3, 0, 0, 0), order='F', dtype=np.float64)
     #CPL.gather(send_array, olap_region, recv_array)
     CPL.recv(recv_array, olap_region)
-    for icfd in xrange(portion[0], portion[1] + 1):
-        for jcfd in xrange(portion[2], portion[3] + 1):
-            for kcfd in xrange(portion[4], portion[5] + 1):
+    for icfd in range(portion[0], portion[1] + 1):
+        for jcfd in range(portion[2], portion[3] + 1):
+            for kcfd in range(portion[4], portion[5] + 1):
                 iloc, jloc, kloc, = CPL.map_glob2loc_cell(portion,
                                                           [icfd, jcfd, kcfd])
 

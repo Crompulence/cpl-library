@@ -42,11 +42,11 @@ Cd = 3*np.pi*mu*dp*K
 cCd = cnp*Cd
 pBot = 4.5*mu*phi*K*L*Ubb/(rp**2)
 
-print('Number of particles in CFD cell: ' + str(cnp))
-print('Sum of drag coeff in CFD cell: ' + str(cCd))
-print('Expected velocity through packed bed: ' + str(Ubb/eps))
-print('Expected pressure gradient through packed bed: ' + str(pBot/L))
-print('Expected pressure value on bottom boundary: ' + str(pBot))
+print(('Number of particles in CFD cell: ' + str(cnp)))
+print(('Sum of drag coeff in CFD cell: ' + str(cCd)))
+print(('Expected velocity through packed bed: ' + str(Ubb/eps)))
+print(('Expected pressure gradient through packed bed: ' + str(pBot/L)))
+print(('Expected pressure value on bottom boundary: ' + str(pBot)))
 
 for time in range(101):
 

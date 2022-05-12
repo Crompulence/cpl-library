@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 from mpi4py import MPI
 from cplpy import CPL
 import numpy as np
@@ -55,9 +55,9 @@ recv_array, ierr = CPL.recv(recv_array, olap_limits)
 no_error = True
 if CPL.overlap():
     rank = MD_COMM.Get_rank()
-    for i in xrange(0, ncxl):
-        for j in xrange(0, ncyl):
-            for k in xrange(0, nczl):
+    for i in range(0, ncxl):
+        for j in range(0, ncyl):
+            for k in range(0, nczl):
                 ii = i + portion[0]
                 jj = j + portion[2]
                 kk = k + portion[4]

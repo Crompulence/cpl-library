@@ -46,7 +46,7 @@ def compare_forces(tol, cfd_params, md_fname="md_forces.dat",
 
     openfoam_cells = {}
     cell_no = 0
-    for cell_no in xrange(0, len(s_xy)): 
+    for cell_no in range(0, len(s_xy)): 
         cell_coord = (float(cell_cx[cell_no]), float(cell_cy[cell_no]), float(cell_cz[cell_no]))
         # Openfoam output cell centres with 6 decimal figures
         k = "{0:.5f}".format(cell_coord[0]), "{0:.5f}".format(cell_coord[1]),\
@@ -64,15 +64,15 @@ def compare_forces(tol, cfd_params, md_fname="md_forces.dat",
         k = "{0:.5f}".format(float(l[0])), "{0:.5f}".format(float(l[1])), "{0:.5f}".format(float(l[2]))
         md_cells[k] = np.array([float(l[3]), float(l[4]), float(l[5])])
 
-    for k in md_cells.keys():
+    for k in list(md_cells.keys()):
         try:
             diff_forces = abs(md_cells[k] - openfoam_cells[k])
             if (np.any(diff_forces > tol)):
-                print md_cells[k]
-                print openfoam_cells[k]
+                print(md_cells[k])
+                print(openfoam_cells[k])
                 assert False
         except KeyError:
-            print "Cell not found: cell " + k
+            print("Cell not found: cell " + k)
             assert False
 
 

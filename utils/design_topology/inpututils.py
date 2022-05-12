@@ -31,7 +31,7 @@ class InputMod:
                     readvals = True
 
             
-            print('Input string ' + keyword +' not found')
+            print(('Input string ' + keyword +' not found'))
 
     
     def replace_input(self, keyword, keyvals):    
@@ -117,7 +117,7 @@ class InputList(list):
                             " -- must be InputList or InputDict type")
 
         returnlist = InputList()
-        ziplist = zip(self,Listx)
+        ziplist = list(zip(self,Listx))
         for entry in ziplist:
             tempdict = {}
             for dic in entry:
@@ -172,7 +172,7 @@ class InputList(list):
         filenames = []
         for name in self:
             filename = ''
-            for key, value in name.items():
+            for key, value in list(name.items()):
                 if type(value) is float:
                     value = np.round(value,2)
                 if type(value) is int:
@@ -204,8 +204,8 @@ class InputDict(dict):
     #Expand InputDict with multiple values per entry into InputList
     def expand(self):
 
-        expansion = self.values()[0]
-        returnlist = InputList({self.keys()[0]:e} for e in expansion)
+        expansion = list(self.values())[0]
+        returnlist = InputList({list(self.keys())[0]:e} for e in expansion)
         
         return returnlist       
 

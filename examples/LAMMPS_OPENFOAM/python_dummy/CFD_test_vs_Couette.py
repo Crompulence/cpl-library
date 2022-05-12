@@ -98,7 +98,7 @@ for time in range(500):
     recv_array, ierr = CPL.recv(recv_array)
     Ux = np.mean(recv_array[0,:,:,:])/np.mean(recv_array[3,:,:,:])
 
-    print("CFD time = ", time, Ux, u_anal[-ncy])
+    print(("CFD time = ", time, Ux, u_anal[-ncy]))
 #    import matplotlib.pyplot as plt
 #    plt.plot(y_anal, u_anal)
 #    plt.plot(y_anal[-ncy], u_anal[-ncy], 'ro')

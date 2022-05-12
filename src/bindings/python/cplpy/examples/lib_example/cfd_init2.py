@@ -23,7 +23,7 @@ realm_comm = CPL.create_comm(CPL.CFD_REALM)
 nprocs_realm = realm_comm.Get_size()
 
 if (nprocs_realm != NProcs):
-    print "ERROR: Non-coherent number of processors."
+    print("ERROR: Non-coherent number of processors.")
     MPI.Abort(errorcode=1)
 
 cart_comm = realm_comm.Create_cart([NPx, NPy, NPz])

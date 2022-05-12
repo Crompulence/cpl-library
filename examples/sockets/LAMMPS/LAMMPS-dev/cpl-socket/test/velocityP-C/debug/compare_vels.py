@@ -23,20 +23,20 @@ def compare_vels(tol, lammps_fname="lammps_vels.dat", cfd_fname="cfd_vels.dat"):
     lammps_lines = [l[:-1].split(" ") for l in lammps_lines]
     lammps_cells = {}
     for l in lammps_lines:
-        l = filter(None, l)
+        l = [_f for _f in l if _f]
         lammps_cells[(float(l[1]), float(l[2]), float(l[3]))] = np.array([float(l[5]),
                                                                           float(l[6]),
                                                                           float(l[7])])
-    for k in cfd_cells.keys():
+    for k in list(cfd_cells.keys()):
         try:
             diff_vel = abs(cfd_cells[k] - lammps_cells[k])
             if (np.any(diff_vel > tol)):
-                print "Cell mismatch for key: " + str(k)
-                print "CFD cell: " + str(cfd_cells[k])
-                print "LAMMPS cell: " + str(lammps_cells[k])
+                print("Cell mismatch for key: " + str(k))
+                print("CFD cell: " + str(cfd_cells[k]))
+                print("LAMMPS cell: " + str(lammps_cells[k]))
                 sys.exit()
         except KeyError:
-            print "Cell not found :" + str(k)
+            print("Cell not found :" + str(k))
             sys.exit()
-    print "SUCCESS"
+    print("SUCCESS")
 compare_vels(1e-6)

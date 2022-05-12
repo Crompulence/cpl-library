@@ -45,26 +45,26 @@ def compare_forces(tol, cfd_fname="cfd_forces.dat",
     lammps_lines = [l[:-1].split(" ") for l in lammps_lines]
     lammps_cells = {}
     for l in lammps_lines:
-        l = filter(None, l)
+        l = [_f for _f in l if _f]
         if (float(l[5]) + float(l[6]) + float(l[7])) > 0.0:
             lammps_cells[(float(l[1]), float(l[2]), float(l[3]))] = \
                         np.array([float(l[5]), float(l[6]), float(l[7])])
 
     # Number of cells do not match for lammps and dummy socket
     if len(lammps_cells) != len(cfd_cells):
-        print "Number of cells LAMMPS: ", len(lammps_cells), "\n",\
-              "Number of cells dummy CFD: ", len(cfd_cells)
+        print("Number of cells LAMMPS: ", len(lammps_cells), "\n",\
+              "Number of cells dummy CFD: ", len(cfd_cells))
         assert False
 
-    for k in lammps_cells.keys():
+    for k in list(lammps_cells.keys()):
         try:
             diff_forces = abs(cfd_cells[k] - lammps_cells[k])
             if (np.any(diff_forces > tol)):
-                print cfd_cells[k]
-                print lammps_cells[k]
+                print(cfd_cells[k])
+                print(lammps_cells[k])
                 assert False
         except KeyError:
-            print "Cell not found: cell " + k
+            print("Cell not found: cell " + k)
             assert False
 
 

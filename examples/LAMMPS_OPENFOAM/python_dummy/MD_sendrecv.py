@@ -18,8 +18,8 @@ xyzL = np.array([16.795961913825074, 45.349097, 16.795961913825074], order='F', 
 xyz_orig = np.array([0.0, 0.0, 0.0], order='F', dtype=np.float64)
 
 if (MD_COMM.Get_size() != NProcs):
-    print("Non-coherent number of processes in MD ", MD_COMM.Get_size(),
-            " no equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2])
+    print(("Non-coherent number of processes in MD ", MD_COMM.Get_size(),
+            " no equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2]))
     MPI.Abort(errorcode=1)
 
 #Setup coupled simulation
@@ -62,7 +62,7 @@ for time in range(-2,199):
 
     CPL.send(send_array) 
 
-    print("MDTime=", time, np.mean(recv_array[0,:,:,:],(0,2)))       
+    print(("MDTime=", time, np.mean(recv_array[0,:,:,:],(0,2))))       
     
 CPL.finalize()
 MPI.Finalize()

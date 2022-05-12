@@ -1,9 +1,9 @@
 #!/usr/bin/env python2
-from __future__ import print_function, division
+
 from mpi4py import MPI
 from cplpy import CPL
 import numpy as np
-import cPickle
+import pickle
 import sys
 
 comm_world = MPI.COMM_WORLD
@@ -13,7 +13,7 @@ CPL = CPL()
 CPL.set("output_mode", 0)
 
 # Load parameters for the run
-params = cPickle.load(open("cfd_params.dic", "rb"))
+params = pickle.load(open("cfd_params.dic", "rb"))
 
 
 # Test selector flag

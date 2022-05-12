@@ -12,7 +12,7 @@ recv_array, send_array = CPL.get_arrays(recv_size=4, send_size=1)
 for time in range(5):
 
     recv_array, ierr = CPL.recv(recv_array)
-    print("CFD", time, recv_array[0,0,0,0])
+    print(("CFD", time, recv_array[0,0,0,0]))
     send_array[0,:,:,:] = 2.*time
     CPL.send(send_array)
 

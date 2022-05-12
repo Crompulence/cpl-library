@@ -99,7 +99,7 @@ def get_neighbour_cells(cellcentre, dxyz, r, rp, plot=False):
     maxside = 1
     for side in dxyz:
         maxside = int(max(np.ceil(rp/side), maxside))
-        print(side, np.ceil(rp/side), rp, maxside)
+        print((side, np.ceil(rp/side), rp, maxside))
 
     cell = np.zeros([1+2*maxside,1+2*maxside,1+2*maxside])
 
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     r = [xi, yi, zi]
     box = [xb, yb, zb, xt, yt, zt]
     result2 = get_overlap(r, rp, box)
-    print(result, result2)  
+    print((result, result2))  
 
     #Try random boxes and particles
 #    for n in range(10000):
@@ -219,7 +219,7 @@ if __name__ == "__main__":
     Vcell = dxyz[0]*dxyz[1]*dxyz[2]
     cellcentre = np.array([0.5*(xt+xb), 0.5*(yt+yb), 0.5*(zt+yb)])
     eps = get_neighbour_cells(cellcentre=cellcentre, dxyz=dxyz, r=r, rp=rp, plot=False)/V
-    print(eps, np.sum(eps))
+    print((eps, np.sum(eps)))
 
 
 

@@ -46,7 +46,7 @@ with open('./log.lammps') as f:
             dt = float(l.strip('timestep'))
             break
     
-print("timestep = ", dt)
+print(("timestep = ", dt))
 data = np.genfromtxt('./thermo_output.txt')
 t = data[:,0]*dt
 z = data[:,1]

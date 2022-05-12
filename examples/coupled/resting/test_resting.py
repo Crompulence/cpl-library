@@ -33,7 +33,7 @@ with open(OPEN_FOAM_CASE + 'constant/transportProperties', 'r') as fObj:
     mu = nu*rhof
 
 with open(LAMMPS_CASE + 'single.lj', 'r') as fObj:
-    lines = filter(None, (line.rstrip() for line in fObj))   
+    lines = [_f for _f in (line.rstrip() for line in fObj) if _f]   
     for i, l in enumerate(lines):
         if l == 'Atoms':
             data = lines[i+1].split()
@@ -86,7 +86,7 @@ yequil = rp - delta
 #Compare numerical and analytical solution
 tol = 0.01
 def test_equilibrium():
-    print('Equilibrium position (' + str(xp[-1]) + ') did not match analytical solution (' + str(yequil) + ') within tolerance of ' + str(100*tol) + '%')
+    print(('Equilibrium position (' + str(xp[-1]) + ') did not match analytical solution (' + str(yequil) + ') within tolerance of ' + str(100*tol) + '%'))
     assert(abs((xp[-1] - yequil)/yequil) < tol)
 
 #Plot comparison of velocity and displacement profile

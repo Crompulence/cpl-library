@@ -16,7 +16,7 @@ nprocs_realm = MD_COMM.Get_size()
 npxyz = np.array([1, 1, 1], order='F', dtype=np.int32)
 NProcs = np.product(npxyz)
 
-print 'Number of arguments:', len(sys.argv), 'arguments: ', str(sys.argv)
+print('Number of arguments:', len(sys.argv), 'arguments: ', str(sys.argv))
 
 if len(sys.argv) > 1:
     g = float(sys.argv[1])
@@ -28,8 +28,8 @@ xyzL = np.array([1.5000000000000000E-003,
 xyz_orig = np.array([0.0, 0.0, 0.0], order='F', dtype=np.float64)
 ncxyz = np.array([8, 8, 8], order='F', dtype=np.int32)
 if (nprocs_realm != NProcs):
-    print("Non-coherent number of processes in MD ", nprocs_realm,
-            " no equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2])
+    print(("Non-coherent number of processes in MD ", nprocs_realm,
+            " no equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2]))
     MPI.Abort(errorcode=1)
 
 #Setup coupled simulation

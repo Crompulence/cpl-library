@@ -1,9 +1,9 @@
 #!/usr/bin/env python2
-from __future__ import print_function, division
+
 from mpi4py import MPI
 from cplpy import CPL
 import numpy as np
-import cPickle
+import pickle
 import sys
 
 comm_world = MPI.COMM_WORLD
@@ -13,7 +13,7 @@ CPL = CPL()
 CPL.set("output_mode", 0)
 
 # Load parameters for the run
-params = cPickle.load(open("md_params.dic", "rb"))
+params = pickle.load(open("md_params.dic", "rb"))
 
 # Test selector flag
 try:
@@ -70,9 +70,9 @@ if CPL.overlap():
     send_array = np.zeros((3, 0, 0, 0), order='F', dtype=np.float64)
     #CPL.scatter(send_array, olap_region, recv_array)
     CPL.recv(recv_array, olap_region)
-    for imd in xrange(portion[0], portion[1] + 1):
-        for jmd in xrange(portion[2], portion[3] + 1):
-            for kmd in xrange(portion[4], portion[5] + 1):
+    for imd in range(portion[0], portion[1] + 1):
+        for jmd in range(portion[2], portion[3] + 1):
+            for kmd in range(portion[4], portion[5] + 1):
                 iloc, jloc, kloc, = CPL.map_glob2loc_cell(portion,
                                                           [imd, jmd, kmd])
                 # Receive cell or coord depending on the test
@@ -117,9 +117,9 @@ if not test_passed:
 # Sending cell coordinates from MD to CFD
 if CPL.overlap():
     send_array = np.zeros((3, ncxl, ncyl, nczl), order='F', dtype=np.float64)
-    for iglob in xrange(portion[0], portion[1] + 1):
-        for jglob in xrange(portion[2], portion[3] + 1):
-            for kglob in xrange(portion[4], portion[5] + 1):
+    for iglob in range(portion[0], portion[1] + 1):
+        for jglob in range(portion[2], portion[3] + 1):
+            for kglob in range(portion[4], portion[5] + 1):
                 iloc, jloc, kloc = CPL.map_glob2loc_cell(portion,
                                                          [iglob, jglob, kglob])
                 if which_test == "cell_test":

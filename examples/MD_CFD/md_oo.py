@@ -398,7 +398,7 @@ class MD:
         plt.pause(0.001)
         plt.cla()
 
-        print("Temperature =", np.sum(self.v[:,0]**2+self.v[:,1]**2)/(2.*self.N))
+        print(("Temperature =", np.sum(self.v[:,0]**2+self.v[:,1]**2)/(2.*self.N)))
 
 
 if __name__ == "__main__":
@@ -410,7 +410,7 @@ if __name__ == "__main__":
     #Main run
     for step in range(Nsteps):
 
-        print("MD time = ", md.tstep, " of ", Nsteps)
+        print(("MD time = ", md.tstep, " of ", Nsteps))
 
         md.force()
 

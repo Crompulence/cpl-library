@@ -178,7 +178,7 @@ class RunClass:
 
 	
 		if all_success:
-			print('jobID ' + str(self.jobID) + ' value checks successful!')
+			print(('jobID ' + str(self.jobID) + ' value checks successful!'))
 
 
 

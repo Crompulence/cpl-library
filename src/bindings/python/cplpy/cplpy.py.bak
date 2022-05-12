@@ -1,4 +1,4 @@
-
+from __future__ import print_function, division
 from ctypes import c_char_p, c_char, c_int, c_double, c_bool, c_void_p, byref, POINTER, util, pointer, cdll
 import ctypes
 import mpi4py
@@ -12,7 +12,7 @@ import time
 import subprocess as sp
 from subprocess import STDOUT, check_output, CalledProcessError
 import shutil
-import pickle
+import cPickle
 import errno
 
 
@@ -111,10 +111,10 @@ class CPL:
         else:
             raise CPLLibraryNotFound("Compiled CPL library libcpl.so not found at " + _lib_path + "/"+ _libname + ".so")
     except KeyError as e:
-        print(("CPL info: ", "CPL_LIBRARY_PATH not defined. Looking in system directories..."))
+        print("CPL info: ", "CPL_LIBRARY_PATH not defined. Looking in system directories...")
         try:
             _cpl_lib = cdll.LoadLibrary(_libname + ".so")
-            print(("CPL info: ", "Success!"))
+            print("CPL info: ", "Success!")
         except OSError as e:
             raise CPLLibraryNotFound("Library libcpl.so not found!")
             #TODO: Check this
@@ -159,16 +159,16 @@ class CPL:
     #Detect if OpenMPI or MPICH
     mpicc=str(mpi4py.get_config()['mpicc'])
     mpishow=sp.check_output(["mpicc","-show"])
-    if ("open" in mpicc or b"open" in mpishow):
+    if ("open" in mpicc or "open" in mpishow):
         MPI_version = "OPENMPI"
         ompi_info = sp.check_output("ompi_info").split("\n")
         for m in ompi_info:
             if ("Open MPI:" in m):
                 ompi_major_version_no = int(m.split(":")[-1].split(".")[0])            
-    elif ("mpich" in mpicc or b"open" in mpishow):
+    elif ("mpich" in mpicc or "open" in mpishow):
         MPI_version = "MPICH"      
     else:
-        print(("UNKNOWN MPI VERSION FROM ", mpicc))
+        print("UNKNOWN MPI VERSION FROM ", mpicc)
         MPI_version = "UNKNOWN"
 
     _py_init = _cpl_lib.CPLC_init_Fort
@@ -214,8 +214,8 @@ class CPL:
                              POINTER(var_ctype)]
 
         except KeyError:
-            print(("CPL-ERROR: CPL Library function '" +
-                   str(fun_name) + "' not found!"))
+            print ("CPL-ERROR: CPL Library function '" +
+                   str(fun_name) + "' not found!")
             raise KeyError
         else:
             self._var = var_ctype()
@@ -226,10 +226,10 @@ class CPL:
                 fun.argtypes.append(POINTER(c_int))
                 print ("EY")
                 fun(c_char_p(section), c_char_p(var_name), byref(self._var), byref(var_len))
-                print(("len:" , var_len.value))
+                print ("len:" , var_len.value)
                 #print (self._var[0])
                 #print (byref(var[0]))
-                a = ([self._var[i] for i in range(var_len.value)])
+                a = ([self._var[i] for i in xrange(var_len.value)])
                 return a
             else:
                 fun(c_char_p(section), c_char_p(var_name), byref(self._var))
@@ -653,8 +653,8 @@ class CPL:
             var_type = _CPL_GET_VARS[var_name]
             fun = getattr(self._cpl_lib, "CPLC_" + var_name)
         except KeyError:
-            print(("CPL-ERROR: CPL Library function '" +
-                   str(var_name) + "' not found!"))
+            print ("CPL-ERROR: CPL Library function '" +
+                   str(var_name) + "' not found!")
             print ("Available options include: ")
             for var in _CPL_GET_VARS:
                 print(var)
@@ -671,8 +671,8 @@ class CPL:
             var_type = _CPL_SET_VARS[var_name]
             fun = getattr(self._cpl_lib, "CPLC_set_" + var_name)
         except KeyError:
-            print(("CPL-ERROR: CPL Library function '" +
-                   str(var_name) + "' not found!"))
+            print ("CPL-ERROR: CPL Library function '" +
+                   str(var_name) + "' not found!")
             raise KeyError
         else:
             fun.argtypes = [var_type]
@@ -735,10 +735,10 @@ class CPL:
             if callable(components):
                 def_func = components
             if not components or callable(components):
-                components_idx = list(range(0, array.shape[0]))
+                components_idx = list(xrange(0, array.shape[0]))
                 for c_idx in components_idx:
                     components_dic[c_idx] = def_func
-            for k,v in list(components_dic.items()):
+            for k,v in components_dic.items():
                 if v is None:
                     components_dic[k] = def_func
             #if self.overlap():
@@ -748,9 +748,9 @@ class CPL:
                     print ("self-Error in dump_region(): array and processor portion of different size.")
                     MPI.COMM_WORLD.Abort(errorcode=1)
 
-                for i in range(portion[0], portion[1]+1):
-                    for j in range(portion[2], portion[3]+1):
-                        for k in range(portion[4], portion[5]+1):
+                for i in xrange(portion[0], portion[1]+1):
+                    for j in xrange(portion[2], portion[3]+1):
+                        for k in xrange(portion[4], portion[5]+1):
                             cell_coords = self.map_cell2coord(i, j, k)
                             if coords != "mine":
                                 if self.realm == CPL.CFD_REALM:
@@ -762,7 +762,7 @@ class CPL:
                                    + str(cell_coords[1] + dy/2.0) + " "\
                                    + str(cell_coords[2] + dz/2.0)
                                    
-                            for k, f in list(components_dic.items()):
+                            for k, f in components_dic.items():
                                 lines += " " + str(f(array[k, i_loc, j_loc, k_loc]))
                             lines += "\n"
 
@@ -807,7 +807,7 @@ def copyanything(src_dir, dst_dir, name):
 def parametrize_file(source, dest, params):
     with open(source, "r+") as param_file_in:
         lines = param_file_in.readlines()
-        for (k, v) in list(params.items()):
+        for (k, v) in params.items():
             lines = [l.replace("$[" + str(k) + "]", str(v)) for l in lines]
     with open(dest, "w+") as param_file_out:
         param_file_out.writelines(lines)
@@ -835,8 +835,8 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
     import sys
     parametrize_config(template_dir, config_params)
     #Save parameter dictonaries to be read by md/cfd codes
-    pickle.dump(md_params, open("md_params.dic", "wb"))
-    pickle.dump(cfd_params, open("cfd_params.dic", "wb"))
+    cPickle.dump(md_params, open("md_params.dic", "wb"))
+    cPickle.dump(cfd_params, open("cfd_params.dic", "wb"))
     try:
         mdprocs = md_params["npx"] * md_params["npy"] * md_params["npz"]
         cfdprocs = cfd_params["npx"] * cfd_params["npy"] * cfd_params["npz"]
@@ -844,10 +844,10 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
             print("Error: mpiexec not found.")
             sys.exit(1)
         if find_executable(md_exec)is None:
-            print(("Error: %s not found." % md_exec))
+            print("Error: %s not found." % md_exec)
             sys.exit(1)
         if find_executable(cfd_exec)is None:
-            print(("Error: %s not found." % cfd_exec))
+            print("Error: %s not found." % cfd_exec)
             sys.exit(1)
 
             
@@ -879,20 +879,20 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
             cmd.replace("mpiexec","mpiexec --oversubscribe")
 
             if debug:
-                print(("\nMPI run: " + cmd))
+                print ("\nMPI run: " + cmd)
             out = check_output(cmd, stderr=STDOUT, shell=True)
             if printoutput:
                 print(out)
         else:
-            print(("Current directory: " + os.getcwd()))
-            print((md_fname + " or " + cfd_fname + " are not found."))
+            print ("Current directory: " + os.getcwd())
+            print (md_fname + " or " + cfd_fname + " are not found.")
             assert False
             return False
 
     except CalledProcessError as exc:
-        print((exc.output))
+        print (exc.output)
         if err_msg != "":
-            print(("ERROR = ", err_msg))
+            print("ERROR = ", err_msg)
             assert err_msg in exc.output
         else:
             assert exc.output == ""

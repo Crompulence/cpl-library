@@ -22,7 +22,7 @@ def get_subprocess_error(e):
     print("subprocess ERROR")
     import json
     error = json.loads(e[7:])
-    print(error['code'], error['message'])
+    print((error['code'], error['message']))
 
 
 MD_EXEC = "./lmp_cpl"
@@ -49,7 +49,7 @@ def run_case(request):
     #Try to run code
     cmd = ('cplexec -m 1 "' + MD_EXEC + ' < single.in" ' + ' -c 1 "' +  CFD_EXEC + " " + str(request.param) + ' "')
 
-    print("Running case " + cmd)
+    print(("Running case " + cmd))
     with cd(TEST_DIR):
         try:
             clean = sp.check_output("rm -f ./thermo_output* ./log.lammps* ./debug.vels", 

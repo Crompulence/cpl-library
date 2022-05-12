@@ -20,8 +20,8 @@ xyz_orig = np.array([0.0, 0.0, 0.0], order='F', dtype=np.float64)
 ncxyz = np.array([16, 6, 16], order='F', dtype=np.int32)
 
 if (nprocs_realm != NProcs):
-    print("Non-coherent number of processes in CFD ", nprocs_realm,
-            " no equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2])
+    print(("Non-coherent number of processes in CFD ", nprocs_realm,
+            " no equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2]))
     MPI.Abort(errorcode=1)
 
 #Setup coupled simulation
@@ -37,7 +37,7 @@ sfreq = Slider(axslider, 'Freq', 0.1, 2.0, valinit=freq)
 def update(val):
     freq = sfreq.val
     global freq
-    print("CHANGED", freq)
+    print(("CHANGED", freq))
 sfreq.on_changed(update)
 
 plt.ion()
@@ -101,7 +101,7 @@ for time in range(100000):
     ax.set_xlabel('$x$')
     ax.set_ylabel('$y$')
 
-    print(time, freq)
+    print((time, freq))
     plt.pause(0.1)
     ax.cla()
 

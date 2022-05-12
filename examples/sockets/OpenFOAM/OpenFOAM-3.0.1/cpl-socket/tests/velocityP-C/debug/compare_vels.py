@@ -1,5 +1,5 @@
 import numpy as np
-import cPickle
+import pickle
 import sys
 try:
     from PyFoam.RunDictionary.ParsedParameterFile import ParsedParameterFile
@@ -8,7 +8,7 @@ except:
 
 try:
     # Load parameters for the run
-    params = cPickle.load(open("md_params.dic", "rb"))
+    params = pickle.load(open("md_params.dic", "rb"))
 
 
     # Parameters of the domain
@@ -16,20 +16,20 @@ try:
     Ly = params["ly"]
     Lz = params["lz"]
 
-    params = cPickle.load(open("cfd_params.dic", "rb"))
+    params = pickle.load(open("cfd_params.dic", "rb"))
     # Parameters of the mesh topology (cartesian grid)
     ncx = params["ncx"]
     ncy = params["ncy"]
     ncz = params["ncz"]
 except:
-    print "Error: Cannot read topology and domain data"
+    print("Error: Cannot read topology and domain data")
 
 
 def compare_vels(tol, md_fname="md_vels.dat",
                    openfoam_dir="test_vels_case"):
 
     vel = ParsedParameterFile(openfoam_dir + "/2/U")["boundaryField"]["CPLReceiveMD"]["value"]
-    vx,vy,vz = zip(*[tuple(v) for v in vel])
+    vx,vy,vz = list(zip(*[tuple(v) for v in vel]))
     boundary = ParsedParameterFile(openfoam_dir + "/constant/polyMesh/boundary", 
                                    boundaryDict=True)
     boundary = dict(boundary[i:i+2] for i in range(0, len(boundary), 2))
@@ -43,7 +43,7 @@ def compare_vels(tol, md_fname="md_vels.dat",
 
     openfoam_cells = {}
     cell_no = 0
-    for cell_no in xrange(0, nFaces): 
+    for cell_no in range(0, nFaces): 
         cell_owner = owner[cell_no+startFace]
         cell_coord = (float(cell_cx[cell_owner]), float(cell_cy[cell_owner]), 
                       float(cell_cz[cell_owner]))
@@ -65,18 +65,18 @@ def compare_vels(tol, md_fname="md_vels.dat",
         md_cells[k] = np.array([float(l[3]), float(l[4]), float(l[5])])
 
 
-    for k in md_cells.keys():
+    for k in list(md_cells.keys()):
         try:
             diff_forces = abs(md_cells[k] - openfoam_cells[k])
             if (np.any(diff_forces > tol)):
-                print md_cells[k]
-                print openfoam_cells[k]
+                print(md_cells[k])
+                print(openfoam_cells[k])
                 assert False
                 sys.exit()
         except KeyError:
-            print "Cell not found: cell " + str(k)
+            print("Cell not found: cell " + str(k))
             assert False
             sys.exit()
-    print "SUCCESS"
+    print("SUCCESS")
 
 compare_vels(10e-6)

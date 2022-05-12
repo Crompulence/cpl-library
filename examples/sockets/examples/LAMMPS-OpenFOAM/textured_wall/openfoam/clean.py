@@ -31,7 +31,7 @@ print(keeplist)
 print('Deleting the following files: ')
 print(deletelist)
 
-answer = raw_input('Proceed? [y]/n: ')
+answer = input('Proceed? [y]/n: ')
 if (answer == 'y' or answer == 'Y'):
     for f in deletelist:
         sh.rmtree(f)

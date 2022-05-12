@@ -33,7 +33,7 @@ with open(OPEN_FOAM_CASE + 'constant/transportProperties', 'r') as fObj:
     mu = nu*rhof
 
 with open(LAMMPS_CASE + 'single.lj', 'r') as fObj:
-    lines = filter(None, (line.rstrip() for line in fObj))   
+    lines = [_f for _f in (line.rstrip() for line in fObj) if _f]   
     for i, l in enumerate(lines):
         if l == 'Atoms':
             data = lines[i+1].split()
@@ -76,16 +76,16 @@ errdisp = abs((disp - xp)/disp) <= tol
 
 def test_displacement():
 	idx = np.where(errdisp == False)[0]
-	print('Displacement profile at time t = ' + str(t[idx]) + ' exceeds the specified error tolerance of ' + str(tol*100) + '%')
+	print(('Displacement profile at time t = ' + str(t[idx]) + ' exceeds the specified error tolerance of ' + str(tol*100) + '%'))
 	assert(errdisp.all())
 
 def test_velocity():
     idx = np.where(errvel == False)[0]
-    print('Velocity profile at time t = ' + str(t[idx]) + ' exceeds the specified error tolerance of ' + str(tol*100) + '%')
+    print(('Velocity profile at time t = ' + str(t[idx]) + ' exceeds the specified error tolerance of ' + str(tol*100) + '%'))
     assert(errvel.all())
 
 def test_terminal():
-    print('Terminal velocity not attained (within ' + str(tol*100) + '% tolerance). Velocity at end of simulation is ' + str(vp[-1]) + ', while terminal velocity is ' + str(((mp - mf)*g/kd)) + '.')
+    print(('Terminal velocity not attained (within ' + str(tol*100) + '% tolerance). Velocity at end of simulation is ' + str(vp[-1]) + ', while terminal velocity is ' + str(((mp - mf)*g/kd)) + '.'))
     assert(abs((vp[-1] - ((mp - mf)*g/kd))/((mp - mf)*g/kd) <= tol))
 
 #Plot comparison of velocity and displacement profile

@@ -18,9 +18,9 @@ import matplotlib.font_manager as fm
 
 # We need a special font for the code below.  It can be downloaded this way:
 import os
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 if not os.path.exists('Humor-Sans.ttf'):
-    fhandle = urllib2.urlopen('http://antiyawn.com/uploads/Humor-Sans-1.0.ttf')
+    fhandle = urllib.request.urlopen('http://antiyawn.com/uploads/Humor-Sans-1.0.ttf')
     open('Humor-Sans.ttf', 'wb').write(fhandle.read())
 
     

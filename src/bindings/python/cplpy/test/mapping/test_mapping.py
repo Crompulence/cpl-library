@@ -36,7 +36,7 @@ if (cplpy.CPL.MPI_version == "OPENMPI"):
     maxprocs = 8
 else:
     cpltypes=["port", "split"]
-cases = list(itertools.combinations_with_replacement(range(1,maxprocperdir), 3))
+cases = list(itertools.combinations_with_replacement(list(range(1,maxprocperdir)), 3))
 perms = []; n=0
 for cpltype in cpltypes:
     for test in tests:
@@ -58,7 +58,7 @@ for cpltype in cpltypes:
                 #Skip any errors greater than 16 processors and cases greater than 32
                 if (np.product(cases[i])+np.product(cases[i+j]) < maxprocs):
                     perms.append((cpltype, test, cases[i], cases[i+j], errstr))
-                    print(n, perms[-1])
+                    print((n, perms[-1]))
                     n += 1
 
 

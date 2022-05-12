@@ -1,5 +1,5 @@
-from __future__ import print_function, division
-import cPickle
+
+import pickle
 import sys
 
 try:
@@ -18,7 +18,7 @@ cpllib.set("output_mode", 1)
 
 try:
     # Load parameters for the run
-    params = cPickle.load(open("cfd_params.dic", "rb"))
+    params = pickle.load(open("cfd_params.dic", "rb"))
 
     # Parameters of the cpu topology (cartesian grid)
     NPx = params["npx"]
@@ -80,7 +80,7 @@ recv_array = np.zeros((4, velBCncx, velBCncy, velBCncz), order='F',
                       dtype=np.float64)
 
 # NOTE: Only 1 step for tests
-for step in xrange(nsteps):
+for step in range(nsteps):
     cpllib.send(send_array, cnstFRegion)
     cpllib.recv(recv_array, velBCRegion)
 

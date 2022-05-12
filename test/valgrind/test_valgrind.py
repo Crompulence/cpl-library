@@ -21,7 +21,7 @@ def get_subprocess_error(e):
     print("subprocess ERROR")
     import json
     error = json.loads(e[7:])
-    print(error['code'], error['message'])
+    print((error['code'], error['message']))
 
 # -----MAPPING TESTS-----
 

@@ -36,11 +36,11 @@ class CFD:
         #Check CFL stability conditions
         self.CFL =  (1./(2.*nu))*(self.dx*self.dy)**2/(self.dx**2+self.dy**2)
         if self.dt > self.CFL:
-            print("Stability conditions violated, CFL=", self.CFL ,
-                  "> dt=", self.dt," adjust dt, nu or grid spacing")
+            print(("Stability conditions violated, CFL=", self.CFL ,
+                  "> dt=", self.dt," adjust dt, nu or grid spacing"))
             quit()
         else:
-            print("Timestep dt = ", self.dt, " CFL number= ", self.CFL)
+            print(("Timestep dt = ", self.dt, " CFL number= ", self.CFL))
 
         #initial condition
         self.u0 = np.zeros([xsize,ysize])
@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     for n,t in enumerate(time):
 
-        print("CFD time = ", n,t)
+        print(("CFD time = ", n,t))
 
         #===============================================
         # Call to CPL-LIBRARY goes here to

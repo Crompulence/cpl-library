@@ -247,7 +247,7 @@ class Coupled_Grid(wx.Frame):
         ymax = self.cntrp.CFDpanel.ymax.GetValue()
         zmax = self.cntrp.CFDpanel.zmax.GetValue()
 
-        print("CFD",nx,ny,nz,xmin,ymin,zmin,xmax,ymax,zmax)          
+        print(("CFD",nx,ny,nz,xmin,ymin,zmin,xmax,ymax,zmax))          
         draw_grid(self.pyplotp.ax,nx,ny,nz,
                   px=px,py=py,pz=pz,
                   xmin=xmin,ymin=ymin,zmin=zmin,
@@ -269,7 +269,7 @@ class Coupled_Grid(wx.Frame):
         ymax = self.cntrp.MDpanel.ymax.GetValue()
         zmax = self.cntrp.MDpanel.zmax.GetValue()
 
-        print("MD",nx,ny,nz,xmin,ymin,zmin,xmax,ymax,zmax)          
+        print(("MD",nx,ny,nz,xmin,ymin,zmin,xmax,ymax,zmax))          
         draw_grid(self.pyplotp.ax,nx,ny,nz,
                   px=px,py=py,pz=pz,
                   xmin=xmin,ymin=ymin,zmin=zmin,
@@ -295,7 +295,7 @@ class Coupled_Grid(wx.Frame):
 
         if defaultFile == 'fig.png':
             try:
-                print('Saving figure as ' + fpath)
+                print(('Saving figure as ' + fpath))
                 self.pyplotp.savefigure(fpath)
                 print('Saved.')
             except ValueError:

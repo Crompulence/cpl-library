@@ -46,9 +46,9 @@ xloc = int((xi-xmin)/dx)
 yloc = int((yi-ymin)/dy)
 zloc = int((zi-zmin)/dz)
 
-print(xyzminmax, box, r, rp, xloc, yloc, zloc)
+print((xyzminmax, box, r, rp, xloc, yloc, zloc))
 sco = get_overlap(r, rp, box)
-print("Sum of area ", (4./3.)*np.pi*rp**3, np.sum(CVsphr)*dV, sco,  sco/((4./3.)*np.pi*rp**3))
+print(("Sum of area ", (4./3.)*np.pi*rp**3, np.sum(CVsphr)*dV, sco,  sco/((4./3.)*np.pi*rp**3)))
 fig, ax = plt.subplots(3,1)
 
 ax[0].pcolormesh(x[:,:,zloc], y[:,:,zloc], CVsphr[:,:,zloc])

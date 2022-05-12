@@ -27,43 +27,43 @@ class Command:
         self.args_count = args_count
 
 mod_symbols = {
-        u'0': '⁰',
-        u'1': '¹',
-        u'2': '²',
-        u'3': '³',
-        u'4': '⁴',
-        u'5': '⁵',
-        u'6': '⁶',
-        u'7': '⁷',
-        u'8': '⁸',
-        u'9': '⁹',
-        u'+': '⁺',
-        u'-': '⁻',
-        u'=': '⁼',
-        u'n': 'ⁿ',
-        u'(': '⁽',
-        u')': '⁾',
-        u'○': '°',
+        '0': '⁰',
+        '1': '¹',
+        '2': '²',
+        '3': '³',
+        '4': '⁴',
+        '5': '⁵',
+        '6': '⁶',
+        '7': '⁷',
+        '8': '⁸',
+        '9': '⁹',
+        '+': '⁺',
+        '-': '⁻',
+        '=': '⁼',
+        'n': 'ⁿ',
+        '(': '⁽',
+        ')': '⁾',
+        '○': '°',
 }
 
 sub_symbols = {
-        u'0': '₀',
-        u'1': '₁',
-        u'2': '₂',
-        u'3': '₃',
-        u'4': '₄',
-        u'5': '₅',
-        u'6': '₆',
-        u'7': '₇',
-        u'8': '₈',
-        u'9': '₉',
-        u'+': '₊',
-        u'-': '₋',
-        u'=': '₌',
-        u'(': '₍',
-        u')': '₎',
-        u'a': 'ₐ',
-        u'e': 'ₑ'
+        '0': '₀',
+        '1': '₁',
+        '2': '₂',
+        '3': '₃',
+        '4': '₄',
+        '5': '₅',
+        '6': '₆',
+        '7': '₇',
+        '8': '₈',
+        '9': '₉',
+        '+': '₊',
+        '-': '₋',
+        '=': '₌',
+        '(': '₍',
+        ')': '₎',
+        'a': 'ₐ',
+        'e': 'ₑ'
 }
 
 def is_str_in(str, a):
@@ -74,7 +74,7 @@ def is_str_in(str, a):
     return True
 
 def cmd_mod(arg):
-    if is_str_in(arg.replace(' ', ''), mod_symbols.keys()):
+    if is_str_in(arg.replace(' ', ''), list(mod_symbols.keys())):
         res = ''
         for c in arg.replace(' ', '').decode('utf-8'):
             res += mod_symbols[c]
@@ -85,7 +85,7 @@ def cmd_mod(arg):
     return '^(' + arg + ')'
 
 def cmd_sub(arg):
-    if is_str_in(arg.replace(' ', ''), sub_symbols.keys()):
+    if is_str_in(arg.replace(' ', ''), list(sub_symbols.keys())):
         res = ''
         for c in arg.replace(' ', '').decode('utf-8'):
             res += sub_symbols[c]
@@ -126,7 +126,7 @@ def cmd_frac(args):
         return '⅝'
     if a == '7' and b == '8':
         return '⅞'
-    if is_str_in(a.replace(' ', ''), mod_symbols.keys()) and is_str_in(b.replace(' ', ''), sub_symbols.keys()):
+    if is_str_in(a.replace(' ', ''), list(mod_symbols.keys())) and is_str_in(b.replace(' ', ''), list(sub_symbols.keys())):
         return cmd_mod(a) + '⁄' + cmd_sub(b)
     return '(' + a + ')⁄(' + b + ')'
 
@@ -357,7 +357,7 @@ def latex2utf(src):
 
 if __name__ == '__main__':
     for i in stdin.readlines():
-        print latex2utf(i)
+        print(latex2utf(i))
 
 # vim: set tabstop=4 softtabstop=4 shiftwidth=4 expandtab :
 

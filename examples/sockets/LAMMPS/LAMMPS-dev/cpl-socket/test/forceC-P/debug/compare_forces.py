@@ -23,29 +23,29 @@ def check_forces(tol, cfd_fname="cfd_forces.dat", lammps_fname="lammps_forces.da
     lammps_lines = [l[:-1].split(" ") for l in lammps_lines]
     lammps_cells = {}
     for l in lammps_lines:
-        l = filter(None, l)
+        l = [_f for _f in l if _f]
         if (float(l[5]) + float(l[6]) + float(l[7])) > 0.0:
             lammps_cells[(float(l[1]), float(l[2]), float(l[3]))] = \
                         np.array([float(l[5]), float(l[6]), float(l[7])])
 
     if len(lammps_cells) != len(cfd_cells):
-        print "Number of cells LAMMPS: ", len(lammps_cells), "\n",\
-              "Number of cells dummy CFD: ", len(cfd_cells)
-        print "FAILURE"
+        print("Number of cells LAMMPS: ", len(lammps_cells), "\n",\
+              "Number of cells dummy CFD: ", len(cfd_cells))
+        print("FAILURE")
         sys.exit()
 
-    for k in lammps_cells.keys():
+    for k in list(lammps_cells.keys()):
         try:
             diff_forces = abs(cfd_cells[k] - lammps_cells[k])
             if (np.any(diff_forces > tol)):
-                print "False"
-                print cfd_cells[k]
-                print lammps_cells[k]
+                print("False")
+                print(cfd_cells[k])
+                print(lammps_cells[k])
                 sys.exit()
         except KeyError:
-            print "Cell not found."
-            print k
+            print("Cell not found.")
+            print(k)
             sys.exit()
-    print "SUCCESS"
+    print("SUCCESS")
 
 check_forces(1e-5)

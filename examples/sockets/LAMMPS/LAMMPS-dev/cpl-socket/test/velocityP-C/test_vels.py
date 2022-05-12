@@ -44,22 +44,22 @@ def compare_vels(tol, lammps_fname="lammps_vels.dat",
     lammps_lines = [l[:-1].split(" ") for l in lammps_lines]
     lammps_cells = {}
     for l in lammps_lines:
-        l = filter(None, l)
+        l = [_f for _f in l if _f]
         lammps_cells[(float(l[1]), float(l[2]), float(l[3]))] = np.array([float(l[5]),
                                                             		  float(l[6]),
                                                             		  float(l[7])])
 
     # Compare each cell velocity up to a certain tolerance
-    for cell in cfd_cells.keys():
+    for cell in list(cfd_cells.keys()):
         try:
             diff_vel = abs(cfd_cells[cell] - lammps_cells[cell])
             if (np.any(diff_vel > tol)):
-                print "Cell value disagreement:"
-                print cfd_cells[cell]
-                print lammps_cells[cell]
+                print("Cell value disagreement:")
+                print(cfd_cells[cell])
+                print(lammps_cells[cell])
                 assert False
         except KeyError:
-            print "Cell not found: " + str(cell)
+            print("Cell not found: " + str(cell))
             assert False
 
 # -----VELOCITY TESTS-----

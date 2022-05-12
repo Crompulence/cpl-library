@@ -23,8 +23,8 @@ CFD_COMM = CPL.init(CPL.CFD_REALM)
 nprocs_realm = CFD_COMM.Get_size()
 
 if (nprocs_realm != NProcs):
-    print("Non-coherent number of processes in CFD ", nprocs_realm,
-            " no equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2])
+    print(("Non-coherent number of processes in CFD ", nprocs_realm,
+            " no equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2]))
     MPI.Abort(errorcode=1)
 
 #Setup coupled simulation

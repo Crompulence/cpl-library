@@ -129,7 +129,7 @@ if __name__ == "__main__":
                 plt.ion()
                 plt.show()
                 plt.pause(2.)
-                self.assertEqual(raw_input("Plot looks correct? y/n:"),"y")
+                self.assertEqual(input("Plot looks correct? y/n:"),"y")
                 plt.ioff()
         
         @classmethod

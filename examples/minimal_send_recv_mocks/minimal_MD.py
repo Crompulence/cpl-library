@@ -16,7 +16,7 @@ for time in range(5):
     send_array[0,:,:,:] = 5.*time
     CPL.send(send_array)
     recv_array, ierr = CPL.recv(recv_array)
-    print("MD", time, recv_array[0,0,0,0])
+    print(("MD", time, recv_array[0,0,0,0]))
 
 CPL.finalize()
 MPI.Finalize()

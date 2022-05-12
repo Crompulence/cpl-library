@@ -8,7 +8,7 @@ MD_COMM = CPL.init(CPL.MD_REALM)
 nprocs = MD_COMM.Get_size()
 rank = MD_COMM.Get_rank()
 
-print("MD code processor "+ str(rank+1) + " of " + str(nprocs))
+print(("MD code processor "+ str(rank+1) + " of " + str(nprocs)))
 
 CPL.finalize()
 MPI.Finalize()

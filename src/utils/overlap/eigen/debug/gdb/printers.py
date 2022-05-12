@@ -89,7 +89,7 @@ class EigenMatrixPrinter:
 		def __iter__ (self):
 			return self
 
-		def next(self):
+		def __next__(self):
                         return self.__next__()  # Python 2.x compatibility
 
 		def __next__(self):
@@ -155,7 +155,7 @@ class EigenQuaternionPrinter:
 		def __iter__ (self):
 			return self
 	
-		def next(self):
+		def __next__(self):
                         return self.__next__()  # Python 2.x compatibility
 
 		def __next__(self):

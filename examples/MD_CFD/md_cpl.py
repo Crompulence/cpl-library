@@ -19,8 +19,8 @@ xyzL = np.array([6.70820393, 17.88854382, 1.0], order='F', dtype=np.float64)
 xyz_orig = np.array([0.0, 0.0, 0.0], order='F', dtype=np.float64)
 
 if (nprocs_realm != NProcs):
-    print("Non-coherent number of processes in MD ", nprocs_realm,
-            " not equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2])
+    print(("Non-coherent number of processes in MD ", nprocs_realm,
+            " not equal to ",  npxyz[0], " X ", npxyz[1], " X ", npxyz[2]))
     MPI.Abort(errorcode=1)
 
 #Setup coupled simulation
@@ -50,7 +50,7 @@ md = MD(dt=dt, wallwidth=[2.,0.], wallslide=[-1.,0.])
 #Main run
 for n,t in enumerate(time):
 
-    print("MD time = ", md.tstep, md.time)
+    print(("MD time = ", md.tstep, md.time))
 
     # Calculate force
     md.force()
