@@ -46,21 +46,21 @@ matrix:
         - platform=gcc
 
     #Build for 16.04 with openMPI
-    - dist: xenial
-      compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7 gcc-7 libstdc++-7-dev gfortran-7
-      env:
-        - GCC_VERSION=7
-        - CXX_COMPILER=g++
-        - C_COMPILER=gcc
-        - F_COMPILER=gfortran
-        - MPI=openmpi
-        - platform=openmpi_gcc
+    #- dist: xenial
+    #  compiler: gcc
+    #  addons:
+    #    apt:
+    #      sources:
+    #        - ubuntu-toolchain-r-test
+    #      packages:
+    #        - g++-7 gcc-7 libstdc++-7-dev gfortran-7
+    #  env:
+    #    - GCC_VERSION=7
+    #    - CXX_COMPILER=g++
+    #    - C_COMPILER=gcc
+    #    - F_COMPILER=gfortran
+    #    - MPI=openmpi
+    #    - platform=openmpi_gcc
 
 branches:
   only:
