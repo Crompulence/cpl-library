@@ -1,5 +1,5 @@
 
-program main_CFD
+program main_MD
     use cpl, only : CPL_Init, CPL_setup_md, CPL_send, &
                     CPL_recv, CPL_get_arrays, CPL_finalize
     use mpi
@@ -30,4 +30,4 @@ program main_CFD
    call MPI_comm_free(MD_COMM,ierr)
    call MPI_finalize(ierr)
 
-end program main_CFD
+end program main_MD
