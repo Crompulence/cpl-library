@@ -49,21 +49,32 @@ jobs:
           ls ./lib/
           
       - name: Initialisation test
-        run: make test-pytest-initialisation
+        run: |
+          source SOURCEME.sh
+          make test-pytest-initialisation
 
       - name: Mapping test
-        run: make test-pytest-mapping  
+        run: |
+          source SOURCEME.sh
+          make test-pytest-mapping  
         
       - name: Examples test
-        run: make test-examples
+        run: |
+          source SOURCEME.sh
+          make test-examples
         
       - name: memory test
-        run: make test-valgrind
+        run: |
+          source SOURCEME.sh
+          make test-valgrind
         
       - name: Field/Force test
-        run: make test-gtests
+        run: |
+          source SOURCEME.sh
+          make test-gtests
         
       - name: Drag model test
-        run: make test_Dragmodels
-        
-        
+        run: |
+          source SOURCEME.sh
+          make test_Dragmodels
+                
