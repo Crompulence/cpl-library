@@ -52,31 +52,37 @@ jobs:
           ls ./lib/
           
       - name: Initialisation test
+        if: always()
         run: |
           source SOURCEME.sh
           make test-pytest-initialisation
 
       - name: Mapping test
+        if: always()
         run: |
           source SOURCEME.sh
           make test-pytest-mapping  
         
       - name: Examples test
+        if: always()
         run: |
           source SOURCEME.sh
           make test-examples
         
       - name: memory test
+        if: always()
         run: |
           source SOURCEME.sh
           make test-valgrind
         
       - name: Field/Force test
+        if: always()
         run: |
           source SOURCEME.sh
           make test-gtests
         
       - name: Drag model test
+        if: always()
         run: |
           source SOURCEME.sh
           make test_Dragmodels
