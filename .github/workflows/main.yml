@@ -57,12 +57,6 @@ jobs:
           source SOURCEME.sh
           make test-pytest-initialisation
 
-      - name: Mapping test
-        if: always()
-        run: |
-          source SOURCEME.sh
-          make test-pytest-mapping  
-        
       - name: Examples test
         if: always()
         run: |
@@ -87,3 +81,9 @@ jobs:
           source SOURCEME.sh
           make test_Dragmodels
                 
+      - name: Mapping test
+        if: always()
+        run: |
+          source SOURCEME.sh
+          make test-pytest-mapping  
+        
