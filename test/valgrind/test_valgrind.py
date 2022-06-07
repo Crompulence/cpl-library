@@ -68,7 +68,7 @@ def test_memory_leak():
             out = sp.check_output("rm -f vg_*", shell=True)
             out = sp.check_output(cmd, shell=True)
         except sp.CalledProcessError as e:
-            if e.output.startswith('error: {'):
+            if e.output.startswith(b'error: {'):
                 get_subprocess_error(e.output)
 
 

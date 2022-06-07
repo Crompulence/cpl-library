@@ -158,14 +158,14 @@ class CPL:
 
     #Detect if OpenMPI or MPICH
     mpicc=str(mpi4py.get_config()['mpicc'])
-    mpishow=sp.check_output(["mpicc","-show"])
-    if ("open" in mpicc or b"open" in mpishow):
+    mpishow=sp.check_output(["mpicc","-show"]).decode("utf-8")
+    if ("open" in mpicc or "open" in mpishow):
         MPI_version = "OPENMPI"
         ompi_info = sp.check_output("ompi_info").split("\n")
         for m in ompi_info:
             if ("Open MPI:" in m):
                 ompi_major_version_no = int(m.split(":")[-1].split(".")[0])            
-    elif ("mpich" in mpicc or b"open" in mpishow):
+    elif ("mpich" in mpicc or "mpich" in mpishow):
         MPI_version = "MPICH"      
     else:
         print(("UNKNOWN MPI VERSION FROM ", mpicc))
@@ -889,13 +889,14 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
             assert False
             return False
 
+    #This checsk the error message is as expected
     except CalledProcessError as exc:
         print((exc.output))
         if err_msg != "":
             print(("ERROR = ", err_msg))
-            assert err_msg in exc.output
+            assert err_msg in exc.output.decode("utf-8")
         else:
-            assert exc.output == ""
+            assert exc.output.decode("utf-8") == ""
     else:
         if err_msg != "":
             assert False

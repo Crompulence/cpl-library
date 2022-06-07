@@ -12,10 +12,10 @@ import os
 
 MD_FNAME = "md_test.py"
 MD_ARGS = MD_FNAME
-MD_EXEC = "python2"
+MD_EXEC = "python3"
 CFD_FNAME = "cfd_test.py"
 CFD_ARGS = CFD_FNAME
-CFD_EXEC = "python2"
+CFD_EXEC = "python3"
 #TEST_TEMPLATE_DIR = os.path.join(os.environ["CPL_PATH"], "test/templates")
 TEST_TEMPLATE_DIR = os.path.join(get_test_dir(), "templates")
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -120,12 +120,12 @@ def test_olapcells(prepare_config_fix, olapcells, err_msg):
 # EXPLANATION: These tests fails due to k*no_cells != no_procs(CFD) OR,
 #              k*no_cells != no_procs(MD), k in [1,2,3,...] in one direction.
 @pytest.mark.parametrize("domaincells, err_msg", [
-                         ((1, 1, 1), "cells in the cfd domain is not an integer multipl"),
+                         ((1, 1, 1), "cells in the cfd domain is not an integer multiple"),
                          ((3, 4, 4), "cells in the cfd domain is not an integer multiple"),
                          ((4, 4, 3), "cells in the cfd domain is not an integer multiple"),
                          ((8, 8, 5), "cells in the cfd domain is not an integer multiple"),
                     #TODO     ((8, 3, 8), ""),
-                         ((5, 8, 8), "cells in the cfd domain is not an integer multipl")])
+                         ((5, 8, 8), "cells in the cfd domain is not an integer multiple")])
 def test_domaincells(prepare_config_fix, domaincells, err_msg):
     MD_PARAMS = {"npx": 2, "npy": 2, "npz": 2,
                  "lx": 24.0, "ly": 24.0, "lz": 24.0, }

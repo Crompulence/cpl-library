@@ -386,7 +386,8 @@ for lib, lpath in Dicts["CFD"]["libs"].items():
         if args["verbose"]:
             print("CFD MPI libs", lib, lpath)
         #CFD_mpi = os.path.normpath(lpath)
-        Dicts["CFD"]["MPI"] = os.path.realpath(lpath)
+        #Replace fort or cxx in path so library version can be compared between languages
+        Dicts["CFD"]["MPI"] = os.path.realpath(lpath).replace("fort","").replace("cxx","")
 
 
 for lib, lpath in Dicts["MD"]["libs"].items():
@@ -394,11 +395,12 @@ for lib, lpath in Dicts["MD"]["libs"].items():
         if args["verbose"]:
             print("MD MPI libs", lib, lpath)
         #MD_mpi = os.path.normpath(lpath)
-        Dicts["MD"]["MPI"] = os.path.realpath(lpath)
+        #Replace fort or cxx in path so library version can be compared between languages
+        Dicts["MD"]["MPI"] = os.path.realpath(lpath).replace("fort","").replace("cxx","")
 
 if (Dicts["MD"]["MPI"] != Dicts["CFD"]["MPI"]) or (CPL_mpi != Dicts["CFD"]["MPI"]):
     print("Warning -- different MPI linked into executables")
-    print("MD MPI = ", Dicts["MD"]["MPI"], "CFD MPI=", Dicts["CFD"]["MPI"])
+    print("MD MPI = ", Dicts["MD"]["MPI"], "CFD MPI=", Dicts["CFD"]["MPI"], "CPL MPI=", CPL_mpi)
     if not args["permissive"]:
         sys.exit(1)
 

@@ -28,9 +28,9 @@ def get_subprocess_error(e):
 def runcmd(cmd):
     try:
         #run = sp.Popen(cmd, stdout=sp.PIPE, stderr=None, shell=True)
-        run = sp.check_output(cmd, stderr=sp.STDOUT, shell=True)
+        run = sp.check_output(cmd, stderr=sp.STDOUT, shell=True).decode("utf-8")
     except sp.CalledProcessError as e:
-        if e.output.startswith('error: {'):
+        if e.output.startswith(b'error: {'):
             get_subprocess_error(e.output)
         raise
 

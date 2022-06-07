@@ -85,8 +85,8 @@ if CPL.overlap():
 
 MD_COMM.Barrier()
 if CPL.overlap() and no_error:
-    print ("MD -- " + "(rank=%2d" % rank +
-           ") CELLS HAVE BEEN RECEIVED CORRECTLY.\n", end="")
+    print ("MD -- " + "(rank={:2d}".format(rank) +
+           ") CELLS HAVE BEEN RECEIVED CORRECTLY.\n")
 MPI.COMM_WORLD.Barrier()
 
 #Free comms and finalise
