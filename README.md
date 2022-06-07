@@ -1,5 +1,8 @@
 
-# cpl-library [![Build Status](https://travis-ci.org/Crompulence/cpl-library.png?branch=master)](https://travis-ci.org/Crompulence/cpl-library) [![Build Status](https://img.shields.io/docker/cloud/build/cpllibrary/cpl-library)](https://hub.docker.com/r/cpllibrary/cpl-library)
+# cpl-library [![CI](https://github.com/Crompulence/cpl-library/actions/workflows/main.yml/badge.svg)](https://github.com/Crompulence/cpl-library/actions/workflows/main.yml) [![Build Status](https://img.shields.io/docker/cloud/build/cpllibrary/cpl-library)](https://hub.docker.com/r/cpllibrary/cpl-library)
+
+
+
 
 <p align="center">
   www.cpl-library.org
