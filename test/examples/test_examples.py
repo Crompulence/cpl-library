@@ -27,8 +27,10 @@ def get_subprocess_error(e):
 
 def runcmd(cmd):
     try:
-        p = sp.Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
-        output, error = p.communicate()
+        p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, shell=True)
+        pcommout = p.communicate()
+        output = pcommout[0].decode("utf-8")
+        error = pcommout[1].decode("utf-8")
         if p.returncode != 0: 
             print("returncode", p.returncode)
             print("Stdout = ", output)
@@ -41,7 +43,7 @@ def runcmd(cmd):
             get_subprocess_error(e.output)
         raise
 
-    return run
+    return output+error
 
 if (cplpy.CPL.MPI_version == "OPENMPI"):
     cases=["split"]
