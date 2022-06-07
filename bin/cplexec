@@ -149,14 +149,14 @@ def check_for_error(proc):
     """
     for line in iter(proc.stderr.readline, b''):
         try:
-            if "NameError" in line:
+            if "NameError" in line.decode("utf-8"):
                 raise NameError(line)
                 sys.exit(1)
-            elif "Error" in line:
+            elif "Error" in line.decode("utf-8"):
                 print(line)
                 sys.exit(1)
             else:
-                print(line.replace("\n",""))
+                print(line.decode("utf-8").replace("\n",""))
         except IOError:
             pass
 

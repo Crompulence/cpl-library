@@ -25,7 +25,7 @@ nprocs_realm = CFD_COMM.Get_size()
 
 if (nprocs_realm != NProcs):
     print("ERROR: Non-coherent number of processors.")
-    MPI.Abort(errorcode=1)
+    comm.Abort(errorcode=1)
 
 cart_comm = CFD_COMM.Create_cart([NPx, NPy, NPz])
 CPL.setup_cfd(cart_comm, xyzL, xyz_orig, ncxyz)

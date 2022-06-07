@@ -38,7 +38,7 @@ nprocs_realm = MD_COMM.Get_size()
 
 if (nprocs_realm != NProcs):
     print("Non-coherent number of processes")
-    MPI.Abort(errorcode=1)
+    comm.Abort(errorcode=1)
 
 cart_comm = MD_COMM.Create_cart([NPx, NPy, NPz])
 
