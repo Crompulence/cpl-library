@@ -71,7 +71,7 @@ def test_example_sendrecv_scripts(cpltype, mddir, cfddir, count):
             else:
                 cmd = "mpiexec -n 16 "
         elif cpltype is "port":
-            cmd = "cplexec -m 16 "
+            cmd = "cplexec -p -m 16 "
 
         if ("python" in mddir):
             cmd += "python ./" + mddir + "/md_recv_cells.py"
