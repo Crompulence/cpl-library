@@ -340,7 +340,8 @@ for k in Dicts:
                 #Look in libraries for any libmpi modules and take first one
                 mpilibs = glob.glob(mpilibpath.replace("libmpi.so","")+"/*mpi*")
                 for l in mpilibs:
-                    if (".so" in l):
+                    #Look for Fortran bindings as these must exist for CPL library
+                    if ("fort" in l):
                         mpilibpath = l
                         break
 
