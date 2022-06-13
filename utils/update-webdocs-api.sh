@@ -1,9 +1,22 @@
 #!/bin/bash
 WEBSITE_DIR=$CPL_PATH/website
 WEBSITE_DOC_DIR=$WEBSITE_DIR/api-docs/
-DOCS_DIR=$CPL_PATH/doc
 
-cd $DOCS_DIR
+cd $WEBSITE_DOC_DIR
+
+#Sphinx is a Python documentation tool so we use
+# 1) a Fortran convertor called "sphinx-fortran" for the Fortran code
+# 2) Doxygen for the C++ part and breathe to convert to sphinx format
+pip install -U sphinx sphinx-fortran breathe
+
+REQUIRED_PKG="doxygen"
+PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+echo Checking for $REQUIRED_PKG: $PKG_OK
+if [ "" = "$PKG_OK" ]; then
+  echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
+  sudo apt-get --yes install $REQUIRED_PKG
+fi
+
 make html
 cp -R build/html/* $WEBSITE_DOC_DIR
 make clean
