@@ -178,6 +178,47 @@ class CPL:
 
     @abortMPI
     def init(self, calling_realm):
+        """
+            (cfd+md) Splits MPI_COMM_WORLD in both the CFD and MD code respectively 
+            and create intercommunicator between CFD and MD
+            
+            **Remarks**
+            
+            Assumes MPI has been initialised `MPI_init` and communicator MPI_COMM_WORLD exists
+            and contains all processors in both CFD and MD regions
+            
+            
+            **Synopsis**
+            
+            .. code-block:: python
+            
+              init(
+                   callingrealm, 
+                   )    
+            
+            **Inputs**
+            
+             - *callingrealm*
+            
+               - Should identify calling processor as either CFD_REALM (integer with value 1) or MD_REALM (integer with value 2).
+             
+            
+            **Outputs**
+            
+             - RETURNED_REALM_COMM 
+            
+               - Communicator based on callingrealm value local to CFD or MD processor and resulting from the split of MPI_COMM_WORLD
+            
+            **Example**
+            
+            .. literalinclude:: ../../../examples/cpl_init/md_init.py           
+            
+            **Errors**
+            
+                COUPLER_ERROR_REALM  = 1                    wrong realm value
+                COUPLER_ERROR_ONE_REALM = 2                 one realm missing
+                COUPLER_ERROR_INIT = 3         ! initialisation error
+        """
         self.realm = calling_realm
         MPI_Comm_int = c_int()
         self._py_init(calling_realm, byref(MPI_Comm_int))
@@ -254,7 +295,39 @@ class CPL:
     def setup_cfd(self, icomm_grid, xyzL, 
                         xyz_orig, ncxyz):
         """
-            setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz):
+            Initialisation routine for coupler module - Every variable is sent and stored
+            to ensure both md and cfd region have an identical list of parameters
+           
+            **Remarks**
+            
+            Assumes CPL has been initialised `CPL.init` and communicator MD_REALM exists
+
+            **Synopsis**
+            
+            .. code-block:: python
+            
+              setup_cfd(
+                        icomm_grid,
+                        xyzL,
+                        xyz_orig,
+                        ncxyz,
+                        )
+            
+            **Inputs**
+            
+             - *icomm_grid*
+            
+               - Communicator based on CFD processor topology returned from a call to MPI_CART_CREATE.
+             - *xyzL*
+            
+               - CFD domain size.
+             - *xyz_orig*
+            
+               - CFD origin.
+             - *ncxyz*
+            
+               - Number of CFD cells in global domain.
+
         """
 
         if (  ((type(icomm_grid) is list) and (len(icomm_grid) is 3))
@@ -294,7 +367,34 @@ class CPL:
     @abortMPI
     def setup_md(self, icomm_grid, xyzL, xyz_orig):
         """
-        setup_md(icomm_grid, xyzL, xyz_orig)
+            Initialisation routine for coupler module - Every variable is sent and stored
+            to ensure both md and cfd region have an identical list of parameters
+            
+            **Remarks**
+            
+            Assumes CPL has been initialised `CPL.init` and communicator MD_REALM exists
+            
+            **Synopsis**
+            
+            .. code-block:: python
+            
+              coupler_md_init(
+                              icomm_grid,
+                              xyzL,
+                              xyz_orig,
+                              )
+            
+            **Inputs**
+            
+             - *icomm_grid*
+            
+               - Communicator based on MD processor topology returned from a call to MPI_CART_CREATE.
+             - *xyzL*
+            
+               - MD domain size.
+             - *xyz_orig*
+            
+               - MD origin.
 
         """
         if (  ((type(icomm_grid) is list) and (len(icomm_grid) is 3))

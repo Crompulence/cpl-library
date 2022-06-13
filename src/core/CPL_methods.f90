@@ -13,9 +13,51 @@
 !
 !                         C P L  -  L I B R A R Y
 !
-!           Copyright (C) 2012-2015 Edward Smith & David Trevelyan
+!           Copyright (C) 2012-2022 Edward Smith
 !
-!License
+!=============================================================================
+
+module coupler
+!
+!Routines accessible from application ( molecular or continuum ) after
+!the name, in parenthesis, is the realm in which each routine must be called
+!
+!  - CPL_send            (cfd+md)   sends grid data exchanged between realms ( generic interface)
+!  - CPL_recv            (cfd+md)   receives data exchanged between realms ( generic interface)
+!  - CPL_cfd_get         (cfd)    returns coupler internal parameters for CFD realm
+!  - CPL_get             (md)    returns coupler internal parameters
+!  - CPL_md_get_save_period     (md)    auxiliary used for testing [depricated]
+!  - CPL_md_get_average_period  (md)    returns average period of BC [depricated]
+!  - CPL_md_get_md_per_cfd_dt   (md)    returns the number of step MD does for each CFD step [depricated]
+!
+!Also see `coupler module <fortran_api.html#coupler-module>`_ which contains all
+!routines to setup the simulation and all the variables defining the setup topology.
+!
+!.. code-block:: guess
+!
+!    ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________
+!     _____/\\\////////__\/\\\/////////\\\_\/\\\_____________
+!      ___/\\\/___________\/\\\_______\/\\\_\/\\\_____________
+!       __/\\\_____________\/\\\\\\\\\\\\\/__\/\\\_____________
+!        _\/\\\_____________\/\\\/////////____\/\\\_____________
+!         _\//\\\____________\/\\\_____________\/\\\_____________
+!          __\///\\\__________\/\\\_____________\/\\\_____________
+!           ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_
+!            _______\/////////__\///______________\///////////////__
+!
+!
+!                         C P L  -  L I B R A R Y
+!
+!           Copyright (C) 2012-2022 Edward Smith
+!
+!**Author(s)**
+!
+! - Edward Smith Novemeber 2011 to present
+! - Eduardo Ramos Fernandez 2015 to 2018
+! - David Trevelyan September 2012 to December 2015
+! - Lucian Anton, November 2011  
+!
+!**License**
 !
 !    This file is part of CPL-Library.
 !
@@ -32,43 +74,6 @@
 !    You should have received a copy of the GNU General Public License
 !    along with CPL-Library.  If not, see <http://www.gnu.org/licenses/>.
 !
-!
-!Description
-!
-!
-!Author(s)
-! .. codeauthor:: Edward Smith Novemeber 2011 to present
-! .. codeauthor:: Eduardo Ramos Fernandez 2015 to present
-! .. codeauthor:: David Trevelyan September 2012 to December 2015
-! .. codeauthor:: Lucian Anton, November 2011  
-!
-!! Routines accessible from application ( molecular or continuum ) after
-!! the name, in parenthesis, is the realm in which each routine must be called
-!!
-! SIMULATION SIMULATION SIMULATION SIMULATION SIMULATION SIMULATION SIMULATION
-!!
-!! - CPL_send            (cfd+md)   sends grid data exchanged between
-!!                                      realms ( generic interface)
-!!
-!! - CPL_recv            (cfd+md)   receives data exchanged between realms
-!!                                      ( generic interface)
-!!
-!! - CPL_cfd_get         (cfd)    returns coupler internal parameters
-!!                                      for CFD realm
-!!
-!! - CPL_get             (md)    returns coupler internal parameters
-!!
-!! - CPL_md_get_save_period     (md)    auxiliary used for testing
-!!
-!! - CPL_md_get_average_period  (md)    returns average period of BC
-!!
-!! - CPL_md_get_md_per_cfd_dt   (md)    returns the number of step MD does for 
-!!                                      each CFD step
-!!
-!! @see coupler_module
-!=============================================================================
-
-module coupler
     implicit none
 
     private CPL_send_full, CPL_send_min, CPL_recv_full, CPL_recv_min
@@ -81,12 +86,17 @@ module coupler
            CPL_overlap, CPL_realm, CPL_cart_coords, CPL_cfd_dt, CPL_md2cfd, &
            CPL_cfd2md, CPL_is_proc_inside, CPL_swaphalos
 
-    !Interface for error handling functions
     interface CPL_send
+		!
+		!Interface to allow single call to CPL send to be used for different inputs
+		!
         module procedure CPL_send_full, CPL_send_min
     end interface CPL_send
 
     interface CPL_recv
+		!
+		!Interface to allow single call to CPL recv to be used for different inputs
+		!
         module procedure CPL_recv_full, CPL_recv_min
     end interface CPL_recv
 
@@ -105,44 +115,45 @@ contains
 !------------------------------------------------------------------------------
 !                              CPL_gather                                     -
 !------------------------------------------------------------------------------
-!>
-!! Perform gather operation on CPL_OLAP_COMM communicator. The CFD processor
-!! is the root process. The gathered data is effectively "slotted" into the
-!! correct part of the recvarray, and is intented for use in providing the
-!! CFD simulation boundary conditions with data obtained from the MD
-!! simulation.
-!!
-!! - Synopsis
-!!
-!!  - CPL_gather(gatherarray,npercell,limits,recvarray)
-!!
-!! - Input
-!!
-!!  - gatherarray
-!!   - Assumed shape array of data to be gathered from each MD processor
-!!     in the overlap communicator. Must be size 0 on CFD processor.
-!!
-!!  - limits
-!!   - Integer array of length 6, specifying the global cell extents of the
-!!     region to be gathered, is the same on ALL processors.
-!!
-!!  - npercell
-!!   - number of data points per cell to be gathered (integer)
-!!     Note: should be the same as size(gatherarray(1)) for MD
-!!     processor. E.G. npercell = 3 for gathering 3D velocities.
-!!
-!! - Input/Output
-!!  - recvarray
-!!   - The array in which the gathered values are to be stored on the CFD
-!!     processor. The only values to be changed in recvarray are:
-!!     recvarray(limits(1):limits(2),limits(3):limits(4),limits(5):limits(6))
-!!
-!! - Output Parameters
-!!  - NONE
-!!
-!! .. sectionauthor:: David Trevelyan
-
-subroutine CPL_gather(gatherarray, npercell, limits, recvarray)!todo better name than recvarray
+subroutine CPL_gather(gatherarray, npercell, limits, recvarray)
+!
+!Perform gather operation on CPL_OLAP_COMM communicator. The CFD processor
+!is the root process. The gathered data is effectively "slotted" into the
+!correct part of the recvarray, and is intented for use in providing the
+!CFD simulation boundary conditions with data obtained from the MD
+!simulation.
+!
+!**Synopsis**
+!
+!  - CPL_gather(gatherarray,npercell,limits,recvarray)
+!
+!**Inputs**
+!
+! - gatherarray
+!   - Assumed shape array of data to be gathered from each MD processor
+!     in the overlap communicator. Must be size 0 on CFD processor.
+!
+! - limits
+!   - Integer array of length 6, specifying the global cell extents of the
+!     region to be gathered, is the same on ALL processors.
+!
+! - npercell
+!   - number of data points per cell to be gathered (integer)
+!     Note: should be the same as size(gatherarray(1)) for MD
+!     processor. E.G. npercell = 3 for gathering 3D velocities.
+!
+!**Inputs/Output**
+!
+! - recvarray
+!   - The array in which the gathered values are to be stored on the CFD
+!     processor. The only values to be changed in recvarray are:
+!     recvarray(limits(1):limits(2),limits(3):limits(4),limits(5):limits(6))
+!
+!**Output**
+!  - NONE
+!
+! .. sectionauthor:: David Trevelyan
+!
     use mpi
     use coupler_module
     implicit none
@@ -425,37 +436,38 @@ end subroutine CPL_gather
 !------------------------------------------------------------------------------
 !                              CPL_scatter                                    -
 !------------------------------------------------------------------------------
-!>
-!! Scatter cell-wise data from CFD processor to corresponding MD processors
-!! on the overlap communicator CPL_OLAP_COMM.
-!!
-!! - Synopsis
-!!
-!!  - CPL_scatter(scatterarray,npercell,limits,recvarray)
-!!
-!! - Input
-!!
-!!  - scatterarray
-!!   - assumed shape array of data to be scattered (real(kind(0.d0)))
-!!
-!!  - limits
-!!   - integer array of length 6, specifying the global cell extents of the
-!!     region to be scattered, is the same on all processors.
-!!
-!!  - npercell
-!!   - number of data points per cell to be scattered (integer).
-!!     Note: should be the same as size(scatterarray(1)) for CFD proc
-!!
-!! - Input/Output
-!!  - recvarray
-!!   - the array in which the scattered values are stored on the MD
-!!     processors.
-!!
-!! - Output
-!!  - NONE
-!!
-!! .. sectionauthor:: David Trevelyan
 subroutine CPL_scatter(scatterarray,npercell,limits,recvarray)
+!
+!Scatter cell-wise data from CFD processor to corresponding MD processors
+!on the overlap communicator CPL_OLAP_COMM.
+!
+!**Synopsis**
+!
+!  - CPL_scatter(scatterarray,npercell,limits,recvarray)
+!
+!**Inputs**
+!
+!  - scatterarray
+!   - assumed shape array of data to be scattered (real(kind(0.d0)))
+!
+!  - limits
+!   - integer array of length 6, specifying the global cell extents of the
+!     region to be scattered, is the same on all processors.
+!
+!  - npercell
+!   - number of data points per cell to be scattered (integer).
+!     Note: should be the same as size(scatterarray(1)) for CFD proc
+!
+!**Inputs/Output**
+!  - recvarray
+!   - the array in which the scattered values are stored on the MD
+!     processors.
+!
+!**Output**
+!  - NONE
+!
+! .. sectionauthor:: David Trevelyan
+!
     use coupler_module
     use mpi
     implicit none
@@ -667,7 +679,7 @@ end subroutine CPL_scatter
 
 ! ----------------------------------------------------------------------------
 subroutine CPL_send_full(asend, limits, send_flag)
-! ----------------------------------------------------------------------------
+!
 !Send four dimensional array *asend* of data from all processors in the 
 !current realm with data between global cell array *limits* to the 
 !corresponding processors from the other realm.
@@ -680,20 +692,15 @@ subroutine CPL_send_full(asend, limits, send_flag)
 !
 !**Synopsis**
 !
-!.. code-block:: c
+!.. code-block:: fortran
 !
-!  CPL_send(
-!           asend, 
-!           limits, 
-!           send_flag
-!           )    
+!  CPL_send(asend, limits, send_flag)    
 !
 !**Inputs**
 !
-! - *asend*
+! - asend
 !
-!   - Array of data to send. Should be a four dimensional array allocated using the number of cells on the current processor between the limits. Size should be be obtained from `CPL_my_proc_portion(limits, portion) <#f/_/cpl_my_proc_portion>`_.
-! 
+!   - Array of data to send. Should be a four dimensional array allocated using the number of cells on the current processor between the limits. Size should be be obtained from `CPL_my_proc_portion(limits, portion) <#f/coupler/cpl_my_proc_portion>`_.
 ! - limits 
 !
 !   - Limits in global cell coordinates, must be the same as corresponding recieve
@@ -706,7 +713,7 @@ subroutine CPL_send_full(asend, limits, send_flag)
 !
 !**Example**
 !
-!.. code-block:: guess
+!.. code-block:: fortran
 !
 !  call CPL_get_olap_limits(limits)
 !  call CPL_my_proc_portion(limits, portion)
@@ -726,7 +733,6 @@ subroutine CPL_send_full(asend, limits, send_flag)
 !  enddo
 !  enddo
 !  call CPL_send(A, limits, send_flag)
-
 !
 ! .. sectionauthor::Edward Smith
 ! ----------------------------------------------------------------------------
@@ -916,8 +922,8 @@ end subroutine CPL_send_min
 subroutine CPL_recv_full(arecv, limits, recv_flag)
 ! ----------------------------------------------------------------------------
 !
-! Receive data from to local grid from the associated ranks from the other 
-! realm
+!Receive data from to local grid from the associated ranks from the other 
+!realm
 !
 !**Remarks**
 !
@@ -927,20 +933,15 @@ subroutine CPL_recv_full(arecv, limits, recv_flag)
 !
 !**Synopsis**
 !
-!.. code-block:: c
+!.. code-block:: fortran
 !
-!  CPL_send(
-!           arecv, 
-!           limits, 
-!           recv_flag
-!           )    
+!  CPL_recv(arecv, limits, recv_flag)    
 !
 !**Inputs**
 !
-! - *arecv*
+! - arecv
 !
-!   - Array of data to recv. Should be a four dimensional array allocated using the number of cells on the current processor between the limits. Size should be be obtained from `CPL_my_proc_portion(limits, portion) <#f/_/cpl_my_proc_portion>`_.
-! 
+!   - Array of data to recv. Should be a four dimensional array allocated using the number of cells on the current processor between the limits. Size should be be obtained from `CPL_my_proc_portion(limits, portion) <#f/coupler/cpl_my_proc_portion>`_.
 ! - limits 
 !
 !   - Limits in global cell coordinates, must be the same as corresponding send
@@ -964,7 +965,7 @@ subroutine CPL_recv_full(arecv, limits, recv_flag)
 !  call CPL_recv(A, limits, recv_flag)
 !
 ! .. sectionauthor::Edward Smith
-! ----------------------------------------------------------------------------
+!
     use mpi
     use coupler_module, only : md_realm, cfd_realm, rank_graph, &
                                error_abort,CPL_GRAPH_COMM,myid_graph,olap_mask, &
@@ -1212,40 +1213,30 @@ subroutine CPL_recv_min(arecv, recv_flag)
 
 end subroutine CPL_recv_min
 
-
-
-
-! Contains routines:
-! swaphalos                --   TOP LEVEL 
-!                             calls updatefaces
-! 
-
 ! ----------------------------------------------------------------------------
 subroutine CPL_swaphalos(A)
 ! ----------------------------------------------------------------------------
 !
-! Swap halos with adjacent processors on current realm cart comm
+!Swap halos with adjacent processors on current realm cart comm
 !
 !**Remarks**
 !
-! Assumes the coupler has been initialised with `CPL_init <#f/_/cpl_init>`_ and 
-! topological mapping has been setup using either `CPL_setup_md <#f/_/cpl_setup_md>`_ 
-! or `CPL_setup_cfd <#f/_/cpl_setup_cfd>`_ as appropriate.
-! 
+!Assumes the coupler has been initialised with `CPL_init <#f/_/cpl_init>`_ and 
+!topological mapping has been setup using either `CPL_setup_md <#f/_/cpl_setup_md>`_ 
+!or `CPL_setup_cfd <#f/_/cpl_setup_cfd>`_ as appropriate.
+!
 !
 !**Synopsis**
 !
-!.. code-block:: c
+!.. code-block:: fortran
 !
-!  CPL_swaphalos(
-!           A, 
-!           )    
+!  CPL_swaphalos(A)    
 !
 !**Inputs**
 !
-! - *A*
+! - A
 !
-!   - Array of data to swaphalo. Should be a four dimensional array allocated using the number of cells including one halos on the current processor. Size should be be obtained from `CPL_my_proc_portion(limits, portion) <#f/_/cpl_my_proc_portion>`_ with an extra halo on each side. This halo should have been used to collect overflow on current processor.
+!   - Array of data to swaphalo. Should be a four dimensional array allocated using the number of cells including one halos on the current processor. Size should be be obtained from `CPL_my_proc_portion(limits, portion) <#f/coupler/cpl_my_proc_portion>`_ with an extra halo on each side. This halo should have been used to collect overflow on current processor.
 ! 
 !
 !**Outputs**
@@ -1256,7 +1247,7 @@ subroutine CPL_swaphalos(A)
 !
 !**Example**
 !
-!.. code-block:: guess
+!.. code-block:: fortran
 !
 !  call CPL_get(icmax_olap=icmax_olap)
 !  call CPL_get_olap_limits(limits)
@@ -1278,11 +1269,11 @@ subroutine CPL_swaphalos(A)
 !  call CPL_swaphalo(A)
 !
 ! .. sectionauthor::Edward Smith
-
+!
     use coupler_module, only : CPL_CART_COMM
     implicit none
 
-    real(kind=kind(0.d0)), intent(inout)                    :: A(:,:,:,:)
+    real(kind=kind(0.d0)), intent(inout) :: A(:,:,:,:) !4D Array of data with empty outer halo.
 
     integer                                                 :: nresults
     integer                                                 :: n,i,j,k,ic,jc,kc
@@ -1358,9 +1349,12 @@ subroutine CPL_swaphalos(A)
 
 end subroutine CPL_swaphalos
 
-! updatefaces             --  Facilitate the MPI based exchange of data
-!Update face halo cells by passing to neighbours
+
 subroutine updatefaces(A, n1, n2, n3, nresults, ixyz, icomm_grid)
+!
+! updatefaces --  Facilitate the MPI based exchange of data
+! Update face halo cells by passing to neighbours
+!
     use mpi
     implicit none
 
@@ -1437,13 +1431,16 @@ subroutine updatefaces(A, n1, n2, n3, nresults, ixyz, icomm_grid)
 end subroutine updatefaces
 
 !-------------------------------------------------------------------
-!Establish and store indices of cells which are on the outer domain
-
 subroutine establish_surface_cells(ncells, nhb, surfacecells)
+!
+!Establish and store indices of cells which are on the outer domain
+!but not in the halo
+!
     implicit none
 
-    integer, dimension(3), intent(in) :: nhb, ncells
-    integer, dimension(:,:), allocatable, intent(out) :: surfacecells
+    integer, dimension(3), intent(in) :: ncells !Number of cells in x,y and z
+    integer, dimension(3), intent(in) :: nhb    !Number of halos in x,y and z
+    integer, dimension(:,:), allocatable, intent(out) :: surfacecells !N by 3 array of Surface cells
 
     integer        :: n, nsurfacecells
     integer        :: icell, jcell, kcell
@@ -1481,13 +1478,14 @@ end subroutine establish_surface_cells
 
 
 !-------------------------------------------------------------------
-!Establish and store indices of cells which are in the halo
-
 subroutine establish_halo_cells(ncells, halocells)
+!
+!Establish and store indices of cells which are in the halo
+!
     implicit none
 
-    integer, dimension(3), intent(in) :: ncells
-    integer, dimension(:,:), allocatable, intent(out) :: halocells
+    integer, dimension(3), intent(in) :: ncells  !Number of cells in x,y and z
+    integer, dimension(:,:), allocatable, intent(out) :: halocells !N by 3 array of halo cells
 
     integer        :: n, nhalocells
     integer        :: icell, jcell, kcell
@@ -1700,37 +1698,37 @@ end function
 !-------------------------------------------------------------------
 !                   CPL_proc_extents                  -
 !-------------------------------------------------------------------
-!>
-!!
-!! Gets maximum and minimum cells for processor coordinates
-!!
-!! - Synopsis
-!!
-!!  - CPL_proc_extents(coord,realm,extents,ncells)
-!!
-!! - Input
-!!
-!!  - coord
-!!   - processor cartesian coordinate (3 x integer) 
-!!
-!!  - realm
-!!   - cfd_realm (1) or md_realm (2) (integer) 
-!!
-!! - Input/Output
-!!  - NONE
-!!
-!! - Output
-!!
-!!  - extents
-!!   - Six components array which defines processor extents
-!!     xmin,xmax,ymin,ymax,zmin,zmax (6 x integer) 
-!!
-!!  - ncells (optional)
-!!   - number of cells on processor (integer) 
-!!
-!! .. sectionauthor:: David Trevelyan
-!! .. sectionauthor:: Edward Smith
 subroutine CPL_proc_extents(coord, realm, extents, ncells)
+!
+!Gets maximum and minimum cells for processor coordinates
+!
+!**Synopsis**
+!
+!  - CPL_proc_extents(coord,realm,extents,ncells)
+!
+!**Inputs**
+!
+!  - coord
+!   - processor cartesian coordinate (3 x integer) 
+!
+!  - realm
+!   - cfd_realm (1) or md_realm (2) (integer) 
+!
+!**Inputs/Output**
+!  - NONE
+!
+!**Output**
+!
+! - extents
+!   - Six components array which defines processor extents
+!     xmin,xmax,ymin,ymax,zmin,zmax (6 x integer) 
+!
+! - ncells (optional)
+!   - number of cells on processor (integer) 
+!
+! .. sectionauthor:: David Trevelyan
+! .. sectionauthor:: Edward Smith
+!
     use mpi
     use coupler_module, only: md_realm,      cfd_realm,      &
                               icPmin_md,     icPmax_md,      &
@@ -1814,37 +1812,37 @@ end subroutine CPL_proc_extents
 !-------------------------------------------------------------------
 !                   CPL_olap_extents                  -
 !-------------------------------------------------------------------
-!>
-!!
-!! Get maximum and minimum cells for current communicator within
-!! the overlapping region only
-!!
-!! - Synopsis 
-!!
-!!  - CPL_olap_extents(coord,realm,extents,ncells)
-!!
-!! - Input 
-!!
-!!  - coord
-!!   - processor cartesian coordinate (3 x integer) 
-!!
-!!  - realm
-!!   - cfd_realm (1) or md_realm (2) (integer) 
-!!
-!! - Input/Output
-!!  - NONE
-!!
-!! - Output 
-!!
-!!  - extents
-!!   - Six components array which defines processor extents within
-!!     the overlap region only: xmin,xmax,ymin,ymax,zmin,zmax (6 x integer) 
-!!
-!!  - ncells (optional)
-!!   - number of cells on processor (integer) 
-!!
-!! .. sectionauthor:: David Trevelyan
 subroutine CPL_olap_extents(coord,realm,extents,ncells)
+!
+!Get maximum and minimum cells for current communicator within
+!the overlapping region only
+!
+!**Synopsis** 
+!
+!  - CPL_olap_extents(coord,realm,extents,ncells)
+!
+!**Inputs** 
+!
+!  - coord
+!   - processor cartesian coordinate (3 x integer) 
+!
+!  - realm
+!   - cfd_realm (1) or md_realm (2) (integer) 
+!
+!**Inputs/Output**
+!  - NONE
+!
+!**Output**
+!
+!  - extents
+!   - Six components array which defines processor extents within
+!     the overlap region only: xmin,xmax,ymin,ymax,zmin,zmax (6 x integer) 
+!
+!  - ncells (optional)
+!   - number of cells on processor (integer) 
+!
+! .. sectionauthor:: David Trevelyan
+!
     use mpi
     use coupler_module, only: md_realm,      cfd_realm,      &
                               icPmin_md,     icPmax_md,      &
@@ -1894,6 +1892,7 @@ end subroutine CPL_olap_extents
 !                   CPL_proc_portion                  -
 !-------------------------------------------------------------------
 subroutine CPL_proc_portion(coord, realm, limits, portion, ncells)
+!
 !Get maximum and minimum cell indices, i.e. the 'portion', of the
 !input cell extents 'limits' that is contributed by the processor
 !specified by processor coord. 
@@ -1907,41 +1906,35 @@ subroutine CPL_proc_portion(coord, realm, limits, portion, ncells)
 !
 !**Synopsis**
 !
-!.. code-block:: c
+!.. code-block:: fortran
 !
-!  CPL_proc_portion(
-!                   coord,
-!                   realm,
-!                   limits,
-!                   portion,
-!                   ncells
-!                   )
+!  CPL_proc_portion(coord, realm, limits, portion, ncells)
 !
 !**Inputs**
 !
-! - *coord*
+! - coord
 !
 !   - processor cartesian coordinate (3 x integer) 
-! - *realm*
+! - realm
 !
 !   - cfd_realm (1) or md_realm (2) (integer) 
-! - *limits*
+! - limits
 !
 !   - Array of cell extents that specify the input region. 
 !
 !
 !**Outputs**
 !
-! - *portion*
+! - portion
 !   - Array of cell extents that define the local processor's
 !     contribution to the input region 'limits'.
 !
-! - *ncells (optional)*
+! - ncells (optional)
 !    - number of cells in portion (integer) 
 !
 !
 ! .. sectionauthor:: David Trevelyan
-
+!
     use mpi
     use coupler_module, only: VOID
     implicit none
@@ -1983,6 +1976,7 @@ end subroutine CPL_proc_portion
 
 
 subroutine CPL_my_proc_portion(limits, portion)
+!
 !Get maximum and minimum cell indices, i.e. the 'portion', of the
 !input cell extents 'limits' that is contributed by calling processor.
 !
@@ -1995,26 +1989,24 @@ subroutine CPL_my_proc_portion(limits, portion)
 !
 !**Synopsis**
 !
-!.. code-block:: c
+!.. code-block:: fortran
 !
-!  CPL_proc_portion(
-!                   limits,
-!                   portion,
-!                   )
+!  CPL_my_proc_portion(limits, portion)
 !
 !**Inputs**
 !
-! - *limits*
+! - limits
 !
 !   - Array of cell extents that specify the input region. 
 !
 !**Outputs**
 !
-! - *portion*
+! - portion
 !   - Array of cell extents that define the local processor's
-!     contribution to the input region 'limits'.
+!     part of the input region 'limits'.
 !
 ! .. sectionauthor:: Eduardo Ramos Fernandez
+!
     use coupler_module, only: rank_cart, realm, md_realm, &
                               cfd_realm, rank2coord_cfd, &
                               rank2coord_md
@@ -2062,8 +2054,9 @@ end subroutine CPL_my_proc_extents
 !-------------------------------------------------------------------
 
 subroutine CPL_Cart_coords(COMM, rank, realm, maxdims, coords, ierr)
-! Determines process coords in appropriate realm's cartesian topology 
-! given a rank in any communicator
+!
+!Determines process coords in appropriate realm's cartesian topology 
+!given a rank in any communicator
 !
 !**Remarks**
 !
@@ -2074,43 +2067,39 @@ subroutine CPL_Cart_coords(COMM, rank, realm, maxdims, coords, ierr)
 !
 !**Synopsis**
 !
-!.. code-block:: c
+!.. code-block:: fortran
 !
-!  CPL_Cart_coords(
-!                  COMM, 
-!                  rank, 
-!                  realm, 
-!                  maxdims, 
-!                  coords, 
-!                  ierr
-!                  )
+!  CPL_Cart_coords(COMM, rank, realm, maxdims, coords, ierr)
 !
 !**Inputs**
 !
-! - *comm*
+! - COMM
 !
 !   - communicator with cartesian structure (handle) 
-! - *realm*
+!
+! - rank
+!
+!   - rank of a process within group of comm (integer) NOTE fortran convention rank=1 to nproc
+!
+! - realm
 !
 !   - cfd_realm (1) or md_realm (2) (integer) 
-! - *rank*
 !
-!   - rank of a process within group of comm (integer) 
-!      NOTE fortran convention rank=1 to nproc
-! - *maxdims*
+! - maxdims
 !
 !   - length of vector coords in the calling program (integer) 
 !
 !**Outputs**
 !
-! - *coords*
+! - coords
 !
 !   - integer array (of size ndims) containing the Cartesian coordinates 
 !     of specified process (integer) 
-! - *ierr*
+! - ierr
 !
 !   - error flag
 ! .. sectionauthor:: Edward Smith
+!
     use coupler_module, only :  CPL_WORLD_COMM, CPL_REALM_COMM, CPL_INTER_COMM, & 
                                 CPL_CART_COMM, CPL_OLAP_COMM, CPL_GRAPH_COMM,   &
                                 CPL_REALM_INTERSECTION_COMM, md_realm,cfd_realm, &
@@ -2125,7 +2114,7 @@ subroutine CPL_Cart_coords(COMM, rank, realm, maxdims, coords, ierr)
                                 error_abort
     implicit none
 
-    integer, intent(in)     :: COMM, realm, rank, maxdims
+    integer, intent(in)     :: COMM, rank, realm, maxdims
     integer, intent(out)    :: coords(maxdims), ierr
 
     integer                 :: worldrank, cartrank
@@ -2247,7 +2236,8 @@ end subroutine CPL_Cart_coords
 !                   CPL_get_rank                       -
 !-------------------------------------------------------------------
 subroutine CPL_get_rank(COMM, rank)
-! Return rank of current processor in specified COMM 
+!
+!Return rank of current processor in specified COMM 
 !
 !**Remarks**
 !
@@ -2258,26 +2248,23 @@ subroutine CPL_get_rank(COMM, rank)
 !
 !**Synopsis**
 !
-!.. code-block:: c
+!.. code-block:: fortran
 !
-!  CPL_get_rank(
-!               COMM, 
-!               rank
-!               )
+!  CPL_get_rank(COMM, rank)
 !
 !**Inputs**
 !
-! - *comm*
+! - COMM
 !   - communicator with cartesian structure (handle) 
 !
 !**Outputs**
 !
-! - *rank*
+! - rank
 !   - rank of a process within group of comm (integer) 
 !      NOTE fortran convention rank=1 to nproc
 !
 ! .. sectionauthor:: Edward Smith
-
+!
     use coupler_module, only :  CPL_WORLD_COMM, CPL_REALM_COMM, CPL_INTER_COMM, & 
                                 CPL_CART_COMM,  CPL_OLAP_COMM,  CPL_GRAPH_COMM, &
                                 CPL_REALM_INTERSECTION_COMM,rank_world,         &
@@ -2318,27 +2305,26 @@ end subroutine CPL_get_rank
 !-------------------------------------------------------------------
 !                   CPL_olap_check                                         -
 !-------------------------------------------------------------------
-!>
-!! Check if current processor is in the overlap region
-!!
-!! - Synopsis
-!!
-!!  - CPL_olap_check()
-!!
-!! - Input Parameters
-!!
-!!  - NONE
-!!
-!! - Returns
-!!
-!!  - CPL_olap_check
-!!   - True if calling processor is in the overlap region
-!!     and false otherwise
-!!
-!! .. sectionauthor:: Edward Smith
-
-
 function CPL_overlap() result(p)
+!
+!Check if current processor is in the overlap region
+!
+!**Synopsis**
+!
+!  - CPL_olap_check()
+!
+!**Inputs** Parameters
+!
+!  - NONE
+!
+! - Returns
+!
+!  - CPL_olap_check
+!   - True if calling processor is in the overlap region
+!     and false otherwise
+!
+! .. sectionauthor:: Edward Smith
+!
     use coupler_module, only : olap_mask, rank_world
     implicit none
 
@@ -2376,9 +2362,9 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
                    cpl_cfd_bc_x, cpl_cfd_bc_y, cpl_cfd_bc_z,     &
                    timestep_ratio, comm_style,                   &
                    sendtype_cfd_to_md, sendtype_md_to_cfd)
-! Wrapper to retrieve (read only) parameters from the coupler_module 
-! Note - this ensures all variable in the coupler are protected
-! from corruption by either CFD or MD codes
+!Wrapper to retrieve (read only) parameters from the coupler_module 
+!Note - this ensures all variable in the coupler are protected
+!from corruption by either CFD or MD codes
 !
 !**Synopsis**
 !
@@ -2451,12 +2437,19 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
 
     logical,dimension(3),optional,intent(out) :: staggered_averages
 
-    integer, optional, intent(out)          :: icmax_olap ,icmin_olap
-    integer, optional, intent(out)          :: jcmax_olap ,jcmin_olap
-    integer, optional, intent(out)          :: kcmax_olap ,kcmin_olap
+    integer, optional, intent(out)          :: icmax_olap
+    integer, optional, intent(out)          :: icmin_olap
+    integer, optional, intent(out)          :: jcmax_olap
+    integer, optional, intent(out)          :: jcmin_olap
+    integer, optional, intent(out)          :: kcmax_olap
+    integer, optional, intent(out)          :: kcmin_olap
     integer, optional, intent(out)          :: ncx,ncy,ncz
-    integer, optional, intent(out)          :: npx_md,npy_md,npz_md
-    integer, optional, intent(out)          :: npx_cfd,npy_cfd,npz_cfd
+    integer, optional, intent(out)          :: npx_md
+    integer, optional, intent(out)          :: npy_md
+    integer, optional, intent(out)          :: npz_md
+    integer, optional, intent(out)          :: npx_cfd
+    integer, optional, intent(out)          :: npy_cfd
+    integer, optional, intent(out)          :: npz_cfd
     integer, optional, intent(out)          :: md_cfd_match_cellsize
     integer, optional, intent(out)          :: timestep_ratio
 
@@ -2468,9 +2461,12 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
     integer, optional, intent(out)          :: constraint_CV
     integer, optional, intent(out)          :: constraint_off
     integer, optional, intent(out)          :: comm_style 
-    integer, optional, intent(out)          :: icmax_cnst, icmin_cnst
-    integer, optional, intent(out)          :: jcmax_cnst, jcmin_cnst
-    integer, optional, intent(out)          :: kcmax_cnst, kcmin_cnst
+    integer, optional, intent(out)          :: icmax_cnst
+    integer, optional, intent(out)          :: icmin_cnst
+    integer, optional, intent(out)          :: jcmax_cnst
+    integer, optional, intent(out)          :: jcmin_cnst
+    integer, optional, intent(out)          :: kcmax_cnst
+    integer, optional, intent(out)          :: kcmin_cnst
     integer, optional, intent(out)          :: cpl_cfd_bc_slice 
     integer, optional, intent(out)          :: cpl_cfd_bc_x 
     integer, optional, intent(out)          :: cpl_cfd_bc_y 
@@ -2481,14 +2477,23 @@ subroutine CPL_get(icmax_olap,icmin_olap,jcmax_olap,jcmin_olap,  &
     integer, optional, intent(out)          :: sendtype_cfd_to_md
     integer, optional, intent(out)          :: sendtype_md_to_cfd
 
-    real(kind(0.d0)), optional, intent(out) :: density_cfd,density_md
-    real(kind(0.d0)), optional, intent(out) :: dt_cfd,dt_MD
-    real(kind(0.d0)), optional, intent(out) :: dx,dy,dz
-    real(kind(0.d0)), optional, intent(out) :: xL_md,xL_cfd
-    real(kind(0.d0)), optional, intent(out) :: yL_md,yL_cfd
-    real(kind(0.d0)), optional, intent(out) :: zL_md,zL_cfd
+    real(kind(0.d0)), optional, intent(out) :: density_cfd
+    real(kind(0.d0)), optional, intent(out) :: density_md
+    real(kind(0.d0)), optional, intent(out) :: dt_cfd
+    real(kind(0.d0)), optional, intent(out) :: dt_MD
+    real(kind(0.d0)), optional, intent(out) :: dx
+    real(kind(0.d0)), optional, intent(out) :: dy
+    real(kind(0.d0)), optional, intent(out) :: dz
+    real(kind(0.d0)), optional, intent(out) :: xL_md
+    real(kind(0.d0)), optional, intent(out) :: xL_cfd
+    real(kind(0.d0)), optional, intent(out) :: yL_md
+    real(kind(0.d0)), optional, intent(out) :: yL_cfd
+    real(kind(0.d0)), optional, intent(out) :: zL_md
+    real(kind(0.d0)), optional, intent(out) :: zL_cfd
 
-    real(kind(0.d0)), dimension(:,:,:),allocatable,optional,intent(out) :: xg,yg,zg
+    real(kind(0.d0)), dimension(:,:,:),allocatable,optional,intent(out) :: xg
+    real(kind(0.d0)), dimension(:,:,:),allocatable,optional,intent(out) :: yg
+    real(kind(0.d0)), dimension(:,:,:),allocatable,optional,intent(out) :: zg
 
     !Overlap extents
     if (present(icmax_olap)) icmax_olap = icmax_olap_
@@ -2618,9 +2623,10 @@ end subroutine CPL_meshgrid
 
 
 !=============================================================================
-!> Map global MD position to global CFD coordinate frame
-!-----------------------------------------------------------------------------
 function CPL_map_md2cfd_coord(coord_md, coord_cfd) result(valid_coord)
+!
+! Map global MD position to global CFD coordinate frame
+!
     use coupler_module, only :  xL_md,xg,icmin_olap,icmax_olap, & 
                                 yL_md,yg,jcmin_olap,jcmax_olap, & 
                                 zL_md,zg,kcmin_olap,kcmax_olap, &
@@ -2673,9 +2679,11 @@ end function CPL_map_md2cfd_coord
 
 
 !=============================================================================
-!> Map global CFD position in global MD coordinate frame
 !-----------------------------------------------------------------------------
 function CPL_map_cfd2md_coord(coord_cfd, coord_md) result(valid_coord)
+!
+!Map global CFD position in global MD coordinate frame
+!
     use coupler_module, only :  xL_md,xg,icmin_olap,icmax_olap, & 
                                 yL_md,yg,jcmin_olap,jcmax_olap, & 
                                 zL_md,zg,kcmin_olap,kcmax_olap, &
@@ -2859,7 +2867,7 @@ function CPL_map_coord2cell(x, y, z, cell_ijk) result(ret)
     olap_hi = olap_hi + (/dx, dy, dz/)
 
     !NOTE: The highest coordinate would give a cell number outside the 
-    !      grid so one has to be subtracted to the cell number.
+    !      grid so one has to be subtracted from the cell number.
 
     if (x == olap_hi(1)) then
         cell_ijk(1) = cell_ijk(1) - 1
@@ -2926,6 +2934,31 @@ end function CPL_map_glob2loc_cell
 !-----------------------------------------------------------------------------
 
 subroutine CPL_get_olap_limits(limits)
+! ----------------------------------------------------------------------------
+!Get limits of overlap region as cell indices in global coordinate system, 
+!these are as specified in the input file (COUPLER.in).
+!
+!**Remarks**
+!
+!Assumes the coupler has been initialised with `CPL_init <#f/_/cpl_init>`_ and 
+!topological mapping has been setup using either `CPL_setup_md <#f/_/cpl_setup_md>`_ 
+!or `CPL_setup_cfd <#f/_/cpl_setup_cfd>`_ as appropriate.
+! - Note: limits(6) are of the form: (xmin,xmax,ymin,ymax,zmin,zmax)
+!
+!**Synopsis**
+!
+!.. code-block:: fortran
+!
+!  CPL_get_olap_limits(limits)
+!
+!**Outputs**
+!
+! - limits
+!
+!   - Array of cell extents that specify the overlap region. 
+!
+! .. sectionauthor:: Edward Smith
+!
     use coupler_module, only :  icmin_olap, icmax_olap, & 
                                 jcmin_olap, jcmax_olap, & 
                                 kcmin_olap, kcmax_olap
@@ -2941,9 +2974,34 @@ subroutine CPL_get_olap_limits(limits)
 
 end subroutine CPL_get_olap_limits
 
-!-----------------------------------------------------------------------------
-
+! ----------------------------------------------------------------------------
 subroutine CPL_get_cnst_limits(limits)
+!
+!Get limits of constraint region as cell indices in global coordinate system, 
+!these are as specified in the input file (COUPLER.in) and must be in the
+!overlap region.
+!
+!**Remarks**
+!
+!Assumes the coupler has been initialised with `CPL_init <#f/_/cpl_init>`_ and 
+!topological mapping has been setup using either `CPL_setup_md <#f/_/cpl_setup_md>`_ 
+!or `CPL_setup_cfd <#f/_/cpl_setup_cfd>`_ as appropriate.
+! - Note: limits(6) are of the form: (xmin,xmax,ymin,ymax,zmin,zmax)
+!
+!**Synopsis**
+!
+!.. code-block:: fortran
+!
+!  CPL_get_cnst_limits(limits)
+!
+!**Outputs**
+!
+! - limits
+!
+!   - Array of cell extents that specify the constrained region. 
+!
+! .. sectionauthor:: Edward Smith
+!
     use coupler_module, only :  icmin_cnst, icmax_cnst, & 
                                 jcmin_cnst, jcmax_cnst, & 
                                 kcmin_cnst, kcmax_cnst
@@ -2962,6 +3020,32 @@ end subroutine CPL_get_cnst_limits
 !-----------------------------------------------------------------------------
 
 subroutine CPL_get_bnry_limits(limits)
+!
+!Get limits of boundary region as cell indices in global coordinate system, 
+!these are as specified in the input file (COUPLER.in) and must be in the
+!overlap region.
+!
+!**Remarks**
+!
+!Assumes the coupler has been initialised with `CPL_init <#f/_/cpl_init>`_ and 
+!topological mapping has been setup using either `CPL_setup_md <#f/_/cpl_setup_md>`_ 
+!or `CPL_setup_cfd <#f/_/cpl_setup_cfd>`_ as appropriate.
+! - Note: limits(6) are of the form: (xmin,xmax,ymin,ymax,zmin,zmax)
+!
+!**Synopsis**
+!
+!.. code-block:: fortran
+!
+!  CPL_get_bnry_limits(limits)
+!
+!**Outputs**
+!
+! - limits
+!
+!   - Array of cell extents that specify the boundary region. 
+!
+! .. sectionauthor:: Edward Smith
+!
     use coupler_module, only :  icmin_bnry, icmax_bnry, & 
                                 jcmin_bnry, jcmax_bnry, & 
                                 kcmin_bnry, kcmax_bnry
@@ -2979,7 +3063,26 @@ end subroutine CPL_get_bnry_limits
 
 subroutine CPL_get_arrays(recv_array, recv_size, &
                           send_array, send_size)
-
+!
+!A helper function to get arrays of the required size for cells local to
+!the current processor
+!
+!**Example**
+!
+!The first example shows the CFD side of the exchange, with send/recv arrays 
+!obtained from CPL_get_arrays
+!
+!.. literalinclude:: ../../../examples/minimal_send_recv_mocks/minimal_CFD.f90
+!
+!The corresponding MD code which matches this, note CPL_get_arrays send and recv
+!arrays are swapped over (as send from CFD in recv on MD and vice versa)
+!
+!.. literalinclude:: ../../../examples/minimal_send_recv_mocks/minimal_MD.f90
+!
+!These are then both run together, either MPMD or port connect modes
+!
+! .. sectionauthor:: Edward Smith
+!
     integer :: recv_size, send_size
     integer :: limits(6), portion(6), Ncells(3)
     double precision, dimension(:,:,:,:), & 
