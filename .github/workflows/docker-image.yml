@@ -29,9 +29,9 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
+          context: utils
           push: true
           tags: cpllibrary/cpl-library:latest
-          dockerfile: ./utils/Dockerfile
           
       - name: Run tests inside the Docker container
         run: docker run cpllibrary/cpl-library make test-init
