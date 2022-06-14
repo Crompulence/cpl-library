@@ -43,6 +43,51 @@ Description
 #include <iostream>
 #include <sstream>
 
+
+///(cfd+md) Splits MPI_COMM_WORLD in both the CFD and MD code respectively 
+///and create intercommunicator between CFD and MD
+///
+///**Remarks**
+///
+///Assumes MPI has been initialised `MPI_init` and communicator MPI_COMM_WORLD exists
+///and contains all processors in both CFD and MD regions
+///
+///
+///**Synopsis**
+/*!
+\verbatim embed:rst
+.. code-block:: c
+
+  CPL::init(callingrealm, RETURNED_REALM_COMM)    
+\endverbatim
+*/
+///
+///**Inputs**
+///
+/// - *callingrealm*
+///
+///   - Should identify calling processor as either CFD_REALM (integer with value 1) or MD_REALM (integer with value 2).
+/// 
+///
+///**Outputs**
+///
+/// - RETURNED_REALM_COMM 
+///
+///   - Communicator based on callingrealm value local to CFD or MD processor and resulting from the split of MPI_COMM_WORLD
+///
+///**Example**
+/*!
+\verbatim embed:rst
+.. literalinclude:: ../../../examples/cpl_init/cfd_init.cpp
+\endverbatim
+*/	
+///
+///**Errors**
+///
+///	COUPLER_ERROR_REALM  = 1                wrong realm value
+///	COUPLER_ERROR_ONE_REALM = 2             one realm missing
+///	COUPLER_ERROR_INIT = 3         			initialisation error 
+///
 void CPL::init(int calling_realm, MPI_Comm& returned_realm_comm) {
     CPLC_init(calling_realm, &returned_realm_comm);
 }

@@ -1,3 +1,4 @@
+!=============================================================================
 !
 !    ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________
 !     _____/\\\////////__\/\\\/////////\\\_\/\\\_____________
@@ -12,9 +13,78 @@
 !
 !                         C P L  -  L I B R A R Y
 !
-!           Copyright (C) 2012-2015 Edward Smith & David Trevelyan
+!           Copyright (C) 2012-2022 Edward Smith
 !
-!License
+module coupler_module
+!
+!The **COUPLER MODULE**
+!A single coupler module for both codes - this contains the same information
+!on both md and cfd side and all variables. A fundamental design philosophy
+!of CPL library is to ensure both codes have access to all topology and
+!processor information (without needed to call costly global routines).
+!This module contains all the variables, which define the mappings between
+!processors, a hierachy of MPI communicators and all the subroutines to
+!set them up. These variables include:
+!
+!  - MPI communicators
+!  - Simulation realms
+!  - MPI processor IDs
+!  - Processor topologies
+!  - Processor cartesian coords
+!  - Global cell grid parameters
+!  - Processor cell ranges
+!  - Domain and cell dimensions
+!  - Positions of CFD grid lines
+!  - CFD to MD processor mapping
+!  - Simulation parameters
+!  - Error handling
+!
+! The data in this module is protected so only setup routines in this module can change it
+!
+!.. code-block:: guess
+!
+!    ________/\\\\\\\\\__/\\\\\\\\\\\\\____/\\\_____________
+!     _____/\\\////////__\/\\\/////////\\\_\/\\\_____________
+!      ___/\\\/___________\/\\\_______\/\\\_\/\\\_____________
+!       __/\\\_____________\/\\\\\\\\\\\\\/__\/\\\_____________
+!        _\/\\\_____________\/\\\/////////____\/\\\_____________
+!         _\//\\\____________\/\\\_____________\/\\\_____________
+!          __\///\\\__________\/\\\_____________\/\\\_____________
+!           ____\////\\\\\\\\\_\/\\\_____________\/\\\\\\\\\\\\\\\_
+!            _______\/////////__\///______________\///////////////__
+!
+!
+!                         C P L  -  L I B R A R Y
+!
+!           Copyright (C) 2012-2022 Edward Smith
+!
+!**Author(s)**
+!
+! - Edward Smith Novemeber 2011 to present
+! - Eduardo Ramos Fernandez 2015 to 2018
+! - David Trevelyan September 2012 to December 2015
+! - Lucian Anton, November 2011  
+!
+!  SETUP SETUP SETUP SETUP SETUP SETUP SETUP SETUP SETUP SETUP SETUP SETUP
+!  -----------------------------------------------------------------------
+!
+!Setup routines which have access to coupler parameters
+!
+!  - CPL_create_comm          (cfd+md)   splits MPI_COMM_WORLD, create inter -
+!                                       communicator between CFD and MD
+!
+!  - CPL_create_map           (cfd+md)   creates correspondence maps between
+!                                       the CFD grid and MD domains
+!
+!  - CPL_cfd_adjust_domain     (cfd)     adjust CFD tomain to an integer number
+!                                       FCC or similar MD initial layout
+!
+!Also see `coupler <fortran_api.html#coupler-methods-module>`_ which contains all
+!routines to exchange information
+!
+!
+!
+!**License**
 !
 !    This file is part of CPL-Library.
 !
@@ -32,147 +102,107 @@
 !    along with CPL-Library.  If not, see <http://www.gnu.org/licenses/>.
 !
 !
-!Description
+! .. codeauthor:: David Trevelyan, Edward Smith
 !
-!
-!! COUPLER MODULE:
-!! A single coupler module for both codes - this contains the same information
-!! on both md and cfd side
-!!
-!!  - Error handling
-!!  - MPI communicators
-!!  - Simulation realms
-!!  - MPI processor IDs
-!!  - Processor topologies
-!!  - Processor cartesian coords
-!!  - Global cell grid parameters
-!!  - Processor cell ranges
-!!  - Domain and cell dimensions
-!!  - Positions of CFD grid lines
-!!  - CFD to MD processor mapping
-!!  - Simulation parameters
-!!
-!! The data is protected so only setup routines in this module can change it
-!
-!
-!
-!  SETUP SETUP SETUP SETUP SETUP SETUP SETUP SETUP SETUP SETUP SETUP SETUP
-!  -----------------------------------------------------------------------
-!
-!! Setup routines which have access to coupler parameters
-!!
-!! - CPL_create_comm          (cfd+md)   splits MPI_COMM_WORLD, create inter -
-!!                                       communicator between CFD and MD
-!!
-!! - CPL_create_map           (cfd+md)   creates correspondence maps between
-!!                                       the CFD grid and MD domains
-!!
-!! - CPL_cfd_adjust_domain     (cfd)     adjust CFD tomain to an integer number
-!!                                       FCC or similar MD initial layout
-!
-!! .. codeauthor:: David Trevelyan, Edward Smith
-!! @see coupler
 !=============================================================================
-
-module coupler_module
     implicit none
 
-    integer, parameter :: VOID=-666         !!VOID value for data initialisation
-    integer, parameter :: cfd_realm = 1     !! CFD realm identifier
-    integer, parameter :: md_realm  = 2     !! MD realm identifier
+    integer, parameter :: VOID=-666         !VOID value for data initialisation
+    integer, parameter :: cfd_realm = 1     ! CFD realm identifier
+    integer, parameter :: md_realm  = 2     ! MD realm identifier
     character(len=*),parameter :: &
-        realm_name(2) = (/ "CFD", "MD " /)  !! Used with realm identifier to get name
+        realm_name(2) = (/ "CFD", "MD " /)  ! Used with realm identifier to get name
 
-    !! Output options
+    ! Output options
     integer, parameter:: QUIET = 0
     integer, parameter:: NORMAL = 1
 
-    !! Max
-    integer, parameter :: maxgridsize = 2*1024**2 !! Maximum size to store global grid
+    ! Max
+    integer, parameter :: maxgridsize = 2*1024**2 ! Maximum size to store global grid
 
-    !! error codes
+    ! error codes
     integer, parameter :: & 
-        COUPLER_ERROR_REALM  = 1        !! wrong realm value
+        COUPLER_ERROR_REALM  = 1        ! wrong realm value
     integer, parameter :: & 
-        COUPLER_ERROR_ONE_REALM  = 2    !! one realm missing
+        COUPLER_ERROR_ONE_REALM  = 2    ! one realm missing
     integer, parameter :: & 
-        COUPLER_ERROR_INIT       = 3    !! initialisation error
+        COUPLER_ERROR_INIT       = 3    ! initialisation error
     integer, parameter :: & 
-        COUPLER_ERROR_INPUT_FILE = 4    !! wrong value in input file
+        COUPLER_ERROR_INPUT_FILE = 4    ! wrong value in input file
     integer, parameter :: & 
-        COUPLER_ERROR_READ_INPUT = 5    !! error in processing input file or data transfers
+        COUPLER_ERROR_READ_INPUT = 5    ! error in processing input file or data transfers
     integer, parameter :: & 
-        COUPLER_ERROR_CONTINUUM_FORCE = 6   !!the region in which the continuum constrain force is apply spans over two MD domains
+        COUPLER_ERROR_CONTINUUM_FORCE = 6   !the region in which the continuum constrain force is apply spans over two MD domains
     integer, parameter :: & 
-        COUPLER_ABORT_ON_REQUEST = 7    !! used in request_abort 
+        COUPLER_ABORT_ON_REQUEST = 7    ! used in request_abort 
     integer, parameter :: & 
-        COUPLER_ABORT_SEND_CFD   = 8    !! error in coupler_cfd_send
+        COUPLER_ABORT_SEND_CFD   = 8    ! error in coupler_cfd_send
     integer, parameter :: & 
-        COUPLER_ERROR_CART_COMM   = 9   !! Wrong comm value in CPL_Cart_coords
+        COUPLER_ERROR_CART_COMM   = 9   ! Wrong comm value in CPL_Cart_coords
     integer, parameter :: & 
-        COUPLER_ERROR_SETUP_INCOMPLETE   = 10   !! CPL_setup_md or CPL_setup_cfd
+        COUPLER_ERROR_SETUP_INCOMPLETE   = 10   ! CPL_setup_md or CPL_setup_cfd
 
-    !! Output mode flag
+    ! Output mode flag
     integer :: output_mode = NORMAL
 
-    !! MPI error flag
+    ! MPI error flag
     integer     :: ierr 
 
     ! MPI Communicators
     integer,protected :: &
-        CPL_WORLD_COMM !! Both CFD and MD realms;
+        CPL_WORLD_COMM ! Both CFD and MD realms;
     integer,protected :: &
-        CPL_REALM_COMM !! INTRA communicators within MD/CFD realms;
+        CPL_REALM_COMM ! INTRA communicators within MD/CFD realms;
     integer,protected :: &
-        CPL_INTER_COMM !!  CFD/MD INTER communicator between realm comms;
+        CPL_INTER_COMM !  CFD/MD INTER communicator between realm comms;
     integer,protected :: &
-        CPL_CART_COMM !!  Comm w/cartesian topology for each realm;
+        CPL_CART_COMM !  Comm w/cartesian topology for each realm;
     integer,protected :: &
-        CPL_OLAP_COMM !!  Local comm between only overlapping MD/CFD procs;
+        CPL_OLAP_COMM !  Local comm between only overlapping MD/CFD procs;
     integer,protected :: &
-        CPL_REALM_OLAP_COMM !!  Local CFD/MD in overlapping region;
+        CPL_REALM_OLAP_COMM !  Local CFD/MD in overlapping region;
     integer,protected :: &
-        CPL_GRAPH_COMM !!  Comm w/ graph topolgy between locally olapg procs;
+        CPL_GRAPH_COMM !  Comm w/ graph topolgy between locally olapg procs;
     integer,protected :: &
-        CPL_REALM_INTERSECTION_COMM !!  Intersecting MD/CFD procs in world;
+        CPL_REALM_INTERSECTION_COMM !  Intersecting MD/CFD procs in world;
 
-    !! Simulation realms
+    ! Simulation realms
     integer,protected :: &
         realm
 
     ! MPI processor IDs
     integer,protected :: &
-        myid_world   !! Processor ID from 0 to nproc_world-1;
+        myid_world   ! Processor ID from 0 to nproc_world-1;
     integer,protected :: &
-        rank_world   !! Processor rank from 1 to nproc_world;
+        rank_world   ! Processor rank from 1 to nproc_world;
     integer,protected :: &
-        rootid_world !! Root processor in world;
+        rootid_world ! Root processor in world;
     integer,protected :: &
-        myid_realm   !! Processor ID from 0 to nproc_realm-1;
+        myid_realm   ! Processor ID from 0 to nproc_realm-1;
     integer,protected :: &
-        rank_realm   !! Processor rank from 1 to nproc_realm;
+        rank_realm   ! Processor rank from 1 to nproc_realm;
     integer,protected :: &
-        rootid_realm !! Root processor in each realm;
+        rootid_realm ! Root processor in each realm;
     integer,protected :: &
-        myid_cart   !! Processor ID from 0 to nproc_cart-1;
+        myid_cart   ! Processor ID from 0 to nproc_cart-1;
     integer,protected :: &
-        rank_cart   !! Processor rank from 1 to nproc_cart;
+        rank_cart   ! Processor rank from 1 to nproc_cart;
     integer,protected :: &
-        rootid_cart !! Root processor in each cart topology;
+        rootid_cart ! Root processor in each cart topology;
     integer,protected :: &
-        myid_olap   !! Processor ID from 0 to nproc_olap-1;
+        myid_olap   ! Processor ID from 0 to nproc_olap-1;
     integer,protected :: &
-        rank_olap   !! Processor rank from 1 to nproc_olap;
+        rank_olap   ! Processor rank from 1 to nproc_olap;
     integer,protected :: &
-        CFDid_olap  !! Root processor in overlap is the CFD processor;
+        CFDid_olap  ! Root processor in overlap is the CFD processor;
     integer,protected :: &
-        myid_graph  !! Processor ID from 0 to nproc_graph-1;
+        myid_graph  ! Processor ID from 0 to nproc_graph-1;
     integer,protected :: &
-        rank_graph  !! Processor rank from 1 to nproc_graph;
+        rank_graph  ! Processor rank from 1 to nproc_graph;
     integer,protected :: &
-        rank_intersect  !! Processor rank in intersection of overlaping proces;
+        rank_intersect  ! Processor rank in intersection of overlaping proces;
 
-    !! Get rank in CPL_world_COMM from rank in local COMM
+    ! Get rank in CPL_world_COMM from rank in local COMM
     integer,protected, dimension(:), allocatable    :: &
         rank_world2rank_mdrealm,    &
         rank_world2rank_mdcart,     &
@@ -182,7 +212,7 @@ module coupler_module
         rank_world2rank_graph,      &
         rank_world2rank_inter
 
-    !! Get rank in local COMM from rank in CPL_world_COMM
+    ! Get rank in local COMM from rank in CPL_world_COMM
     integer,protected, dimension(:), allocatable    :: &
          rank_mdrealm2rank_world,    &
           rank_mdcart2rank_world,    &
@@ -196,82 +226,82 @@ module coupler_module
 
     ! Processor topologies
     integer,protected :: &
-        nproc_md     !! Total number of processor in md
+        nproc_md     ! Total number of processor in md
     integer,protected :: &
-        nproc_cfd    !! Total number of processor in cfd
+        nproc_cfd    ! Total number of processor in cfd
     integer,protected :: &
-        nproc_olap   !! Total number of processor in overlap region
+        nproc_olap   ! Total number of processor in overlap region
     integer,protected :: &
-        nproc_world  !! Total number of processor in world
+        nproc_world  ! Total number of processor in world
     integer,protected :: &
-        npx_md       !! Number of processor in x in the md
+        npx_md       ! Number of processor in x in the md
     integer,protected :: &
-        npy_md       !! Number of processor in y in the md
+        npy_md       ! Number of processor in y in the md
     integer,protected :: &
-        npz_md       !! Number of processor in z in the md
+        npz_md       ! Number of processor in z in the md
     integer,protected :: &
-        npx_cfd      !! Number of processor in x in the cfd
+        npx_cfd      ! Number of processor in x in the cfd
     integer,protected :: &
-        npy_cfd      !! Number of processor in y in the cfd
+        npy_cfd      ! Number of processor in y in the cfd
     integer,protected :: &
-        npz_cfd      !! Number of processor in z in the cfd
+        npz_cfd      ! Number of processor in z in the cfd
 
     logical,protected, dimension(:), allocatable :: &
-        olap_mask           !! Overlap mask specifying which processors overlap using world ranks
+        olap_mask           ! Overlap mask specifying which processors overlap using world ranks
     integer,protected, dimension(:,:), allocatable :: &
-        rank2coord_cfd,   &   !! Array containing coordinates for each cartesian rank 
+        rank2coord_cfd,   &   ! Array containing coordinates for each cartesian rank 
         rank2coord_md
     integer,protected, dimension(:,:,:), allocatable :: &
         coord2rank_cfd,   &
         coord2rank_md
 
-    !! Processor cartesian coords   
+    ! Processor cartesian coords   
     integer,protected :: &
-        iblock_realm,     &
-        jblock_realm,     &
-        kblock_realm
+        iblock_realm,     &  !x Processor ID in Cartesian Coordinates
+        jblock_realm,     &  !y Processor ID in Cartesian Coordinates
+        kblock_realm         !z Processor ID in Cartesian Coordinates
 
     ! Global cell grid parameters
     integer,protected :: &
-        ncx,              &    ! Number of cells in domain
-        ncy,              &
-        ncz,              &
-        icmin,            &    ! Domain cell extents
-        icmax,            &
-        jcmin,            &
-        jcmax,            &
-        kcmin,            &
-        kcmax,            &
-        icmin_olap,       &    ! Overlap region cell extents
-        icmax_olap,       &
-        jcmin_olap,       &
-        jcmax_olap,       &
-        kcmin_olap,       &
-        kcmax_olap,       &
-        ncx_olap,         &    ! Number of cells in overlap region
-        ncy_olap,         &
-        ncz_olap
+        ncx,              &    ! Number of x cells in domain
+        ncy,              &    ! Number of y cells in domain
+        ncz,              &    ! Number of z cells in domain
+        icmin,            &    ! Whole simulation lower cell extents in x
+        icmax,            &    ! Whole simulation upper cell extents in x
+        jcmin,            &    ! Whole simulation lower cell extents in y
+        jcmax,            &    ! Whole simulation upper cell extents in y
+        kcmin,            &    ! Whole simulation lower cell extents in z
+        kcmax,            &    ! Whole simulation upper cell extents in z
+        icmin_olap,       &    ! Overlap region lower cell extents in x
+        icmax_olap,       &    ! Overlap region upper cell extents in x
+        jcmin_olap,       &    ! Overlap region lower cell extents in y
+        jcmax_olap,       &    ! Overlap region upper cell extents in y
+        kcmin_olap,       &    ! Overlap region lower cell extents in z
+        kcmax_olap,       &    ! Overlap region upper cell extents in z
+        ncx_olap,         &    ! Number of cells in x in overlap region
+        ncy_olap,         &    ! Number of cells in y in overlap region
+        ncz_olap               ! Number of cells in z in overlap region
 
     ! Constrained dynamics region flags and params
     integer, protected :: &
         constraint_algo,  &
         constraint_CVflag,&
-        icmin_cnst,       &    ! Constrained dynamics region cell extents
-        icmax_cnst,       &
-        jcmin_cnst,       &
-        jcmax_cnst,       &
-        kcmin_cnst,       &
-        kcmax_cnst
+        icmin_cnst,       &    ! Constrained dynamics region lower cell extents in x
+        icmax_cnst,       &    ! Constrained dynamics region upper cell extents in x
+        jcmin_cnst,       &    ! Constrained dynamics region lower cell extents in y
+        jcmax_cnst,       &    ! Constrained dynamics region upper cell extents in y
+        kcmin_cnst,       &    ! Constrained dynamics region lower cell extents in z
+        kcmax_cnst             ! Constrained dynamics region upper cell extents in z
 
     ! Boundary region 
     integer, protected :: &
         boundary_algo,    &
-        icmin_bnry,       &    
-        icmax_bnry,       &
-        jcmin_bnry,       &
-        jcmax_bnry,       &
-        kcmin_bnry,       &
-        kcmax_bnry
+        icmin_bnry,       &   ! Region used to get boundary condition lower cell extents in x
+        icmax_bnry,       &   ! Region used to get boundary condition upper cell extents in x
+        jcmin_bnry,       &   ! Region used to get boundary condition lower cell extents in y
+        jcmax_bnry,       &   ! Region used to get boundary condition upper cell extents in y
+        kcmin_bnry,       &   ! Region used to get boundary condition lower cell extents in z   
+        kcmax_bnry            ! Region used to get boundary condition upper cell extents in z
 
     ! Coupling CFD boundary condition direction flags
     integer, protected :: &
@@ -320,36 +350,36 @@ module coupler_module
     
     ! Domain and cell dimensions
     real(kind(0.d0)),protected :: &
-        xL_md,            &
-        yL_md,            &
-        zL_md,            &
-        x_orig_md,        & ! Origin of the md domain
-        y_orig_md,        &
-        z_orig_md,        &
-        xL_cfd,           &
-        yL_cfd,           &
-        zL_cfd,           &
-        x_orig_cfd,       & ! Origin of the cfd domain
-        y_orig_cfd,       &
-        z_orig_cfd,       &
-        xL_olap,          &
-        yL_olap,          &
-        zL_olap,          &
+        xL_md,            & ! x domain size of the md domain 
+        yL_md,            & ! y domain size of the md domain 
+        zL_md,            & ! z domain size of the md domain 
+        x_orig_md,        & ! x origin of the md domain
+        y_orig_md,        & ! y origin of the md domain
+        z_orig_md,        & ! z origin of the md domain
+        xL_cfd,           & ! x domain size of the cfd domain 
+        yL_cfd,           & ! y domain size of the cfd domain 
+        zL_cfd,           & ! z domain size of the cfd domain 
+        x_orig_cfd,       & ! x origin of the cfd domain
+        y_orig_cfd,       & ! y origin of the cfd domain
+        z_orig_cfd,       & ! z origin of the cfd domain
+        xL_olap,          & ! x overlap region size
+        yL_olap,          & ! y overlap region size
+        zL_olap,          & ! z overlap region size
         xLl,              &
         yLl,              &
         zLl,              &
-        dx,               &
-        dy,               &
-        dz,               &
+        dx,               & ! Cell size in x
+        dy,               & ! Cell size in y
+        dz,               & ! Cell size in z
         dymin,            &
         dymax
 
 
     ! Positions of CFD grid lines
     real(kind(0.d0)),protected, dimension(:,:,:), allocatable, target :: &
-        xg,               &
-        yg,               &
-        zg
+        xg,               & !3D grid points in x
+        yg,               & !3D grid points in y
+        zg                  !3D grid points in z
 
     ! CFD to MD processor mapping
     integer,protected, dimension(:,:), allocatable :: &
@@ -363,7 +393,7 @@ module coupler_module
         nsteps_cfd,       & !CFD input steps
         nsteps_coupled,   & !Total number of steps for coupled simulation
         average_period=1, & ! average period for averages ( it must come from CFD !!!)
-        save_period=10      ! save period (corresponts to tplot in CFD, revise please !!!)
+        save_period=10      ! save period (corresponts to tplot in CFD)
     real(kind(0.d0)),protected :: &
         dt_md,            &
         dt_cfd,           &
@@ -404,13 +434,9 @@ contains
 !                                        |_|    
 !=============================================================================
 
-
-
-
-
-
 subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
 ! ----------------------------------------------------------------------------
+!
 !(cfd+md) Splits MPI_COMM_WORLD in both the CFD and MD code respectively 
 !and create intercommunicator between CFD and MD
 !
@@ -422,17 +448,13 @@ subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
 !
 !**Synopsis**
 !
-!.. code-block:: c
+!.. code-block:: fortran
 !
-!  CPL_init(
-!           callingrealm, 
-!           RETURNED_REALM_COMM, 
-!           ierror
-!           )    
+!  CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)    
 !
 !**Inputs**
 !
-! - *callingrealm*
+! - callingrealm
 !
 !   - Should identify calling processor as either CFD_REALM (integer with value 1) or MD_REALM (integer with value 2).
 ! 
@@ -449,9 +471,9 @@ subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
 !
 !**Example**
 !
-!.. literalinclude:: ../../examples/cpl_init/cfd_init.f90
+!.. literalinclude:: ../../../examples/cpl_init/cfd_init.f90
 !
-!.. literalinclude:: ../../examples/cpl_init/md_init.f90
+!.. literalinclude:: ../../../examples/cpl_init/md_init.f90
 !
 !
 !**Errors**
@@ -461,6 +483,7 @@ subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
 !    COUPLER_ERROR_INIT = 3         ! initialisation error
 !
 ! .. sectionauthor::Edward Smith, David Trevelyan, Eduardo Ramos Fernandez
+!
 ! ------------------------------------
     use mpi
     implicit none
@@ -544,6 +567,9 @@ end subroutine print_cplheader
 !-----------------------------------------------------------------------------
 
 subroutine test_realms(MPMD_mode)
+!
+!Test if CFD and MD realms are assigned correctly
+!
     implicit none
 
     integer,intent(out)  :: MPMD_mode
@@ -607,7 +633,6 @@ end subroutine test_realms
 !-----------------------------------------------------------------------------
 ! Create communicators for each realm and inter-communicator
 !-----------------------------------------------------------------------------
-
 subroutine create_comm(MPMD_mode)
     implicit none
 
@@ -796,10 +821,14 @@ end subroutine CPL_init
 
 
 subroutine CPL_finalize(ierr)
+!
+! Free all coupling COMMS, deallocate all arrays and set CPL_initialised
+! flag to zero 
+!
     use mpi, only : MPI_COMM_NULL, MPI_Barrier, MPI_COMM_WORLD
     implicit none
 
-    integer, intent(out) :: ierr
+    integer, intent(out) :: ierr !Error flag
 
     !Comminicators setup by CPL_init()
     if (CPL_INTER_COMM .ne. MPI_COMM_NULL) call MPI_COMM_FREE(CPL_INTER_COMM, ierr)
@@ -861,10 +890,24 @@ subroutine CPL_finalize(ierr)
 end subroutine CPL_finalize
 
 !=============================================================================
-!! Read Coupler input file
+! Read Coupler input file
 !-----------------------------------------------------------------------------
-
 subroutine read_coupler_input()
+!
+!Read COUPLER.in with keyword inputs, which looks for a word
+!and then reads an expected set of arguments on next lines
+!e.g. if you had the keyword KEYWORD followed by 2 integer argumets
+!this would be in the form
+!
+!.. code-block:: fortran
+!
+!  KEYWORD
+!  1
+!  2
+!
+!This routine is called behind the scenes and attempts to read 
+!the file located under cpl/COUPLER.in
+!
     implicit none
 
     integer :: infileid, readin
@@ -1025,30 +1068,31 @@ end subroutine read_coupler_input
 !------------------------------------------------------------------------------
 !                              CPL_write_header                               -
 !------------------------------------------------------------------------------
-!>
-!! Writes header information to specified filename in the format
-!! Variable description ; variable name ; variable
-!!
-!! - Synopsis
-!!
-!!  - CPL_write_header (header_filename)
-!!
-!! - Input
-!!
-!!  - header_filename
-!!   - File name to write header to
-!!
-!! - Input/Output
-!!  - NONE
-!!
-!! - Output
-!!  - NONE
-!! 
-!! .. sectionauthor:: Edward Smith
-!
-! ----------------------------------------------------------------------------
-
 subroutine CPL_write_header(header_filename)
+!
+! Writes header information to specified filename in the format
+! Variable description ; variable name ; variable
+!
+!**Synopsis**
+!
+!  - CPL_write_header (header_filename)
+!
+!	
+!
+!  - header_filename
+!
+!   - File name to write header to
+!
+!**Input/Output**
+!
+!  - NONE
+!
+!**Output**
+!
+!  - NONE
+! 
+! .. sectionauthor:: Edward Smith
+!
     implicit none
 
     character(*),intent(in) :: header_filename
@@ -1118,41 +1162,37 @@ end subroutine  CPL_write_header
 
 subroutine CPL_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
 ! ----------------------------------------------------------------------------
+!
 !Initialisation routine for coupler module - Every variable is sent and stored
 !to ensure both md and cfd region have an identical list of parameters
 !
 !**Remarks**
 !
-!Assumes CPL has been initialised `CPL_init` and communicator MD_REALM exists
 !
+!Assumes CPL has been initialised `CPL_init` and communicator MD_REALM exists
 !**Synopsis**
 !
-!.. code-block:: c
+!.. code-block:: fortran
 !
-!  coupler_cfd_init(
-!                  icomm_grid,
-!                  xyzL,
-!                  xyz_orig,
-!                  ncxyz,
-!                  )
+!  CPL_setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
 !
 !**Inputs**
 !
-! - *icomm_grid*
+! - icomm_grid
 !
 !   - Communicator based on CFD processor topology returned from a call to MPI_CART_CREATE.
-! - *xyzL*
+! - xyzL
 !
 !   - CFD domain size.
-! - *xyz_orig*
+! - xyz_orig
 !
 !   - CFD origin.
-! - *ncxyz*
+! - ncxyz
 !
 !   - Number of CFD cells in global domain.
 !
 ! .. sectionauthor::Edward Smith, David Trevelyan, Eduardo Ramos Fernandez
-! ------------------------------------
+!
     use mpi
     implicit none           
     
@@ -1274,69 +1314,87 @@ end subroutine CPL_setup_cfd
 !------------------------------------------------------------------------------
 !                              coupler_cfd_init                               -
 !------------------------------------------------------------------------------
-!>
-!! Initialisation routine for coupler module - Every variable is sent and stored
-!! to ensure both md and cfd region have an identical list of parameters
-!!
-!! - Synopsis
-!!
-!!  - coupler_cfd_init(icomm_grid,icoord,npxyz_cfd,xyzL,ncxyz,
-!!                     ijkcmax,ijkcmin,iTmin,iTmax,jTmin,
-!!                     jTmax,kTmin,kTmax,xg,yg,zg)
-!!
-!! - Input
-!!
-!!  - icomm_grid
-!!   - The MPI communicator setup by the MPI_CART_CREATE command in the 
-!!     CFD region (integer)
-!!  - icoord
-!!   - The three coordinate for each rank in the domain (integer array nproc by 3)
-!!  - npxyz_cfd
-!!   - Number of processors in each cartesian dimension (integer array 3)
-!!  - xyzL
-!!   - Size of domain in each cartesian dimension (dp real array 3)
-!!  - ncxyz
-!!   - Global number of cells in each cartesian dimension (integer array 3)
-!!  - ijkcmax
-!!   - Global maximum cell in each cartesian dimension (integer array 3)
-!!  - ijkcmin
-!!   - Global minimum cell in each cartesian dimension (integer array 3)
-!!  - iTmin
-!!   - Local minimum cell for each rank (integer array no. procs in x)
-!!  - iTmax
-!!   - Local maximum cell for each rank (integer array no. procs in x)
-!!  - jTmin
-!!   - Local minimum cell for each rank (integer array no. procs in y)
-!!  - jTmax
-!!   - Local maximum cell for each rank (integer array no. procs in y)
-!!  - kTmin
-!!   - Local minimum cell for each rank (integer array no. procs in z)
-!!  - kTmax
-!!   - Local maximum cell for each rank (integer array no. procs in z)
-!!  - xg
-!!   - Array of cell vertices in the x direction 
-!!     (no. cells in x + 1 by no. cells in y + 1, no. cells in z+1)
-!!  - yg
-!!   - Array of cell vertices in the y direction 
-!!     (no. cells in x + 1 by no. cells in y + 1, no. cells in z+1)
-!!  - zg
-!!   - Array of cell vertices in the z direction 
-!!     (no. cells in x + 1 by no. cells in y + 1, no. cells in z+1)
-!!
-!! - Input/Output
-!!  - NONE
-!!
-!! - Output
-!!  - NONE
-!! 
-!! .. sectionauthor:: Edward Smith
-!
-! ----------------------------------------------------------------------------
-
 
 subroutine coupler_cfd_init(icomm_grid, icoord, npxyz_cfd, xyzL, xyz_orig, ncxyz, &
                             ijkcmax, ijkcmin, iTmin, iTmax, jTmin, & 
                             jTmax, kTmin, kTmax, xgrid, ygrid, zgrid)
+!
+!Initialisation routine for coupler module to be called from CFD side
+!This is the full interface which is called behind the scenes by CPL_setup_CFD 
+!so every variable is sent and stored to ensure both md and cfd region have 
+!an identical list of parameters
+!
+!**Synopsis**
+!
+!.. code-block:: fortran
+!
+!  coupler_cfd_init(icomm_grid,icoord,npxyz_cfd,xyzL,ncxyz, ijkcmax,ijkcmin,iTmin,iTmax,jTmin,jTmax,kTmin,kTmax,xgrid,ygrid,zgrid)
+!
+!**Input**
+!
+!  - icomm_grid
+!
+!   - The MPI communicator setup by the MPI_CART_CREATE command in the 
+!     CFD region (integer)
+!  - icoord
+!
+!   - The three coordinate for each rank in the domain (integer array nproc by 3)
+!  - npxyz_cfd
+!
+!   - Number of processors in each cartesian dimension (integer array 3)
+!  - xyzL
+!
+!   - Size of domain in each cartesian dimension (dp real array 3)
+!  - ncxyz
+!
+!   - Global number of cells in each cartesian dimension (integer array 3)
+!  - ijkcmax
+!
+!   - Global maximum cell in each cartesian dimension (integer array 3)
+!  - ijkcmin
+!
+!   - Global minimum cell in each cartesian dimension (integer array 3)
+!  - iTmin
+!
+!   - Local minimum cell for each rank (integer array no. procs in x)
+!  - iTmax
+!
+!   - Local maximum cell for each rank (integer array no. procs in x)
+!  - jTmin
+!
+!   - Local minimum cell for each rank (integer array no. procs in y)
+!  - jTmax
+!
+!   - Local maximum cell for each rank (integer array no. procs in y)
+!  - kTmin
+!
+!   - Local minimum cell for each rank (integer array no. procs in z)
+!  - kTmax
+!
+!   - Local maximum cell for each rank (integer array no. procs in z)
+!  - xgrid
+!
+!   - Array of cell vertices in the x direction 
+!     (no. cells in x + 1 by no. cells in y + 1, no. cells in z+1)
+!  - ygrid
+!
+!   - Array of cell vertices in the y direction 
+!     (no. cells in x + 1 by no. cells in y + 1, no. cells in z+1)
+!  - zgrid
+!
+!   - Array of cell vertices in the z direction 
+!     (no. cells in x + 1 by no. cells in y + 1, no. cells in z+1)
+!
+!**Input/Output**
+!
+!  - NONE
+!
+!**Output**
+!
+!  - NONE
+! 
+! .. sectionauthor:: Edward Smith
+!
     use mpi
     implicit none           
 
@@ -1643,7 +1701,7 @@ end subroutine coupler_cfd_init
 
 
 subroutine CPL_setup_md(icomm_grid, xyzL, xyz_orig)
-! ----------------------------------------------------------------------------
+!
 !Initialisation routine for coupler module - Every variable is sent and stored
 !to ensure both md and cfd region have an identical list of parameters
 !
@@ -1653,31 +1711,24 @@ subroutine CPL_setup_md(icomm_grid, xyzL, xyz_orig)
 !
 !**Synopsis**
 !
-!.. code-block:: c
+!.. code-block:: fortran
 !
-!  coupler_md_init(
-!                  icomm_grid,
-!                  xyzL,
-!                  xyz_orig,
-!                  )
+!  cpl_setup_md(icomm_grid, xyzL, xyz_orig)
 !
 !**Inputs**
 !
-! - *icomm_grid*
+! - icomm_grid
 !
 !   - Communicator based on MD processor topology returned from a call to MPI_CART_CREATE.
-! - *xyzL*
+! - xyzL
 !
 !   - MD domain size.
-! - *xyz_orig*
+! - xyz_orig
 !
 !   - MD origin.
-! - *density*
-!
-!   - Density of molecules in MD code.
 !
 ! .. sectionauthor::Edward Smith, David Trevelyan, Eduardo Ramos Fernandez
-! ------------------------------------
+!
     use mpi
     implicit none
 
@@ -1715,43 +1766,48 @@ end subroutine CPL_setup_md
 !------------------------------------------------------------------------------
 !                              coupler_md_init                               -
 !------------------------------------------------------------------------------
-!>
-!! Initialisation routine for coupler module - Every variable is sent and stored
-!! to ensure both md and cfd region have an identical list of parameters
-!!
-!! - Synopsis
-!!
-!!  - coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain)
-!!
-!! - Input
-!!
-!!  - icomm_grid
-!!   - The MPI communicator setup by the MPI_CART_CREATE command in the 
-!!     CFD region (integer)
-!!  - icoord
-!!   - The three coordinate for each rank in the domain (integer array nproc by 3)
-!!  - npxyz_md
-!!   - Number of processors in each cartesian dimension (integer array 3)
-!!  - globaldomain
-!!   - Size of domain in each cartesian dimension (dp real array 3)
-!!  - density
-!!   - Density of the CFD simulation (dp_real)
-!!
-!! - Input/Output
-!!  - NONE
-!!
-!! - Output
-!!  - NONE
-!! 
-!! .. sectionauthor:: Edward Smith
-!
-! ----------------------------------------------------------------------------
-
-! ----------------------------------------------------------------------------
-! Initialisation routine for coupler - Every variable is sent and stored
-! to ensure both md and cfd region have an identical list of parameters
-
 subroutine coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain, xyz_orig)
+!
+!Initialisation routine for coupler module to be called from MD side
+!This is the full interface which is called behind the scenes by CPL_setup_MD 
+!so every variable is sent and stored to ensure both md and cfd region have 
+!an identical list of parameters
+!
+!**Synopsis**
+!
+!.. code-block:: fortran
+!
+!  coupler_md_init(icomm_grid, icoord, npxyz_md, globaldomain)
+!
+!**Input**
+!
+!  - icomm_grid
+!
+!   - The MPI communicator setup by the MPI_CART_CREATE command in the 
+!     CFD region (integer)
+!  - icoord
+!
+!   - The three coordinate for each rank in the domain (integer array nproc by 3)
+!  - npxyz_md
+!
+!   - Number of processors in each cartesian dimension (integer array 3)
+!  - globaldomain
+!
+!   - Size of domain in each cartesian dimension (dp real array 3)
+!  - density
+!
+!   - Density of the CFD simulation (dp_real)
+!
+!**Input/Output**
+!
+!  - NONE
+!
+!**Output**
+!
+!  - NONE
+! 
+! .. sectionauthor:: Edward Smith
+!
     use mpi
     implicit none
 
@@ -1960,6 +2016,7 @@ end subroutine coupler_md_init
 !-----------------------------------------------------------------------------
 
 subroutine CPL_set_timing(initialstep, nsteps, dt)
+!
 ! - *nsteps*
 !
 !   - Number of steps in MD simulation.
@@ -1969,6 +2026,7 @@ subroutine CPL_set_timing(initialstep, nsteps, dt)
 ! - *dt*
 !
 !   - Timestep in MD simulation.
+!
     use mpi
     implicit none
 
@@ -2043,11 +2101,21 @@ end subroutine CPL_set_timing
 
 
 !=============================================================================
-!! Establish for all MD processors the mapping (if any) 
-!! to coupled CFD processors
-!-----------------------------------------------------------------------------
-
 subroutine CPL_create_map()
+!
+! Establish for all MD processors the mapping (if any) 
+! to coupled CFD processors
+!
+! Steps include:
+! 
+!  - check_config_feasibility()
+!
+!  - get_md_cell_ranges()
+!
+!  - get_overlap_blocks()
+!
+!  - set_overlap_topology()
+!
     use mpi
     implicit none
 
@@ -2269,26 +2337,28 @@ end subroutine check_config_feasibility
 
 !------------------------------------------------------------
 !Calculate processor cell ranges of MD code on all processors
+
 !------------------------------------------------------------------------------
 !                      GET MD CELL RANGES                                     -
 !------------------------------------------------------------------------------
-!>
-!! Store the minimum and maximum CFD cell coordinates that overlap each
-!! MD processor.   
-!!
-!! - Synopsis
-!!
-!!  - get_md_cell_ranges()
-!!
-!! - Input
-!!  - NONE 
-!! - Input/Output
-!!  - NONE 
-!! - Output
-!!  - NONE 
-!! 
-!! .. sectionauthor:: David Trevelyan 
 subroutine get_md_cell_ranges()
+!
+! Store the minimum and maximum CFD cell coordinates that overlap each
+! MD processor.   
+!
+!**Synopsis**
+!
+!  - get_md_cell_ranges()
+!
+!**Input**
+!  - NONE 
+!**Input/Output**
+!  - NONE 
+!**Output**
+!  - NONE 
+! 
+! .. sectionauthor:: David Trevelyan 
+!
     implicit none
 
     integer :: n
@@ -2401,22 +2471,28 @@ end subroutine get_md_cell_ranges
 !------------------------------------------------------------------------------
 !                          GET OVERLAP BLOCKS                                 -
 !------------------------------------------------------------------------------
-!>
-!! Store MD processor coordinates that overlap each CFD processor coordinate. 
-!!
-!! - Synopsis
-!!
-!!  - get_overlap_blocks()
-!!
-!! - Input
-!!  - NONE 
-!! - Input/Output
-!!  - NONE 
-!! - Output
-!!  - NONE 
-!! 
-!! .. sectionauthor:: David Trevelyan
 subroutine get_overlap_blocks()
+!
+! Store MD processor coordinates that overlap each CFD processor coordinate. 
+!
+!**Synopsis**
+!
+!  - get_overlap_blocks()
+!
+!**Input**
+!
+!  - NONE 
+!
+!**Input/Output**
+!
+!  - NONE 
+!
+!**Output**
+!
+!  - NONE 
+! 
+! .. sectionauthor:: David Trevelyan
+!
     implicit none
 
     integer             :: i,n,endproc,nolapsx,nolapsy,nolapsz
@@ -2574,7 +2650,7 @@ end subroutine get_overlap_blocks
 !       pcoords(1) = rank2coord_md(1,rank_realm)*(dble(npx_cfd)/dble(npx_md))
 !       pcoords(2) = npy_cfd !rank2coord_md(2,rank_realm)*(dble(npy_cfd)/dble(npy_md))
 !       pcoords(3) = rank2coord_md(3,rank_realm)*(dble(npz_cfd)/dble(npz_md))
-!!      map%rank_list(1) = coord2rank_cfd(pcoords(1),pcoords(2),pcoords(3))
+!      map%rank_list(1) = coord2rank_cfd(pcoords(1),pcoords(2),pcoords(3))
 !       write(300+rank_realm,'(2a,6i5)'), 'overlap',realm_name(realm),rank_realm,map%n,map%rank_list(1),pcoords
 !   endif
 
@@ -2585,36 +2661,48 @@ end subroutine get_overlap_blocks
 !------------------------------------------------------------------------------
 !                    PREPARE OVERLAP COMMS                                    -
 !------------------------------------------------------------------------------
-!>
-!! .. sectionauthor:: David Trevelyan 
-!! Splits the world communicator into "overlap" communicators. Each overlap 
-!! communicator consists of a CFD root processor and the MD processors which
-!! lie on top of it in the domain. 
-!!
-!! - Synopsis
-!!
-!!  - prepare_overlap_comms()
-!!
-!! - Input
-!!  - NONE
-!! - Input/Output
-!!  - NONE 
-!! - Output
-!!  - NONE 
-!! 
 subroutine prepare_overlap_comms()
+!
+!Splits the world communicator into "overlap" communicators. Each overlap 
+!communicator consists of a CFD root processor and the MD processors which
+!lie on top of it in the domain. 
+!
+!Sketch of Algorithm:
+!
+! - 1. loop over cfd cart ranks
+!
+! - 2. find cfd cart coords from cfd cart rank
+!
+! - 3. find overlapping md cart coords (from cfd_icoord2olap_md_icoords)
+!
+! - 4. find md cart rank from md cart coords (coord2rank_md) 
+!
+! - 5. find md world rank from md cart rank (rank_mdcart2rank_world)
+!
+! - 6. set group(md_world_rank) to cfd cart rank
+!
+! - 7. split world comm according to groups
+!      if group(world_rank) == 0, set olap_comm to null 
+!
+!**Synopsis**
+!
+!  - prepare_overlap_comms()
+!
+!**Input**
+! - NONE
+!
+!**Input/Output**
+! - NONE 
+!
+!**Output**
+! - NONE 
+! 
+! .. sectionauthor:: David Trevelyan 
+!
     use mpi
     implicit none
 
-    !General idea:
-    !   1. loop over cfd cart ranks
-    !   2. find cfd cart coords from cfd cart rank
-    !   3. find overlapping md cart coords (from cfd_icoord2olap_md_icoords)
-    !   4. find md cart rank from md cart coords (coord2rank_md) 
-    !   5. find md world rank from md cart rank (rank_mdcart2rank_world)
-    !   6. set group(md_world_rank) to cfd cart rank
-    !   7. split world comm according to groups
-    !      if group(world_rank) == 0, set olap_comm to null 
+
 
     integer :: i,j,k,ic,jc,kc,n
     integer :: trank_md, trank_cfd, trank_world, nolap, color
@@ -2767,9 +2855,10 @@ subroutine prepare_overlap_comms()
 end subroutine prepare_overlap_comms
 
 !=========================================================================
-!Setup topology graph of overlaps between CFD & MD processors
-
 subroutine set_overlap_topology()
+!
+!Setup topology graph of overlaps between CFD & MD processors
+!
     use mpi
     implicit none
 
@@ -2853,38 +2942,42 @@ end subroutine CPL_create_map
 !-------------------------------------------------------------------
 !                   CPL_rank_map                                   -
 !-------------------------------------------------------------------
-
-! Get COMM map for current communicator and relationship to 
-! world rank used to link to others in the coupler hierachy
-
-! - - - Synopsis - - -
-
-! CPL_rank_map(COMM, rank, comm2world, world2comm, ierr)
-
-! - - - Input Parameters - - -
-
-!comm
-!    communicator with cartesian structure (handle) 
-
-! - - - Output Parameter - - -
-
-!rank
-!    rank of a process within group of comm (integer)
-!    NOTE - fortran convention rank=1 to nproc  
-!nproc
-!    number of processes within group of comm (integer) 
-!comm2world
-!   Array of size nproc_world which for element at 
-!   world_rank has local rank in COMM
-!world2comm
-!   Array of size nproc_COMM which for element at 
-!   for local ranks in COMM has world rank 
-!ierr
-!    error flag
-
-
 subroutine CPL_rank_map(COMM, rank, nproc, comm2world, world2comm, ierr)
-    !use coupler_module, only : rank_world, nproc_world, CPL_WORLD_COMM, VOID
+!
+!Get COMM map for current communicator and relationship to 
+!world rank used to link to others in the coupler hierachy
+!
+!**Synopsis**
+!
+!.. code-block:: fortran
+!
+! CPL_rank_map(COMM, rank, comm2world, world2comm, ierr)
+!
+!**Input**
+!
+! - comm
+!
+!   - communicator with cartesian structure (handle) 
+!
+!**Output**
+!
+! - rank
+!
+!   - rank of a process within group of comm (integer)
+!     NOTE - fortran convention rank=1 to nproc  
+! - nproc
+!
+!   - number of processes within group of comm (integer) comm2world
+!     Array of size nproc_world which for element at 
+!     world_rank has local rank in COMM
+! - world2comm
+!
+!   - Array of size nproc_COMM which for element at 
+!     for local ranks in COMM has world rank 
+! - ierr
+!
+!   - error flag
+!
     use mpi
     implicit none
 
@@ -2916,9 +3009,10 @@ subroutine CPL_rank_map(COMM, rank, nproc, comm2world, world2comm, ierr)
 end subroutine CPL_rank_map
 
 !---------------------------------------------------
-! Locate file in input
-
 subroutine locate(fileid, keyword, have_data)
+!
+! Locate keyword argument in input
+!
     implicit none
     
     integer,intent(in)          :: fileid               ! File unit number
@@ -2954,9 +3048,10 @@ subroutine locate(fileid, keyword, have_data)
 end subroutine locate
 
 !===========================================================================
-!Error handling subroutines
-
 subroutine error_abort_s(msg)
+!
+!Error handling subroutines calling MPI ABORT
+!
     use mpi
     use iso_fortran_env, only : error_unit
     implicit none
@@ -2980,6 +3075,9 @@ end subroutine error_abort_s
 
 
 subroutine error_abort_si(msg,i)
+!
+!Error handling subroutines calling MPI ABORT
+!
     use mpi
     use iso_fortran_env, only : error_unit
     implicit none
@@ -3002,6 +3100,9 @@ end subroutine error_abort_si
 
 
 subroutine messenger_lasterrorcheck
+!
+!Use MPI last Error system
+!
     use mpi
     use iso_fortran_env, only : error_unit
     implicit none
@@ -3181,10 +3282,10 @@ end module coupler_module
 
 
 
-!!=============================================================================
-!!   Adjust CFD domain size to an integer number of lattice units used by  
-!!   MD if sizes are given in sigma units
-!!-----------------------------------------------------------------------------
+!=============================================================================
+!   Adjust CFD domain size to an integer number of lattice units used by  
+!   MD if sizes are given in sigma units
+!-----------------------------------------------------------------------------
 
 !subroutine CPL_cfd_adjust_domain(xL, yL, zL, nx, ny, nz, density_output)
 !    use mpi
@@ -3232,7 +3333,7 @@ end module coupler_module
 
 !contains
 
-!!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
 
 !subroutine init_length(rout,resize,direction,print_warning)
 !    !use coupler_module, only: dx,dy,dz,error_abort
@@ -3289,7 +3390,7 @@ end module coupler_module
 !    
 !end subroutine init_length
 
-!!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
 
 !subroutine test_cfd_cell_sizes
 !    implicit none
@@ -3320,16 +3421,3 @@ end module coupler_module
 !end subroutine test_cfd_cell_sizes
 !            
 !end subroutine CPL_cfd_adjust_domain
-
-
-
-
-
-
-
-
-
-
-
-
-

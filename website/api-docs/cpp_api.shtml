@@ -1,198 +1,356 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE.shtml>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+.shtml>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>C++ Bindings &mdash; cpl 1.0.0 documentation</title>
-	<link rel="stylesheet" href="/styles.css"> 
-	<link rel="shortcut icon" href="/cpl_logo.ico">
-    
-    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '1.0.0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="cpl 1.0.0 documentation" href="index.html" />
-    <link rel="next" title="Fortran Bindings" href="fortran_api.html" />
-    <link rel="prev" title="&lt;no title&gt;" href="index.html" /> 
-  </head>
-  <body role="document">
-	 <!--#include virtual="/nav.html"-->
-     <div class="topnav" role="navigation" aria-label="top navigation">
-      
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
+    <title>C++ Bindings &#8212; cpl-library 2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <link rel="stylesheet" href="_static/css/functions.css" type="text/css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.shtml" />
+    <link rel="search" title="Search" href="search.shtml" />
+    <link rel="next" title="Fortran Bindings" href="fortran_api.shtml" />
+    <link rel="prev" title="&lt;no title&gt;" href="index.shtml" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-      </div>
-      <div class="content">
-        
-        
-  <div class="section" id="c-bindings">
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="c-bindings">
 <h1>C++ Bindings<a class="headerlink" href="#c-bindings" title="Permalink to this headline">¶</a></h1>
-<dl class="type">
-<dt id="_CPPv23CPL">
-<span id="CPL"></span><span class="target" id="cpp_cplnamespaceCPL"></span><em class="property">namespace </em><code class="descclassname"></code><code class="descname">CPL</code><a class="headerlink" href="#_CPPv23CPL" title="Permalink to this definition">¶</a></dt>
-<dd><div class="breathe-sectiondef container">
-<p class="breathe-sectiondef-title rubric">Functions</p>
-<dl class="function">
-<dt id="_CPPv2N3CPL4initEiRi">
-<span id="CPL::init__i.iR"></span><span class="target" id="cpp_cplnamespaceCPL_1ad4d75a46cb7304ef48d44a34bddc0337"></span>void <code class="descname">init</code><span class="sig-paren">(</span>int <em>calling_realm</em>, int &amp;<em>returned_realm_comm</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL4initEiRi" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv43CPL">
+<span id="_CPPv33CPL"></span><span id="_CPPv23CPL"></span><span id="CPL"></span><span class="target" id="namespaceCPL"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CPL</span></span></span><a class="headerlink" href="#_CPPv43CPL" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL4initEiR8MPI_Comm">
+<span id="_CPPv3N3CPL4initEiR8MPI_Comm"></span><span id="_CPPv2N3CPL4initEiR8MPI_Comm"></span><span id="CPL::init__i.MPI_CommR"></span><span class="target" id="namespaceCPL_1a0f60dced5f7b82ff08c1faf31aa33945"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">init</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">calling_realm</span></span>, <span class="n"><span class="pre">MPI_Comm</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">returned_realm_comm</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL4initEiR8MPI_Comm" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>(cfd+md) Splits MPI_COMM_WORLD in both the CFD and MD code respectively and create intercommunicator between CFD and MD</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes MPI has been initialised <code class="docutils literal notranslate"><span class="pre">MPI_init</span></code> and communicator MPI_COMM_WORLD exists and contains all processors in both CFD and MD regions</p>
+<p><strong>Synopsis</strong></p>
+<p><p><div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">CPL</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="n">callingrealm</span><span class="p">,</span> <span class="n">RETURNED_REALM_COMM</span><span class="p">)</span>    
+</pre></div>
+</div>
+</p>
+ <strong>Inputs</strong></p>
+<p><ul class="simple">
+<li><p><em>callingrealm</em><ul>
+<li><p>Should identify calling processor as either CFD_REALM (integer with value 1) or MD_REALM (integer with value 2).</p></li>
+</ul>
+</p></li>
+</ul>
+</p>
+<p><strong>Outputs</strong></p>
+<p><ul class="simple">
+<li><p>RETURNED_REALM_COMM<ul>
+<li><p>Communicator based on callingrealm value local to CFD or MD processor and resulting from the split of MPI_COMM_WORLD</p></li>
+</ul>
+</p></li>
+</ul>
+</p>
+<p><strong>Example</strong></p>
+<p><p><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#include &quot;cpl.h&quot;</span>
+<span class="c1">#include &quot;mpi.h&quot;</span>
+<span class="c1">#include &lt;iostream&gt;</span>
+
+<span class="n">using</span> <span class="n">namespace</span> <span class="n">std</span><span class="p">;</span>
+
+<span class="nb">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+   <span class="n">MPI_Init</span><span class="p">(</span><span class="n">NULL</span><span class="p">,</span> <span class="n">NULL</span><span class="p">);</span> 
+
+   <span class="nb">int</span> <span class="n">CFD_realm</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+   <span class="n">MPI_Comm</span> <span class="n">CFD_COMM</span><span class="p">;</span>
+   <span class="n">CPL</span><span class="p">::</span><span class="n">init</span><span class="p">(</span><span class="n">CFD_realm</span><span class="p">,</span> <span class="n">CFD_COMM</span><span class="p">);</span>
+
+   <span class="nb">int</span> <span class="n">nprocs</span><span class="p">;</span> <span class="nb">int</span> <span class="n">rank</span><span class="p">;</span>
+   <span class="n">MPI_Comm_size</span><span class="p">(</span><span class="n">CFD_COMM</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">nprocs</span><span class="p">);</span>   
+   <span class="n">MPI_Comm_rank</span><span class="p">(</span><span class="n">CFD_COMM</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">rank</span><span class="p">);</span>
+
+   <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;MD code processor &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">rank</span><span class="o">+</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot; of &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">nprocs</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+
+   <span class="n">CPL</span><span class="p">::</span><span class="n">finalize</span><span class="p">();</span>
+   <span class="n">MPI_Finalize</span><span class="p">();</span>
+<span class="p">}</span>
+
+
+
+</pre></div>
+</div>
+</p>
+ <strong>Errors</strong> <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">COUPLER_ERROR_REALM</span>  <span class="o">=</span> <span class="mi">1</span>                <span class="n">wrong</span> <span class="n">realm</span> <span class="n">value</span>
+<span class="n">COUPLER_ERROR_ONE_REALM</span> <span class="o">=</span> <span class="mi">2</span>             <span class="n">one</span> <span class="n">realm</span> <span class="n">missing</span>
+<span class="n">COUPLER_ERROR_INIT</span> <span class="o">=</span> <span class="mi">3</span>                  <span class="n">initialisation</span> <span class="n">error</span>
+</pre></div>
+</div>
+ </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL8finalizeEv">
+<span id="_CPPv3N3CPL8finalizeEv"></span><span id="_CPPv2N3CPL8finalizeEv"></span><span id="CPL::finalize"></span><span class="target" id="namespaceCPL_1ab61fa3d4d3a59de52fe082a9fe695991"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">finalize</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL8finalizeEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL9setup_cfdEidiA_dA_dA_id">
-<span id="CPL::setup_cfd__i.double.i.doubleA.doubleA.iA.double"></span><span class="target" id="cpp_cplnamespaceCPL_1ae6e030ba528996e6a73b586897be80ec"></span>void <code class="descname">setup_cfd</code><span class="sig-paren">(</span>int <em>nsteps</em>, double <em>dt</em>, int <em>icomm_grid</em>, double <em>xyzL</em>[], double <em>xyz_orig</em>[], int <em>ncxyz</em>[], double <em>density</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL9setup_cfdEidiA_dA_dA_id" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL9setup_cfdER8MPI_CommA_dA_dA_i">
+<span id="_CPPv3N3CPL9setup_cfdER8MPI_CommA_dA_dA_i"></span><span id="_CPPv2N3CPL9setup_cfdER8MPI_CommA_dA_dA_i"></span><span id="CPL::setup_cfd__MPI_CommR.doubleA.doubleA.iA"></span><span class="target" id="namespaceCPL_1ae06b7fb16ed7ebc5fee11d173d92c733"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setup_cfd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">MPI_Comm</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">icomm_grid</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">xyzL</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">xyz_orig</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ncxyz</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL9setup_cfdER8MPI_CommA_dA_dA_i" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL8setup_mdERiRidiA_dA_dd">
-<span id="CPL::setup_md__iR.iR.double.i.doubleA.doubleA.double"></span><span class="target" id="cpp_cplnamespaceCPL_1ac8ae709e722566943976e336c62d1354"></span>void <code class="descname">setup_md</code><span class="sig-paren">(</span>int &amp;<em>nsteps</em>, int &amp;<em>initialstep</em>, double <em>dt</em>, int <em>icomm_grid</em>, double <em>xyzL</em>[], double <em>xyz_orig</em>[], double <em>density</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL8setup_mdERiRidiA_dA_dd" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL8setup_mdER8MPI_CommA_dA_d">
+<span id="_CPPv3N3CPL8setup_mdER8MPI_CommA_dA_d"></span><span id="_CPPv2N3CPL8setup_mdER8MPI_CommA_dA_d"></span><span id="CPL::setup_md__MPI_CommR.doubleA.doubleA"></span><span class="target" id="namespaceCPL_1a826afd06e145d9af0e4bb956cee7fac2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">setup_md</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">MPI_Comm</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">icomm_grid</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">xyzL</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">xyz_orig</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL8setup_mdER8MPI_CommA_dA_d" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL4sendEPdPiPi">
-<span id="CPL::send__doubleP.iP.iP"></span><span class="target" id="cpp_cplnamespaceCPL_1a4a915f89d05dad930a2166b8883604f9"></span>bool <code class="descname">send</code><span class="sig-paren">(</span>double *<em>asend</em>, int *<em>asend_shape</em>, int *<em>limits</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL4sendEPdPiPi" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL10set_timingEiid">
+<span id="_CPPv3N3CPL10set_timingEiid"></span><span id="_CPPv2N3CPL10set_timingEiid"></span><span id="CPL::set_timing__i.i.double"></span><span class="target" id="namespaceCPL_1a0782ae90ea9dd6e98aa87cb35e70fa8c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_timing</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">initialstep</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nsteps</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dt</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL10set_timingEiid" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL4recvEPdPiPi">
-<span id="CPL::recv__doubleP.iP.iP"></span><span class="target" id="cpp_cplnamespaceCPL_1a60f31d1581d677efe993f10d308ade0e"></span>bool <code class="descname">recv</code><span class="sig-paren">(</span>double *<em>arecv</em>, int *<em>arecv_shape</em>, int *<em>limits</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL4recvEPdPiPi" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL4sendEPdPiPi">
+<span id="_CPPv3N3CPL4sendEPdPiPi"></span><span id="_CPPv2N3CPL4sendEPdPiPi"></span><span id="CPL::send__doubleP.iP.iP"></span><span class="target" id="namespaceCPL_1a4a915f89d05dad930a2166b8883604f9"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">send</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">asend</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">asend_shape</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">limits</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL4sendEPdPiPi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL7scatterEPdPiPiPdPi">
-<span id="CPL::scatter__doubleP.iP.iP.doubleP.iP"></span><span class="target" id="cpp_cplnamespaceCPL_1a2af4132541cd7609a6a3599cda3300af"></span>void <code class="descname">scatter</code><span class="sig-paren">(</span>double *<em>scatterarray</em>, int *<em>scatter_shape</em>, int *<em>limits</em>, double *<em>recvarray</em>, int *<em>recv_shape</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL7scatterEPdPiPiPdPi" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL4recvEPdPiPi">
+<span id="_CPPv3N3CPL4recvEPdPiPi"></span><span id="_CPPv2N3CPL4recvEPdPiPi"></span><span id="CPL::recv__doubleP.iP.iP"></span><span class="target" id="namespaceCPL_1a60f31d1581d677efe993f10d308ade0e"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">recv</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">arecv</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">arecv_shape</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">limits</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL4recvEPdPiPi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL6gatherEPdPiPiPdPi">
-<span id="CPL::gather__doubleP.iP.iP.doubleP.iP"></span><span class="target" id="cpp_cplnamespaceCPL_1ace58b63e62bdffb596bb20a248f0ed81"></span>void <code class="descname">gather</code><span class="sig-paren">(</span>double *<em>gatherarray</em>, int *<em>gather_shape</em>, int *<em>limits</em>, double *<em>recvarray</em>, int *<em>recv_shape</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL6gatherEPdPiPiPdPi" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL4sendEPN3CPL7ndArrayIdEEPi">
+<span id="_CPPv3N3CPL4sendEPN3CPL7ndArrayIdEEPi"></span><span id="_CPPv2N3CPL4sendEPN3CPL7ndArrayIdEEPi"></span><span id="CPL::send__CPL::ndArray:double:P.iP"></span><span class="target" id="namespaceCPL_1a4020cc738ec3329ad78a66d1ba2c66ff"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">send</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv43CPL" title="CPL"><span class="n"><span class="pre">CPL</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ndArray</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">asend</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">limits</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL4sendEPN3CPL7ndArrayIdEEPi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL12proc_extentsEA_iiA_i">
-<span id="CPL::proc_extents__iA.i.iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a5c17c020148e385df1e58fe5889d21d3"></span>void <code class="descname">proc_extents</code><span class="sig-paren">(</span>int <em>coord</em>[], int <em>realm</em>, int <em>extents</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL12proc_extentsEA_iiA_i" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL4recvEPN3CPL7ndArrayIdEEPi">
+<span id="_CPPv3N3CPL4recvEPN3CPL7ndArrayIdEEPi"></span><span id="_CPPv2N3CPL4recvEPN3CPL7ndArrayIdEEPi"></span><span id="CPL::recv__CPL::ndArray:double:P.iP"></span><span class="target" id="namespaceCPL_1afa17dc5cf409befc17c7ad464ce7b221"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">recv</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv43CPL" title="CPL"><span class="n"><span class="pre">CPL</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ndArray</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">arecv</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">limits</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL4recvEPN3CPL7ndArrayIdEEPi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL15my_proc_extentsEA_i">
-<span id="CPL::my_proc_extents__iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a30e0920ca21c6570349b9ef3e6a8732d"></span>void <code class="descname">my_proc_extents</code><span class="sig-paren">(</span>int <em>extents</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL15my_proc_extentsEA_i" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL4sendEPN3CPL7ndArrayIdEE">
+<span id="_CPPv3N3CPL4sendEPN3CPL7ndArrayIdEE"></span><span id="_CPPv2N3CPL4sendEPN3CPL7ndArrayIdEE"></span><span id="CPL::send__CPL::ndArray:double:P"></span><span class="target" id="namespaceCPL_1ae1bb64125a6bfd56bca13076e7fce8fe"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">send</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv43CPL" title="CPL"><span class="n"><span class="pre">CPL</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ndArray</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">asend</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL4sendEPN3CPL7ndArrayIdEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL12proc_portionEA_iiA_iA_i">
-<span id="CPL::proc_portion__iA.i.iA.iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a449fb23b029bff3acd6dfc3d0a78a9f9"></span>void <code class="descname">proc_portion</code><span class="sig-paren">(</span>int <em>coord</em>[], int <em>realm</em>, int <em>limits</em>[], int <em>portion</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL12proc_portionEA_iiA_iA_i" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL4recvEPN3CPL7ndArrayIdEE">
+<span id="_CPPv3N3CPL4recvEPN3CPL7ndArrayIdEE"></span><span id="_CPPv2N3CPL4recvEPN3CPL7ndArrayIdEE"></span><span id="CPL::recv__CPL::ndArray:double:P"></span><span class="target" id="namespaceCPL_1a17f8a4a5b7777dc43b0a39344d70095e"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">recv</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv43CPL" title="CPL"><span class="n"><span class="pre">CPL</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ndArray</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">arecv</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL4recvEPN3CPL7ndArrayIdEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL15my_proc_portionEA_iA_i">
-<span id="CPL::my_proc_portion__iA.iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a0e63a259c8c6790666308fffb49e8ab3"></span>void <code class="descname">my_proc_portion</code><span class="sig-paren">(</span>int <em>limits</em>[], int <em>portion</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL15my_proc_portionEA_iA_i" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL7scatterEPdPiPiPdPi">
+<span id="_CPPv3N3CPL7scatterEPdPiPiPdPi"></span><span id="_CPPv2N3CPL7scatterEPdPiPiPdPi"></span><span id="CPL::scatter__doubleP.iP.iP.doubleP.iP"></span><span class="target" id="namespaceCPL_1a2af4132541cd7609a6a3599cda3300af"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">scatter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">scatterarray</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">scatter_shape</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">limits</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">recvarray</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">recv_shape</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL7scatterEPdPiPiPdPi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL14map_cell2coordEiiiA_d">
-<span id="CPL::map_cell2coord__i.i.i.doubleA"></span><span class="target" id="cpp_cplnamespaceCPL_1a29a186308a3457f8bfa82a799e09aafc"></span>void <code class="descname">map_cell2coord</code><span class="sig-paren">(</span>int <em>i</em>, int <em>j</em>, int <em>k</em>, double <em>coord_xyz</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL14map_cell2coordEiiiA_d" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL6gatherEPdPiPiPdPi">
+<span id="_CPPv3N3CPL6gatherEPdPiPiPdPi"></span><span id="_CPPv2N3CPL6gatherEPdPiPiPdPi"></span><span id="CPL::gather__doubleP.iP.iP.doubleP.iP"></span><span class="target" id="namespaceCPL_1ace58b63e62bdffb596bb20a248f0ed81"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gather</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">gatherarray</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">gather_shape</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">limits</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">recvarray</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">recv_shape</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL6gatherEPdPiPiPdPi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL14map_coord2cellEdddA_i">
-<span id="CPL::map_coord2cell__double.double.double.iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a667987ec612b42bb2d09c7227e53c36b"></span>bool <code class="descname">map_coord2cell</code><span class="sig-paren">(</span>double <em>x</em>, double <em>y</em>, double <em>z</em>, int <em>cell_ijk</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL14map_coord2cellEdddA_i" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL9swaphalosEPdPi">
+<span id="_CPPv3N3CPL9swaphalosEPdPi"></span><span id="_CPPv2N3CPL9swaphalosEPdPi"></span><span id="CPL::swaphalos__doubleP.iP"></span><span class="target" id="namespaceCPL_1adea6670e70a55e4b47752bd4e399aaec"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">swaphalos</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">A</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">A_shape</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL9swaphalosEPdPi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL12get_no_cellsEA_iA_i">
-<span id="CPL::get_no_cells__iA.iA"></span><span class="target" id="cpp_cplnamespaceCPL_1ad7758485fafb33d9280c3155edd2d551"></span>void <code class="descname">get_no_cells</code><span class="sig-paren">(</span>int <em>limits</em>[], int <em>no_cells</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL12get_no_cellsEA_iA_i" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL12proc_extentsEA_iiA_i">
+<span id="_CPPv3N3CPL12proc_extentsEA_iiA_i"></span><span id="_CPPv2N3CPL12proc_extentsEA_iiA_i"></span><span id="CPL::proc_extents__iA.i.iA"></span><span class="target" id="namespaceCPL_1a5c17c020148e385df1e58fe5889d21d3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">proc_extents</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">coord</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">realm</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">extents</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL12proc_extentsEA_iiA_i" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL17map_glob2loc_cellEA_iA_iA_i">
-<span id="CPL::map_glob2loc_cell__iA.iA.iA"></span><span class="target" id="cpp_cplnamespaceCPL_1aaa031537fcd69614650bba24caf52396"></span>bool <code class="descname">map_glob2loc_cell</code><span class="sig-paren">(</span>int <em>limits</em>[], int <em>glob_cell</em>[], int <em>loc_cell</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL17map_glob2loc_cellEA_iA_iA_i" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL15my_proc_extentsEA_i">
+<span id="_CPPv3N3CPL15my_proc_extentsEA_i"></span><span id="_CPPv2N3CPL15my_proc_extentsEA_i"></span><span id="CPL::my_proc_extents__iA"></span><span class="target" id="namespaceCPL_1a30e0920ca21c6570349b9ef3e6a8732d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">my_proc_extents</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">extents</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL15my_proc_extentsEA_i" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL15get_olap_limitsEA_i">
-<span id="CPL::get_olap_limits__iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a2e249f42126d5ac3871207abcd44508f"></span>void <code class="descname">get_olap_limits</code><span class="sig-paren">(</span>int <em>limits</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL15get_olap_limitsEA_i" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL12proc_portionEA_iiA_iA_i">
+<span id="_CPPv3N3CPL12proc_portionEA_iiA_iA_i"></span><span id="_CPPv2N3CPL12proc_portionEA_iiA_iA_i"></span><span id="CPL::proc_portion__iA.i.iA.iA"></span><span class="target" id="namespaceCPL_1a449fb23b029bff3acd6dfc3d0a78a9f9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">proc_portion</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">coord</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">realm</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">limits</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">portion</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL12proc_portionEA_iiA_iA_i" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL15get_cnst_limitsEA_i">
-<span id="CPL::get_cnst_limits__iA"></span><span class="target" id="cpp_cplnamespaceCPL_1a13a6700ca71e56cdd2a8dae97d8a8375"></span>void <code class="descname">get_cnst_limits</code><span class="sig-paren">(</span>int <em>limits</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL15get_cnst_limitsEA_i" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL15my_proc_portionEA_iA_i">
+<span id="_CPPv3N3CPL15my_proc_portionEA_iA_i"></span><span id="_CPPv2N3CPL15my_proc_portionEA_iA_i"></span><span id="CPL::my_proc_portion__iA.iA"></span><span class="target" id="namespaceCPL_1a0e63a259c8c6790666308fffb49e8ab3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">my_proc_portion</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">limits</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">portion</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL15my_proc_portionEA_iA_i" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL16map_cfd2md_coordEA_dA_d">
-<span id="CPL::map_cfd2md_coord__doubleA.doubleA"></span><span class="target" id="cpp_cplnamespaceCPL_1accbfb53b73a10ed4d43a873aaaa46b6b"></span>bool <code class="descname">map_cfd2md_coord</code><span class="sig-paren">(</span>double <em>cfd_coord</em>[], double <em>md_coord</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL16map_cfd2md_coordEA_dA_d" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL14map_cell2coordEiiiA_d">
+<span id="_CPPv3N3CPL14map_cell2coordEiiiA_d"></span><span id="_CPPv2N3CPL14map_cell2coordEiiiA_d"></span><span id="CPL::map_cell2coord__i.i.i.doubleA"></span><span class="target" id="namespaceCPL_1a29a186308a3457f8bfa82a799e09aafc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">map_cell2coord</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">i</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">j</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">k</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">coord_xyz</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL14map_cell2coordEiiiA_d" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL16map_md2cfd_coordEA_dA_d">
-<span id="CPL::map_md2cfd_coord__doubleA.doubleA"></span><span class="target" id="cpp_cplnamespaceCPL_1a12dc0de5f3ae711f3620f83574e62d54"></span>bool <code class="descname">map_md2cfd_coord</code><span class="sig-paren">(</span>double <em>md_coord</em>[], double <em>cfd_coord</em>[]<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL16map_md2cfd_coordEA_dA_d" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL14map_coord2cellEdddA_i">
+<span id="_CPPv3N3CPL14map_coord2cellEdddA_i"></span><span id="_CPPv2N3CPL14map_coord2cellEdddA_i"></span><span id="CPL::map_coord2cell__double.double.double.iA"></span><span class="target" id="namespaceCPL_1a667987ec612b42bb2d09c7227e53c36b"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">map_coord2cell</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">x</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">y</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">z</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">cell_ijk</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL14map_coord2cellEdddA_i" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL7overlapEv">
-<span id="CPL::overlap"></span><span class="target" id="cpp_cplnamespaceCPL_1acee7624e8b93aa9d776a555419bd1846"></span>bool <code class="descname">overlap</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL7overlapEv" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL12get_no_cellsEA_iA_i">
+<span id="_CPPv3N3CPL12get_no_cellsEA_iA_i"></span><span id="_CPPv2N3CPL12get_no_cellsEA_iA_i"></span><span id="CPL::get_no_cells__iA.iA"></span><span class="target" id="namespaceCPL_1ad7758485fafb33d9280c3155edd2d551"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_no_cells</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">limits</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">no_cells</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL12get_no_cellsEA_iA_i" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL15set_output_modeEi">
-<span id="CPL::set_output_mode__i"></span><span class="target" id="cpp_cplnamespaceCPL_1a65e047db16b69f0fad5215369f638166"></span>void <code class="descname">set_output_mode</code><span class="sig-paren">(</span>int <em>mode</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL15set_output_modeEi" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL17map_glob2loc_cellEA_iA_iA_i">
+<span id="_CPPv3N3CPL17map_glob2loc_cellEA_iA_iA_i"></span><span id="_CPPv2N3CPL17map_glob2loc_cellEA_iA_iA_i"></span><span id="CPL::map_glob2loc_cell__iA.iA.iA"></span><span class="target" id="namespaceCPL_1aaa031537fcd69614650bba24caf52396"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">map_glob2loc_cell</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">limits</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">glob_cell</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">loc_cell</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL17map_glob2loc_cellEA_iA_iA_i" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt>
-<em class="property">template </em>&lt;<em class="property">class</em> T&gt;</dt>
-<dt id="_CPPv2N3CPL3getENSt6stringE">
-<span id="CPL::get__ss"></span><span class="target" id="cpp_cplnamespaceCPL_1af6caf5ca546acced3fd351c00bddb0a9"></span>T <code class="descname">get</code><span class="sig-paren">(</span>std::string <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL3getENSt6stringE" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL15get_olap_limitsEA_i">
+<span id="_CPPv3N3CPL15get_olap_limitsEA_i"></span><span id="_CPPv2N3CPL15get_olap_limitsEA_i"></span><span id="CPL::get_olap_limits__iA"></span><span class="target" id="namespaceCPL_1a2e249f42126d5ac3871207abcd44508f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_olap_limits</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">limits</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL15get_olap_limitsEA_i" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="_CPPv2N3CPL11density_cfdEv">
-<span id="CPL::density_cfd"></span><span class="target" id="cpp_cplnamespaceCPL_1afe824021abc7022cec8c9f3450bc2fe6"></span>double <code class="descname">density_cfd</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N3CPL11density_cfdEv" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL15get_cnst_limitsEA_i">
+<span id="_CPPv3N3CPL15get_cnst_limitsEA_i"></span><span id="_CPPv2N3CPL15get_cnst_limitsEA_i"></span><span id="CPL::get_cnst_limits__iA"></span><span class="target" id="namespaceCPL_1a13a6700ca71e56cdd2a8dae97d8a8375"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_cnst_limits</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">limits</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL15get_cnst_limitsEA_i" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL15get_bnry_limitsEA_i">
+<span id="_CPPv3N3CPL15get_bnry_limitsEA_i"></span><span id="_CPPv2N3CPL15get_bnry_limitsEA_i"></span><span id="CPL::get_bnry_limits__iA"></span><span class="target" id="namespaceCPL_1a90f8680633a713ef919afe7fec310081"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_bnry_limits</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">limits</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL15get_bnry_limitsEA_i" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL10get_arraysEPN3CPL7ndArrayIdEEiPN3CPL7ndArrayIdEEi">
+<span id="_CPPv3N3CPL10get_arraysEPN3CPL7ndArrayIdEEiPN3CPL7ndArrayIdEEi"></span><span id="_CPPv2N3CPL10get_arraysEPN3CPL7ndArrayIdEEiPN3CPL7ndArrayIdEEi"></span><span id="CPL::get_arrays__CPL::ndArray:double:P.i.CPL::ndArray:double:P.i"></span><span class="target" id="namespaceCPL_1a381e08f5a418a5b10c325d09a9bbdc63"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_arrays</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv43CPL" title="CPL"><span class="n"><span class="pre">CPL</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ndArray</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span>, <a class="reference internal" href="#_CPPv43CPL" title="CPL"><span class="n"><span class="pre">CPL</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ndArray</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL10get_arraysEPN3CPL7ndArrayIdEEiPN3CPL7ndArrayIdEEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL16map_cfd2md_coordEA_dA_d">
+<span id="_CPPv3N3CPL16map_cfd2md_coordEA_dA_d"></span><span id="_CPPv2N3CPL16map_cfd2md_coordEA_dA_d"></span><span id="CPL::map_cfd2md_coord__doubleA.doubleA"></span><span class="target" id="namespaceCPL_1accbfb53b73a10ed4d43a873aaaa46b6b"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">map_cfd2md_coord</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">cfd_coord</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">md_coord</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL16map_cfd2md_coordEA_dA_d" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL16map_md2cfd_coordEA_dA_d">
+<span id="_CPPv3N3CPL16map_md2cfd_coordEA_dA_d"></span><span id="_CPPv2N3CPL16map_md2cfd_coordEA_dA_d"></span><span id="CPL::map_md2cfd_coord__doubleA.doubleA"></span><span class="target" id="namespaceCPL_1a12dc0de5f3ae711f3620f83574e62d54"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">map_md2cfd_coord</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">md_coord</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">cfd_coord</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL16map_md2cfd_coordEA_dA_d" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL7overlapEv">
+<span id="_CPPv3N3CPL7overlapEv"></span><span id="_CPPv2N3CPL7overlapEv"></span><span id="CPL::overlap"></span><span class="target" id="namespaceCPL_1acee7624e8b93aa9d776a555419bd1846"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">overlap</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL7overlapEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL14is_proc_insideEA_i">
+<span id="_CPPv3N3CPL14is_proc_insideEA_i"></span><span id="_CPPv2N3CPL14is_proc_insideEA_i"></span><span id="CPL::is_proc_inside__iA"></span><span class="target" id="namespaceCPL_1a0670c2ad489a2cea3d9a308c05aaf7a5"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">is_proc_inside</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">region</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL14is_proc_insideEA_i" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL15set_output_modeEi">
+<span id="_CPPv3N3CPL15set_output_modeEi"></span><span id="_CPPv2N3CPL15set_output_modeEi"></span><span id="CPL::set_output_mode__i"></span><span class="target" id="namespaceCPL_1a65e047db16b69f0fad5215369f638166"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">set_output_mode</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL15set_output_modeEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL11density_cfdEv">
+<span id="_CPPv3N3CPL11density_cfdEv"></span><span id="_CPPv2N3CPL11density_cfdEv"></span><span id="CPL::density_cfd"></span><span class="target" id="namespaceCPL_1afe824021abc7022cec8c9f3450bc2fe6"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">density_cfd</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3CPL11density_cfdEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN3CPL3getE1TNSt6stringE">
+<span id="_CPPv3I0EN3CPL3getENSt6stringE"></span><span id="_CPPv2I0EN3CPL3getENSt6stringE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="namespaceCPL_1af6caf5ca546acced3fd351c00bddb0a9"></span><a class="reference internal" href="#_CPPv4I0EN3CPL3getE1TNSt6stringE" title="CPL::get::T"><span class="n"><span class="pre">T</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">name</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN3CPL3getE1TNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
-<div class="breathe-sectiondef container">
-<p class="breathe-sectiondef-title rubric">Variables</p>
-<dl class="member">
-<dt id="_CPPv2N3CPL9cfd_realmE">
-<span id="CPL::cfd_realm__iC"></span><span class="target" id="cpp_cplnamespaceCPL_1a769aaa349d2c5fcbe171303e273004c3"></span><em class="property">const</em> int <code class="descname">cfd_realm</code><a class="headerlink" href="#_CPPv2N3CPL9cfd_realmE" title="Permalink to this definition">¶</a></dt>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL9cfd_realmE">
+<span id="_CPPv3N3CPL9cfd_realmE"></span><span id="_CPPv2N3CPL9cfd_realmE"></span><span id="CPL::cfd_realm__iC"></span><span class="target" id="namespaceCPL_1a769aaa349d2c5fcbe171303e273004c3"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">cfd_realm</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><a class="headerlink" href="#_CPPv4N3CPL9cfd_realmE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="member">
-<dt id="_CPPv2N3CPL8md_realmE">
-<span id="CPL::md_realm__iC"></span><span class="target" id="cpp_cplnamespaceCPL_1a48c7a7628ef85643232d0d5fe9aa0afa"></span><em class="property">const</em> int <code class="descname">md_realm</code><a class="headerlink" href="#_CPPv2N3CPL8md_realmE" title="Permalink to this definition">¶</a></dt>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N3CPL8md_realmE">
+<span id="_CPPv3N3CPL8md_realmE"></span><span id="_CPPv2N3CPL8md_realmE"></span><span id="CPL::md_realm__iC"></span><span class="target" id="namespaceCPL_1a48c7a7628ef85643232d0d5fe9aa0afa"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">md_realm</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><a class="headerlink" href="#_CPPv4N3CPL8md_realmE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
 </dd></dl>
 
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.shtml">cpl-library</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">C++ Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fortran_api.shtml">Fortran Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_api.shtml">Python Bindings</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.shtml">Documentation overview</a><ul>
+      <li>Previous: <a href="index.shtml" title="previous chapter">&lt;no title&gt;</a></li>
+      <li>Next: <a href="fortran_api.shtml" title="next chapter">Fortran Bindings</a></li>
+  </ul></li>
+</ul>
 </div>
-
-
-      </div>
-      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
-      
-
-
-      </div>
-
-    <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, E. Smith, E. Ramos, D. Trevelyan.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.3.
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.shtml" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
     </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Ed Smith.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/cpp_api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
   </body>
-</html>
+<.shtml>

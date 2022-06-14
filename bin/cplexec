@@ -333,12 +333,24 @@ for k in Dicts:
         try:
             import mpi4py
             mpibinpath = mpi4py.get_config()["mpicc"]
-            mpilibpath = "/" + mpibinpath.replace("/bin/mpicc", "/lib/libmpi.so")
+            mpilibpath = "/" + mpibinpath.replace("/bin/", "/lib/").replace("mpicc", "libmpi.so")
+
             #libs = mpilibpath + "libmpi.so" #glob.glob(mpilibpath + "*mpi*")
             if not os.path.isfile(mpilibpath):
+                #Look in libraries for any libmpi modules and take first one
+                mpilibs = glob.glob(mpilibpath.replace("libmpi.so","")+"/*mpi*")
+                for l in mpilibs:
+                    #Look for Fortran bindings as these must exist for CPL library
+                    if ("fort" in l):
+                        mpilibpath = l
+                        break
+
+            if not os.path.isfile(mpilibpath):
+                #Try to get is another way
                 msg = "libmpi.so not found under " + mpilibpath
                 output = sp.check_output(mpibinpath + " -show", shell=True).decode("utf-8") 
                 mpilibpath = output[output.find("-L")+2:].split()[0]
+
                 if (mpilibpath == ""):
                     raise IOError(msg)
                 else:
@@ -379,7 +391,7 @@ for lib, lpath in cpllib.items():
     if "mpi" in lib:
         if args["verbose"]:
             print("CPL MPI libs", lib, lpath)
-        CPL_mpi = os.path.realpath(lpath)
+        CPL_mpi = os.path.realpath(lpath).replace("fort","").replace("cxx","")
 
 for lib, lpath in Dicts["CFD"]["libs"].items():
     if "mpi" in lib:

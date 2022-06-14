@@ -13,8 +13,8 @@
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
+    <link rel="index" title="Index" href="../genindex.shtml" />
+    <link rel="search" title="Search" href="../search.shtml" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -32,7 +32,7 @@
           <div class="body" role="main">
             
   <h1>All modules for which code is available</h1>
-<ul><li><a href="cplpy.html">cplpy</a></li>
+<ul><li><a href="cplpy.shtml">cplpy</a></li>
 </ul>
 
           </div>
@@ -41,7 +41,7 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">cpl-library</a></h1>
+<h1 class="logo"><a href="../index.shtml">cpl-library</a></h1>
 
 
 
@@ -52,22 +52,22 @@
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../cpp_api.html">C++ Bindings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../fortran_api.html">Fortran Bindings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../python_api.html">Python Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cpp_api.shtml">C++ Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fortran_api.shtml">Fortran Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_api.shtml">Python Bindings</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../index.shtml">Documentation overview</a><ul>
   </ul></li>
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
+    <form class="search" action="../search.shtml" method="get">
       <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
