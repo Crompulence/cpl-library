@@ -20,8 +20,20 @@ jobs:
       - name: Build the Docker image
         run: docker build . --file ./utils/Dockerfile --tag cpl-library
         
-      - name: Run tests inside the container
+      - name: Run tests inside the Docker container
         run: docker run cpl-library make test-all
+      
+      #If the tests pass, login to DockerHub, build and push
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: cpllibrary/cpl-library:latest
               
    on-failure:
      runs-on: ubuntu-20.04
