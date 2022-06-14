@@ -17,10 +17,18 @@ if [ "" = "$PKG_OK" ]; then
   sudo apt-get --yes install $REQUIRED_PKG
 fi
 
+make clean
 make html
 cp -R build/html/* $WEBSITE_DOC_DIR
-make clean
-cd $WEBSITE_DOC_DIR
 mv python_api.html python_api.shtml
 mv fortran_api.html fortran_api.shtml
-mv cpp_api.html cpp_api.shtml
+mv index.html index.shtml
+mv search.html search.shtml
+mv genindex.html genindex.shtml
+mv f-modindex.html f-modindex.shtml
+
+for file in *.shtml; 
+	do echo $file; 
+	sed -i 's/\.html/\.shtml/' $file;
+done
+

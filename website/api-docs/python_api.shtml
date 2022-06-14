@@ -1,82 +1,260 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Python Bindings &mdash; cpl 1.0.0 documentation</title>
-	<link rel="stylesheet" href="/styles.css"> 
-	<link rel="shortcut icon" href="/cpl_logo.ico">
-    
-    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '1.0.0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="cpl 1.0.0 documentation" href="index.html" />
-    <link rel="prev" title="Fortran Bindings" href="fortran_api.html" /> 
-  </head>
-  <body role="document">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-     <!--#include virtual="/nav.html"-->
+    <title>Python Bindings &#8212; cpl-library 2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <link rel="stylesheet" href="_static/css/functions.css" type="text/css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.shtml" />
+    <link rel="search" title="Search" href="search.shtml" />
+    <link rel="prev" title="Fortran Bindings" href="fortran_api.shtml" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-     <div class="topnav" role="navigation" aria-label="top navigation">
-      
+  </head><body>
+  
 
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
 
-      </div>
-      <div class="content">
-        
-        
-  <div class="section" id="python-bindings">
+          <div class="body" role="main">
+            
+  <section id="python-bindings">
 <h1>Python Bindings<a class="headerlink" href="#python-bindings" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="cplpy.CPL">
-<em class="property">class </em><code class="descclassname">cplpy.</code><code class="descname">CPL</code><a class="reference internal" href="_modules/cplpy.html#CPL"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cplpy.CPL" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="cplpy.CPL.setup_cfd">
-<code class="descname">setup_cfd</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cplpy.html#CPL.setup_cfd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cplpy.CPL.setup_cfd" title="Permalink to this definition">¶</a></dt>
-<dd><p>Keyword arguments:
-real &#8211; the real part (default 0.0)
-imag &#8211; the imaginary part (default 0.0)</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="cplpy.CPL.setup_md">
-<code class="descname">setup_md</code><span class="sig-paren">(</span><em>self</em>, <em>dt</em>, <em>icom_grid</em>, <em>xyzL</em>, <em>xyz_orig</em>, <em>density=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cplpy.html#CPL.setup_md"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cplpy.CPL.setup_md" title="Permalink to this definition">¶</a></dt>
-<dd><p>Keyword arguments:
-real &#8211; the real part (default 0.0)
-imag &#8211; the imaginary part (default 0.0)</p>
-</dd></dl>
-
-</dd></dl>
-
+<dl class="py class">
+<dt class="sig sig-object py" id="cplpy.CPL">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cplpy.</span></span><span class="sig-name descname"><span class="pre">CPL</span></span><a class="reference internal" href="_modules/cplpy.shtml#CPL"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cplpy.CPL" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="cplpy.CPL.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calling_realm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cplpy.shtml#CPL.init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cplpy.CPL.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>(cfd+md) Splits MPI_COMM_WORLD in both the CFD and MD code respectively 
+and create intercommunicator between CFD and MD</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes MPI has been initialised <cite>MPI_init</cite> and communicator MPI_COMM_WORLD exists
+and contains all processors in both CFD and MD regions</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">init</span><span class="p">(</span>
+     <span class="n">callingrealm</span><span class="p">,</span> 
+     <span class="p">)</span>    
+</pre></div>
 </div>
+<p><strong>Inputs</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p><em>callingrealm</em></p>
+<ul>
+<li><p>Should identify calling processor as either CFD_REALM (integer with value 1) or MD_REALM (integer with value 2).</p></li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+<p><strong>Outputs</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>RETURNED_REALM_COMM</p>
+<ul>
+<li><p>Communicator based on callingrealm value local to CFD or MD processor and resulting from the split of MPI_COMM_WORLD</p></li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpi4py</span> <span class="k">import</span> <span class="n">MPI</span>
+<span class="kn">from</span> <span class="nn">cplpy</span> <span class="k">import</span> <span class="n">CPL</span>
+
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+<span class="n">CPL</span> <span class="o">=</span> <span class="n">CPL</span><span class="p">()</span>
+<span class="n">MD_COMM</span> <span class="o">=</span> <span class="n">CPL</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">CPL</span><span class="o">.</span><span class="n">MD_REALM</span><span class="p">)</span>
+
+<span class="n">nprocs</span> <span class="o">=</span> <span class="n">MD_COMM</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
+<span class="n">rank</span> <span class="o">=</span> <span class="n">MD_COMM</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">((</span><span class="s2">&quot;MD code processor &quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">rank</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; of &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nprocs</span><span class="p">)))</span>
+
+<span class="n">CPL</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span>
+<span class="n">MPI</span><span class="o">.</span><span class="n">Finalize</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Errors</strong></p>
+<blockquote>
+<div><p>COUPLER_ERROR_REALM  = 1                    wrong realm value
+COUPLER_ERROR_ONE_REALM = 2                 one realm missing
+COUPLER_ERROR_INIT = 3         ! initialisation error</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cplpy.CPL.setup_cfd">
+<span class="sig-name descname"><span class="pre">setup_cfd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">icomm_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyzL</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyz_orig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncxyz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cplpy.shtml#CPL.setup_cfd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cplpy.CPL.setup_cfd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialisation routine for coupler module - Every variable is sent and stored
+to ensure both md and cfd region have an identical list of parameters</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes CPL has been initialised <cite>CPL.init</cite> and communicator MD_REALM exists</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">setup_cfd</span><span class="p">(</span>
+          <span class="n">icomm_grid</span><span class="p">,</span>
+          <span class="n">xyzL</span><span class="p">,</span>
+          <span class="n">xyz_orig</span><span class="p">,</span>
+          <span class="n">ncxyz</span><span class="p">,</span>
+          <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p><em>icomm_grid</em></p>
+<ul>
+<li><p>Communicator based on CFD processor topology returned from a call to MPI_CART_CREATE.</p></li>
+</ul>
+</li>
+<li><p><em>xyzL</em></p>
+<ul>
+<li><p>CFD domain size.</p></li>
+</ul>
+</li>
+<li><p><em>xyz_orig</em></p>
+<ul>
+<li><p>CFD origin.</p></li>
+</ul>
+</li>
+<li><p><em>ncxyz</em></p>
+<ul>
+<li><p>Number of CFD cells in global domain.</p></li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cplpy.CPL.setup_md">
+<span class="sig-name descname"><span class="pre">setup_md</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">icomm_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyzL</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyz_orig</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cplpy.shtml#CPL.setup_md"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cplpy.CPL.setup_md" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialisation routine for coupler module - Every variable is sent and stored
+to ensure both md and cfd region have an identical list of parameters</p>
+<p><strong>Remarks</strong></p>
+<p>Assumes CPL has been initialised <cite>CPL.init</cite> and communicator MD_REALM exists</p>
+<p><strong>Synopsis</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">coupler_md_init</span><span class="p">(</span>
+                <span class="n">icomm_grid</span><span class="p">,</span>
+                <span class="n">xyzL</span><span class="p">,</span>
+                <span class="n">xyz_orig</span><span class="p">,</span>
+                <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Inputs</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p><em>icomm_grid</em></p>
+<ul>
+<li><p>Communicator based on MD processor topology returned from a call to MPI_CART_CREATE.</p></li>
+</ul>
+</li>
+<li><p><em>xyzL</em></p>
+<ul>
+<li><p>MD domain size.</p></li>
+</ul>
+</li>
+<li><p><em>xyz_orig</em></p>
+<ul>
+<li><p>MD origin.</p></li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cplpy.CPL.get_arrays">
+<span class="sig-name descname"><span class="pre">get_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recv_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">send_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cplpy.shtml#CPL.get_arrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cplpy.CPL.get_arrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return recv array and send array based
+on constraint/boundary sizes</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 
 
+          </div>
+          
+        </div>
       </div>
-      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
-      
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.shtml">cpl-library</a></h1>
 
 
-      </div>
 
-    <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, E. Smith, E. Ramos, D. Trevelyan.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.3.
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="cpp_api.shtml">C++ Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fortran_api.shtml">Fortran Bindings</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Python Bindings</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.shtml">Documentation overview</a><ul>
+      <li>Previous: <a href="fortran_api.shtml" title="previous chapter">Fortran Bindings</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.shtml" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
     </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Ed Smith.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/python_api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
   </body>
 </html>

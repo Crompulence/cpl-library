@@ -1,0 +1,911 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index &#8212; cpl-library 2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <link rel="stylesheet" href="_static/css/functions.css" type="text/css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.shtml" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+
+<h1 id="index">Index</h1>
+
+<div class="genindex-jumpbox">
+ <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#J"><strong>J</strong></a>
+ | <a href="#K"><strong>K</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#Q"><strong>Q</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
+ | <a href="#X"><strong>X</strong></a>
+ | <a href="#Y"><strong>Y</strong></a>
+ | <a href="#Z"><strong>Z</strong></a>
+ 
+</div>
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/average_period"><strong>average_period (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/boundary_algo"><strong>boundary_algo (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/cfd_icoord2olap_md_icoords"><strong>cfd_icoord2olap_md_icoords (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cfd_jcoord2olap_md_jcoords"><strong>cfd_jcoord2olap_md_jcoords (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cfd_kcoord2olap_md_kcoords"><strong>cfd_kcoord2olap_md_kcoords (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cfd_realm"><strong>cfd_realm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cfdid_olap"><strong>cfdid_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/comm_style"><strong>comm_style (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/comm_style_gath_scat"><strong>comm_style_gath_scat (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/comm_style_send_recv"><strong>comm_style_send_recv (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/constraint_algo"><strong>constraint_algo (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/constraint_cv"><strong>constraint_cv (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/constraint_cvflag"><strong>constraint_cvflag (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/constraint_flekkoy"><strong>constraint_flekkoy (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/constraint_ncer"><strong>constraint_ncer (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/constraint_off"><strong>constraint_off (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/constraint_ot"><strong>constraint_ot (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coord2rank_cfd"><strong>coord2rank_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coord2rank_md"><strong>coord2rank_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler"><strong>coupler (module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coupler_abort_on_request"><strong>coupler_abort_on_request (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coupler_abort_send_cfd"><strong>coupler_abort_send_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coupler_cfd_init"><strong>coupler_cfd_init() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coupler_error_cart_comm"><strong>coupler_error_cart_comm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coupler_error_continuum_force"><strong>coupler_error_continuum_force (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coupler_error_init"><strong>coupler_error_init (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coupler_error_input_file"><strong>coupler_error_input_file (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coupler_error_one_realm"><strong>coupler_error_one_realm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coupler_error_read_input"><strong>coupler_error_read_input (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coupler_error_realm"><strong>coupler_error_realm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coupler_error_setup_incomplete"><strong>coupler_error_setup_incomplete (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/coupler_md_get_average_period"><strong>coupler_md_get_average_period() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/coupler_md_get_md_steps_per_cfd_dt"><strong>coupler_md_get_md_steps_per_cfd_dt() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/coupler_md_get_save_period"><strong>coupler_md_get_save_period() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/coupler_md_init"><strong>coupler_md_init() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module"><strong>coupler_module (module)</strong></a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv43CPL">CPL (C++ type)</a>
+
+      <ul>
+        <li><a href="python_api.shtml#cplpy.CPL">(class in cplpy)</a>
+</li>
+      </ul></li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL9cfd_realmE">CPL::cfd_realm (C++ member)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL11density_cfdEv">CPL::density_cfd (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL8finalizeEv">CPL::finalize (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL6gatherEPdPiPiPdPi">CPL::gather (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4I0EN3CPL3getE1TNSt6stringE">CPL::get (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL10get_arraysEPN3CPL7ndArrayIdEEiPN3CPL7ndArrayIdEEi">CPL::get_arrays (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL15get_bnry_limitsEA_i">CPL::get_bnry_limits (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL15get_cnst_limitsEA_i">CPL::get_cnst_limits (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL12get_no_cellsEA_iA_i">CPL::get_no_cells (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL15get_olap_limitsEA_i">CPL::get_olap_limits (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL4initEiR8MPI_Comm">CPL::init (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL14is_proc_insideEA_i">CPL::is_proc_inside (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL14map_cell2coordEiiiA_d">CPL::map_cell2coord (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL16map_cfd2md_coordEA_dA_d">CPL::map_cfd2md_coord (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL14map_coord2cellEdddA_i">CPL::map_coord2cell (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL17map_glob2loc_cellEA_iA_iA_i">CPL::map_glob2loc_cell (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL16map_md2cfd_coordEA_dA_d">CPL::map_md2cfd_coord (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL8md_realmE">CPL::md_realm (C++ member)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL15my_proc_extentsEA_i">CPL::my_proc_extents (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL15my_proc_portionEA_iA_i">CPL::my_proc_portion (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL7overlapEv">CPL::overlap (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL12proc_extentsEA_iiA_i">CPL::proc_extents (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL12proc_portionEA_iiA_iA_i">CPL::proc_portion (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL4recvEPN3CPL7ndArrayIdEE">CPL::recv (C++ function)</a>, <a href="cpp_api.html#_CPPv4N3CPL4recvEPN3CPL7ndArrayIdEEPi">[1]</a>, <a href="cpp_api.html#_CPPv4N3CPL4recvEPdPiPi">[2]</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL7scatterEPdPiPiPdPi">CPL::scatter (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL4sendEPN3CPL7ndArrayIdEE">CPL::send (C++ function)</a>, <a href="cpp_api.html#_CPPv4N3CPL4sendEPN3CPL7ndArrayIdEEPi">[1]</a>, <a href="cpp_api.html#_CPPv4N3CPL4sendEPdPiPi">[2]</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL15set_output_modeEi">CPL::set_output_mode (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL10set_timingEiid">CPL::set_timing (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL9setup_cfdER8MPI_CommA_dA_dA_i">CPL::setup_cfd (C++ function)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL8setup_mdER8MPI_CommA_dA_d">CPL::setup_md (C++ function)</a>
+</li>
+      <li><a href="cpp_api.shtml#_CPPv4N3CPL9swaphalosEPdPi">CPL::swaphalos (C++ function)</a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_cart_comm"><strong>cpl_cart_comm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_cart_coords"><strong>cpl_cart_coords() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_cfd2md"><strong>cpl_cfd2md() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_cfd_bc_slice"><strong>cpl_cfd_bc_slice (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_cfd_bc_x"><strong>cpl_cfd_bc_x (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_cfd_bc_y"><strong>cpl_cfd_bc_y (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_cfd_bc_z"><strong>cpl_cfd_bc_z (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_cfd_dt"><strong>cpl_cfd_dt() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_comm_style"><strong>cpl_comm_style() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_create_map"><strong>cpl_create_map() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_finalize"><strong>cpl_finalize() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_full_overlap"><strong>cpl_full_overlap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_gather"><strong>cpl_gather() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_get"><strong>cpl_get() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_get_arrays"><strong>cpl_get_arrays() (fortran subroutine in module coupler)</strong></a>
+
+      <ul>
+        <li><a href="fortran_api.shtml#f/_/cpl_get_arrays"><strong>(fortran subroutine)</strong></a>
+</li>
+      </ul></li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_get_bnry_limits"><strong>cpl_get_bnry_limits() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_get_cnst_limits"><strong>cpl_get_cnst_limits() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_get_no_cells"><strong>cpl_get_no_cells() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_get_olap_limits"><strong>cpl_get_olap_limits() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_get_rank"><strong>cpl_get_rank() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_graph_comm"><strong>cpl_graph_comm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_init"><strong>cpl_init() (fortran subroutine in module coupler_module)</strong></a>
+
+      <ul>
+        <li><a href="fortran_api.shtml#f/_/cpl_init"><strong>(fortran subroutine)</strong></a>
+</li>
+      </ul></li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_initialised"><strong>cpl_initialised (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_inter_comm"><strong>cpl_inter_comm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_is_proc_inside"><strong>cpl_is_proc_inside() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_map_cell2coord"><strong>cpl_map_cell2coord() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_map_cfd2md_coord"><strong>cpl_map_cfd2md_coord() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_map_coord2cell"><strong>cpl_map_coord2cell() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_map_glob2loc_cell"><strong>cpl_map_glob2loc_cell() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_map_md2cfd_coord"><strong>cpl_map_md2cfd_coord() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_md2cfd"><strong>cpl_md2cfd() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_md_bc_slice"><strong>cpl_md_bc_slice (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_meshgrid"><strong>cpl_meshgrid() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_my_proc_extents"><strong>cpl_my_proc_extents() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_my_proc_portion"><strong>cpl_my_proc_portion() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_new_fileunit"><strong>cpl_new_fileunit() (fortran function in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_olap_comm"><strong>cpl_olap_comm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_olap_extents"><strong>cpl_olap_extents() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_overlap"><strong>cpl_overlap() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_proc_extents"><strong>cpl_proc_extents() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_proc_portion"><strong>cpl_proc_portion() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_rank_map"><strong>cpl_rank_map() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_realm"><strong>cpl_realm() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_realm_comm"><strong>cpl_realm_comm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_realm_intersection_comm"><strong>cpl_realm_intersection_comm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_realm_olap_comm"><strong>cpl_realm_olap_comm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_recv_full"><strong>cpl_recv_full() (fortran subroutine in module coupler)</strong></a>
+
+      <ul>
+        <li><a href="fortran_api.shtml#f/_/cpl_recv_full"><strong>(fortran subroutine)</strong></a>
+</li>
+      </ul></li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_recv_min"><strong>cpl_recv_min() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_scatter"><strong>cpl_scatter() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_send_full"><strong>cpl_send_full() (fortran subroutine in module coupler)</strong></a>
+
+      <ul>
+        <li><a href="fortran_api.shtml#f/_/cpl_send_full"><strong>(fortran subroutine)</strong></a>
+</li>
+      </ul></li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_send_min"><strong>cpl_send_min() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_set_timing"><strong>cpl_set_timing() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_setup_cfd"><strong>cpl_setup_cfd() (fortran subroutine in module coupler_module)</strong></a>
+
+      <ul>
+        <li><a href="fortran_api.shtml#f/_/cpl_setup_cfd"><strong>(fortran subroutine)</strong></a>
+</li>
+      </ul></li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_setup_complete"><strong>cpl_setup_complete (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_setup_md"><strong>cpl_setup_md() (fortran subroutine in module coupler_module)</strong></a>
+
+      <ul>
+        <li><a href="fortran_api.shtml#f/_/cpl_setup_md"><strong>(fortran subroutine)</strong></a>
+</li>
+      </ul></li>
+      <li><a href="fortran_api.shtml#f/coupler/cpl_swaphalos"><strong>cpl_swaphalos() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_world_comm"><strong>cpl_world_comm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/cpl_write_header"><strong>cpl_write_header() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/density_cfd"><strong>density_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/density_md"><strong>density_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/dt_cfd"><strong>dt_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/dt_md"><strong>dt_md (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/dx"><strong>dx (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/dy"><strong>dy (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/dymax"><strong>dymax (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/dymin"><strong>dymin (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/dz"><strong>dz (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/error_abort_s"><strong>error_abort_s() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/error_abort_si"><strong>error_abort_si() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler/establish_halo_cells"><strong>establish_halo_cells() (fortran subroutine in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/establish_surface_cells"><strong>establish_surface_cells() (fortran subroutine in module coupler)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="python_api.shtml#cplpy.CPL.get_arrays">get_arrays() (cplpy.CPL method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/get_new_fileunit"><strong>get_new_fileunit() (fortran function in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler/heaviside"><strong>heaviside() (fortran function in module coupler)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/iblock_realm"><strong>iblock_realm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/icmax"><strong>icmax (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/icmax_bnry"><strong>icmax_bnry (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/icmax_cnst"><strong>icmax_cnst (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/icmax_olap"><strong>icmax_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/icmin"><strong>icmin (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/icmin_bnry"><strong>icmin_bnry (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/icmin_cnst"><strong>icmin_cnst (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/icmin_olap"><strong>icmin_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/icpmax_cfd"><strong>icpmax_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/icpmax_md"><strong>icpmax_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/icpmin_cfd"><strong>icpmin_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/icpmin_md"><strong>icpmin_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/ierr"><strong>ierr (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="python_api.shtml#cplpy.CPL.init">init() (cplpy.CPL method)</a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/is_cell_inside"><strong>is_cell_inside() (fortran function in module coupler)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/is_coord_inside"><strong>is_coord_inside() (fortran function in module coupler)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="J">J</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/jblock_realm"><strong>jblock_realm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/jcmax"><strong>jcmax (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/jcmax_bnry"><strong>jcmax_bnry (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/jcmax_cnst"><strong>jcmax_cnst (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/jcmax_olap"><strong>jcmax_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/jcmin"><strong>jcmin (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/jcmin_bnry"><strong>jcmin_bnry (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/jcmin_cnst"><strong>jcmin_cnst (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/jcmin_olap"><strong>jcmin_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/jcpmax_cfd"><strong>jcpmax_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/jcpmax_md"><strong>jcpmax_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/jcpmin_cfd"><strong>jcpmin_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/jcpmin_md"><strong>jcpmin_md (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="K">K</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/kblock_realm"><strong>kblock_realm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/kcmax"><strong>kcmax (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/kcmax_bnry"><strong>kcmax_bnry (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/kcmax_cnst"><strong>kcmax_cnst (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/kcmax_olap"><strong>kcmax_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/kcmin"><strong>kcmin (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/kcmin_bnry"><strong>kcmin_bnry (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/kcmin_cnst"><strong>kcmin_cnst (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/kcmin_olap"><strong>kcmin_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/kcpmax_cfd"><strong>kcpmax_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/kcpmax_md"><strong>kcpmax_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/kcpmin_cfd"><strong>kcpmin_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/kcpmin_md"><strong>kcpmin_md (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/locate"><strong>locate() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/maxgridsize"><strong>maxgridsize (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/md_cfd_match_cellsize"><strong>md_cfd_match_cellsize (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/md_realm"><strong>md_realm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/messenger_lasterrorcheck"><strong>messenger_lasterrorcheck() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler/mpi_errorcheck"><strong>mpi_errorcheck() (fortran subroutine in module coupler)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/myid_cart"><strong>myid_cart (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/myid_graph"><strong>myid_graph (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/myid_olap"><strong>myid_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/myid_realm"><strong>myid_realm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/myid_world"><strong>myid_world (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/ncx"><strong>ncx (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/ncx_olap"><strong>ncx_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/ncy"><strong>ncy (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/ncy_olap"><strong>ncy_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/ncz"><strong>ncz (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/ncz_olap"><strong>ncz_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/normal"><strong>normal (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/nproc_cfd"><strong>nproc_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/nproc_md"><strong>nproc_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/nproc_olap"><strong>nproc_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/nproc_world"><strong>nproc_world (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/npx_cfd"><strong>npx_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/npx_md"><strong>npx_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/npy_cfd"><strong>npy_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/npy_md"><strong>npy_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/npz_cfd"><strong>npz_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/npz_md"><strong>npz_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/nsteps_cfd"><strong>nsteps_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/nsteps_coupled"><strong>nsteps_coupled (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/nsteps_md"><strong>nsteps_md (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/olap_mask"><strong>olap_mask (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/output_mode"><strong>output_mode (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/printf"><strong>printf() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Q">Q</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/quiet"><strong>quiet (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank2coord_cfd"><strong>rank2coord_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank2coord_md"><strong>rank2coord_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_cart"><strong>rank_cart (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_cfdcart2rank_world"><strong>rank_cfdcart2rank_world (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_cfdrealm2rank_world"><strong>rank_cfdrealm2rank_world (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_graph"><strong>rank_graph (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_graph2rank_world"><strong>rank_graph2rank_world (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_inter2rank_world"><strong>rank_inter2rank_world (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_intersect"><strong>rank_intersect (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_mdcart2rank_world"><strong>rank_mdcart2rank_world (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_mdrealm2rank_world"><strong>rank_mdrealm2rank_world (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_olap"><strong>rank_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_olap2rank_realm"><strong>rank_olap2rank_realm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_olap2rank_world"><strong>rank_olap2rank_world (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_realm"><strong>rank_realm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_world"><strong>rank_world (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_world2rank_cfdcart"><strong>rank_world2rank_cfdcart (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_world2rank_cfdrealm"><strong>rank_world2rank_cfdrealm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_world2rank_graph"><strong>rank_world2rank_graph (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_world2rank_inter"><strong>rank_world2rank_inter (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_world2rank_mdcart"><strong>rank_world2rank_mdcart (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_world2rank_mdrealm"><strong>rank_world2rank_mdrealm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rank_world2rank_olap"><strong>rank_world2rank_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/read_coupler_input"><strong>read_coupler_input() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/realm"><strong>realm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/realm_name"><strong>realm_name (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rootid_cart"><strong>rootid_cart (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rootid_realm"><strong>rootid_realm (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/rootid_world"><strong>rootid_world (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/save_period"><strong>save_period (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/sendtype_cfd_to_md"><strong>sendtype_cfd_to_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/sendtype_md_to_cfd"><strong>sendtype_md_to_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/set_output_mode"><strong>set_output_mode() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+      <li><a href="python_api.shtml#cplpy.CPL.setup_cfd">setup_cfd() (cplpy.CPL method)</a>
+</li>
+      <li><a href="python_api.shtml#cplpy.CPL.setup_md">setup_md() (cplpy.CPL method)</a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/staggered_averages"><strong>staggered_averages (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler/test_python"><strong>test_python() (fortran subroutine in module coupler)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/testval"><strong>testval (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/timestep_ratio"><strong>timestep_ratio (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler/updatefaces"><strong>updatefaces() (fortran subroutine in module coupler)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/void_bn"><strong>void_bn (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/write_matrix"><strong>write_matrix() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/write_matrix_int"><strong>write_matrix_int() (fortran subroutine in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="X">X</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/x_orig_cfd"><strong>x_orig_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/x_orig_md"><strong>x_orig_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/xg"><strong>xg (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/xl_cfd"><strong>xl_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/xl_md"><strong>xl_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/xl_olap"><strong>xl_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/xll"><strong>xll (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Y">Y</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/y_orig_cfd"><strong>y_orig_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/y_orig_md"><strong>y_orig_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/yg"><strong>yg (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/yl_cfd"><strong>yl_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/yl_md"><strong>yl_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/yl_olap"><strong>yl_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/yll"><strong>yll (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Z">Z</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/z_orig_cfd"><strong>z_orig_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/z_orig_md"><strong>z_orig_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/zg"><strong>zg (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="fortran_api.shtml#f/coupler_module/zl_cfd"><strong>zl_cfd (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/zl_md"><strong>zl_md (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/zl_olap"><strong>zl_olap (fortran variable in module coupler_module)</strong></a>
+</li>
+      <li><a href="fortran_api.shtml#f/coupler_module/zll"><strong>zll (fortran variable in module coupler_module)</strong></a>
+</li>
+  </ul></td>
+</tr></table>
+
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.shtml">cpl-library</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cpp_api.shtml">C++ Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fortran_api.shtml">Fortran Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_api.shtml">Python Bindings</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.shtml">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.shtml" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Ed Smith.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

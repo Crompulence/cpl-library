@@ -13,8 +13,8 @@
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
+    <link rel="index" title="Index" href="../genindex.shtml" />
+    <link rel="search" title="Search" href="../search.shtml" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -130,7 +130,7 @@
     <span class="k">return</span> <span class="n">handleExcepts</span>
 
 
-<div class="viewcode-block" id="CPL"><a class="viewcode-back" href="../python_api.html#cplpy.CPL">[docs]</a><span class="k">class</span> <span class="nc">CPL</span><span class="p">:</span>
+<div class="viewcode-block" id="CPL"><a class="viewcode-back" href="../python_api.shtml#cplpy.CPL">[docs]</a><span class="k">class</span> <span class="nc">CPL</span><span class="p">:</span>
     <span class="c1"># Shared attribute containing the library</span>
     <span class="n">CFD_REALM</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">MD_REALM</span> <span class="o">=</span> <span class="mi">2</span>
@@ -210,7 +210,7 @@
 
     <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - </span>
 
-<div class="viewcode-block" id="CPL.init"><a class="viewcode-back" href="../python_api.html#cplpy.CPL.init">[docs]</a>    <span class="nd">@abortMPI</span>
+<div class="viewcode-block" id="CPL.init"><a class="viewcode-back" href="../python_api.shtml#cplpy.CPL.init">[docs]</a>    <span class="nd">@abortMPI</span>
     <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calling_realm</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            (cfd+md) Splits MPI_COMM_WORLD in both the CFD and MD code respectively </span>
@@ -325,7 +325,7 @@
          <span class="n">ndpointer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,),</span> <span class="n">flags</span><span class="o">=</span><span class="s1">&#39;aligned, f_contiguous&#39;</span><span class="p">),</span>
          <span class="n">ndpointer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,),</span> <span class="n">flags</span><span class="o">=</span><span class="s1">&#39;aligned, f_contiguous&#39;</span><span class="p">)]</span>
 
-<div class="viewcode-block" id="CPL.setup_cfd"><a class="viewcode-back" href="../python_api.html#cplpy.CPL.setup_cfd">[docs]</a>    <span class="nd">@abortMPI</span>
+<div class="viewcode-block" id="CPL.setup_cfd"><a class="viewcode-back" href="../python_api.shtml#cplpy.CPL.setup_cfd">[docs]</a>    <span class="nd">@abortMPI</span>
     <span class="k">def</span> <span class="nf">setup_cfd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">icomm_grid</span><span class="p">,</span> <span class="n">xyzL</span><span class="p">,</span> 
                         <span class="n">xyz_orig</span><span class="p">,</span> <span class="n">ncxyz</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -398,7 +398,7 @@
          <span class="n">ndpointer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,),</span> <span class="n">flags</span><span class="o">=</span><span class="s1">&#39;aligned, f_contiguous&#39;</span><span class="p">),</span>
          <span class="n">ndpointer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,),</span> <span class="n">flags</span><span class="o">=</span><span class="s1">&#39;aligned, f_contiguous&#39;</span><span class="p">)]</span>
 
-<div class="viewcode-block" id="CPL.setup_md"><a class="viewcode-back" href="../python_api.html#cplpy.CPL.setup_md">[docs]</a>    <span class="nd">@abortMPI</span>
+<div class="viewcode-block" id="CPL.setup_md"><a class="viewcode-back" href="../python_api.shtml#cplpy.CPL.setup_md">[docs]</a>    <span class="nd">@abortMPI</span>
     <span class="k">def</span> <span class="nf">setup_md</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">icomm_grid</span><span class="p">,</span> <span class="n">xyzL</span><span class="p">,</span> <span class="n">xyz_orig</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Initialisation routine for coupler module - Every variable is sent and stored</span>
@@ -831,7 +831,7 @@
 
     <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - </span>
 
-<div class="viewcode-block" id="CPL.get_arrays"><a class="viewcode-back" href="../python_api.html#cplpy.CPL.get_arrays">[docs]</a>    <span class="nd">@abortMPI</span>
+<div class="viewcode-block" id="CPL.get_arrays"><a class="viewcode-back" href="../python_api.shtml#cplpy.CPL.get_arrays">[docs]</a>    <span class="nd">@abortMPI</span>
     <span class="k">def</span> <span class="nf">get_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recv_size</span><span class="p">,</span> <span class="n">send_size</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1062,7 +1062,7 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">cpl-library</a></h1>
+<h1 class="logo"><a href="../index.shtml">cpl-library</a></h1>
 
 
 
@@ -1073,16 +1073,16 @@
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../cpp_api.html">C++ Bindings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../fortran_api.html">Fortran Bindings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../python_api.html">Python Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cpp_api.shtml">C++ Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fortran_api.shtml">Fortran Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_api.shtml">Python Bindings</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="../index.html">Documentation overview</a><ul>
-  <li><a href="index.html">Module code</a><ul>
+  <li><a href="../index.shtml">Documentation overview</a><ul>
+  <li><a href="index.shtml">Module code</a><ul>
   </ul></li>
   </ul></li>
 </ul>
@@ -1090,7 +1090,7 @@
 <div id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
+    <form class="search" action="../search.shtml" method="get">
       <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
