@@ -1,0 +1,30 @@
+name: Docker Image CI
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  
+jobs:
+   #Only build if all unit tests are still passing
+   on-success:
+     runs-on: ubuntu-20.04
+     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+     steps:
+      - uses: actions/checkout@v3
+      
+      - name: Build the Docker image
+        run: docker build . --file ./utils/Dockerfile --tag cpllibrary/cpl-library
+        
+      - name: Run tests inside the container
+        run: docker run make test-all
+        
+   on-failure:
+     runs-on: ubuntu-20.04
+     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+     steps:
+       - run: echo "Build/tests fails so no rebuilding Docker container"
