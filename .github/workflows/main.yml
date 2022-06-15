@@ -27,9 +27,9 @@ jobs:
   test:
     runs-on: ubuntu-20.04
     strategy:
+      fail-fast: false
       matrix:
-        #mpi: [ 'mpich', 'openmpi' ]
-        mpi: [ 'mpich' ]
+        mpi: [ 'mpich', 'openmpi' ]
         
     steps:
           
@@ -40,13 +40,7 @@ jobs:
         uses: mpi4py/setup-mpi@v1
         with:
           mpi: ${{ matrix.mpi }}
-          
-      - name: Set defaul compiler and MPI 
-        run: |
-          pwd
-          ls ./
-      #  run: echo "${{ matrix.mpi }}_gcc" > make/PLATFORM
-        
+                 
       #- name: Check MPI version
       #  run: cat ./make/PLATFORM
       #- name: Install mpich
@@ -69,6 +63,9 @@ jobs:
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
+      
+      - name: Set defaul compiler and MPI 
+        run: echo "${{ matrix.mpi }}_gcc" > make/PLATFORM
         
       - name: Build cpl-library
         run: |
