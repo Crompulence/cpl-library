@@ -1118,15 +1118,16 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
                 raise ValueError("MPIrun type unknown", mpirun)
 
             #Check for OpenMPI version greater than 3 and add oversubscribe option
-            if (CPL.MPI_version == "OPENMPI"):
-                if (CPL.ompi_major_version_no >= 3):
-                    cmd.replace("mpiexec","mpiexec --oversubscribe")
+            #if (CPL.MPI_version == "OPENMPI"):
+            #    if (CPL.ompi_major_version_no >= 3):
+            #        cmd.replace("mpiexec","mpiexec --oversubscribe")
 
-            cmd.replace("mpiexec","mpiexec --oversubscribe")
+            #cmd.replace("mpiexec","mpiexec --oversubscribe")
 
             if debug:
                 print(("\nMPI run: " + cmd))
-            out = check_output(cmd, stderr=STDOUT, shell=True)
+            out = check_output(cmd, stderr=STDOUT, shell=True).decode("utf-8")
+
             if printoutput:
                 print(out)
         else:
@@ -1135,14 +1136,19 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
             assert False
             return False
 
-    #This checsk the error message is as expected
+    #This check the error message is as expected
     except CalledProcessError as exc:
-        print((exc.output))
+        err = e.output.decode("utf-8")
+        print("Output from run =", err, out))
         if err_msg != "":
-            print(("ERROR = ", err_msg))
-            assert err_msg in exc.output.decode("utf-8")
+            print(("Expected ERROR = ", err_msg))
+            assert err_msg in err
         else:
             assert exc.output.decode("utf-8") == ""
+    except Exception as e:
+        # check_call can raise other exceptions, such as FileNotFoundError
+        output = str(e)
+        raise
     else:
         if err_msg != "":
             assert False
