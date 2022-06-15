@@ -26,14 +26,25 @@ jobs:
 
   test:
     runs-on: ubuntu-20.04
-            
+    strategy:
+      matrix:
+        mpi: [ 'mpich', 'openmpi' ]
+        
     steps:
           
       - name: Update repo
         run: sudo apt-get update -y 
         
-      - name: Install mpich
-        run: sudo apt-get install -y mpich   
+      - name: Setup MPI
+        uses: mpi4py/setup-mpi@v1
+        with:
+          mpi: ${{ matrix.mpi }}
+        
+      #- name: Install mpich
+      #  run: sudo apt-get install -y mpich   
+
+      - name: Install mpi4py
+        run: pip install mpi4py
         
       - name: Install valgrind
         run: sudo apt-get install -y valgrind
@@ -43,9 +54,6 @@ jobs:
 
       - name: Install pytest
         run: pip install pytest
-          
-      - name: Install mpi4py
-        run: pip install mpi4py
 
       - name: Install scientific packages
         run: pip install numpy scipy matplotlib
