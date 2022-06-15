@@ -28,7 +28,7 @@
     </script>
 
 
-  </head><body><!--#include virtual="/nav.html"--><div class="center">
+  </head><body><div class="center"><!--#include virtual="/nav.html"-->
   
 
     <div class="document">

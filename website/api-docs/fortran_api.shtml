@@ -24,7 +24,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body><!--#include virtual="/nav.html"--><div class="center">
+  </head><body><div class="center"><!--#include virtual="/nav.html"-->
   
 
     <div class="document">
