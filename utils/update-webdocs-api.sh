@@ -31,6 +31,10 @@ mv f-modindex.html f-modindex.shtml
 for file in *.shtml; 
 	do echo $file; 
 	sed -i 's/\.html/\.shtml/' $file;
+	sed -i 's/<body>/<body><!--#include virtual="\/nav.html"--><div class="center">/' $file;
+	sed -i 's/<\/body>/<\/div><\/body>/' $file;
+	sed -i 's/<\/title>/<\/title><link rel="stylesheet" href="\/styles.css"><link rel="shortcut icon" href="\/cpl_logo.ico"> /' $file;
+	git add $file;
 done
 
 #Update module documents to server side
@@ -40,5 +44,7 @@ mv index.html index.shtml
 for file in *.shtml; 
 	do echo $file; 
 	sed -i 's/\.html/\.shtml/' $file;
+	sed -i 's/<body>/<body><!--#include virtual="\/nav.html"-->/' $file;
+	git add $file;
 done
 

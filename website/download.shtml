@@ -19,6 +19,8 @@
         <p>
             A complete version of CPL library is available for 
             <a href="https://hub.docker.com/r/cpllibrary/cpl-library/"> Docker </a>. <a href="https://github.com/Crompulence/cpl-library/actions/workflows/docker-image.yml"><img src="https://github.com/Crompulence/cpl-library/actions/workflows/docker-image.yml/badge.svg" alt="Docker Image CI" style="max-width: 100%;"></a>
+        </p>
+        <p>
             The base image includes mpich and all Python bindings to run
             all the examples and tests.
         </p>
@@ -71,7 +73,7 @@
         <h3>Version 2.1.0</h3>
 
 			<mark class="CPL">CPL library</mark> now works with Python3, and can be downloaded from 
-            <a href="https://github.com/Crompulence/cpl-library/archive/v2.0.0.zip"> here </a>.
+            <a href="https://github.com/Crompulence/cpl-library/archive/v2.1.0.zip"> here </a>.
 
         <h3>Version 2.0.0</h3>
             
