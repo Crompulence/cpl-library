@@ -39,7 +39,12 @@ jobs:
         uses: mpi4py/setup-mpi@v1
         with:
           mpi: ${{ matrix.mpi }}
+          
+      - name: Set defaul compiler and MPI 
+        run: echo "${{ matrix.mpi }}_gcc" > ./make/PLATFORM
         
+      - name: Check MPI version
+        run: cat ./make/PLATFORM
       #- name: Install mpich
       #  run: sudo apt-get install -y mpich   
 
