@@ -1126,10 +1126,25 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
 
             if debug:
                 print(("\nMPI run: " + cmd))
-            out = check_output(cmd, stderr=STDOUT, shell=True).decode("utf-8")
+            #output = check_output(cmd, stderr=STDOUT, shell=True).decode("utf-8")
 
+            p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, shell=True)
+            pcommout = p.communicate()
+            output = pcommout[0].decode("utf-8")
+            error = pcommout[1].decode("utf-8")
             if printoutput:
-                print(out)
+                print(output + error)
+
+            if p.returncode != 0: 
+                print("returncode", p.returncode)
+                print("Stdout = ", output)
+                print("Stderror = ", error)
+
+                if err_msg != "":
+                    print(("Expected ERROR = ", err_msg, "Actual ERROR=", error))
+                    if err_msg in error:
+                        return True
+
         else:
             print(("Current directory: " + os.getcwd()))
             print((md_fname + " or " + cfd_fname + " are not found."))
@@ -1137,17 +1152,19 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
             return False
 
     #This check the error message is as expected
-    except CalledProcessError as exc:
-        err = e.output.decode("utf-8")
-        print("Output from run =", err, out))
+    except CalledProcessError as e:
+        print("Stdout = ", e.stdout)
+        print("Stderror = ", e.stderr)
+        err = e.stderr.decode("utf-8")
+        print("Output from run =", err)
         if err_msg != "":
             print(("Expected ERROR = ", err_msg))
             assert err_msg in err
         else:
-            assert exc.output.decode("utf-8") == ""
+            assert e.output.decode("utf-8") == ""
     except Exception as e:
         # check_call can raise other exceptions, such as FileNotFoundError
-        output = str(e)
+        print(e)
         raise
     else:
         if err_msg != "":
