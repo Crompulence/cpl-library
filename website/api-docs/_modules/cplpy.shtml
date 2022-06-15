@@ -226,9 +226,7 @@
 <span class="sd">            </span>
 <span class="sd">            .. code-block:: python</span>
 <span class="sd">            </span>
-<span class="sd">              init(</span>
-<span class="sd">                   callingrealm, </span>
-<span class="sd">                   )    </span>
+<span class="sd">              CPL.init(callingrealm)    </span>
 <span class="sd">            </span>
 <span class="sd">            **Inputs**</span>
 <span class="sd">            </span>
@@ -340,12 +338,7 @@
 <span class="sd">            </span>
 <span class="sd">            .. code-block:: python</span>
 <span class="sd">            </span>
-<span class="sd">              setup_cfd(</span>
-<span class="sd">                        icomm_grid,</span>
-<span class="sd">                        xyzL,</span>
-<span class="sd">                        xyz_orig,</span>
-<span class="sd">                        ncxyz,</span>
-<span class="sd">                        )</span>
+<span class="sd">              CPL.setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)</span>
 <span class="sd">            </span>
 <span class="sd">            **Inputs**</span>
 <span class="sd">            </span>
@@ -412,11 +405,7 @@
 <span class="sd">            </span>
 <span class="sd">            .. code-block:: python</span>
 <span class="sd">            </span>
-<span class="sd">              coupler_md_init(</span>
-<span class="sd">                              icomm_grid,</span>
-<span class="sd">                              xyzL,</span>
-<span class="sd">                              xyz_orig,</span>
-<span class="sd">                              )</span>
+<span class="sd">              CPL.md_init(icomm_grid, xyzL, xyz_orig)</span>
 <span class="sd">            </span>
 <span class="sd">            **Inputs**</span>
 <span class="sd">            </span>
@@ -485,13 +474,52 @@
          <span class="n">ndpointer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,),</span> <span class="n">flags</span><span class="o">=</span><span class="s1">&#39;aligned, f_contiguous&#39;</span><span class="p">),</span>
          <span class="n">ndpointer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,),</span> <span class="n">flags</span><span class="o">=</span><span class="s1">&#39;aligned, f_contiguous&#39;</span><span class="p">)]</span>
 
-    <span class="nd">@abortMPI</span>
+<div class="viewcode-block" id="CPL.proc_portion"><a class="viewcode-back" href="../python_api.shtml#cplpy.CPL.proc_portion">[docs]</a>    <span class="nd">@abortMPI</span>
     <span class="k">def</span> <span class="nf">proc_portion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coord</span><span class="p">,</span> <span class="n">realm</span><span class="p">,</span> <span class="n">limits</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Get maximum and minimum cell indices, i.e. the &#39;portion&#39;, of the</span>
+<span class="sd">            input cell extents &#39;limits&#39; that is contributed by the processor</span>
+<span class="sd">            specified by processor coord. </span>
+<span class="sd">        </span>
+<span class="sd">            **Remarks**</span>
+<span class="sd">        </span>
+<span class="sd">            Assumes the coupler has been initialised with `CPL.init &lt;#cplpy.CPL.init&gt;`_ and </span>
+<span class="sd">            topological mapping has been setup using either `CPL.setup_md &lt;#cplpy.CPL.setup_md&gt;`_ </span>
+<span class="sd">            or `CPL.setup_cfd &lt;#cplpy.CPL.setup_cfd&gt;`_ as appropriate.</span>
+<span class="sd">            - Note: limits(6) and portion(6) are of the form: (xmin,xmax,ymin,ymax,zmin,zmax)</span>
+<span class="sd">        </span>
+<span class="sd">            **Synopsis**</span>
+<span class="sd">            </span>
+<span class="sd">            .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">              cpl.proc_portion(coord, realm, limits)</span>
+<span class="sd">        </span>
+<span class="sd">            **Inputs**</span>
+<span class="sd">            </span>
+<span class="sd">            - coord</span>
+<span class="sd">            </span>
+<span class="sd">                - processor cartesian coordinate, list or numpy array of 3 integers </span>
+<span class="sd">            - realm</span>
+<span class="sd">            </span>
+<span class="sd">                - cfd_realm (1) or md_realm (2) (integer) </span>
+<span class="sd">            - limits</span>
+<span class="sd">            </span>
+<span class="sd">                - Array of cell extents that specify the input region, list or numpy array of 6 integers  </span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">            **Outputs**</span>
+<span class="sd">        </span>
+<span class="sd">            - portion</span>
+<span class="sd">                - Array of cell extents that define the local processor&#39;s</span>
+<span class="sd">                  contribution to the input region &#39;limits&#39;, numpy array of 6 integers  </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">coord</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type_check</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
         <span class="n">limits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type_check</span><span class="p">(</span><span class="n">limits</span><span class="p">)</span>
         <span class="n">portion</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">py_proc_portion</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">realm</span><span class="p">,</span> <span class="n">limits</span><span class="p">,</span> <span class="n">portion</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">portion</span>
+        <span class="k">return</span> <span class="n">portion</span></div>
 
     <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - </span>
 
@@ -500,12 +528,42 @@
         <span class="p">[</span><span class="n">ndpointer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,),</span> <span class="n">flags</span><span class="o">=</span><span class="s1">&#39;aligned, f_contiguous&#39;</span><span class="p">),</span>
          <span class="n">ndpointer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,),</span> <span class="n">flags</span><span class="o">=</span><span class="s1">&#39;aligned, f_contiguous&#39;</span><span class="p">)]</span>
 
-    <span class="nd">@abortMPI</span>
+<div class="viewcode-block" id="CPL.my_proc_portion"><a class="viewcode-back" href="../python_api.shtml#cplpy.CPL.my_proc_portion">[docs]</a>    <span class="nd">@abortMPI</span>
     <span class="k">def</span> <span class="nf">my_proc_portion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limits</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Get maximum and minimum cell indices, i.e. the &#39;portion&#39; on calling process. </span>
+<span class="sd">        </span>
+<span class="sd">            **Remarks**</span>
+<span class="sd">        </span>
+<span class="sd">            Assumes the coupler has been initialised with `CPL.init &lt;#cplpy.CPL.init&gt;`_ and </span>
+<span class="sd">            topological mapping has been setup using either `CPL.setup_md &lt;#cplpy.CPL.setup_md&gt;`_ </span>
+<span class="sd">            or `CPL.setup_cfd &lt;#cplpy.CPL.setup_cfd&gt;`_ as appropriate.</span>
+<span class="sd">            - Note: limits(6) and portion(6) are of the form: (xmin,xmax,ymin,ymax,zmin,zmax)</span>
+<span class="sd">        </span>
+<span class="sd">            **Synopsis**</span>
+<span class="sd">            </span>
+<span class="sd">            .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">                CPL.my_proc_portion(limits)</span>
+<span class="sd">        </span>
+<span class="sd">            **Inputs**</span>
+<span class="sd">            </span>
+<span class="sd">            - limits</span>
+<span class="sd">            </span>
+<span class="sd">                - Array of cell extents that specify the input region, list or numpy array of 6 integers  </span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">            **Outputs**</span>
+<span class="sd">        </span>
+<span class="sd">            - portion</span>
+<span class="sd">                - Array of cell extents that define the local processor&#39;s</span>
+<span class="sd">                  contribution to the input region &#39;limits&#39;, numpy array of 6 integers  </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">limits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type_check</span><span class="p">(</span><span class="n">limits</span><span class="p">)</span>
         <span class="n">portion</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">py_my_proc_portion</span><span class="p">(</span><span class="n">limits</span><span class="p">,</span> <span class="n">portion</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">portion</span>
+        <span class="k">return</span> <span class="n">portion</span></div>
 
     <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - </span>
 
@@ -659,9 +717,50 @@
          <span class="n">ndpointer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="s1">&#39;aligned, f_contiguous&#39;</span><span class="p">),</span>
          <span class="n">POINTER</span><span class="p">(</span><span class="n">c_bool</span><span class="p">)]</span>
 
-    <span class="nd">@abortMPI</span>
+<div class="viewcode-block" id="CPL.send"><a class="viewcode-back" href="../python_api.shtml#cplpy.CPL.send">[docs]</a>    <span class="nd">@abortMPI</span>
     <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">asend</span><span class="p">,</span> <span class="n">limits</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            </span>
+<span class="sd">            Send four dimensional array *asend* of data from all processors in the </span>
+<span class="sd">            current realm with data between global cell array *limits* to the </span>
+<span class="sd">            corresponding processors from the other realm.</span>
+<span class="sd">            </span>
+<span class="sd">            **Remarks**</span>
+<span class="sd">            </span>
+<span class="sd">            Assumes the coupler has been initialised with `CPL.init &lt;#cplpy.CPL.init&gt;`_ and </span>
+<span class="sd">            topological mapping has been setup using either `CPL.setup_md &lt;#cplpy.CPL.setup_md&gt;`_ </span>
+<span class="sd">            or `CPL.setup_cfd &lt;#cplpy.CPL.setup_cfd&gt;`_ as appropriate.</span>
+<span class="sd">            </span>
+<span class="sd">            **Synopsis**</span>
+<span class="sd">            </span>
+<span class="sd">            .. code-block:: python</span>
+<span class="sd">            </span>
+<span class="sd">              CPL.send(asend, limits=None)    </span>
+<span class="sd">            </span>
+<span class="sd">            **Inputs**</span>
+<span class="sd">            </span>
+<span class="sd">             - asend</span>
+<span class="sd">            </span>
+<span class="sd">               - Array of data to send. Should be a four dimensional Numpy array allocated using the number of cells on the current processor between the limits. For example, if overlap limits are 8 cells, between cells 0 and 7 split over 2 procesors, the first processor will have from 0 to 3 and the second from 4 to 7. This should be be obtained from `CPL.my_proc_portion(limits, portion) &lt;#cplpy.CPL.my_proc_portion&gt;`_ to allocate a Numpy array, or allocated using the helper function `CPL.get_arrays &lt;#cplpy.CPL.get_arrays&gt;`_ with appropriate sizes.</span>
+<span class="sd">                .</span>
+<span class="sd">             - limits [Optional]</span>
+<span class="sd">            </span>
+<span class="sd">               - Optional arguments limits specify if global limits of overlap region not used. These are in the global cell coordinates, and must match the corresponding recieve.</span>
+<span class="sd">            </span>
+<span class="sd">            **Outputs**</span>
+<span class="sd">            </span>
+<span class="sd">             - send_flag</span>
+<span class="sd">            </span>
+<span class="sd">               - Returned flag which indicates success or failure of send process</span>
+<span class="sd">            </span>
+<span class="sd">            **Example**</span>
 
+<span class="sd">            This example links with the `CPL.recv &lt;#cplpy.CPL.recv&gt;`_ examples </span>
+<span class="sd">                        </span>
+<span class="sd">            .. literalinclude:: ../../../examples/sendrecv_globcell/python/cfd_send_cells.py</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">asend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type_check</span><span class="p">(</span><span class="n">asend</span><span class="p">)</span>
         <span class="n">asend_shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">asend</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="n">send_flag</span> <span class="o">=</span> <span class="n">c_bool</span><span class="p">()</span>
@@ -671,7 +770,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">py_send</span><span class="p">(</span><span class="n">asend</span><span class="p">,</span> <span class="n">asend_shape</span><span class="p">,</span> <span class="n">limits</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">send_flag</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="n">send_flag</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">send_flag</span><span class="o">.</span><span class="n">value</span></div>
 
     <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - </span>
 
@@ -689,8 +788,47 @@
          <span class="n">POINTER</span><span class="p">(</span><span class="n">c_bool</span><span class="p">)]</span>
 
 
-    <span class="nd">@abortMPI</span>
+<div class="viewcode-block" id="CPL.recv"><a class="viewcode-back" href="../python_api.shtml#cplpy.CPL.recv">[docs]</a>    <span class="nd">@abortMPI</span>
     <span class="k">def</span> <span class="nf">recv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arecv</span><span class="p">,</span> <span class="n">limits</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            </span>
+<span class="sd">            Receive data from to local grid from the associated ranks from the other realm</span>
+<span class="sd">            </span>
+<span class="sd">            **Remarks**</span>
+<span class="sd">            </span>
+<span class="sd">            Assumes the coupler has been initialised with `CPL.init &lt;#cplpy.CPL.init&gt;`_ and </span>
+<span class="sd">            topological mapping has been setup using either `CPL.setup_md &lt;#cplpy.CPL.setup_md&gt;`_ </span>
+<span class="sd">            or `CPL.setup_cfd &lt;#cplpy.CPL.setup_cfd&gt;`_ as appropriate.</span>
+<span class="sd">            </span>
+<span class="sd">            **Synopsis**</span>
+<span class="sd">            </span>
+<span class="sd">            .. code-block:: python</span>
+<span class="sd">            </span>
+<span class="sd">              CPL.recv(arecv, limits=None)    </span>
+
+<span class="sd">            **Inputs**</span>
+<span class="sd">            </span>
+<span class="sd">             - arecv</span>
+<span class="sd">            </span>
+<span class="sd">               - Array of data to recv. Should be a four dimensional Numpy array allocated using the number of cells on the current processor between the limits. For example, if overlap limits are 8 cells, between cells 0 and 7 split over 2 procesors, the first processor will have from 0 to 3 and the second from 4 to 7. This should be be obtained from `CPL.my_proc_portion(limits, portion) &lt;#cplpy.CPL.my_proc_portion&gt;`_ to allocate a Numpy array, or allocated using the helper function `CPL.get_arrays &lt;#cplpy.CPL.get_arrays&gt;`_ with appropriate sizes.</span>
+
+<span class="sd">             - limits [Optional]</span>
+<span class="sd">            </span>
+<span class="sd">               - Limits in global cell coordinates, must be the same as corresponding send command.</span>
+<span class="sd">            </span>
+<span class="sd">            **Outputs**</span>
+<span class="sd">            </span>
+<span class="sd">             - recv_flag</span>
+<span class="sd">            </span>
+<span class="sd">               - Returned flag which indicates success or failure of recv process</span>
+<span class="sd">            </span>
+<span class="sd">            **Example**</span>
+
+<span class="sd">            This example links with the `CPL.send &lt;#cplpy.CPL.send&gt;`_ examples </span>
+
+<span class="sd">            .. literalinclude:: ../../../examples/sendrecv_globcell/python/md_recv_cells.py</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">arecv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type_check</span><span class="p">(</span><span class="n">arecv</span><span class="p">)</span>
         <span class="n">arecv_shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">arecv</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
@@ -699,7 +837,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">py_recv_min</span><span class="p">(</span><span class="n">arecv</span><span class="p">,</span> <span class="n">arecv_shape</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">recv_flag</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">py_recv</span><span class="p">(</span><span class="n">arecv</span><span class="p">,</span> <span class="n">arecv_shape</span><span class="p">,</span> <span class="n">limits</span><span class="p">,</span> <span class="n">byref</span><span class="p">(</span><span class="n">recv_flag</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">arecv</span><span class="p">,</span> <span class="n">recv_flag</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">arecv</span><span class="p">,</span> <span class="n">recv_flag</span><span class="o">.</span><span class="n">value</span></div>
 
     <span class="c1"># - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - </span>
 
@@ -837,6 +975,14 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">          Return recv array and send array based</span>
 <span class="sd">          on constraint/boundary sizes</span>
+
+<span class="sd">          **Example**</span>
+
+<span class="sd">            A minimal example is possible using CPL.get_arrays, which shows paired sending and recv commands</span>
+
+<span class="sd">            .. literalinclude:: ../../../examples/minimal_send_recv_mocks/minimal_MD.py</span>
+<span class="sd">            .. literalinclude:: ../../../examples/minimal_send_recv_mocks/minimal_CFD.py</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1">#Get constraint region</span>
         <span class="n">cnst_limits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cnst_limits</span><span class="p">();</span>
