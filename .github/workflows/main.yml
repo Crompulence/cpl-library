@@ -7,6 +7,14 @@ on:
   # Triggers the workflow on push or pull request events but only for the "master" branch
   push:
     branches: [ "master" ]
+    paths:
+      - src/**
+      - test/**
+      - bin/**
+      - make/**
+      - examples/**
+      - .github/**
+
   pull_request:
     branches: [ "master" ]
 

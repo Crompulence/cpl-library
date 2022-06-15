@@ -1,28 +1,17 @@
-# start from base
-FROM ubuntu:16.04
-MAINTAINER Edward Smith <edward.smith05@imperial.ac.uk>
+# Use latest Ubuntu - focal
+FROM ubuntu:20.04
+LABEL maintainer="Edward Smith <edward.smith@brunel.ac.uk>"
 
 #Install compilers, mpi (with ssh) and wxpython
+ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
-    gcc \
-    gfortran \
-    git-core \
-    build-essential \
-    mpich \
-    openssh-server \
-    python-dev \
-    python-pip \
-    python-tk \
-    python-wxgtk3.0 \
- && rm -rf /var/lib/apt/lists/*
+    gcc gfortran build-essential git-core \
+    mpich openssh-server \
+    python3-dev python3-pip python3-tk python3-matplotlib \ 
+    && rm -rf /var/lib/apt/lists/*
 
-RUN python -m pip install --upgrade pip \
-&&  pip install \
-    matplotlib==2.2.5 \
-    mpi4py \
-    numpy \
-    pytest==4.4.1 \
-    scipy==1.2.1
+RUN python3 -m pip install --upgrade pip \
+&&  pip3 install mpi4py numpy pytest scipy
 
 #Clone code from github
 RUN git clone https://github.com/Crompulence/cpl-library.git /cpl-library

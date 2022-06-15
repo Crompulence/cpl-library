@@ -1,0 +1,44 @@
+name: Docker Image CI
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  
+jobs:
+   #Only build if all unit tests are still passing
+   on-success:
+     runs-on: ubuntu-20.04
+     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+     steps:
+      - uses: actions/checkout@v3
+      
+      - name: Build the Docker image
+        run: docker build . --file ./utils/Dockerfile --tag cpllibrary/cpl-library
+        
+      #If the tests pass, login to DockerHub, build and push
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: utils
+          push: true
+          tags: cpllibrary/cpl-library:latest
+          
+      - name: Run tests inside the Docker container
+        run: docker run cpllibrary/cpl-library /bin/bash -c "source SOURCEME.sh; make test-pytest-initialisation" 
+                        
+                        
+   on-failure:
+     runs-on: ubuntu-20.04
+     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+     steps:
+       - run: echo "Build/tests fails so no rebuilding Docker container"
