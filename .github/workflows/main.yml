@@ -41,7 +41,7 @@ jobs:
           mpi: ${{ matrix.mpi }}
           
       - name: Set defaul compiler and MPI 
-        run: echo "${{ matrix.mpi }}_gcc" > ./make/PLATFORM
+        run: echo "${{ matrix.mpi }}_gcc" > make/PLATFORM
         
       - name: Check MPI version
         run: cat ./make/PLATFORM
