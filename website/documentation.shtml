@@ -16,7 +16,7 @@
 
         <div class="bigLink"> 
             <h1><a href='/user-guide/quick-start.shtml'>Quick-start guide</a></h1>
-            <h1><a href='/api-docs/api-docs.shtml'>API Reference</a><h1>
+            <h1><a href='/api-docs/index.shtml'>API Reference</a><h1>
             <h1><a href='/docs/Main_Page.shtml'>Further Docs</a><h1>
         </div>
 
