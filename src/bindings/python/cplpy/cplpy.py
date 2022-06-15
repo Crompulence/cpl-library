@@ -161,7 +161,7 @@ class CPL:
     mpishow=sp.check_output(["mpicc","-show"]).decode("utf-8")
     if ("open" in mpicc or "open" in mpishow):
         MPI_version = "OPENMPI"
-        ompi_info = sp.check_output("ompi_info").split("\n")
+        ompi_info = sp.check_output("ompi_info").decode("utf-8").split("\n")
         for m in ompi_info:
             if ("Open MPI:" in m):
                 ompi_major_version_no = int(m.split(":")[-1].split(".")[0])            
