@@ -23,11 +23,11 @@ source ${CPL_PATH}/SOURCEME.sh
 cd ${DIR}
 mpiexec -n 16 ./fortran/md : -n 4 ./fortran/cfd
 mpiexec -n 16 ./fortran/md : -n 4 ./cpp/cfd
-mpiexec -n 16 ./fortran/md : -n 4 python ./python/cfd_send_cells.py
+mpiexec -n 16 ./fortran/md : -n 4 python3 ./python/cfd_send_cells.py
 mpiexec -n 16 ./cpp/md : -n 4 ./fortran/cfd
 mpiexec -n 16 ./cpp/md : -n 4 ./cpp/cfd
-mpiexec -n 16 ./cpp/md : -n 4 python ./python/cfd_send_cells.py
-mpiexec -n 16 python ./python/md_recv_cells.py : -n 4 ./fortran/cfd
-mpiexec -n 16 python ./python/md_recv_cells.py : -n 4 ./cpp/cfd
-mpiexec -n 16 python ./python/md_recv_cells.py : -n 4 python ./python/cfd_send_cells.py
+mpiexec -n 16 ./cpp/md : -n 4 python3 ./python/cfd_send_cells.py
+mpiexec -n 16 python3 ./python/md_recv_cells.py : -n 4 ./fortran/cfd
+mpiexec -n 16 python3 ./python/md_recv_cells.py : -n 4 ./cpp/cfd
+mpiexec -n 16 python3 ./python/md_recv_cells.py : -n 4 python3 ./python/cfd_send_cells.py
 cd $MYPWD
