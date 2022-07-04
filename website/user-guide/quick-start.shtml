@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en-UK">
 
+<style>
+details > summary {
+  cursor: pointer;
+}
+
+</style>
+
 <head>
     <link rel="stylesheet" href="../styles.css">
     <script type="text/javascript" src="/details-shim.js"></script>
