@@ -1,4 +1,4 @@
-<!-- Generator: GNU source-highlight 3.1.5
+<!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -11,7 +11,8 @@ http://www.gnu.org/software/src-highlite -->
 <font color="#009900">int</font> <b><font color="#000000">main</font></b><font color="#990000">()</font> <font color="#FF0000">{</font>
    <b><font color="#000000">MPI_Init</font></b><font color="#990000">(</font>NULL<font color="#990000">,</font> NULL<font color="#990000">);</font> 
 
-   <font color="#009900">int</font> CFD_realm <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">,</font> CFD_COMM<font color="#990000">;</font>
+   <font color="#009900">int</font> CFD_realm <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font>
+   <font color="#008080">MPI_Comm</font> CFD_COMM<font color="#990000">;</font>
    CPL<font color="#990000">::</font><b><font color="#000000">init</font></b><font color="#990000">(</font>CFD_realm<font color="#990000">,</font> CFD_COMM<font color="#990000">);</font>
 
    <font color="#009900">int</font> nprocs<font color="#990000">;</font> <font color="#009900">int</font> rank<font color="#990000">;</font>

@@ -1,4 +1,4 @@
-<!-- Generator: GNU source-highlight 3.1.5
+<!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -8,18 +8,22 @@ http://www.gnu.org/software/src-highlite -->
 
 comm <font color="#990000">=</font> MPI<font color="#990000">.</font>COMM_WORLD
 CPL <font color="#990000">=</font> <b><font color="#000000">CPL</font></b><font color="#990000">()</font>
-MD_COMM <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">init</font></b><font color="#990000">(</font>CPL<font color="#990000">.</font>MD_REALM<font color="#990000">)</font>
-CPL<font color="#990000">.</font><b><font color="#000000">setup_md</font></b><font color="#990000">(</font>MD_COMM<font color="#990000">.</font><b><font color="#000000">Create_cart</font></b><font color="#990000">([</font><font color="#993399">2</font><font color="#990000">,</font> <font color="#993399">2</font><font color="#990000">,</font> <font color="#993399">2</font><font color="#990000">]),</font> xyzL<font color="#990000">=[</font><font color="#993399">1.0</font><font color="#990000">,</font> <font color="#993399">1.0</font><font color="#990000">,</font> <font color="#993399">1.0</font><font color="#990000">],</font> 
-             xyz_orig<font color="#990000">=[</font><font color="#993399">0.0</font><font color="#990000">,</font> <font color="#993399">0.0</font><font color="#990000">,</font> <font color="#993399">0.0</font><font color="#990000">])</font>
-recv_array<font color="#990000">,</font> send_array <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">get_arrays</font></b><font color="#990000">(</font>recv_size<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">,</font> send_size<font color="#990000">=</font><font color="#993399">4</font><font color="#990000">)</font>
 
+MD_COMM <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">init</font></b><font color="#990000">(</font>CPL<font color="#990000">.</font>MD_REALM<font color="#990000">)</font>
+
+CPL<font color="#990000">.</font><b><font color="#000000">setup_md</font></b><font color="#990000">(</font>MD_COMM<font color="#990000">.</font><b><font color="#000000">Create_cart</font></b><font color="#990000">([</font><font color="#993399">1</font><font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">]),</font> xyzL<font color="#990000">=[</font><font color="#993399">1.0</font><font color="#990000">,</font> <font color="#993399">1.0</font><font color="#990000">,</font> <font color="#993399">1.0</font><font color="#990000">],</font> 
+             xyz_orig<font color="#990000">=[</font><font color="#993399">0.0</font><font color="#990000">,</font> <font color="#993399">0.0</font><font color="#990000">,</font> <font color="#993399">0.0</font><font color="#990000">])</font>
+
+recv_array<font color="#990000">,</font> send_array <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">get_arrays</font></b><font color="#990000">(</font>recv_size<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">,</font> send_size<font color="#990000">=</font><font color="#993399">4</font><font color="#990000">)</font>
 <b><font color="#0000FF">for</font></b> time <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font><font color="#993399">5</font><font color="#990000">):</font>
 
     send_array<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">,:,:,:]</font> <font color="#990000">=</font> <font color="#993399">5</font><font color="#990000">.*</font>time
     CPL<font color="#990000">.</font><b><font color="#000000">send</font></b><font color="#990000">(</font>send_array<font color="#990000">)</font>
     recv_array<font color="#990000">,</font> ierr <font color="#990000">=</font> CPL<font color="#990000">.</font><b><font color="#000000">recv</font></b><font color="#990000">(</font>recv_array<font color="#990000">)</font>
-    <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"MD"</font><font color="#990000">,</font> time<font color="#990000">,</font> recv_array<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">,</font><font color="#993399">0</font><font color="#990000">,</font><font color="#993399">0</font><font color="#990000">,</font><font color="#993399">0</font><font color="#990000">])</font>
+    <b><font color="#0000FF">print</font></b><font color="#990000">((</font><font color="#FF0000">"MD"</font><font color="#990000">,</font> time<font color="#990000">,</font> recv_array<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">,</font><font color="#993399">0</font><font color="#990000">,</font><font color="#993399">0</font><font color="#990000">,</font><font color="#993399">0</font><font color="#990000">]))</font>
 
 CPL<font color="#990000">.</font><b><font color="#000000">finalize</font></b><font color="#990000">()</font>
 MPI<font color="#990000">.</font><b><font color="#000000">Finalize</font></b><font color="#990000">()</font>
+
+
 </tt></pre>

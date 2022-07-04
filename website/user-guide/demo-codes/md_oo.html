@@ -1,4 +1,4 @@
-<!-- Generator: GNU source-highlight 3.1.5
+<!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -402,7 +402,7 @@ http://www.gnu.org/software/src-highlite -->
         plt<font color="#990000">.</font><b><font color="#000000">pause</font></b><font color="#990000">(</font><font color="#993399">0.001</font><font color="#990000">)</font>
         plt<font color="#990000">.</font><b><font color="#000000">cla</font></b><font color="#990000">()</font>
 
-        <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"Temperature ="</font><font color="#990000">,</font> np<font color="#990000">.</font><b><font color="#000000">sum</font></b><font color="#990000">(</font>self<font color="#990000">.</font>v<font color="#990000">[:,</font><font color="#993399">0</font><font color="#990000">]**</font><font color="#993399">2</font><font color="#990000">+</font>self<font color="#990000">.</font>v<font color="#990000">[:,</font><font color="#993399">1</font><font color="#990000">]**</font><font color="#993399">2</font><font color="#990000">)/(</font><font color="#993399">2</font><font color="#990000">.*</font>self<font color="#990000">.</font>N<font color="#990000">))</font>
+        <b><font color="#0000FF">print</font></b><font color="#990000">((</font><font color="#FF0000">"Temperature ="</font><font color="#990000">,</font> np<font color="#990000">.</font><b><font color="#000000">sum</font></b><font color="#990000">(</font>self<font color="#990000">.</font>v<font color="#990000">[:,</font><font color="#993399">0</font><font color="#990000">]**</font><font color="#993399">2</font><font color="#990000">+</font>self<font color="#990000">.</font>v<font color="#990000">[:,</font><font color="#993399">1</font><font color="#990000">]**</font><font color="#993399">2</font><font color="#990000">)/(</font><font color="#993399">2</font><font color="#990000">.*</font>self<font color="#990000">.</font>N<font color="#990000">)))</font>
 
 
 <b><font color="#0000FF">if</font></b> __name__ <font color="#990000">==</font> <font color="#FF0000">"__main__"</font><font color="#990000">:</font>
@@ -414,7 +414,7 @@ http://www.gnu.org/software/src-highlite -->
     <i><font color="#9A1900">#Main run</font></i>
     <b><font color="#0000FF">for</font></b> step <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font>Nsteps<font color="#990000">):</font>
 
-        <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"MD time = "</font><font color="#990000">,</font> md<font color="#990000">.</font>tstep<font color="#990000">,</font> <font color="#FF0000">" of "</font><font color="#990000">,</font> Nsteps<font color="#990000">)</font>
+        <b><font color="#0000FF">print</font></b><font color="#990000">((</font><font color="#FF0000">"MD time = "</font><font color="#990000">,</font> md<font color="#990000">.</font>tstep<font color="#990000">,</font> <font color="#FF0000">" of "</font><font color="#990000">,</font> Nsteps<font color="#990000">))</font>
 
         md<font color="#990000">.</font><b><font color="#000000">force</font></b><font color="#990000">()</font>
 

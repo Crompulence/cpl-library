@@ -1,4 +1,4 @@
-<!-- Generator: GNU source-highlight 3.1.5
+<!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -40,11 +40,11 @@ http://www.gnu.org/software/src-highlite -->
         <i><font color="#9A1900">#Check CFL stability conditions</font></i>
         self<font color="#990000">.</font>CFL <font color="#990000">=</font>  <font color="#990000">(</font><font color="#993399">1</font><font color="#990000">./(</font><font color="#993399">2</font><font color="#990000">.*</font>nu<font color="#990000">))*(</font>self<font color="#990000">.</font>dx<font color="#990000">*</font>self<font color="#990000">.</font>dy<font color="#990000">)**</font><font color="#993399">2</font><font color="#990000">/(</font>self<font color="#990000">.</font>dx<font color="#990000">**</font><font color="#993399">2</font><font color="#990000">+</font>self<font color="#990000">.</font>dy<font color="#990000">**</font><font color="#993399">2</font><font color="#990000">)</font>
         <b><font color="#0000FF">if</font></b> self<font color="#990000">.</font>dt <font color="#990000">&gt;</font> self<font color="#990000">.</font>CFL<font color="#990000">:</font>
-            <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"Stability conditions violated, CFL="</font><font color="#990000">,</font> self<font color="#990000">.</font>CFL <font color="#990000">,</font>
-                  <font color="#FF0000">"&gt; dt="</font><font color="#990000">,</font> self<font color="#990000">.</font>dt<font color="#990000">,</font><font color="#FF0000">" adjust dt, nu or grid spacing"</font><font color="#990000">)</font>
+            <b><font color="#0000FF">print</font></b><font color="#990000">((</font><font color="#FF0000">"Stability conditions violated, CFL="</font><font color="#990000">,</font> self<font color="#990000">.</font>CFL <font color="#990000">,</font>
+                  <font color="#FF0000">"&gt; dt="</font><font color="#990000">,</font> self<font color="#990000">.</font>dt<font color="#990000">,</font><font color="#FF0000">" adjust dt, nu or grid spacing"</font><font color="#990000">))</font>
             <b><font color="#000000">quit</font></b><font color="#990000">()</font>
         <b><font color="#0000FF">else</font></b><font color="#990000">:</font>
-            <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"Timestep dt = "</font><font color="#990000">,</font> self<font color="#990000">.</font>dt<font color="#990000">,</font> <font color="#FF0000">" CFL number= "</font><font color="#990000">,</font> self<font color="#990000">.</font>CFL<font color="#990000">)</font>
+            <b><font color="#0000FF">print</font></b><font color="#990000">((</font><font color="#FF0000">"Timestep dt = "</font><font color="#990000">,</font> self<font color="#990000">.</font>dt<font color="#990000">,</font> <font color="#FF0000">" CFL number= "</font><font color="#990000">,</font> self<font color="#990000">.</font>CFL<font color="#990000">))</font>
 
         <i><font color="#9A1900">#initial condition</font></i>
         self<font color="#990000">.</font>u0 <font color="#990000">=</font> np<font color="#990000">.</font><b><font color="#000000">zeros</font></b><font color="#990000">([</font>xsize<font color="#990000">,</font>ysize<font color="#990000">])</font>
@@ -141,7 +141,7 @@ http://www.gnu.org/software/src-highlite -->
 
     <b><font color="#0000FF">for</font></b> n<font color="#990000">,</font>t <b><font color="#0000FF">in</font></b> <b><font color="#000000">enumerate</font></b><font color="#990000">(</font>time<font color="#990000">):</font>
 
-        <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"CFD time = "</font><font color="#990000">,</font> n<font color="#990000">,</font>t<font color="#990000">)</font>
+        <b><font color="#0000FF">print</font></b><font color="#990000">((</font><font color="#FF0000">"CFD time = "</font><font color="#990000">,</font> n<font color="#990000">,</font>t<font color="#990000">))</font>
 
         <i><font color="#9A1900">#===============================================</font></i>
         <i><font color="#9A1900"># Call to CPL-LIBRARY goes here to</font></i>
