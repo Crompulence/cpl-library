@@ -143,14 +143,12 @@ program MD_cpl_example
         !Weak Scaling -- wait is proportional to ncells on processor
     elseif (scaling .eq. "weak") then
         print*, "Ncells = ", Ncells
-        do i=1,ncxyz(1)
-        do j=1,ncxyz(2)
-        do k=1,ncxyz(3)
+        
+        do i=1,Ncells(1)
+        do j=1,Ncells(2)
+        do k=1,Ncells(3)
             !All of the remaining domain needs to include some work
-            if (j .gt. Ncells(2)) then
-                call milisleep(0.005d0)
-                continue
-            end
+            call milisleep(0.005d0)
         !    call milisleep(0.05d0/dble(Ncells(1)*Ncells(2)*Ncells(3)))
             !Something arbitrary here, access some data with a sqrt
             do ic=-1,1
