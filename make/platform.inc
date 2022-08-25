@@ -1,4 +1,9 @@
 # Include platform if defined in default file "PLATFORM"
+
+ifdef platform
+    $(error Must define uppercase PLATFORM and not platform)
+endif
+
 ifndef PLATFORM
     PLATFORM= $(shell cat $(MAKEINCPATH)/PLATFORM)
 endif
