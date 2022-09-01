@@ -200,7 +200,7 @@ module coupler_module
     integer,protected :: &
         rank_graph  ! Processor rank from 1 to nproc_graph;
     integer,protected :: &
-        rank_intersect  ! Processor rank in intersection of overlaping proces;
+        rank_intersect  ! Processor rank in intersection of overlaping processor;
 
     ! Get rank in CPL_world_COMM from rank in local COMM
     integer,protected, dimension(:), allocatable    :: &
@@ -442,8 +442,11 @@ subroutine CPL_init(callingrealm, RETURNED_REALM_COMM, ierror)
 !
 !**Remarks**
 !
-!Assumes MPI has been initialised `MPI_init` and communicator MPI_COMM_WORLD exists
-!and contains all processors in both CFD and MD regions
+!Assumes MPI has been initialised `MPI_init` and either communicator
+!MPI_COMM_WORLD exists and contains all processors in both CFD and MD regions
+!for a run which splits MPI_COMM_WORLD into a COMM for each or
+!two or more independent MPI_COMM_WORLDs, one for each of the
+!coupled codes which are then merged to give a single CPL_COMM.
 !
 !
 !**Synopsis**
