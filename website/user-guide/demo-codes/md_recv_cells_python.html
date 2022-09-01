@@ -1,8 +1,8 @@
-<!-- Generator: GNU source-highlight 3.1.5
+<!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><b><font color="#000080">from</font></b> __future__ <b><font color="#000080">import</font></b> print_function
+<pre><tt>
 <b><font color="#000080">from</font></b> mpi4py <b><font color="#000080">import</font></b> MPI
 <b><font color="#000080">from</font></b> cplpy <b><font color="#000080">import</font></b> CPL
 <b><font color="#000080">import</font></b> numpy as np
@@ -42,7 +42,7 @@ nprocs_realm <font color="#990000">=</font> MD_COMM<font color="#990000">.</font
 
 <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>nprocs_realm <font color="#990000">!=</font> NProcs<font color="#990000">):</font>
     <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"Non-coherent number of processes"</font><font color="#990000">)</font>
-    MPI<font color="#990000">.</font><b><font color="#000000">Abort</font></b><font color="#990000">(</font>errorcode<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">)</font>
+    comm<font color="#990000">.</font><b><font color="#000000">Abort</font></b><font color="#990000">(</font>errorcode<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">)</font>
 
 cart_comm <font color="#990000">=</font> MD_COMM<font color="#990000">.</font><b><font color="#000000">Create_cart</font></b><font color="#990000">([</font>NPx<font color="#990000">,</font> NPy<font color="#990000">,</font> NPz<font color="#990000">])</font>
 
@@ -59,9 +59,9 @@ recv_array<font color="#990000">,</font> ierr <font color="#990000">=</font> CPL
 no_error <font color="#990000">=</font> True
 <b><font color="#0000FF">if</font></b> CPL<font color="#990000">.</font><b><font color="#000000">overlap</font></b><font color="#990000">():</font>
     rank <font color="#990000">=</font> MD_COMM<font color="#990000">.</font><b><font color="#000000">Get_rank</font></b><font color="#990000">()</font>
-    <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> <b><font color="#000000">xrange</font></b><font color="#990000">(</font><font color="#993399">0</font><font color="#990000">,</font> ncxl<font color="#990000">):</font>
-        <b><font color="#0000FF">for</font></b> j <b><font color="#0000FF">in</font></b> <b><font color="#000000">xrange</font></b><font color="#990000">(</font><font color="#993399">0</font><font color="#990000">,</font> ncyl<font color="#990000">):</font>
-            <b><font color="#0000FF">for</font></b> k <b><font color="#0000FF">in</font></b> <b><font color="#000000">xrange</font></b><font color="#990000">(</font><font color="#993399">0</font><font color="#990000">,</font> nczl<font color="#990000">):</font>
+    <b><font color="#0000FF">for</font></b> i <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font><font color="#993399">0</font><font color="#990000">,</font> ncxl<font color="#990000">):</font>
+        <b><font color="#0000FF">for</font></b> j <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font><font color="#993399">0</font><font color="#990000">,</font> ncyl<font color="#990000">):</font>
+            <b><font color="#0000FF">for</font></b> k <b><font color="#0000FF">in</font></b> <b><font color="#000000">range</font></b><font color="#990000">(</font><font color="#993399">0</font><font color="#990000">,</font> nczl<font color="#990000">):</font>
                 ii <font color="#990000">=</font> i <font color="#990000">+</font> portion<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">]</font>
                 jj <font color="#990000">=</font> j <font color="#990000">+</font> portion<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">]</font>
                 kk <font color="#990000">=</font> k <font color="#990000">+</font> portion<font color="#990000">[</font><font color="#993399">4</font><font color="#990000">]</font>
@@ -89,8 +89,8 @@ no_error <font color="#990000">=</font> True
 
 MD_COMM<font color="#990000">.</font><b><font color="#000000">Barrier</font></b><font color="#990000">()</font>
 <b><font color="#0000FF">if</font></b> CPL<font color="#990000">.</font><b><font color="#000000">overlap</font></b><font color="#990000">()</font> <b><font color="#0000FF">and</font></b> no_error<font color="#990000">:</font>
-    <b><font color="#0000FF">print</font></b> <font color="#990000">(</font><font color="#FF0000">"MD -- "</font> <font color="#990000">+</font> <font color="#FF0000">"(rank=%2d"</font> <font color="#990000">%</font> rank <font color="#990000">+</font>
-           <font color="#FF0000">") CELLS HAVE BEEN RECEIVED CORRECTLY.\n"</font><font color="#990000">,</font> end<font color="#990000">=</font><font color="#FF0000">""</font><font color="#990000">)</font>
+    <b><font color="#0000FF">print</font></b> <font color="#990000">(</font><font color="#FF0000">"MD -- "</font> <font color="#990000">+</font> <font color="#FF0000">"(rank={:2d}"</font><font color="#990000">.</font><b><font color="#000000">format</font></b><font color="#990000">(</font>rank<font color="#990000">)</font> <font color="#990000">+</font>
+           <font color="#FF0000">") CELLS HAVE BEEN RECEIVED CORRECTLY.\n"</font><font color="#990000">)</font>
 MPI<font color="#990000">.</font>COMM_WORLD<font color="#990000">.</font><b><font color="#000000">Barrier</font></b><font color="#990000">()</font>
 
 <i><font color="#9A1900">#Free comms and finalise</font></i>

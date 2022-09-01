@@ -161,7 +161,7 @@ class CPL:
     mpishow=sp.check_output(["mpicc","-show"]).decode("utf-8")
     if ("open" in mpicc or "open" in mpishow):
         MPI_version = "OPENMPI"
-        ompi_info = sp.check_output("ompi_info").split("\n")
+        ompi_info = sp.check_output("ompi_info").decode("utf-8").split("\n")
         for m in ompi_info:
             if ("Open MPI:" in m):
                 ompi_major_version_no = int(m.split(":")[-1].split(".")[0])            
@@ -192,9 +192,7 @@ class CPL:
             
             .. code-block:: python
             
-              init(
-                   callingrealm, 
-                   )    
+              CPL.init(callingrealm)    
             
             **Inputs**
             
@@ -306,12 +304,7 @@ class CPL:
             
             .. code-block:: python
             
-              setup_cfd(
-                        icomm_grid,
-                        xyzL,
-                        xyz_orig,
-                        ncxyz,
-                        )
+              CPL.setup_cfd(icomm_grid, xyzL, xyz_orig, ncxyz)
             
             **Inputs**
             
@@ -378,11 +371,7 @@ class CPL:
             
             .. code-block:: python
             
-              coupler_md_init(
-                              icomm_grid,
-                              xyzL,
-                              xyz_orig,
-                              )
+              CPL.md_init(icomm_grid, xyzL, xyz_orig)
             
             **Inputs**
             
@@ -453,6 +442,45 @@ class CPL:
 
     @abortMPI
     def proc_portion(self, coord, realm, limits):
+        """
+            Get maximum and minimum cell indices, i.e. the 'portion', of the
+            input cell extents 'limits' that is contributed by the processor
+            specified by processor coord. 
+        
+            **Remarks**
+        
+            Assumes the coupler has been initialised with `CPL.init <#cplpy.CPL.init>`_ and 
+            topological mapping has been setup using either `CPL.setup_md <#cplpy.CPL.setup_md>`_ 
+            or `CPL.setup_cfd <#cplpy.CPL.setup_cfd>`_ as appropriate.
+            - Note: limits(6) and portion(6) are of the form: (xmin,xmax,ymin,ymax,zmin,zmax)
+        
+            **Synopsis**
+            
+            .. code-block:: python
+        
+              cpl.proc_portion(coord, realm, limits)
+        
+            **Inputs**
+            
+            - coord
+            
+                - processor cartesian coordinate, list or numpy array of 3 integers 
+            - realm
+            
+                - cfd_realm (1) or md_realm (2) (integer) 
+            - limits
+            
+                - Array of cell extents that specify the input region, list or numpy array of 6 integers  
+        
+        
+            **Outputs**
+        
+            - portion
+                - Array of cell extents that define the local processor's
+                  contribution to the input region 'limits', numpy array of 6 integers  
+        
+        """
+
         coord = self._type_check(coord)
         limits = self._type_check(limits)
         portion = np.zeros(6, order='F', dtype=np.int32)
@@ -468,6 +496,36 @@ class CPL:
 
     @abortMPI
     def my_proc_portion(self, limits):
+        """
+            Get maximum and minimum cell indices, i.e. the 'portion' on calling process. 
+        
+            **Remarks**
+        
+            Assumes the coupler has been initialised with `CPL.init <#cplpy.CPL.init>`_ and 
+            topological mapping has been setup using either `CPL.setup_md <#cplpy.CPL.setup_md>`_ 
+            or `CPL.setup_cfd <#cplpy.CPL.setup_cfd>`_ as appropriate.
+            - Note: limits(6) and portion(6) are of the form: (xmin,xmax,ymin,ymax,zmin,zmax)
+        
+            **Synopsis**
+            
+            .. code-block:: python
+        
+                CPL.my_proc_portion(limits)
+        
+            **Inputs**
+            
+            - limits
+            
+                - Array of cell extents that specify the input region, list or numpy array of 6 integers  
+        
+        
+            **Outputs**
+        
+            - portion
+                - Array of cell extents that define the local processor's
+                  contribution to the input region 'limits', numpy array of 6 integers  
+        
+        """
         limits = self._type_check(limits)
         portion = np.zeros(6, order='F', dtype=np.int32)
         self.py_my_proc_portion(limits, portion)
@@ -627,7 +685,48 @@ class CPL:
 
     @abortMPI
     def send(self, asend, limits=None):
+        """
+            
+            Send four dimensional array *asend* of data from all processors in the 
+            current realm with data between global cell array *limits* to the 
+            corresponding processors from the other realm.
+            
+            **Remarks**
+            
+            Assumes the coupler has been initialised with `CPL.init <#cplpy.CPL.init>`_ and 
+            topological mapping has been setup using either `CPL.setup_md <#cplpy.CPL.setup_md>`_ 
+            or `CPL.setup_cfd <#cplpy.CPL.setup_cfd>`_ as appropriate.
+            
+            **Synopsis**
+            
+            .. code-block:: python
+            
+              CPL.send(asend, limits=None)    
+            
+            **Inputs**
+            
+             - asend
+            
+               - Array of data to send. Should be a four dimensional Numpy array allocated using the number of cells on the current processor between the limits. For example, if overlap limits are 8 cells, between cells 0 and 7 split over 2 procesors, the first processor will have from 0 to 3 and the second from 4 to 7. This should be be obtained from `CPL.my_proc_portion(limits, portion) <#cplpy.CPL.my_proc_portion>`_ to allocate a Numpy array, or allocated using the helper function `CPL.get_arrays <#cplpy.CPL.get_arrays>`_ with appropriate sizes.
+                .
+             - limits [Optional]
+            
+               - Optional arguments limits specify if global limits of overlap region not used. These are in the global cell coordinates, and must match the corresponding recieve.
+            
+            **Outputs**
+            
+             - send_flag
+            
+               - Returned flag which indicates success or failure of send process
+            
+            **Example**
 
+            This example links with the `CPL.recv <#cplpy.CPL.recv>`_ examples 
+                        
+            .. literalinclude:: ../../../examples/sendrecv_globcell/python/cfd_send_cells.py
+
+
+        """
         asend = self._type_check(asend)
         asend_shape = np.array(asend.shape, order='F', dtype=np.int32)
         send_flag = c_bool()
@@ -657,6 +756,45 @@ class CPL:
 
     @abortMPI
     def recv(self, arecv, limits=None):
+        """
+            
+            Receive data from to local grid from the associated ranks from the other realm
+            
+            **Remarks**
+            
+            Assumes the coupler has been initialised with `CPL.init <#cplpy.CPL.init>`_ and 
+            topological mapping has been setup using either `CPL.setup_md <#cplpy.CPL.setup_md>`_ 
+            or `CPL.setup_cfd <#cplpy.CPL.setup_cfd>`_ as appropriate.
+            
+            **Synopsis**
+            
+            .. code-block:: python
+            
+              CPL.recv(arecv, limits=None)    
+
+            **Inputs**
+            
+             - arecv
+            
+               - Array of data to recv. Should be a four dimensional Numpy array allocated using the number of cells on the current processor between the limits. For example, if overlap limits are 8 cells, between cells 0 and 7 split over 2 procesors, the first processor will have from 0 to 3 and the second from 4 to 7. This should be be obtained from `CPL.my_proc_portion(limits, portion) <#cplpy.CPL.my_proc_portion>`_ to allocate a Numpy array, or allocated using the helper function `CPL.get_arrays <#cplpy.CPL.get_arrays>`_ with appropriate sizes.
+
+             - limits [Optional]
+            
+               - Limits in global cell coordinates, must be the same as corresponding send command.
+            
+            **Outputs**
+            
+             - recv_flag
+            
+               - Returned flag which indicates success or failure of recv process
+            
+            **Example**
+
+            This example links with the `CPL.send <#cplpy.CPL.send>`_ examples 
+
+            .. literalinclude:: ../../../examples/sendrecv_globcell/python/md_recv_cells.py
+
+        """
 
         arecv = self._type_check(arecv)
         arecv_shape = np.array(arecv.shape, order='F', dtype=np.int32)
@@ -803,6 +941,14 @@ class CPL:
         """
           Return recv array and send array based
           on constraint/boundary sizes
+
+          **Example**
+
+            A minimal example is possible using CPL.get_arrays, which shows paired sending and recv commands
+
+            .. literalinclude:: ../../../examples/minimal_send_recv_mocks/minimal_MD.py
+            .. literalinclude:: ../../../examples/minimal_send_recv_mocks/minimal_CFD.py
+
         """
         #Get constraint region
         cnst_limits = self.get_cnst_limits();
@@ -972,31 +1118,54 @@ def run_test(template_dir, config_params, md_exec, md_fname, md_args, cfd_exec,
                 raise ValueError("MPIrun type unknown", mpirun)
 
             #Check for OpenMPI version greater than 3 and add oversubscribe option
-            if (CPL.MPI_version == "OPENMPI"):
-                if (CPL.ompi_major_version_no >= 3):
-                    cmd.replace("mpiexec","mpiexec --oversubscribe")
+            #if (CPL.MPI_version == "OPENMPI"):
+            #    if (CPL.ompi_major_version_no >= 3):
+            #        cmd.replace("mpiexec","mpiexec --oversubscribe")
 
-            cmd.replace("mpiexec","mpiexec --oversubscribe")
+            #cmd.replace("mpiexec","mpiexec --oversubscribe")
 
             if debug:
                 print(("\nMPI run: " + cmd))
-            out = check_output(cmd, stderr=STDOUT, shell=True)
+            #output = check_output(cmd, stderr=STDOUT, shell=True).decode("utf-8")
+
+            p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, shell=True)
+            pcommout = p.communicate()
+            output = pcommout[0].decode("utf-8")
+            error = pcommout[1].decode("utf-8")
             if printoutput:
-                print(out)
+                print(output + error)
+
+            if p.returncode != 0: 
+                print("returncode", p.returncode)
+                print("Stdout = ", output)
+                print("Stderror = ", error)
+
+                if err_msg != "":
+                    print(("Expected ERROR = ", err_msg, "Actual ERROR=", error))
+                    if err_msg in error:
+                        return True
+
         else:
             print(("Current directory: " + os.getcwd()))
             print((md_fname + " or " + cfd_fname + " are not found."))
             assert False
             return False
 
-    #This checsk the error message is as expected
-    except CalledProcessError as exc:
-        print((exc.output))
+    #This check the error message is as expected
+    except CalledProcessError as e:
+        print("Stdout = ", e.stdout)
+        print("Stderror = ", e.stderr)
+        err = e.stderr.decode("utf-8")
+        print("Output from run =", err)
         if err_msg != "":
-            print(("ERROR = ", err_msg))
-            assert err_msg in exc.output.decode("utf-8")
+            print(("Expected ERROR = ", err_msg))
+            assert err_msg in err
         else:
-            assert exc.output.decode("utf-8") == ""
+            assert e.output.decode("utf-8") == ""
+    except Exception as e:
+        # check_call can raise other exceptions, such as FileNotFoundError
+        print(e)
+        raise
     else:
         if err_msg != "":
             assert False

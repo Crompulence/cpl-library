@@ -1,4 +1,4 @@
-<!-- Generator: GNU source-highlight 3.1.5
+<!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -27,8 +27,8 @@ CFD_COMM <font color="#990000">=</font> CPL<font color="#990000">.</font><b><fon
 nprocs_realm <font color="#990000">=</font> CFD_COMM<font color="#990000">.</font><b><font color="#000000">Get_size</font></b><font color="#990000">()</font>
 
 <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>nprocs_realm <font color="#990000">!=</font> NProcs<font color="#990000">):</font>
-    <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"Non-coherent number of processes in CFD "</font><font color="#990000">,</font> nprocs_realm<font color="#990000">,</font>
-            <font color="#FF0000">" no equal to "</font><font color="#990000">,</font>  npxyz<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> <font color="#FF0000">" X "</font><font color="#990000">,</font> npxyz<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> <font color="#FF0000">" X "</font><font color="#990000">,</font> npxyz<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">])</font>
+    <b><font color="#0000FF">print</font></b><font color="#990000">((</font><font color="#FF0000">"Non-coherent number of processes in CFD "</font><font color="#990000">,</font> nprocs_realm<font color="#990000">,</font>
+            <font color="#FF0000">" no equal to "</font><font color="#990000">,</font>  npxyz<font color="#990000">[</font><font color="#993399">0</font><font color="#990000">],</font> <font color="#FF0000">" X "</font><font color="#990000">,</font> npxyz<font color="#990000">[</font><font color="#993399">1</font><font color="#990000">],</font> <font color="#FF0000">" X "</font><font color="#990000">,</font> npxyz<font color="#990000">[</font><font color="#993399">2</font><font color="#990000">]))</font>
     MPI<font color="#990000">.</font><b><font color="#000000">Abort</font></b><font color="#990000">(</font>errorcode<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">)</font>
 
 <i><font color="#9A1900">#Setup coupled simulation</font></i>

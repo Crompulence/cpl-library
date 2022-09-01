@@ -7,6 +7,14 @@ on:
   # Triggers the workflow on push or pull request events but only for the "master" branch
   push:
     branches: [ "master" ]
+    paths:
+      - src/**
+      - test/**
+      - bin/**
+      - make/**
+      - examples/**
+      - .github/**
+
   pull_request:
     branches: [ "master" ]
 
@@ -18,14 +26,28 @@ jobs:
 
   test:
     runs-on: ubuntu-20.04
-            
+    strategy:
+      fail-fast: false
+      matrix:
+        mpi: [ 'mpich'] #, 'openmpi' ]
+        
     steps:
           
       - name: Update repo
         run: sudo apt-get update -y 
         
-      - name: Install mpich
-        run: sudo apt-get install -y mpich   
+      - name: Setup MPI
+        uses: mpi4py/setup-mpi@v1
+        with:
+          mpi: ${{ matrix.mpi }}
+                 
+      #- name: Check MPI version
+      #  run: cat ./make/PLATFORM
+      #- name: Install mpich
+      #  run: sudo apt-get install -y mpich   
+
+      - name: Install mpi4py
+        run: pip install mpi4py
         
       - name: Install valgrind
         run: sudo apt-get install -y valgrind
@@ -35,15 +57,15 @@ jobs:
 
       - name: Install pytest
         run: pip install pytest
-          
-      - name: Install mpi4py
-        run: pip install mpi4py
 
       - name: Install scientific packages
         run: pip install numpy scipy matplotlib
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
+      
+      - name: Set defaul compiler and MPI 
+        run: echo "${{ matrix.mpi }}_gcc" > make/PLATFORM
         
       - name: Build cpl-library
         run: |

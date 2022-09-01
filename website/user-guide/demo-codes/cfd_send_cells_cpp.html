@@ -1,4 +1,4 @@
-<!-- Generator: GNU source-highlight 3.1.5
+<!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -13,7 +13,8 @@ http://www.gnu.org/software/src-highlite -->
 <font color="#009900">int</font> <b><font color="#000000">main</font></b><font color="#990000">()</font> <font color="#FF0000">{</font>
    <b><font color="#000000">MPI_Init</font></b><font color="#990000">(</font>NULL<font color="#990000">,</font> NULL<font color="#990000">);</font> 
 
-   <font color="#009900">int</font> CFD_realm <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">,</font> CFD_COMM<font color="#990000">;</font>
+   <font color="#009900">int</font> CFD_realm <font color="#990000">=</font> <font color="#993399">1</font><font color="#990000">;</font>
+   <font color="#008080">MPI_Comm</font> CFD_COMM<font color="#990000">;</font>
    CPL<font color="#990000">::</font><b><font color="#000000">init</font></b><font color="#990000">(</font>CFD_realm<font color="#990000">,</font> CFD_COMM<font color="#990000">);</font>
 
    <i><font color="#9A1900">// Parameters of the cpu topology (cartesian grid)</font></i>
@@ -35,8 +36,8 @@ http://www.gnu.org/software/src-highlite -->
    <font color="#009900">int</font> rank<font color="#990000">;</font>
    <b><font color="#000000">MPI_Comm_rank</font></b><font color="#990000">(</font>CFD_COMM<font color="#990000">,</font> <font color="#990000">&amp;</font>rank<font color="#990000">);</font>
    <font color="#009900">int</font> periods<font color="#990000">[</font><font color="#993399">3</font><font color="#990000">]</font> <font color="#990000">=</font> <font color="#FF0000">{</font><font color="#993399">1</font><font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">,</font> <font color="#993399">1</font><font color="#FF0000">}</font><font color="#990000">;</font>
-   <font color="#009900">int</font> CART_COMM<font color="#990000">;</font>
-   <b><font color="#000000">MPI_Cart_create</font></b><font color="#990000">(</font>CFD_COMM<font color="#990000">,</font> <font color="#993399">3</font><font color="#990000">,</font> npxyz<font color="#990000">,</font> periods<font color="#990000">,</font> <b><font color="#0000FF">true</font></b><font color="#990000">,</font> <font color="#990000">&amp;</font>CART_COMM<font color="#990000">);</font>
+   <font color="#008080">MPI_Comm</font> CART_COMM<font color="#990000">;</font>
+   <b><font color="#000000">MPI_Cart_create</font></b><font color="#990000">(</font>CFD_COMM<font color="#990000">,</font> <font color="#993399">3</font><font color="#990000">,</font> npxyz<font color="#990000">,</font> periods<font color="#990000">,</font> <font color="#993399">1</font><font color="#990000">,</font> <font color="#990000">&amp;</font>CART_COMM<font color="#990000">);</font>
 
    <i><font color="#9A1900">// Coupler setup</font></i>
    CPL<font color="#990000">::</font><b><font color="#000000">setup_cfd</font></b><font color="#990000">(</font>CART_COMM<font color="#990000">,</font> xyzL<font color="#990000">,</font> xyz_orig<font color="#990000">,</font> ncxyz<font color="#990000">);</font>
@@ -74,8 +75,8 @@ http://www.gnu.org/software/src-highlite -->
 
    <i><font color="#9A1900">// Release all coupler comms </font></i>
    CPL<font color="#990000">::</font><b><font color="#000000">finalize</font></b><font color="#990000">();</font>
-    <b><font color="#000000">MPI_Comm_free</font></b><font color="#990000">(&amp;</font>CFD_COMM<font color="#990000">);</font>
-    <b><font color="#000000">MPI_Comm_free</font></b><font color="#990000">(&amp;</font>CART_COMM<font color="#990000">);</font>
+   <b><font color="#000000">MPI_Comm_free</font></b><font color="#990000">(&amp;</font>CFD_COMM<font color="#990000">);</font>
+   <b><font color="#000000">MPI_Comm_free</font></b><font color="#990000">(&amp;</font>CART_COMM<font color="#990000">);</font>
    <b><font color="#000000">MPI_Finalize</font></b><font color="#990000">();</font>
    
 <font color="#FF0000">}</font>

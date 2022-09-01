@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en-UK">
 
+<style>
+details > summary {
+  cursor: pointer;
+}
+
+</style>
+
 <head>
     <link rel="stylesheet" href="../styles.css">
     <script type="text/javascript" src="/details-shim.js"></script>
@@ -13,8 +20,8 @@
         <!--#include virtual="/nav.html"-->
 
         <h2>Quick-start guide: coupling with CPL Library</h2>
-        The aim of the following text is to lead the user, by example, from the
-        start to the end; from downloading <mark class="CPL">CPL library</mark>, all the way through to
+        The aim of the following text is to lead the user, by example, from 
+		downloading <mark class="CPL">CPL library</mark>, all the way through to
         running and analysing a coupled simulation. 
 
         Please <a href="/contact.shtml">get in touch</a> if something is
@@ -41,7 +48,7 @@
         <h2 id="5min">Five Minute Quickstart</h2>
 
         <p>
-            Assuming you have <a href="https://www.docker.com/">Docker</a>, the easiest way to try out
+            Assuming you use <a href="https://www.docker.com/">Docker</a>, the easiest way to try out
             <mark class="CPL">CPL library</mark> on your local linux computer is with the following command,
 
             <div class="code">
@@ -49,7 +56,7 @@
             </div>
 
             more details of running <mark class="CPL">CPL library</mark> with Docker can be found on the
-            <a href=http://www.cpl-library.org/wiki/index.php/CPL_library_in_Docker> wiki</a>.
+            <a href=/docs/CPL_library_in_Docker.shtml> extended documentation</a>.
         </p>
 
 
@@ -82,18 +89,21 @@
             Have a look at the code in these files, you will see the CPL_init, CPL_setup, 
             CPL_send and CPL_recv commands, as well as boilerplate to setup MPI and
             create a cartesian topology.
-            You can compile Fortran code using,
+            You can compile the Fortran code using,
         </p>
         <div class="code">
             cplf90 minimal_CFD.f90 -o ./CFD
         </div>
         <p>
-            for C++ code, you compile using,
+            for the C++ code, you compile using,
         </p>
             <div class="code">
                 cplc++ minimal_MD.cpp -o ./MD
             </div>
         <p>
+			Both cplf90 and cplc++ are just wrappers for mpif90 and mpic++ respectively,
+			including all the shared libraries and included needed for coupling 
+			(see <a class="links" href='#compilation'>Compilation</a>.
             A coupled run is then performed using,
         </p>
             <div class="code">
@@ -110,22 +120,27 @@
         <p>
             or the other Fortran or C++ codes could be compiled and used instead.
             The runner <code> cplexec </code> is simply a Python wrapper which runs both excutables as separate MPI
-            processes with their own MPI_COMM_WORLDS, which and then linked together using MPI Port. 
-            Alternatively, the two executables can be run in MPMD mode,
+            processes with their own MPI_COMM_WORLDS, which are then linked together using MPI Port. 
+            Alternatively, the two executables can be run in Multiple Processes Multiple Data (MPMD) mode,
             using,
         </p>
+            <div class="code">
+                cplexec -M -c 1 ./minimal_CFD.py -m 1 ./MD
+            </div>
+			which is just a wrapper for the MPI form of MPMD run,
             <div class="code">
                 mpiexec -n 1 ./CFD : -n 1 ./MD
             </div>
         <p>
-            where they share a single MPI_COMM_WORLD.
+            where both codes share a single MPI_COMM_WORLD.
         </p>
 
         <p>
             That's it, this example contains the basic premise of <mark class="CPL">CPL library</mark>,
             run two codes, link them together, setup a topological mapping and exchange information.
             Next step can be to adjust the input parameter in any of the dummy codes to see what happens,
-            run with different numbers of processes by adjusting the input values.
+            run with different numbers of processes by adjusting the input values in both codes or try changing
+			the coupler	input file COUPLER.in.
         </p>
 
         <p>
@@ -133,7 +148,7 @@
             executables in Fortran, C++ or Python and exchanges information through CPL send 
             and CPL recv, you can move on to the other examples. The interactive examples may
             need display setup in Docker, see the
-            <a href=http://www.cpl-library.org/wiki/index.php/CPL_library_in_Docker> wiki</a>).
+            <a href=/docs/CPL_library_in_Docker.shtml> extended documentation</a>.
             You can then look into OpenFOAM and LAMMPS coupling,
         </p>
             <div class="code">
@@ -150,6 +165,10 @@
             coupling and develop new code. Combined with assert statements and testing
             functions, it is possible to build up a range of automated tests for coupled
             codes to divide and validate a coupled simulation. 
+			This is the recommended way to develop new coupled cases and the first case
+			you should aim to get running. By dividing the problem
+			into a mock script and one of the coupled codes, you can control exactly what is sent
+			and plot returned values to make sure each code behaves correctly by itself. 
         </p>   
 
         <h2 id="prerequisites">Pre-requisites</h2>
@@ -159,7 +178,7 @@
         <ul>
             <li>A Fortran compiler that supports the F2008 standard</li>
             <li>A C/C++ compiler that supports the C++11 standard </li>
-            <li>An MPI library - currently MPICH is supported</li>
+            <li>An MPI library - currently MPICH is recommended but OpenMPI is supported</li>
         </ul>
 
         <mark class="CPL">CPL library</mark> was developed and tested using the
@@ -178,7 +197,8 @@
             you are advised to install gcc-5 and gfortran-5 or later
             (from a <a href="/faq.shtml">ppa</a> or build it yourself).
             If you have a modern linux distribution (e.g. 16.04 or later)
-            then MPICH can also be got from a ppa. 
+            then MPICH can also be got from a ppa (be sure to remove or switch 
+			from any existing OpenMPI installations). 
             On older systems, it may be best to download the latest version of MPICH and
             build this new version with a version of gcc and gfortran later than 5. 
         </em>
@@ -199,18 +219,23 @@
 
         <em>
             You should then build <mark class="CPL">CPL library</mark> and ALL the codes you 
-            plan to couple with the same compiler and version of mpic++ and mpif90.
+            plan to couple with the same compiler and version of mpic++ and mpif90 
+			(ideally matching compilers but certainly matching version of MPI).
             Although this sounds like a lot of work, especially if you
             have custom versions of codes already installed, it is
-            absolutely essential to guarantee correct behaviour in a coupled 
-            simulation.
-            The advice to to find out the version of mpi used by the code which is slowest to build
+            absolutely essential to guarantee correct behaviour in a coupled simulation.
+			The reason this is required is different versions of MPI don't ensure compatibility 
+			of the compiled codes (they don't always have application binary interface compatibility or ABI).
+			Although this is getting better, even fullly ABI compatibile versions of MPI would not be
+			expected to be able to send a message from one version of MPI (e.g. from the CFD side)
+			and recieve it on the MD side using a different version of MPI.
+            The advice to to find out the version of MPI used by the code which is slowest to build
             (e.g. OpenFOAM can take up to 8 hours) and use this to build everything else.
             For supercomputers, you will need to load from modules compatible versions
             of MPI and GCC (or intel), and ensure that the two programs that you plan to couple
             are built with these same packages. Please see the 
-            <a href=http://www.cpl-library.org/wiki/index.php?title=Setup_of_OpenFOAM&section=3#Coupled_OpenFOAM_on_HPC> wiki </a> 
-            for more discussion of using installed modeul code in a coupled simulation on a supercomputer (an OpenFOAM example).
+            <a href=/docs/Setup_of_OpenFOAM#Coupled_OpenFOAM_on_HPC> extended documentation </a> 
+            for more discussion of using installed module code in a coupled simulation on a supercomputer (an OpenFOAM example).
         </em>
         </P>
 

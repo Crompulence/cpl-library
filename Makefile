@@ -92,7 +92,7 @@ CFLAGS += -fPIC
 #                         Targets
 
 # Default: make both the fortran and the c libraries
-default: core fortran copyutilities c cpp utilities link
+default: core fortran copyutilities c cpp utilities link updatebin
 
 #debug: core fortran copyutilities c cpp utilities link
 #	FFLAGS = -O0 -fbacktrace -Wall -fbounds-check $(FMODKEY)$(includedir) -fPIC 
@@ -178,6 +178,14 @@ ifeq ($(3rdpartybuild),true)
 else
 		$(LINK) $(LSHAREDLIB) -o $(lib) $(allobjfiles) $(LFLAGS) 
 endif
+
+
+#Replace default compilers in cplf90 and cplc++ based on 
+#platform specified values for compilers
+updatebin:
+		@sed -i 's/FC="mpif90"/FC="$(F90)"/' bin/cplf90
+		@sed -i 's/CXX="mpic++"/CXX="$(CPP)"/' bin/cplc++
+
 
 linkconda: $(objdir) $(libobjfiles) $(utilsobjfiles)
 		$(LINK) $(LSHAREDLIB) -o $(lib) $(allobjfiles) -Wl, -rpath $(LFLAGS) 

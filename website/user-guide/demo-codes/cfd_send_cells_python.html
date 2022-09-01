@@ -1,4 +1,4 @@
-<!-- Generator: GNU source-highlight 3.1.5
+<!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -28,8 +28,8 @@ CFD_COMM <font color="#990000">=</font> CPL<font color="#990000">.</font><b><fon
 nprocs_realm <font color="#990000">=</font> CFD_COMM<font color="#990000">.</font><b><font color="#000000">Get_size</font></b><font color="#990000">()</font>
 
 <b><font color="#0000FF">if</font></b> <font color="#990000">(</font>nprocs_realm <font color="#990000">!=</font> NProcs<font color="#990000">):</font>
-    <b><font color="#0000FF">print</font></b> <font color="#FF0000">"ERROR: Non-coherent number of processors."</font>
-    MPI<font color="#990000">.</font><b><font color="#000000">Abort</font></b><font color="#990000">(</font>errorcode<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">)</font>
+    <b><font color="#0000FF">print</font></b><font color="#990000">(</font><font color="#FF0000">"ERROR: Non-coherent number of processors."</font><font color="#990000">)</font>
+    comm<font color="#990000">.</font><b><font color="#000000">Abort</font></b><font color="#990000">(</font>errorcode<font color="#990000">=</font><font color="#993399">1</font><font color="#990000">)</font>
 
 cart_comm <font color="#990000">=</font> CFD_COMM<font color="#990000">.</font><b><font color="#000000">Create_cart</font></b><font color="#990000">([</font>NPx<font color="#990000">,</font> NPy<font color="#990000">,</font> NPz<font color="#990000">])</font>
 CPL<font color="#990000">.</font><b><font color="#000000">setup_cfd</font></b><font color="#990000">(</font>cart_comm<font color="#990000">,</font> xyzL<font color="#990000">,</font> xyz_orig<font color="#990000">,</font> ncxyz<font color="#990000">)</font>

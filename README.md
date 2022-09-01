@@ -1,5 +1,5 @@
 
-# cpl-library [![CI](https://github.com/Crompulence/cpl-library/actions/workflows/main.yml/badge.svg)](https://github.com/Crompulence/cpl-library/actions/workflows/main.yml) [![Build Status](https://img.shields.io/docker/cloud/build/cpllibrary/cpl-library)](https://hub.docker.com/r/cpllibrary/cpl-library)
+# cpl-library [![CI](https://github.com/Crompulence/cpl-library/actions/workflows/main.yml/badge.svg)](https://github.com/Crompulence/cpl-library/actions/workflows/main.yml) [![Docker Image CI](https://github.com/Crompulence/cpl-library/actions/workflows/docker-image.yml/badge.svg)](https://github.com/Crompulence/cpl-library/actions/workflows/docker-image.yml)
 
 
 
