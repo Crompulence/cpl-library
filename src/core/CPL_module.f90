@@ -805,7 +805,7 @@ subroutine create_comm(MPMD_mode)
         rank_world = myid_world + 1; rootid_world = 0
         call MPI_comm_size(CPL_WORLD_COMM, nproc_world, ierr)
         print*, "Rank on realm ", realm, " is ", rank_realm, " of ", comm_size, & 
-                "  and rank on intercomm is ", myid_world, " of ", nproc_world
+                "  and rank on intercomm is ", rank_world, " of ", nproc_world
 
 
     else
