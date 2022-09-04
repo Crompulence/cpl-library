@@ -158,7 +158,10 @@ class CPL:
 
     #Detect if OpenMPI or MPICH
     mpicc=str(mpi4py.get_config()['mpicc'])
-    mpishow=sp.check_output(["mpicc","-show"]).decode("utf-8")
+    try:
+        mpishow=sp.check_output([mpicc,"-show"]).decode("utf-8")
+    except FileNotFoundError:
+        mpishow = ""
     if ("open" in mpicc or "open" in mpishow):
         MPI_version = "OPENMPI"
         ompi_info = sp.check_output("ompi_info").decode("utf-8").split("\n")
