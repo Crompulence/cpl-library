@@ -795,18 +795,30 @@ subroutine create_comm(MPMD_mode)
             print*, "connection accepted to root of ", rsize , " procs." 
             call MPI_Errhandler_set(CPL_REALM_COMM, MPI_ERRORS_ARE_FATAL, ierr)
         else
-            stop "Error -- Realm should be 1 or 2 "
+            call error_abort("Error in CPL_init -- Realm should be 1 or 2 ")
         endif
 
         call MPI_Barrier(CPL_INTER_COMM, ierr)
-        call MPI_Intercomm_merge(CPL_INTER_COMM, .true., CPL_WORLD_COMM, ierr)
+        !Create an intercomm from the intracomm, where 2nd argument specifies
+        !ordering so as to group MD and CFD together
+        if (callingrealm .eq. md_realm) then
+            call MPI_Intercomm_merge(CPL_INTER_COMM, .true., CPL_WORLD_COMM, ierr)
+        else
+            call MPI_Intercomm_merge(CPL_INTER_COMM, .false., CPL_WORLD_COMM, ierr)
+        endif
+
+        !Check for any errors here
+        if (CPL_WORLD_COMM .eq. MPI_COMM_NULL) then
+            call messenger_lasterrorcheck(ierr)
+            call error_abort("Error in CPL_init -- Failed to merge intercomm") 
+        endif
+
         !Get processor id in world across both realms
         call MPI_comm_rank(CPL_WORLD_COMM, myid_world, ierr)
         rank_world = myid_world + 1; rootid_world = 0
         call MPI_comm_size(CPL_WORLD_COMM, nproc_world, ierr)
         print*, "Rank on realm ", realm, " is ", rank_realm, " of ", comm_size, & 
                 "  and rank on intercomm is ", rank_world, " of ", nproc_world
-
 
     else
 
@@ -3102,7 +3114,7 @@ subroutine error_abort_si(msg,i)
 end subroutine error_abort_si
 
 
-subroutine messenger_lasterrorcheck
+subroutine messenger_lasterrorcheck(inerr)
 !
 !Use MPI last Error system
 !
@@ -3110,10 +3122,12 @@ subroutine messenger_lasterrorcheck
     use iso_fortran_env, only : error_unit
     implicit none
 
-    integer resultlen
+    integer, intent(in) :: inerr
+
+    integer ierr, resultlen
     character*12 err_buffer
 
-    call MPI_Error_string(ierr,err_buffer,resultlen,ierr)
+    call MPI_Error_string(inerr,err_buffer,resultlen,ierr)
     print*, err_buffer
 
 end subroutine messenger_lasterrorcheck
