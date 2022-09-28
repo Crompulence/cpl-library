@@ -219,6 +219,42 @@ void CPL::get_arrays(CPL::ndArray<double>* recv_array, int recv_size,
 
 }
 
+void CPL::get_arrays(CPL::ndArray<double>* recv_array, int recv_size, 
+                     CPL::ndArray<double>* send_array, int send_size,
+                     int realm)
+{
+    int bnry_Ncells[3], cnst_Ncells[3]; 
+    int bnry_limits[6], cnst_limits[6];
+    int bnry_portion[6], cnst_portion[6];
+
+    CPL::get_cnst_limits(cnst_limits);
+    CPL::my_proc_portion(cnst_limits, cnst_portion);
+    CPL::get_no_cells(cnst_portion, cnst_Ncells);
+
+    CPL::get_bnry_limits(bnry_limits);
+    CPL::my_proc_portion(bnry_limits, bnry_portion);
+    CPL::get_no_cells(bnry_portion, bnry_Ncells);
+
+    if (realm == md_realm){
+        int send_shape[4] = {send_size, bnry_Ncells[0], bnry_Ncells[1], bnry_Ncells[2]};
+        int recv_shape[4] = {recv_size, cnst_Ncells[0], cnst_Ncells[1], cnst_Ncells[2]};
+        send_array->resize(4, send_shape);
+        recv_array->resize(4, recv_shape);
+    } else if (realm == cfd_realm){
+        int send_shape[4] = {send_size, cnst_Ncells[0], cnst_Ncells[1], cnst_Ncells[2]};
+        int recv_shape[4] = {recv_size, bnry_Ncells[0], bnry_Ncells[1], bnry_Ncells[2]};
+        send_array->resize(4, send_shape);
+        recv_array->resize(4, recv_shape);
+    } else {
+      std::cout << "Realm set to : " << realm << 
+        " but should be " << md_realm << " or " << cfd_realm << '\n';
+      throw std::runtime_error("Error CPL::get_arrays realm argument not known");
+    }
+
+
+
+}
+
 
 bool CPL::map_cfd2md_coord (double cfd_coord[], double md_coord[]) {
     return CPLC_map_cfd2md_coord (cfd_coord, md_coord);
