@@ -74,7 +74,7 @@ def test_example_sendrecv_scripts(cpltype, mddir, cfddir, count):
             cmd = "cplexec -p -m 16 "
 
         if ("python" in mddir):
-            cmd += "python ./" + mddir + "/md_recv_cells.py"
+            cmd += "python3 ./" + mddir + "/md_recv_cells.py"
         else:
             with cd(mddir):
                 runcmd("./build.sh")
@@ -89,14 +89,14 @@ def test_example_sendrecv_scripts(cpltype, mddir, cfddir, count):
             raise ValueError("cpltype type unknown", cpltype)
 
         if ("python" in cfddir):
-            cmd += " python ./" + cfddir + "/cfd_send_cells.py"
+            cmd += " python3 ./" + cfddir + "/cfd_send_cells.py"
         else:
             with cd(cfddir):
                 runcmd("./build.sh")
             cmd += " ./" + cfddir + "/cfd"
 
         if cpltype is "port":
-            cmd = cmd.replace("python ", "")
+            cmd = cmd.replace("python3 ", "")
 
         print(cmd)
         runstr = runcmd(cmd)
