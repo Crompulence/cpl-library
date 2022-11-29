@@ -73,6 +73,7 @@ def test_memory_leak():
 
 
     #Check error
+    filesgenerated = False
     files = glob.glob("vg_*")
     for filename in files:
         with open(filename,'r') as f:
@@ -82,6 +83,9 @@ def test_memory_leak():
             line = filestr[indx+len(findstr):].split("\n")[0]
             print(line)
             assert int(line.split(" ")[1]) == 0
+            filesgenerated = True
+
+    assert filesgenerated
 
 #@pytest.fixture()
 #def prepare_config_fix(tmpdir):
