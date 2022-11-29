@@ -23,11 +23,11 @@ source ${CPL_PATH}/SOURCEME.sh
 cd ${DIR}
 mpiexec -n 16 ./fortran/md PID=$! & mpiexec -n 4 ./fortran/cfd ; wait $PID
 mpiexec -n 16 ./fortran/md PID=$! & mpiexec -n 4 ./cpp/cfd ; wait $PID
-mpiexec -n 16 ./fortran/md PID=$! & mpiexec -n 4 python ./python/cfd_send_cells.py ; wait $PID
+mpiexec -n 16 ./fortran/md PID=$! & mpiexec -n 4 python3 ./python/cfd_send_cells.py ; wait $PID
 mpiexec -n 16 ./cpp/md PID=$! & mpiexec -n 4 ./fortran/cfd ; wait $PID
 mpiexec -n 16 ./cpp/md PID=$! & mpiexec -n 4 ./cpp/cfd ; wait $PID
-mpiexec -n 16 ./cpp/md PID=$! & mpiexec -n 4 python ./python/cfd_send_cells.py ; wait $PID
-mpiexec -n 16 python ./python/md_recv_cells.py PID=$! & mpiexec -n 4 ./fortran/cfd ; wait $PID
-mpiexec -n 16 python ./python/md_recv_cells.py PID=$! & mpiexec -n 4 ./cpp/cfd ; wait $PID
-mpiexec -n 16 python ./python/md_recv_cells.py PID=$! & mpiexec -n 4 python ./python/cfd_send_cells.py ; wait $PID
+mpiexec -n 16 ./cpp/md PID=$! & mpiexec -n 4 python3 ./python/cfd_send_cells.py ; wait $PID
+mpiexec -n 16 python3 ./python/md_recv_cells.py PID=$! & mpiexec -n 4 ./fortran/cfd ; wait $PID
+mpiexec -n 16 python3 ./python/md_recv_cells.py PID=$! & mpiexec -n 4 ./cpp/cfd ; wait $PID
+mpiexec -n 16 python3 ./python/md_recv_cells.py PID=$! & mpiexec -n 4 python3 ./python/cfd_send_cells.py ; wait $PID
 cd $MYPWD

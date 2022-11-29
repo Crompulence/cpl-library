@@ -70,7 +70,7 @@ jobs:
       - name: Build cpl-library
         run: |
           ls ./
-          make
+          make PLATFORM=gcc
           ls ./lib/
           
       - name: Initialisation test

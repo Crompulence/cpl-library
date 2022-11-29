@@ -97,6 +97,8 @@ namespace CPL
     void get_bnry_limits(int limits[]);
     void get_arrays(CPL::ndArray<double>*, int, 
                     CPL::ndArray<double>*, int);
+    void get_arrays(CPL::ndArray<double>*, int, 
+                    CPL::ndArray<double>*, int, int);
     bool map_cfd2md_coord(double cfd_coord[],double md_coord[]);
     bool map_md2cfd_coord(double md_coord[], double cfd_coord[]);
     bool overlap(); 
