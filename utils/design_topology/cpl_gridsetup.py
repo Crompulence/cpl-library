@@ -17,6 +17,17 @@ from draw_grid import draw_grid
 import inpututils
 from latex2utf import latex2utf
 
+#To ensure processes killed if this script is killed
+def kill_sp(pids):
+    for pid in pids:
+        if pid is None:
+            pass
+        else:
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except OSError:
+                pass
+
 class PyplotPanel(wx.Panel):
 
     def __init__(self, parent,**kwargs):
@@ -124,15 +135,15 @@ class GridPanel(wx.Panel):
             self.min_xyz = wx.Panel(self)
             self.min_xyz.label = wx.StaticText(self,label="Origin",size=(50,-1))
             xmin = initialvalues.get('xmin',0.)
-            self.min_xyz.xmin = FS.FloatSpin(self, -1, value=str(xmin))
+            self.min_xyz.xmin = FS.FloatSpin(self, size=(200,-1), value=str(xmin))
             self.min_xyz.xmin.SetFormat("%f")
             self.min_xyz.xmin.SetDigits(2)
             ymin = initialvalues.get('ymin',0.)
-            self.min_xyz.ymin = FS.FloatSpin(self, -1, value=str(ymin))
+            self.min_xyz.ymin = FS.FloatSpin(self, size=(200,-1), value=str(ymin))
             self.min_xyz.ymin.SetFormat("%f")
             self.min_xyz.ymin.SetDigits(2)
             zmin = initialvalues.get('zmin',0.)
-            self.min_xyz.zmin = FS.FloatSpin(self, -1, value=str(zmin))
+            self.min_xyz.zmin = FS.FloatSpin(self, size=(200,-1), value=str(zmin))
             self.min_xyz.zmin.SetFormat("%f")
             self.min_xyz.zmin.SetDigits(2)
             self.xmin=self.min_xyz.xmin 
@@ -150,15 +161,15 @@ class GridPanel(wx.Panel):
             self.max_xyz = wx.Panel(self)
             self.max_xyz.label = wx.StaticText(self,label="Domain",size=(50,-1))
             xmax = initialvalues.get('xmax',1.)
-            self.max_xyz.xmax = FS.FloatSpin(self, -1, value=str(xmax))
+            self.max_xyz.xmax = FS.FloatSpin(self, size=(200,-1), value=str(xmax))
             self.max_xyz.xmax.SetFormat("%f")
             self.max_xyz.xmax.SetDigits(2)
             ymax = initialvalues.get('ymax',1.)
-            self.max_xyz.ymax = FS.FloatSpin(self, -1, value=str(ymax))
+            self.max_xyz.ymax = FS.FloatSpin(self, size=(200,-1), value=str(ymax))
             self.max_xyz.ymax.SetFormat("%f")
             self.max_xyz.ymax.SetDigits(2)
             zmax = initialvalues.get('zmax',1.)
-            self.max_xyz.zmax = FS.FloatSpin(self, -1, value=str(zmax))
+            self.max_xyz.zmax = FS.FloatSpin(self, size=(200,-1), value=str(zmax))
             self.max_xyz.zmax.SetFormat("%f")
             self.max_xyz.zmax.SetDigits(2)
             self.xmax=self.max_xyz.xmax
@@ -424,7 +435,7 @@ class Coupled_Grid(wx.Frame):
         for key in CFDDict:
             ip_CFD.replace_input(key, CFDDict[key])
         nproc_CFD = px*py*pz
-        CFD_cmd = "mpiexec -n " + str(nproc_CFD) + " python ./CFD.py"
+        CFD_cmd = "mpiexec -n " + str(nproc_CFD) + " python3 ./CFD.py"
 
         px = self.cntrp.MDpanel.px.GetValue()
         py = self.cntrp.MDpanel.py.GetValue()
@@ -473,30 +484,27 @@ class Coupled_Grid(wx.Frame):
         print(CFDDict)
         print("              ")
         print(" =============== Running case =============== ")
-        cfd = sp.Popen("mpiexec -n " + str(nproc_CFD) + " python ./CFD.py", shell=True)
+        shared = True
         fortran_md = "./fortran/md"
+        print(fortran_md)
         if not os.path.isfile(fortran_md):
             os.chdir(fortran_md.replace("/md",""))
             sp.Popen("./build.sh", shell=True)
             os.chdir("../")
-        print(fortran_md)
-        md = sp.Popen("mpiexec -n " + str(nproc_MD) + " " + fortran_md , shell=True)
+        if shared:
+            cmd = ("mpiexec -n  " + str(nproc_MD) + " " + fortran_md + " : " 
+                        + " -n "  + str(nproc_CFD) + " python3 ./CFD.py")
+            print(cmd)
+            cfdmd = sp.Popen(cmd, shell=True)
+        else:
+            cfd = sp.Popen("mpiexec -n " + str(nproc_CFD) + " python3 ./CFD.py", shell=True)
+            md = sp.Popen("mpiexec -n " + str(nproc_MD) + " " + fortran_md , shell=True)
 
-        #To ensure processes killed if this script is killed
-        def kill_sp(pids):
-            for pid in pids:
-                if pid is None:
-                    pass
-                else:
-                    try:
-                        os.kill(pid, signal.SIGTERM)
-                    except OSError:
-                        pass
-        import atexit
-        atexit.register(kill_sp, [md.pid, cfd.pid])
+            import atexit
+            atexit.register(kill_sp, [md.pid, cfd.pid])
 
-        cfd.wait()
-        md.wait()
+            cfd.wait()
+            md.wait()
 
 #        from CFD import CFD
 #        cfd = CFD()
