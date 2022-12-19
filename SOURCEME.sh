@@ -3,7 +3,7 @@ PWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 if [ -z "$CPL_PATH" ] 
 then
     CPL_PATH=${PWD}
-    echo "CPL_PATH variable is not set. Trying "${CPL_PATH}
+    echo "CPL_PATH variable is not set. Have set it using "${CPL_PATH}
 else
     echo "CPL_PATH is already set to "${CPL_PATH}
 	if [ "$CPL_PATH" == "$PWD" ]; 
