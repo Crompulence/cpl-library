@@ -75,8 +75,7 @@ def test_memory_leak():
             raise
             
     #Try to run code
-    cmd = ("mpiexec -n 4 valgrind --leak-check=full --log-file='vg_md.%q{PMI_RANK}' ./md "
-               + ": -n 2 valgrind --leak-check=full --log-file='vg_cfd.%q{PMI_RANK}' ./cfd")
+
     with cd(TEST_DIR):
         if (not exists('./md')):
             raise IOError("Code md_recvsend_cells.f90 not compiling correctly")
@@ -85,6 +84,8 @@ def test_memory_leak():
         if (not find_executable("valgrind")):
             raise IOError("Valgrind not installed correctly")
 
+        cmd = ("mpiexec -n 4 valgrind --leak-check=full --log-file='vg_md.%q{PMI_RANK}' ./md "
+                   + ": -n 2 valgrind --leak-check=full --log-file='vg_cfd.%q{PMI_RANK}' ./cfd")
         try:
             out = sp.check_output("rm -f vg_*", shell=True)
             out = sp.check_output(cmd, shell=True)
@@ -92,7 +93,7 @@ def test_memory_leak():
             if e.output.startswith(b'error: {'):
                 get_subprocess_error(e.output)
 
-
+    print(out)
     #Check error
     filesgenerated = False
     files = glob.glob("vg_*")
