@@ -5,24 +5,10 @@ import os
 import glob
 import numpy as np
 
-class cd:
-    """Context manager for changing the current working directory"""
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
-
-
-def get_subprocess_error(e):
-    print("subprocess ERROR")
-    import json
-    error = json.loads(e[7:])
-    print((error['code'], error['message']))
+import sys
+udir = os.environ["CPL_PATH"] + '/test/'
+sys.path.append(udir)
+from testutils import cd, get_subprocess_error
 
 
 MD_EXEC = "./lmp_cpl"

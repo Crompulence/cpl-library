@@ -6,25 +6,10 @@ from os.path import exists
 from distutils.spawn import find_executable
 import glob
 
-class cd:
-    """Context manager for changing the current working directory"""
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
-
-
-def get_subprocess_error(e):
-    print("subprocess ERROR")
-    import json
-    error = json.loads(e[7:])
-    print((error['code'], error['message']))
-    
+import sys
+udir = os.environ["CPL_PATH"] + '/test/'
+sys.path.append(udir)
+from testutils import cd, get_subprocess_error, runcmd
 
 # -----MAPPING TESTS-----
 
@@ -36,46 +21,19 @@ CFD_EXEC = "./cfd"
 TEST_TEMPLATE_DIR = os.path.join(os.environ["CPL_PATH"], "test/templates")
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 
-
 @pytest.fixture()
 def prepare_config_fix():
 
     #Try to setup code
-    #mdcodes = "array_stuff.f90 md_recvsend_cells.f90"
-    #bldmd = ("mpif90 " + mdcodes 
-    #         + "-I" + os.environ["CPL_PATH"] 
-    #         + "/include  -L" + os.environ["CPL_PATH"] + "/lib  " 
-    #         + "-Wl,-rpath=$CPL_PATH/lib/ -lcpl  -o ./md")
-    #cfdcodes = "array_stuff.f90 cfd_sendrecv_cells.f90"
-    #bldcfd=  ("mpif90 " + cfdcodes 
-    #         + " -I" + os.environ["CPL_PATH"] + "/include "
-    #         + " -L" + os.environ["CPL_PATH"] + "/lib  " 
-    #         + "-Wl,-rpath=$CPL_PATH/lib/ -lcpl  -o ./cfd")
     with cd(TEST_DIR):
-        try:
-            out = sp.check_output("rm -f md cfd", shell=True)
-            out = sp.check_output("cplf90 array_stuff.f90 md_recvsend_cells.f90 -o md", shell=True)
-            out = sp.check_output("cplf90 array_stuff.f90 cfd_sendrecv_cells.f90 -o cfd", shell=True)
+        runcmd("rm -f md cfd")
+        runcmd("cplf90 array_stuff.f90 md_recvsend_cells.f90 -o md")
+        runcmd("cplf90 array_stuff.f90 cfd_sendrecv_cells.f90 -o cfd")
 
-        except sp.CalledProcessError as e:
-            if e.output.startswith('error: {'):
-                get_subprocess_error(e.output)
-            raise
 
 def test_memory_leak():
-    
-    with cd(TEST_DIR):
-        try:
-            out = sp.check_output("cplf90 array_stuff.f90 md_recvsend_cells.f90 -o md", shell=True)
-            out = sp.check_output("cplf90 array_stuff.f90 cfd_sendrecv_cells.f90 -o cfd", shell=True)
-
-        except sp.CalledProcessError as e:
-            if e.output.startswith('error: {'):
-                get_subprocess_error(e.output)
-            raise
-            
+               
     #Try to run code
-
     with cd(TEST_DIR):
         if (not exists('./md')):
             raise IOError("Code md_recvsend_cells.f90 not compiling correctly")
@@ -84,28 +42,34 @@ def test_memory_leak():
         if (not find_executable("valgrind")):
             raise IOError("Valgrind not installed correctly")
 
-        cmd = ("mpiexec -n 4 valgrind --leak-check=full --log-file='vg_md.%q{PMI_RANK}' ./md "
-                   + ": -n 2 valgrind --leak-check=full --log-file='vg_cfd.%q{PMI_RANK}' ./cfd")
-        try:
-            out = sp.check_output("rm -f vg_*", shell=True)
-            out = sp.check_output(cmd, shell=True)
-        except sp.CalledProcessError as e:
-            if e.output.startswith(b'error: {'):
-                get_subprocess_error(e.output)
+        cmd = ("mpiexec -n 4 valgrind -v --leak-check=full --log-file='vg_md.%q{PMI_RANK}' ./md "
+                   + ": -n 2 valgrind -v --leak-check=full --log-file='vg_cfd.%q{PMI_RANK}' ./cfd")
+        out = sp.check_output("rm -f vg_*", shell=True)
 
-    print(out)
-    #Check error
-    filesgenerated = False
-    files = glob.glob("vg_*")
-    for filename in files:
-        with open(filename,'r') as f:
-            filestr = f.read()
-            findstr= "definitely lost:"
-            indx = filestr.find(findstr)
-            line = filestr[indx+len(findstr):].split("\n")[0]
-            print(line)
-            assert int(line.split(" ")[1]) == 0
-            filesgenerated = True
+        #MPI based on repo mpich and valgrind raises a known error
+        #cr_libinit.c:189 cri_init: sigaction() failed: Invalid argument
+        #which can be safely ignored
+        runcmd(cmd)
+
+        #Check error
+        filesgenerated = False
+        files = glob.glob("vg_*")
+        for filename in files:
+            print(files)
+            with open(filename,'r') as f:
+                filestr = f.read()
+                #Look to see if anything in definitely
+                findstr= "definitely lost:"
+                indx = filestr.find(findstr)
+                if indx != -1:
+                    line = filestr[indx+len(findstr):].split("\n")[0]
+                    print(line)
+                    assert int(line.split(" ")[1]) == 0
+                else:
+                #If not, see if no leaks are possible statement
+                    indx = filestr.find("no leaks are possible")
+                    assert indx != -1
+                filesgenerated = True
 
     assert filesgenerated
 
