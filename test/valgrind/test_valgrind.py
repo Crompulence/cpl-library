@@ -55,7 +55,7 @@ def prepare_config_fix():
         try:
             out = sp.check_output("rm -f md cfd", shell=True)
             out = sp.check_output("cplf90 array_stuff.f90 md_recvsend_cells.f90 -o md", shell=True)
-            out = sp.check_output("array_stuff.f90 cfd_sendrecv_cells.f90 -o cfd", shell=True)
+            out = sp.check_output("cplf90 array_stuff.f90 cfd_sendrecv_cells.f90 -o cfd", shell=True)
 
         except sp.CalledProcessError as e:
             if e.output.startswith('error: {'):
@@ -67,7 +67,7 @@ def test_memory_leak():
     with cd(TEST_DIR):
         try:
             out = sp.check_output("cplf90 array_stuff.f90 md_recvsend_cells.f90 -o md", shell=True)
-            out = sp.check_output("array_stuff.f90 cfd_sendrecv_cells.f90 -o cfd", shell=True)
+            out = sp.check_output("cplf90 array_stuff.f90 cfd_sendrecv_cells.f90 -o cfd", shell=True)
 
         except sp.CalledProcessError as e:
             if e.output.startswith('error: {'):
