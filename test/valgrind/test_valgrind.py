@@ -24,6 +24,7 @@ def get_subprocess_error(e):
     import json
     error = json.loads(e[7:])
     print((error['code'], error['message']))
+    
 
 # -----MAPPING TESTS-----
 
@@ -40,21 +41,22 @@ TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 def prepare_config_fix():
 
     #Try to setup code
-    mdcodes = "array_stuff.f90 md_recvsend_cells.f90"
-    bldmd = ("mpif90 " + mdcodes 
-             + "-I" + os.environ["CPL_PATH"] 
-             + "/include  -L" + os.environ["CPL_PATH"] + "/lib  " 
-             + "-Wl,-rpath=$CPL_PATH/lib/ -lcpl  -o ./md")
-    cfdcodes = "array_stuff.f90 cfd_sendrecv_cells.f90"
-    bldcfd=  ("mpif90 " + cfdcodes 
-             + " -I" + os.environ["CPL_PATH"] + "/include "
-             + " -L" + os.environ["CPL_PATH"] + "/lib  " 
-             + "-Wl,-rpath=$CPL_PATH/lib/ -lcpl  -o ./cfd")
+    #mdcodes = "array_stuff.f90 md_recvsend_cells.f90"
+    #bldmd = ("mpif90 " + mdcodes 
+    #         + "-I" + os.environ["CPL_PATH"] 
+    #         + "/include  -L" + os.environ["CPL_PATH"] + "/lib  " 
+    #         + "-Wl,-rpath=$CPL_PATH/lib/ -lcpl  -o ./md")
+    #cfdcodes = "array_stuff.f90 cfd_sendrecv_cells.f90"
+    #bldcfd=  ("mpif90 " + cfdcodes 
+    #         + " -I" + os.environ["CPL_PATH"] + "/include "
+    #         + " -L" + os.environ["CPL_PATH"] + "/lib  " 
+    #         + "-Wl,-rpath=$CPL_PATH/lib/ -lcpl  -o ./cfd")
     with cd(TEST_DIR):
         try:
             out = sp.check_output("rm -f md cfd", shell=True)
-            out = sp.check_output(bldmd, shell=True)
-            out = sp.check_output(bldcfd, shell=True)
+            out = sp.check_output("./build.sh", shell=True)
+            #out = sp.check_output(bldmd, shell=True)
+            #out = sp.check_output(bldcfd, shell=True)
         except sp.CalledProcessError as e:
             if e.output.startswith('error: {'):
                 get_subprocess_error(e.output)
