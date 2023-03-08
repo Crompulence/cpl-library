@@ -213,7 +213,7 @@ test-examples:
 #	./examples/sendrecv_globcell/test_all_port.sh
 
 test-valgrind:
-	pytest -vs --fulltrace  $(testdir)/valgrind
+	pytest -s  $(testdir)/valgrind
 
 test-granular:
 	cd ${testdir}/granular/suzuki/ && pytest -v test_column.py

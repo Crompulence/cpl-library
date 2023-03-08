@@ -32,7 +32,7 @@ def buildstring(code, exename):
 
     return bldstr
 
-def runcmd(cmd):
+def runcmd(cmd, raiseerror=False):
     try:
         p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE, shell=True)
         pcommout = p.communicate()
@@ -47,7 +47,8 @@ def runcmd(cmd):
         print("Stderror = ", e.stderr)
         if e.output.startswith(b'error: {'):
             get_subprocess_error(e.output)
-        raise
+        if raiseerror:
+            raise sp.CalledProcessError
 
     return output+error
 
