@@ -2,6 +2,8 @@ import pytest
 from cplpy import run_test, prepare_config
 import subprocess as sp
 import os
+from os.path import exists
+from distutils.spawn import find_executable
 import glob
 
 class cd:
@@ -59,11 +61,18 @@ def prepare_config_fix():
 
 
 def test_memory_leak():
-
+    
     #Try to run code
     cmd = ("mpiexec -n 4 valgrind --leak-check=full --log-file='vg_md.%q{PMI_RANK}' ./md "
                + ": -n 2 valgrind --leak-check=full --log-file='vg_cfd.%q{PMI_RANK}' ./cfd")
     with cd(TEST_DIR):
+        if (not exists('./md')):
+            raise IOError("Code md_recvsend_cells.f90 not compiling correctly")
+        if (not exists('./cfd')):
+            raise IOError("Code cfd_sendrecv_cells.f90 not compiling correctly")
+        if (not find_executable("valgrind")):
+            raise IOError("Valgrind not installed correctly")
+
         try:
             out = sp.check_output("rm -f vg_*", shell=True)
             out = sp.check_output(cmd, shell=True)
