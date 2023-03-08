@@ -60,10 +60,21 @@ def prepare_config_fix():
         except sp.CalledProcessError as e:
             if e.output.startswith('error: {'):
                 get_subprocess_error(e.output)
-
+            raise
 
 def test_memory_leak():
     
+    with cd(TEST_DIR):
+        try:
+            out = sp.check_output("rm -f md cfd", shell=True)
+            out = sp.check_output("./build.sh", shell=True)
+            #out = sp.check_output(bldmd, shell=True)
+            #out = sp.check_output(bldcfd, shell=True)
+        except sp.CalledProcessError as e:
+            if e.output.startswith('error: {'):
+                get_subprocess_error(e.output)
+            raise
+            
     #Try to run code
     cmd = ("mpiexec -n 4 valgrind --leak-check=full --log-file='vg_md.%q{PMI_RANK}' ./md "
                + ": -n 2 valgrind --leak-check=full --log-file='vg_cfd.%q{PMI_RANK}' ./cfd")
