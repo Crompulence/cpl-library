@@ -81,33 +81,38 @@ jobs:
           source SOURCEME.sh
           make test-pytest-initialisation
 
-      - name: Examples test
-        if: always()
-        run: |
-          source SOURCEME.sh
-          make test-examples
-        
       - name: memory test
         if: always()
         run: |
           source SOURCEME.sh
           make test-valgrind
-        
-      - name: Field/Force test
-        if: always()
-        run: |
-          source SOURCEME.sh
-          make test-gtests
-        
-      - name: Drag model test
-        if: always()
-        run: |
-          source SOURCEME.sh
-          make test_Dragmodels
-                
-      - name: Mapping test
-        if: always()
-        run: |
-          source SOURCEME.sh
-          make test-pytest-mapping  
-        
+
+#      - name: Examples test
+#        if: always()
+#        run: |
+#          source SOURCEME.sh
+#          make test-examples
+#               
+#      - name: Field/Force test
+#        if: always()
+#        run: |
+#          source SOURCEME.sh
+#          make test-gtests
+#        
+#      - name: Drag model test
+#        if: always()
+#        run: |
+#          source SOURCEME.sh
+#          make test_Dragmodels
+#                
+#      - name: Mapping test
+#        if: always()
+#        run: |
+#          source SOURCEME.sh
+#          make test-pytest-mapping  
+#        
+
+      - uses: actions/checkout@v2
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3

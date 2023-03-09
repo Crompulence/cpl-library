@@ -57,6 +57,8 @@ def test_memory_leak(capsys):
         for filename in files:
             with open(filename,'r') as f:
                 filestr = f.read()
+                with capsys.disabled():
+                    print("FILENAME=\n\n", filename, "\n\n\n\n", filestr)
                 #Look to see if anything in definitely
                 findstr= "definitely lost:"
                 indx = filestr.find(findstr)
