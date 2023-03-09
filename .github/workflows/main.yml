@@ -30,9 +30,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04]
-        mpi: [ 'mpich', 'openmpi' ]
-
+        os: [ubuntu-20.04, ubuntu-22.04]
+        mpi: [ 'mpich' ]
+        #os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04]
+        #mpi: [ 'mpich', 'openmpi' ]
     runs-on: ${{ matrix.os }}
 
     steps:
