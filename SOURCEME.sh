@@ -1,19 +1,19 @@
 #!/bin/bash
-PWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 if [ -z "$CPL_PATH" ] 
 then
-    CPL_PATH=${PWD}
+    CPL_PATH=${CWD}
     echo "CPL_PATH variable is not set. Have set it using "${CPL_PATH}
 else
     echo "CPL_PATH is already set to "${CPL_PATH}
-	if [ "$CPL_PATH" == "$PWD" ]; 
+	if [ "$CPL_PATH" == "$CWD" ]; 
 	then
-		echo "No need to update, set CPL_PATH manually if another location than $PWD preferred"
+		echo "No need to update, set CPL_PATH manually if another location than $CWD preferred"
 	else
-		read -r -p "Do you want to replace with ${PWD}? [y/N] " response
+		read -r -p "Do you want to replace with ${CWD}? [y/N] " response
 		case "$response" in
 			[yY][eE][sS]|[yY]) 
-				CPL_PATH=${PWD}
+				CPL_PATH=${CWD}
 				;;
 			*)
 				;;

@@ -326,8 +326,8 @@ class CPL:
 
         """
 
-        if (  ((type(icomm_grid) is list) and (len(icomm_grid) is 3))
-           or ((type(icomm_grid) is np.array) and (icomm_grid.shape[0] is 3))):
+        if (  ((type(icomm_grid) is list) and (len(icomm_grid) == 3))
+           or ((type(icomm_grid) is np.array) and (icomm_grid.shape[0] == 3))):
             icomm_grid = self.COMM.Create_cart([icomm_grid[0], 
                                                 icomm_grid[1], 
                                                 icomm_grid[2]])
@@ -389,8 +389,8 @@ class CPL:
                - MD origin.
 
         """
-        if (  ((type(icomm_grid) is list) and (len(icomm_grid) is 3))
-           or ((type(icomm_grid) is np.array) and (icomm_grid.shape[0] is 3))):
+        if (  ((type(icomm_grid) is list) and (len(icomm_grid) == 3))
+           or ((type(icomm_grid) is np.array) and (icomm_grid.shape[0] == 3))):
             icomm_grid = self.COMM.Create_cart([icomm_grid[0], 
                                                 icomm_grid[1], 
                                                 icomm_grid[2]])

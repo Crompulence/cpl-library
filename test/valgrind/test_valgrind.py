@@ -2,88 +2,80 @@ import pytest
 from cplpy import run_test, prepare_config
 import subprocess as sp
 import os
+from os.path import exists
+from distutils.spawn import find_executable
 import glob
 
-class cd:
-    """Context manager for changing the current working directory"""
-    def __init__(self, newPath):
-        self.newPath = os.path.expanduser(newPath)
-
-    def __enter__(self):
-        self.savedPath = os.getcwd()
-        os.chdir(self.newPath)
-
-    def __exit__(self, etype, value, traceback):
-        os.chdir(self.savedPath)
-
-
-def get_subprocess_error(e):
-    print("subprocess ERROR")
-    import json
-    error = json.loads(e[7:])
-    print((error['code'], error['message']))
-
-# -----MAPPING TESTS-----
-
-# EXPLANATION: These tests fail due to no_procs(MD) != k*no_procs(CFD),
-#              k in [1,2,3,...] in one direction.
+import sys
+udir = os.environ["CPL_PATH"] + '/test/'
+sys.path.append(udir)
+from testutils import cd, get_subprocess_error, runcmd
 
 MD_EXEC = "./md"
 CFD_EXEC = "./cfd"
-TEST_TEMPLATE_DIR = os.path.join(os.environ["CPL_PATH"], "test/templates")
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 
-
-@pytest.fixture()
-def prepare_config_fix():
+def test_memory_leak(capsys):
 
     #Try to setup code
-    mdcodes = "array_stuff.f90 md_recvsend_cells.f90"
-    bldmd = ("mpif90 " + mdcodes 
-             + "-I" + os.environ["CPL_PATH"] 
-             + "/include  -L" + os.environ["CPL_PATH"] + "/lib  " 
-             + "-Wl,-rpath=$CPL_PATH/lib/ -lcpl  -o ./md")
-    cfdcodes = "array_stuff.f90 cfd_sendrecv_cells.f90"
-    bldcfd=  ("mpif90 " + cfdcodes 
-             + " -I" + os.environ["CPL_PATH"] + "/include "
-             + " -L" + os.environ["CPL_PATH"] + "/lib  " 
-             + "-Wl,-rpath=$CPL_PATH/lib/ -lcpl  -o ./cfd")
+    buildstr = []
     with cd(TEST_DIR):
-        try:
-            out = sp.check_output("rm -f md cfd", shell=True)
-            out = sp.check_output(bldmd, shell=True)
-            out = sp.check_output(bldcfd, shell=True)
-        except sp.CalledProcessError as e:
-            if e.output.startswith('error: {'):
-                get_subprocess_error(e.output)
+        buildstr.append(runcmd("rm -f md cfd"))
+        buildstr.append(runcmd("cplf90 array_stuff.f90 md_recvsend_cells.f90 -o " + MD_EXEC))
+        buildstr.append(runcmd("cplf90 array_stuff.f90 cfd_sendrecv_cells.f90 -o " + CFD_EXEC))
 
+        with capsys.disabled():
+            print("Builds info=", buildstr)
 
-def test_memory_leak():
+        #Check if executables have been built
+        if (not exists(MD_EXEC)):
+            raise IOError("Code md_recvsend_cells.f90 not compiling correctly")
+        if (not exists(CFD_EXEC)):
+            raise IOError("Code cfd_sendrecv_cells.f90 not compiling correctly")
+        if (not find_executable("valgrind")):
+            raise IOError("Valgrind not installed correctly")
 
-    #Try to run code
-    cmd = ("mpiexec -n 4 valgrind --leak-check=full --log-file='vg_md.%q{PMI_RANK}' ./md "
-               + ": -n 2 valgrind --leak-check=full --log-file='vg_cfd.%q{PMI_RANK}' ./cfd")
-    with cd(TEST_DIR):
-        try:
-            out = sp.check_output("rm -f vg_*", shell=True)
-            out = sp.check_output(cmd, shell=True)
-        except sp.CalledProcessError as e:
-            if e.output.startswith(b'error: {'):
-                get_subprocess_error(e.output)
+        #Try to run code
+        with capsys.disabled():
+            print("running code")
+    
+        #Clean any previous runs
+        runcmd("rm -f vg_*")
 
+        #MPI based on repo mpich and valgrind raises a known error
+        #cr_libinit.c:189 cri_init: sigaction() failed: Invalid argument
+        #which can be safely ignored
+        cmd = ("mpiexec -n 4 valgrind -v --leak-check=full --log-file='vg_md.%q{PMI_RANK}' " + MD_EXEC
+                   + " : -n 2 valgrind -v --leak-check=full --log-file='vg_cfd.%q{PMI_RANK}' " + CFD_EXEC)
+        out = runcmd(cmd)
+        with capsys.disabled():
+            print(out)
 
-    #Check error
-    filesgenerated = False
-    files = glob.glob("vg_*")
-    for filename in files:
-        with open(filename,'r') as f:
-            filestr = f.read()
-            findstr= "definitely lost:"
-            indx = filestr.find(findstr)
-            line = filestr[indx+len(findstr):].split("\n")[0]
-            print(line)
-            assert int(line.split(" ")[1]) == 0
-            filesgenerated = True
+        #Check error
+        filesgenerated = False
+        files = glob.glob("vg_*")
+        for filename in files:
+            with open(filename,'r') as f:
+                filestr = f.read()
+                with capsys.disabled():
+                    print("FILENAME=\n\n", filename, "\n\n\n\n", filestr)
+                #Look to see if anything in definitely
+                findstr= "definitely lost:"
+                indx = filestr.find(findstr)
+                if indx != -1:
+                    line = filestr[indx+len(findstr):].split("\n")[0]
+                    with capsys.disabled():
+                        print("definitely lost = ", line)
+                    assert int(line.split(" ")[1]) == 0
+                else:
+                    with capsys.disabled():
+                        print("definitely lost not found, looking for other leak statements")
+                    #If not, see if no leaks are possible statement
+                    indx = filestr.find("no leaks are possible")
+                    with capsys.disabled():
+                        print("indx", indx)
+                    assert indx != -1
+                filesgenerated = True
 
     assert filesgenerated
 

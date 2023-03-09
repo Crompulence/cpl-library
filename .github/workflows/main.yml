@@ -14,6 +14,8 @@ on:
       - make/**
       - examples/**
       - .github/**
+      - Makefile
+      - SOURCEME.sh
 
   pull_request:
     branches: [ "master" ]
@@ -25,12 +27,15 @@ on:
 jobs:
 
   test:
-    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
-        mpi: [ 'mpich'] #, 'openmpi' ]
-        
+        os: [ubuntu-20.04, ubuntu-22.04]
+        mpi: [ 'mpich' ]
+        #os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04]
+        #mpi: [ 'mpich', 'openmpi' ]
+    runs-on: ${{ matrix.os }}
+
     steps:
           
       - name: Update repo
@@ -79,18 +84,22 @@ jobs:
           source SOURCEME.sh
           make test-pytest-initialisation
 
+#      Valgrind test dropped on Actions as mpich on 
+#      server raises spurious leaks from mpi, see e.g.
+#      https://valgrind.org/docs/manual/mc-manual.html#mc-manual.mpiwrap
+#      and the valgrind-mpi package which provides libmpiwrap os from openmpi
+#      - name: memory test
+#        if: always()
+#        run: |
+#          source SOURCEME.sh
+#          make test-valgrind
+
       - name: Examples test
         if: always()
         run: |
           source SOURCEME.sh
           make test-examples
-        
-      - name: memory test
-        if: always()
-        run: |
-          source SOURCEME.sh
-          make test-valgrind
-        
+               
       - name: Field/Force test
         if: always()
         run: |
@@ -109,3 +118,8 @@ jobs:
           source SOURCEME.sh
           make test-pytest-mapping  
         
+
+#      - uses: actions/checkout@v2
+#      - name: Setup tmate session
+#        if: ${{ failure() }}
+#        uses: mxschmitt/action-tmate@v3
