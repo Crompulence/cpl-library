@@ -153,7 +153,7 @@ def check_for_error(proc):
                 raise NameError(line)
                 sys.exit(1)
             elif "Error" in line.decode("utf-8"):
-                print(line)
+                raise sp.CalledProcessError(line)
                 sys.exit(1)
             else:
                 print(line.decode("utf-8").replace("\n",""))
@@ -411,10 +411,13 @@ for lib, lpath in Dicts["MD"]["libs"].items():
         Dicts["MD"]["MPI"] = os.path.realpath(lpath).replace("fort","").replace("cxx","")
 
 if (Dicts["MD"]["MPI"] != Dicts["CFD"]["MPI"]) or (CPL_mpi != Dicts["CFD"]["MPI"]):
-    print("Warning -- different MPI linked into executables")
-    print("MD MPI = ", Dicts["MD"]["MPI"], "CFD MPI=", Dicts["CFD"]["MPI"], "CPL MPI=", CPL_mpi)
+    cmd = ("\nDifferent MPI linked into executables" + 
+             "\nMD MPI = " + str(Dicts["MD"]["MPI"]) 
+          + "\nCFD MPI=" + str(Dicts["CFD"]["MPI"]) 
+          + "\nCPL MPI=" + str(CPL_mpi) + "\n")
+    print(cmd)
     if not args["permissive"]:
-        sys.exit(1)
+        raise EnvironmentError(cmd)
 
 mpilibs = get_libraries(CPL_mpi)
 
@@ -430,11 +433,12 @@ for lib in libs:
                 if c in checkDict:
                     #Use normpath to remove "."s and extra "/"s
                     if (os.path.normpath(checkDict[c]) != os.path.normpath(mlpath)):
-                        print("Warning -- different version of ", c,
-                              " linked into executables: ", checkDict[c], 
-                              " not equal to ", mlpath)
+                        cmd = ("Different version of " +  str(c) 
+                              + " linked into executables: " + str(checkDict[c]) 
+                              + " not equal to " + str(mlpath))
+                        print(cmd)
                         if not args["permissive"]:
-                            sys.exit(1)
+                            raise EnvironmentError(cmd)
                 else:
                     checkDict[c] = mlpath
 
