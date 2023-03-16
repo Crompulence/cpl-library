@@ -411,10 +411,13 @@ for lib, lpath in Dicts["MD"]["libs"].items():
         Dicts["MD"]["MPI"] = os.path.realpath(lpath).replace("fort","").replace("cxx","")
 
 if (Dicts["MD"]["MPI"] != Dicts["CFD"]["MPI"]) or (CPL_mpi != Dicts["CFD"]["MPI"]):
-    print("Warning -- different MPI linked into executables")
-    print("MD MPI = ", Dicts["MD"]["MPI"], "CFD MPI=", Dicts["CFD"]["MPI"], "CPL MPI=", CPL_mpi)
+    cmd = ("\nDifferent MPI linked into executables" + 
+             "\nMD MPI = " + str(Dicts["MD"]["MPI"]) 
+          + "\nCFD MPI=" + str(Dicts["CFD"]["MPI"]) 
+          + "\nCPL MPI=" + str(CPL_mpi) + "\n")
+    print(cmd)
     if not args["permissive"]:
-        sys.exit(1)
+        raise ChildProcessError(cmd)
 
 mpilibs = get_libraries(CPL_mpi)
 
