@@ -631,8 +631,8 @@ std::vector<int> CPLField::get_cell(const double r[]){
         //Check cell is within the domain
 //        if (cell[i] > floor((max[i]-min[i])/dxyz[i])){
         if (r[i] > max[i]){
-            std::cout << "cell above: " << i << " " << cell[i] << " " << r[i] 
-                      << " " << max[i] << " " << dxyz[i] << std::endl;
+            //std::cout << "cell above: " << i << " " << cell[i] << " " << r[i] 
+            //          << " " << max[i] << " " << dxyz[i] << std::endl;
             if (i == 0) cell[0] = icell-1;
             if (i == 1) cell[1] = jcell-1;
             if (i == 2) cell[2] = kcell-1;
@@ -640,8 +640,8 @@ std::vector<int> CPLField::get_cell(const double r[]){
             //throw std::domain_error("get_cell Error: Input above domain");
         }
         if (cell[i] < 0){
-            std::cout << "cell below: " << i << " " << cell[i] << " " << r[i] 
-                      << " " << min[i] << " " << dxyz[i] << std::endl;
+            //std::cout << "cell below: " << i << " " << cell[i] << " " << r[i] 
+            //          << " " << min[i] << " " << dxyz[i] << std::endl;
             cell[i] = 0;
             //throw std::domain_error("get_cell Error: Input below domain");
         }

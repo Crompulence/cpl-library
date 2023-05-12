@@ -2,7 +2,7 @@
 # use tethered shearing wall, thermostat via fix langevin
 
 #This is needed for bulk runs to allow job sizing 
-processors 1 1 1
+processors 2 1 1
 
 #System parameters
 variable	rho equal 0.8442
@@ -92,7 +92,7 @@ fix             3 all wall/reflect yhi EDGE
 
 fix		        5 lowersites setforce 0.0 0.0 0.0
 
-dump            3 all dcd 200 vmd_out.dcd
+dump            3 all dcd 200 ./lammps/vmd_out.dcd
 thermo          50
 thermo_style	custom step temp epair etotal press pxy
 
@@ -102,12 +102,13 @@ thermo_style	custom step temp epair etotal press pxy
 compute        Pressure all stress/atom NULL
 #variable        Ptrace equals (c_Pressure[1]+c_Pressure[2]+c_Pressure[3])/3.
 
-compute layers all chunk/atom bin/3d x lower 2.09949524 y lower 1.41715925 z lower 2.09949524 units box ids every
-fix		        6 all ave/chunk 1 200 200 layers vx vy vz temp c_Pressure[1] file ./lammps/cplchunk norm none
 
 #Equilibration
 run 10000     
 #write_data output_equil.dat
+
+compute layers all chunk/atom bin/3d x lower 2.09949524 y lower 1.41715925 z lower 2.09949524 units box ids every
+fix		        6 all ave/chunk 1 200 200 layers vx vy vz temp c_Pressure[1] file ./lammps/cplchunk norm none
 
 #Main Coupled Run
 fix             cplfix all cpl/init region all forcetype Velocity xi 1.0 sendtype velocity bndryavg below
