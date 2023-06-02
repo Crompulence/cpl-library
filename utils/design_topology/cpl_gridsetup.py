@@ -3,6 +3,8 @@
 import wx
 from wx.lib.masked import NumCtrl
 import wx.lib.agw.floatspin as FS
+from minispinctrl import MiniSpinCtrl
+from minifloatspin import MiniFloatSpin
 
 import numpy as np
 import matplotlib
@@ -16,6 +18,8 @@ import subprocess as sp
 from draw_grid import draw_grid
 import inpututils
 from latex2utf import latex2utf
+
+boxwidth = 50
 
 #To ensure processes killed if this script is killed
 def kill_sp(pids):
@@ -84,19 +88,19 @@ class GridPanel(wx.Panel):
         if cells or minmaxcell:
             self.nxyz = wx.Panel(self)
             if cells:
-                self.nxyz.label = wx.StaticText(self,label="Cells",size=(50,-1))
+                self.nxyz.label = wx.StaticText(self,label="Cells",size=(boxwidth,-1))
                 nx = initialvalues.get('nx',8)
                 ny = initialvalues.get('ny',8)
                 nz = initialvalues.get('nz',8)
             elif minmaxcell:
-                self.nxyz.label = wx.StaticText(self,label="Mincell",size=(50,-1))
+                self.nxyz.label = wx.StaticText(self,label="Mincell",size=(boxwidth,-1))
                 nx = initialvalues.get('mincellx',1)
                 ny = initialvalues.get('mincelly',1)
                 nz = initialvalues.get('mincellz',1)
 
-            self.nxyz.nx = wx.SpinCtrl(self, value=str(nx))
-            self.nxyz.ny = wx.SpinCtrl(self, value=str(ny))
-            self.nxyz.nz = wx.SpinCtrl(self, value=str(nz))
+            self.nxyz.nx = MiniSpinCtrl(self, initial=nx, size=(boxwidth,-1), max=32768, style=wx.SP_ARROW_KEYS)
+            self.nxyz.ny = MiniSpinCtrl(self, initial=ny, size=(boxwidth,-1), max=32768, style=wx.SP_ARROW_KEYS)
+            self.nxyz.nz = MiniSpinCtrl(self, initial=nz, size=(boxwidth,-1), max=32768, style=wx.SP_ARROW_KEYS)
             self.nx=self.nxyz.nx; self.ny=self.nxyz.ny; self.nz=self.nxyz.nz
             #Add to sizer
             self.nhbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -109,19 +113,19 @@ class GridPanel(wx.Panel):
         if procs or minmaxcell:
             self.pxyz = wx.Panel(self)
             if procs:
-                self.pxyz.label = wx.StaticText(self,label="Procs",size=(50,-1))
+                self.pxyz.label = wx.StaticText(self,label="Procs",size=(boxwidth,-1))
                 px = initialvalues.get('px',1)
                 py = initialvalues.get('py',1)
                 pz = initialvalues.get('pz',1)
             elif minmaxcell:
-                self.pxyz.label = wx.StaticText(self,label="Maxcell",size=(50,-1))
+                self.pxyz.label = wx.StaticText(self,label="Maxcell",size=(boxwidth,-1))
                 px = initialvalues.get('maxcellx',8)
                 py = initialvalues.get('maxcelly',3)
                 pz = initialvalues.get('maxcellz',8)
 
-            self.pxyz.px = wx.SpinCtrl(self, value=str(px))
-            self.pxyz.py = wx.SpinCtrl(self, value=str(py))
-            self.pxyz.pz = wx.SpinCtrl(self, value=str(pz))
+            self.pxyz.px = MiniSpinCtrl(self, initial=px, size=(boxwidth,-1), max=1024, style=wx.SP_ARROW_KEYS)
+            self.pxyz.py = MiniSpinCtrl(self, initial=py, size=(boxwidth,-1), max=1024, style=wx.SP_ARROW_KEYS)
+            self.pxyz.pz = MiniSpinCtrl(self, initial=pz, size=(boxwidth,-1), max=1024, style=wx.SP_ARROW_KEYS)
             self.px=self.pxyz.px; self.py=self.pxyz.py; self.pz=self.pxyz.pz
             #Add to sizer
             self.phbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -133,19 +137,19 @@ class GridPanel(wx.Panel):
         #Add minimum domain size input
         if Min:
             self.min_xyz = wx.Panel(self)
-            self.min_xyz.label = wx.StaticText(self,label="Origin",size=(50,-1))
+            self.min_xyz.label = wx.StaticText(self,label="Origin",size=(boxwidth,-1))
             xmin = initialvalues.get('xmin',0.)
-            self.min_xyz.xmin = FS.FloatSpin(self, size=(200,-1), value=str(xmin))
-            self.min_xyz.xmin.SetFormat("%f")
-            self.min_xyz.xmin.SetDigits(2)
+            self.min_xyz.xmin = MiniFloatSpin(self, size=(boxwidth,-1), initial=xmin, min=-10000., max=10000.,style=wx.SP_ARROW_KEYS)
+            #self.min_xyz.xmin.SetFormat("%f")
+            #self.min_xyz.xmin.SetDigits(2)
             ymin = initialvalues.get('ymin',0.)
-            self.min_xyz.ymin = FS.FloatSpin(self, size=(200,-1), value=str(ymin))
-            self.min_xyz.ymin.SetFormat("%f")
-            self.min_xyz.ymin.SetDigits(2)
+            self.min_xyz.ymin = MiniFloatSpin(self, size=(boxwidth,-1), initial=ymin, min=-10000., max=10000.,style=wx.SP_ARROW_KEYS)
+            #self.min_xyz.ymin.SetFormat("%f")
+            #self.min_xyz.ymin.SetDigits(2)
             zmin = initialvalues.get('zmin',0.)
-            self.min_xyz.zmin = FS.FloatSpin(self, size=(200,-1), value=str(zmin))
-            self.min_xyz.zmin.SetFormat("%f")
-            self.min_xyz.zmin.SetDigits(2)
+            self.min_xyz.zmin = MiniFloatSpin(self, size=(boxwidth,-1), initial=zmin, min=-10000., max=10000., style=wx.SP_ARROW_KEYS)
+            #self.min_xyz.zmin.SetFormat("%f")
+            #self.min_xyz.zmin.SetDigits(2)
             self.xmin=self.min_xyz.xmin 
             self.ymin=self.min_xyz.ymin
             self.zmin=self.min_xyz.zmin
@@ -159,19 +163,19 @@ class GridPanel(wx.Panel):
         #Add maximum domain size input
         if Max:
             self.max_xyz = wx.Panel(self)
-            self.max_xyz.label = wx.StaticText(self,label="Domain",size=(50,-1))
+            self.max_xyz.label = wx.StaticText(self,label="Domain",size=(boxwidth,-1))
             xmax = initialvalues.get('xmax',1.)
-            self.max_xyz.xmax = FS.FloatSpin(self, size=(200,-1), value=str(xmax))
-            self.max_xyz.xmax.SetFormat("%f")
-            self.max_xyz.xmax.SetDigits(2)
+            self.max_xyz.xmax = MiniFloatSpin(self, size=(boxwidth,-1), initial=xmax, min=-1000., max=1000., style=wx.SP_ARROW_KEYS)
+            #self.max_xyz.xmax.SetFormat("%f")
+            #self.max_xyz.xmax.SetDigits(2)
             ymax = initialvalues.get('ymax',1.)
-            self.max_xyz.ymax = FS.FloatSpin(self, size=(200,-1), value=str(ymax))
-            self.max_xyz.ymax.SetFormat("%f")
-            self.max_xyz.ymax.SetDigits(2)
+            self.max_xyz.ymax = MiniFloatSpin(self, size=(boxwidth,-1), initial=ymax, min=-1000., max=1000.,style=wx.SP_ARROW_KEYS)
+            #self.max_xyz.ymax.SetFormat("%f")
+            #self.max_xyz.ymax.SetDigits(2)
             zmax = initialvalues.get('zmax',1.)
-            self.max_xyz.zmax = FS.FloatSpin(self, size=(200,-1), value=str(zmax))
-            self.max_xyz.zmax.SetFormat("%f")
-            self.max_xyz.zmax.SetDigits(2)
+            self.max_xyz.zmax = MiniFloatSpin(self, size=(boxwidth,-1), initial=zmax, min=-1000., max=1000.,style=wx.SP_ARROW_KEYS)
+            #self.max_xyz.zmax.SetFormat("%f")
+            #self.max_xyz.zmax.SetDigits(2)
             self.xmax=self.max_xyz.xmax
             self.ymax=self.max_xyz.ymax
             self.zmax=self.max_xyz.zmax
@@ -207,22 +211,33 @@ class UpdatePanel(wx.Panel):
         #Bind button to regenerate grid
         self.btn = wx.Button(self, label='Update', pos=(-1, 250))
 
-        #Add style button to grid
-        self.gs = wx.CheckBox(self, label = 'Grid Style', pos = (-1,10))
-
         #Add savefig button
         self.save_b = wx.Button(self, label='SaveFig', pos=(-1, 250))
 
+        #Add runcase button
         self.run_b = wx.Button(self, label='RunCase', pos=(-1, 250))
 
-        #Add to sizer
-        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox.Add(self.btn, 0)
-        self.hbox.Add(self.save_b, 0)
-        self.hbox.Add(self.gs, 0)
-        self.hbox.Add(self.run_b, 0)
+        #Add style button to grid
+        self.gs = wx.CheckBox(self, label = 'Grid Style', pos = (-1,10))
 
-        self.SetSizer(self.hbox, 0)
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+
+        #Add to sizer
+        self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox1.Add(self.btn, 0)
+        self.hbox1.Add(self.save_b, 0)
+
+        self.vbox.Add(self.hbox1, 1, wx.ALL|wx.ALIGN_CENTER, 5)
+
+        self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox2.Add(self.gs, 0)
+        self.hbox2.Add(self.run_b, 0)
+
+        self.vbox.Add(self.hbox2, 1, wx.ALL|wx.ALIGN_CENTER, 5)
+
+        self.SetAutoLayout(True)
+        self.SetSizer(self.vbox)
+        self.Layout()
 
 class TextPanel(wx.Panel):
 
@@ -233,9 +248,9 @@ class TextPanel(wx.Panel):
         font = wx.Font(18, wx.MODERN, wx.NORMAL, wx.NORMAL)
         import collections
         self.text = collections.OrderedDict()
-        self.text["dx"] = wx.StaticText(self, wx.EXPAND, size=(200,-1))
-        self.text["dy"] = wx.StaticText(self, wx.EXPAND, size=(200,-1))
-        self.text["dz"] = wx.StaticText(self, wx.EXPAND, size=(200,-1))
+        self.text["dx"] = wx.StaticText(self, wx.EXPAND, size=(boxwidth,-1))
+        self.text["dy"] = wx.StaticText(self, wx.EXPAND, size=(boxwidth,-1))
+        self.text["dz"] = wx.StaticText(self, wx.EXPAND, size=(boxwidth,-1))
 
         #Add to sizer
         self.vbox = wx.BoxSizer(wx.VERTICAL)
