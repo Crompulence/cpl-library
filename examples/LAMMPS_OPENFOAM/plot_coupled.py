@@ -4,7 +4,7 @@ import numpy as np
 import sys
 from CouetteAnalytical import CouetteAnalytical as CA
 
-ppdir = '/home/es205/codes/flowmol_et_al/utils'
+ppdir = '/home/es205/codes/python/pyDataView/'
 sys.path.append(ppdir)
 import postproclib as ppl
 
@@ -33,7 +33,7 @@ fig, ax = plt.subplots(1,1)
 #plt.show()
 
 ave = 25
-for rec in [25,50,100,250,plotObj.maxrec-1-ave]:
+for rec in [25,50,100,250,750]:#plotObj.maxrec-1-ave]:
 
     #Get coupled solutions
     yMD, uMD, yCFD, uCFD = plotObj.profile_both(axis=1, startrec=rec-ave, endrec=rec+ave)

@@ -1,6 +1,8 @@
 # sample LAMMPS input script for viscosity of 3d LJ liquid
 # use tethered shearing wall, thermostat via fix langevin
 
+log ./lammps/log.lammps
+
 #This is needed for bulk runs to allow job sizing 
 processors 2 1 1
 
@@ -47,9 +49,12 @@ create_atoms    1 region latticeregion
 #Create lj pair styles and set wall/site terms to zero
 mass            * 1.0
 pair_style      lj/cut ${rc}
-pair_coeff      * * 1.0 1.0
-pair_coeff      2 4 0.0 0.0
-pair_coeff      3 5 0.0 0.0
+pair_coeff       1 1 1.0 1.0
+pair_coeff       1 2 1.0 1.0
+pair_coeff       2 2 1.0 1.0
+pair_coeff       1 4 0.0 0.0
+pair_coeff       2 4 0.0 0.0
+pair_coeff       4 4 0.0 0.0
 
 #Set wall region
 region		    lower block INF INF ${ylo} 0.0 INF INF
@@ -108,7 +113,7 @@ run 10000
 #write_data output_equil.dat
 
 compute layers all chunk/atom bin/3d x lower 2.09949524 y lower 1.41715925 z lower 2.09949524 units box ids every
-fix		        6 all ave/chunk 1 200 200 layers vx vy vz temp c_Pressure[1] file ./lammps/cplchunk norm none
+fix		        6 all ave/chunk 1 200 200 layers vx vy vz temp c_Pressure[1] file ./lammps/3dgrid norm none
 
 #Main Coupled Run
 fix             cplfix all cpl/init region all forcetype Velocity xi 1.0 sendtype velocity bndryavg below
