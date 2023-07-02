@@ -24,10 +24,15 @@
 # single thread export overriders any declaration in srun
 export OMP_NUM_THREADS=1
 
+# following two lines required to enable distinct communicators 
+export PMI_UNIVERSE_SIZE=3
+export MPICH_SINGLE_HOST_ENABLED=0
+
 module load openfoam/com/v2106
-module load lammps/13_Jun_2022
+module switch gcc gcc/10.3.0
 module load cray-python
 module load xthi
+
 cd /work/ecseaf01/ecseaf01/gavboi/cpl-library
 source SOURCEME.sh
 cd examples/minimal_send_recv_mocks
