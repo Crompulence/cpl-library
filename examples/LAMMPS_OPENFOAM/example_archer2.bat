@@ -16,7 +16,7 @@ module load cpl-openfoam
 source $FOAM_CPL_APP/SOURCEME.sh
 module load cpl-lammps
 
-# using your own installtion: remove the previous three lines and use these four 'module' lines and three 'source' lines instead
+# using your own installation: remove the previous four lines and use these five 'module' lines and three 'source' lines instead
 # remmeber to update the path to the three SOURCEME.sh files
 #module load openfoam/com/v2106
 #module switch gcc gcc/10.3.0
@@ -27,7 +27,7 @@ module load cpl-lammps
 #source /work/y23/shared/cpl-openfoam-lammps/CPL_APP_OPENFOAM/SOURCEME.sh
 #source /work/y23/shared/cpl-openfoam-lammps/CPL_APP_LAMMPS-DEV/SOURCEME.sh
 
-cd /work/y23/shared/cpl-openfoam-lammps/cpl-library/examples/LAMMPS_OPENFOAM/openfoam
+cd openfoam
 python clean.py -f
 blockMesh
 decomposePar
