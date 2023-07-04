@@ -23,9 +23,9 @@ module load cpl-lammps
 #module load cray-fftw
 #module load cray-python
 #module load matplotlib
-#source /work/y23/shared/cpl-openfoam-lammps/cpl-library/SOURCEME.sh
-#source /work/y23/shared/cpl-openfoam-lammps/CPL_APP_OPENFOAM/SOURCEME.sh
-#source /work/y23/shared/cpl-openfoam-lammps/CPL_APP_LAMMPS-DEV/SOURCEME.sh
+#source /work/y23/y23/gavincpl/cpl-library/SOURCEME.sh
+#source /work/y23/y23/gavincpl/CPL_APP_OPENFOAM/SOURCEME.sh
+#source /work/y23/y23/gavincpl/CPL_APP_LAMMPS-DEV/SOURCEME.sh
 
 cd openfoam
 python clean.py -f
