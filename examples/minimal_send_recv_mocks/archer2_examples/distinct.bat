@@ -36,8 +36,8 @@ SHARED_ARGS="--distribution=block:block --hint=nomultithread"
 srun ${SHARED_ARGS} --het-group=0 xthi &
 srun ${SHARED_ARGS} --het-group=1 xthi &
 wait
-srun ${SHARED_ARGS} --het-group=0 f_CFD &
-srun ${SHARED_ARGS} --het-group=1 f_MD &
+srun ${SHARED_ARGS} --het-group=0 CFD &
+srun ${SHARED_ARGS} --het-group=1 MD &
 wait
 
 
