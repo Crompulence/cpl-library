@@ -21,6 +21,6 @@ SHARED_ARGS="--distribution=block:block --hint=nomultithread"
 
 srun ${SHARED_ARGS} --het-group=0 --nodes=1 --tasks-per-node=1 xthi : --het-group=1 --nodes=1 --tasks-per-node=1 xthi
 
-srun ${SHARED_ARGS} --het-group=0 --nodes=1 --tasks-per-node=1 f_MD : --het-group=1 --nodes=1 --tasks-per-node=1 f_CFD
+srun ${SHARED_ARGS} --het-group=0 --nodes=1 --tasks-per-node=1 MD : --het-group=1 --nodes=1 --tasks-per-node=1 CFD
 
 
