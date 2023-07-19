@@ -109,7 +109,7 @@ program MD_cpl_example
     integer :: nprocs_realm
     integer :: CART_COMM, MD_COMM
     integer, parameter :: md_realm=2
-    integer, dimension(3) :: npxyz, Ncells
+    integer, dimension(3) :: npxyz, Ncells, gNcells
     integer, dimension(6) :: portion, limits
     double precision, parameter :: pi = 3.14159265359
     double precision, dimension(3)  :: xyzL, xyz_orig
@@ -145,6 +145,7 @@ program MD_cpl_example
 
     !Get detail for grid
     call CPL_get_olap_limits(limits)
+    call CPL_get_no_cells(limits, gNcells)
     call CPL_my_proc_portion(limits, portion)
     call CPL_get_no_cells(portion, Ncells)
 
@@ -159,7 +160,7 @@ program MD_cpl_example
         jj = j + portion(3) - 2
         kk = k + portion(5) - 2
 
-        send_array(1,i,j,k) = sin(2.d0*pi*ii/Ncells(1)-0.25d0*jj*pi)*cos(2.d0*pi*kk/Ncells(3))
+        send_array(1,i,j,k) = sin(2.d0*pi*ii/gNcells(1)-0.25d0*jj*pi)*cos(2.d0*pi*kk/gNcells(3))
     enddo
     enddo
     enddo
