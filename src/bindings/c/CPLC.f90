@@ -1265,7 +1265,7 @@ contains
         bind(C, name="CPLC_overlap")
         use CPL, only: CPL_overlap
     
-        CPLC_overlap = CPL_overlap()
+        call F_C_BOOL(CPL_overlap(), CPLC_overlap)
 
     end function CPLC_overlap
 

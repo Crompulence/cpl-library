@@ -52,6 +52,7 @@ Author(s)
 #include "CPLC.h"
 #include "CPL_ndArray.h"
 #include <iostream>
+#include <stdbool.h>
 #include "mpi.h"
 
 // CPL namespace for C++ bindings

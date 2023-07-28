@@ -42,7 +42,7 @@ Description
 
 #include <iostream>
 #include <sstream>
-
+#include <stdbool.h>
 
 ///(cfd+md) Splits MPI_COMM_WORLD in both the CFD and MD code respectively 
 ///and create intercommunicator between CFD and MD
@@ -247,7 +247,7 @@ void CPL::get_arrays(CPL::ndArray<double>* recv_array, int recv_size,
         recv_array->resize(4, recv_shape);
     } else {
       std::cout << "Realm set to : " << realm << 
-        " but should be " << md_realm << " or " << cfd_realm << '\n';
+        " but should be " << md_realm << " or " << cfd_realm << std::endl;
       throw std::runtime_error("Error CPL::get_arrays realm argument not known");
     }
 
@@ -265,7 +265,8 @@ bool CPL::map_md2cfd_coord (double md_coord[], double cfd_coord[]) {
 }
 
 bool CPL::overlap() {
-    return CPLC_overlap();
+    bool overlap = CPLC_overlap();
+    return overlap;
 }
 
 bool CPL::is_proc_inside(int region[]) {
