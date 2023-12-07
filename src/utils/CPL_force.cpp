@@ -370,6 +370,10 @@ std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a
     std::vector<int> cell = get_cell(r);
     //CPL::ndArray<double> array = cfd_array_field->get_array();
 
+//    //std::cout << "CPLForceVelocity::get_force " << m << " " << 
+//    //            r[0] << " " << r[1] << " " << r[2] << " " << v[0] <<  std::endl;
+
+    //Get CFD velocity
     UCFD[0] = cfd_array_field->get_array_value(0, cell[0], cell[1], cell[2]);
     UCFD[1] = cfd_array_field->get_array_value(1, cell[0], cell[1], cell[2]);
     UCFD[2] = cfd_array_field->get_array_value(2, cell[0], cell[1], cell[2]);
@@ -380,34 +384,44 @@ std::vector<double> CPLForceVelocity::get_force(double r[], double v[], double a
     vsum[1] = vSums->get_array_value(1, cell[0], cell[1], cell[2]);
     vsum[2] = vSums->get_array_value(2, cell[0], cell[1], cell[2]);
 
+    //Case with no molecules in cell needs no force
+    if (N < 1.0) {
+        f[0]=0.0; f[1]=0.0; f[2]=0.0;
+    } else {
+        for (int i=0; i<3; i++){
+            f[i] = xi*(UCFD[i] - vsum[i]/N);
+        }
+    }   
+
+//    std::cout << "xi " << xi << " UCFD[0] " << UCFD[0]  
+//              << " vsum[0]/N " << vsum[0]/N << " f[0] = " << f[0] << std::endl;
+
     //Or values from previous timestep
-    int N_mdt = nSums_mdt->get_array_value(0, cell[0], cell[1], cell[2]);
-    vsum_mdt[0] = vSums_mdt->get_array_value(0, cell[0], cell[1], cell[2]);
-    vsum_mdt[1] = vSums_mdt->get_array_value(1, cell[0], cell[1], cell[2]);
-    vsum_mdt[2] = vSums_mdt->get_array_value(2, cell[0], cell[1], cell[2]);
-
-//    //std::cout << "CPLForceVelocity::get_force " << m << " " << 
-//    //            r[0] << " " << r[1] << " " << r[2] << " " << v[0] <<  std::endl;
-
+//    int N_mdt = nSums_mdt->get_array_value(0, cell[0], cell[1], cell[2]);
+//    vsum_mdt[0] = vSums_mdt->get_array_value(0, cell[0], cell[1], cell[2]);
+//    vsum_mdt[1] = vSums_mdt->get_array_value(1, cell[0], cell[1], cell[2]);
+//    vsum_mdt[2] = vSums_mdt->get_array_value(2, cell[0], cell[1], cell[2]);
+//    //Case with no molecules in cell needs no force
+//    if (N_mdt < 1.0) {
+////        std::cout << "Warning: 0 particles in cell (" 
+////                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
+////                  << std::endl;
+//        f[0]=0.0; f[1]=0.0; f[2]=0.0;
+//    } else {
+//        for (int i=0; i<3; i++){
+//            f[i] = xi*(UCFD[i] - vsum_mdt[i]/N_mdt);
+//        }
+//    }   
 
 //    std::cout << "UCFD[0] " << UCFD[0]  << " UCFD[1] " << UCFD[1] << " UCFD[2] " << UCFD[2] 
 //              << " vsum[0] " << vsum[0] << " vsum[1] " << vsum[1] << " vsum[2] " << vsum[2]  
 //              << " vsum_mdt[0] " << vsum_mdt[0] << " vsum_mdt[1] " 
 //              << vsum_mdt[1] << " vsum_mdt[2] " << vsum_mdt[2] << std::endl;
 
-    if (N_mdt < 1.0) {
-//        std::cout << "Warning: 0 particles in cell (" 
-//                  << cell[0] << ", " << cell[1] << ", " << cell[2] << ")"
-//                  << std::endl;
-        f[0]=0.0; f[1]=0.0; f[2]=0.0;
-    } else {
-        for (int i=0; i<3; i++){
-            //f[i] = xi*(UCFD[i] - vsum[i]/N);
-            f[i] = xi*(UCFD[i] - vsum_mdt[i]/N_mdt);
-        }
-    }
+//    std::cout << "xi " << xi << " UCFD[0] " << UCFD[0]  
+//              << " vsum_mdt[0]/N_mdt " << vsum_mdt[0]/N_mdt 
+//              << " f[0] = " << f[0] << std::endl;
 
-    //std::cout << "UCFD[0] " << UCFD[0]  << " vsum[0]/N " << vsum[0]/N << " f[0] = " << f[0] << std::endl;
     return f;
 }
 
