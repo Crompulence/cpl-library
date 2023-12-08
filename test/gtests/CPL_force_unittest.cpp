@@ -789,7 +789,7 @@ TEST_F(CPL_Force_Test, test_velocity_pre_force) {
 }
 
 
-//Test for CPLForceFlekkoy - get force
+//Test for CPLForceVelocity - get force
 TEST_F(CPL_Force_Test, test_velocity_get_force) {
 
     //Call constructor using cell numbers
@@ -824,8 +824,6 @@ TEST_F(CPL_Force_Test, test_velocity_get_force) {
 
     std::vector<double> f(3);
     std::vector<int> cell(3);
-    //Reset sum here as vsum minus dt used in get force 
-    fxyz.resetsums(); 
     trplefor(icell,jcell,kcell){
         r[0] = i/double(icell);
         r[1] = j/double(jcell);
@@ -889,8 +887,6 @@ TEST_F(CPL_Force_Test, test_velocity_get_force_further) {
 
     std::vector<double> f(3);
     std::vector<int> cell(3);
-    //Reset sum here as vsum minus dt used in get force 
-    fxyz.resetsums();
     trplefor(icell,jcell,kcell){
         r[0] = i/double(icell);
         r[1] = j/double(jcell);
