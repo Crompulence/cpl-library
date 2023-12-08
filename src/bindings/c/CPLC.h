@@ -88,6 +88,7 @@ extern "C" void CPLC_map_cell2coord(int i, int j, int k, double coord_xyz[]);
 extern "C" bool CPLC_map_coord2cell(double x,  double y,  double z,  int cell_ijk[]);
 extern "C" void CPLC_get_no_cells(int limits[], int no_cells[]);
 extern "C" bool CPLC_map_glob2loc_cell(int limits[], int glob_cell[], int loc_cell[]);
+extern "C" bool CPLC_map_loc2glob_cell(int limits[], int loc_cell[], int glob_cell[]);
 extern "C" void CPLC_get_olap_limits(int limits[]);
 extern "C" void CPLC_get_cnst_limits(int limits[]);
 extern "C" void CPLC_get_bnry_limits(int limits[]);

@@ -191,6 +191,10 @@ bool CPL::map_glob2loc_cell (int limits[], int glob_cell[], int loc_cell[]) {
     return CPLC_map_glob2loc_cell(limits, glob_cell, loc_cell);
 }
 
+bool CPL::map_loc2glob_cell (int limits[], int loc_cell[], int glob_cell[]) {
+    return CPLC_map_loc2glob_cell(limits, loc_cell, glob_cell);
+}
+
 void CPL::get_olap_limits (int limits[]) {
     CPLC_get_olap_limits(limits);
 }

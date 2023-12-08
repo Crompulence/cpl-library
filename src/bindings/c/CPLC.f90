@@ -1201,6 +1201,34 @@ contains
         loc_cell_f = loc_cell_f - 1
 
     end function CPLC_map_glob2loc_cell
+
+
+    logical(C_BOOL) function CPLC_map_loc2glob_cell(limits, loc_cell, glob_cell) &
+        bind(C, name="CPLC_map_loc2glob_cell")
+        use CPL, only: CPL_map_loc2glob_cell
+    
+        ! Input position
+        type(C_PTR), value :: limits ! (6)
+        type(C_PTR), value :: glob_cell, loc_cell ! (3)
+       
+        ! Fortran equivalent array
+        integer, dimension(:), pointer :: limits_f
+        integer, dimension(:), pointer :: glob_cell_f, loc_cell_f
+       
+        call C_F_POINTER(limits, limits_f, [6])
+        call C_F_POINTER(glob_cell, glob_cell_f, [3])
+        call C_F_POINTER(loc_cell, loc_cell_f, [3])
+
+        limits_f = limits_f + 1
+        glob_cell_f = glob_cell_f + 1
+
+        CPLC_map_loc2glob_cell = CPL_map_loc2glob_cell(limits_f, loc_cell_f, glob_cell_f)
+
+        limits_f = limits_f - 1
+        glob_cell_f = glob_cell_f - 1
+        loc_cell_f = loc_cell_f - 1
+
+    end function CPLC_map_loc2glob_cell
    
 
     subroutine CPLC_get_olap_limits(limits) &

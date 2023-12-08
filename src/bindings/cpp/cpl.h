@@ -92,6 +92,7 @@ namespace CPL
     bool map_coord2cell(double x, double y, double z, int cell_ijk[]);
     void get_no_cells(int limits[], int no_cells[]);
 	bool map_glob2loc_cell(int limits[], int glob_cell[], int loc_cell[]);
+	bool map_loc2glob_cell(int limits[], int loc_cell[], int glob_cell[]);
     void get_olap_limits(int limits[]); 
     void get_cnst_limits(int limits[]);
     void get_bnry_limits(int limits[]);
