@@ -2889,7 +2889,6 @@ function CPL_map_coord2cell(x, y, z, cell_ijk) result(ret)
 end function CPL_map_coord2cell
 
 
-
 !-----------------------------------------------------------------------------
 
 subroutine CPL_get_no_cells(limits, no_cells)
@@ -2904,6 +2903,22 @@ subroutine CPL_get_no_cells(limits, no_cells)
    no_cells(3) = limits(6) - limits(5) + 1
 
 end subroutine CPL_get_no_cells
+
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!Get number of cells assuming limits are portion of processor
+subroutine CPL_get_no_cells_inproc(no_cells)
+
+	integer, intent(out) :: no_cells(3)
+
+	integer  :: limits(6), portion(6)
+
+    call CPL_get_olap_limits(limits)
+    call CPL_my_proc_portion(limits, portion)
+    call CPL_get_no_cells(portion, no_cells)
+
+end subroutine CPL_get_no_cells_inproc
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -2930,6 +2945,33 @@ function CPL_map_glob2loc_cell(limits, glob_cell, loc_cell) result(ret)
     end if
 
 end function CPL_map_glob2loc_cell
+
+!-----------------------------------------------------------------------------
+! I'm not sure this routine makes sense, should always take a portion to
+! map but it's not clear portion of what (const, olap or bndy limits)
+!-----------------------------------------------------------------------------
+function CPL_map_loc2glob_cell(limits, loc_cell, glob_cell) result(ret)
+
+    use coupler_module, only :  VOID, error_abort
+                                
+    integer, intent(in)  :: limits(6)
+    integer, intent(in) :: loc_cell(3)
+    integer, intent(out)  :: glob_cell(3)
+
+	logical ret
+
+    if (is_cell_inside(glob_cell, limits)) then
+		ret = .true.	
+		glob_cell(1) = loc_cell(1) + limits(1) - 1  
+		glob_cell(2) = loc_cell(2) + limits(3) - 1  
+		glob_cell(3) = loc_cell(3) + limits(5) - 1
+	else
+        glob_cell = VOID
+        ret = .false.
+	endif
+
+end function CPL_map_loc2glob_cell
+
 
 !-----------------------------------------------------------------------------
 
