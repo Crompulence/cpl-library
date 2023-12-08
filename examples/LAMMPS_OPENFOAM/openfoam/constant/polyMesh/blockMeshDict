@@ -16,7 +16,7 @@ FoamFile
 
 scale 16.795961913825074;
 
-interp_BC true;
+interp_BC false;
 
 vertices
 (

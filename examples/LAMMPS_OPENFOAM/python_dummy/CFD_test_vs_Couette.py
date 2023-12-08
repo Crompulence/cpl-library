@@ -44,6 +44,7 @@
 
 import numpy as np
 from mpi4py import MPI
+import matplotlib.pyplot as plt
 
 from CouetteAnalytical import CouetteAnalytical as CA
 
@@ -58,7 +59,7 @@ MD_COMM = CPL.init(CPL.CFD_REALM)
 npxyz = [1, 1, 1]
 
 # FCC lattice, plus wall width plus buffer region
-xyzL = [16.795961913825074, 45.349097, 16.795961913825074]
+xyzL = [167.95961913825074, 45.349097, 167.95961913825074]
 xyz_orig = [0.0, 0.0, 0.0]
 ncxyz = [8, 8, 8]
 
@@ -84,8 +85,11 @@ nu = 1.7
 Re = yL_cpl/nu
 CAObj = CA(Re=Re, U=Uwall, Lmin=0.0, Lmax=yL_cpl, npoints=ncy_cpl+2)
 
-
-for time in range(500):
+Uxhist = []
+plt.ion()
+fig, ax = plt.subplots(2,1)
+plt.show()
+for time in range(800):
 
     y_anal, u_anal = CAObj.get_vprofile(time)
 
@@ -96,9 +100,18 @@ for time in range(500):
         
     # recv data and plot
     recv_array, ierr = CPL.recv(recv_array)
-    Ux = np.mean(recv_array[0,:,:,:])/np.mean(recv_array[3,:,:,:])
+    Ux = recv_array[0,:,:,:]/recv_array[3,:,:,:]
+    Ux[np.isnan(Ux)] = 0
 
-    print(("CFD time = ", time, Ux, u_anal[-ncy]))
+    Uxhist.append(Ux)
+    Umean = np.mean(np.array(Uxhist),0)
+    plt.cla()
+    
+    ax[0].pcolormesh(Ux[:,0,:])
+    ax[1].pcolormesh(Umean[:,0,:])
+    plt.pause(0.001)
+
+    print(("CFD time = ", time, Ux.shape, Umean.shape, np.mean(Ux), u_anal[-ncy]), flush=True)
 #    import matplotlib.pyplot as plt
 #    plt.plot(y_anal, u_anal)
 #    plt.plot(y_anal[-ncy], u_anal[-ncy], 'ro')

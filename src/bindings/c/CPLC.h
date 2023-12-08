@@ -47,7 +47,7 @@ Author(s)
 */
 
 #include "mpi.h"
-
+#include <stdbool.h>
 
 extern "C" void CPLC_init_Fort(int  calling_realm, int* returned_realm_comm);
 extern "C" void CPLC_init(int  calling_realm, MPI_Comm* returned_realm_comm);

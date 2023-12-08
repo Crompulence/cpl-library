@@ -105,7 +105,7 @@ fix             3 all wall/reflect yhi EDGE
 
 fix		        5 lowersites setforce 0.0 0.0 0.0
 
-dump            3 all dcd 200 ./lammps/vmd_out.dcd
+#dump            3 all dcd 200 ./lammps/vmd_out.dcd
 thermo          50
 thermo_style	custom step temp epair etotal press pxy
 
@@ -117,11 +117,31 @@ compute        Pressure all stress/atom NULL
 
 
 #Equilibration
-run 10000     
-#write_data output_equil.dat
+run 1000 
 
-compute layers all chunk/atom bin/3d x lower 2.09949524 y lower 1.41715925 z lower 2.09949524 units box ids every
-fix		        6 all ave/chunk 1 200 200 layers vx vy vz temp c_Pressure[1] file ./lammps/3dgrid norm none
+#write_data output_equil.dat
+variable	nx equal 32
+variable	ny equal 32
+variable	nz equal 32
+variable	Nevery equal 1
+variable	Ncount equal 200
+variable	Noutput equal 200
+
+compute layers all chunk/atom bin/3d x lower 2.09949524 y lower 5.668637145915963 z lower 2.09949524 units box ids every
+fix		        6 all ave/chunk ${Nevery} ${Ncount} ${Noutput} layers vx vy vz temp c_Pressure[1] file ./lammps/3dgrid norm none
+
+#Try doing outputs with grids instead as chunks as paralell aware and smaller filesizes
+fix  ave all ave/grid  ${Nevery} ${Ncount} ${Noutput} ${nx} ${ny} ${nz} mass vx vy vz temp c_Pressure[1] norm none
+compute         ave all property/grid ${nx} ${ny} ${nz} id ix iy iz
+dump            vtk1 all grid/vtk ${Noutput} ./grid/Ncount.*.vtr f_ave:grid:data[1]
+dump            vtk2 all grid/vtk ${Noutput} ./grid/velocity.*.vtr f_ave:grid:data[2] f_ave:grid:data[3] f_ave:grid:data[4]
+dump            vtk3 all grid/vtk ${Noutput} ./grid/temp.*.vtr f_ave:grid:data[5]
+dump            vtk4 all grid/vtk ${Noutput} ./grid/Pressure.*.vtr f_ave:grid:data[6]
+
+dump_modify vtk1 pad 8 
+dump_modify vtk2 pad 8
+dump_modify vtk3 pad 8
+dump_modify vtk4 pad 8 
 
 #Main Coupled Run
 fix             cplfix all cpl/init region all forcetype Velocity xi 1.0 sendtype velocity bndryavg below

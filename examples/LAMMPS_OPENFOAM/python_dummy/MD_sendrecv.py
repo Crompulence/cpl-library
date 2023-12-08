@@ -12,7 +12,7 @@ CPL = CPL()
 MD_COMM = CPL.init(CPL.MD_REALM)
 
 # Parameters of the cpu topology (cartesian grid)
-npxyz = [1, 1, 1]
+npxyz = [2, 1, 1]
 NProcs = np.product(npxyz)
 xyzL = np.array([16.795961913825074, 45.349097, 16.795961913825074], order='F', dtype=np.float64)
 xyz_orig = np.array([0.0, 0.0, 0.0], order='F', dtype=np.float64)
@@ -50,7 +50,7 @@ U = 0.5
 N = 10
 
 n = 0
-for time in range(-2,199):
+for time in range(-2,798):
 
     # recv data 
     recv_array, ierr = CPL.recv(recv_array)
@@ -62,7 +62,7 @@ for time in range(-2,199):
 
     CPL.send(send_array) 
 
-    print(("MDTime=", time, np.mean(recv_array[0,:,:,:],(0,2))))       
+    print(("MDTime=", time, np.mean(recv_array[0,:,:,:],(0,2))), flush=True)       
     
 CPL.finalize()
 MPI.Finalize()
